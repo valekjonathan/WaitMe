@@ -195,30 +195,32 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center min-h-[80vh] px-6 gap-6"
+              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6"
             >
-              <div className="text-center mb-8">
-                <Logo size="xl" iconOnly={true} className="mb-6" />
-                <h1 className="text-2xl font-bold">
+              <div className="text-center mb-10">
+                <Logo size="lg" iconOnly={true} className="mb-5" />
+                <h1 className="text-xl font-bold whitespace-nowrap">
                   Cobra por <span className="text-purple-500">avisar</span> de que te vas!
                 </h1>
               </div>
 
-              <Button
-                onClick={() => setMode('search')}
-                className="w-full max-w-sm h-16 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-3"
-              >
-                <MapPin className="w-6 h-6 text-purple-500" />
-                ¿Dónde quieres aparcar?
-              </Button>
+              <div className="w-full max-w-xs space-y-4">
+                <Button
+                  onClick={() => setMode('search')}
+                  className="w-full h-14 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3"
+                >
+                  <MapPin className="w-7 h-7 text-purple-500" />
+                  ¿Dónde quieres aparcar?
+                </Button>
 
-              <Button
-                onClick={() => setMode('create')}
-                className="w-full max-w-sm h-16 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-3"
-              >
-                <Car className="w-6 h-6" />
-                ¡Estoy aparcado aquí!
-              </Button>
+                <Button
+                  onClick={() => setMode('create')}
+                  className="w-full h-14 bg-purple-600 hover:bg-purple-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3"
+                >
+                  <Car className="w-7 h-7" />
+                  ¡Estoy aparcado aquí!
+                </Button>
+              </div>
             </motion.div>
           )}
 
@@ -291,34 +293,36 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-gray-800 px-4 py-3">
+      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-gray-800 px-4 py-2 safe-area-pb">
         <div className="flex items-center justify-around max-w-md mx-auto">
           <Link to={createPageUrl('History')}>
-            <Button variant="ghost" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white h-auto py-2">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <Button variant="ghost" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white h-auto py-1">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-xs">Historial</span>
+              <span className="text-[10px]">Historial</span>
             </Button>
           </Link>
 
           <Button 
             onClick={() => setMode(null)}
-            className="w-16 h-16 rounded-full bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/30 -mt-8"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-green-400 to-yellow-500 hover:opacity-90 shadow-lg -mt-6 flex flex-col items-center justify-center p-0 border-2 border-yellow-400"
+            style={{ boxShadow: '0 0 20px rgba(234, 179, 8, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)' }}
           >
-            <MapPin className="w-8 h-8" />
+            <span className="text-2xl">🌍</span>
+            <span className="text-[8px] font-bold text-white -mt-1">MAPA</span>
           </Button>
 
           <Link to={createPageUrl('Profile')}>
-            <Button variant="ghost" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white h-auto py-2">
+            <Button variant="ghost" className="flex flex-col items-center gap-1 text-gray-400 hover:text-white h-auto py-1">
               {user?.photo_url ? (
-                <img src={user.photo_url} className="w-6 h-6 rounded-md object-cover" alt="" />
+                <img src={user.photo_url} className="w-7 h-7 rounded-lg object-cover" alt="" />
               ) : (
-                <div className="w-6 h-6 rounded-md bg-gray-700 flex items-center justify-center">
-                  <span className="text-xs">👤</span>
-                </div>
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               )}
-              <span className="text-xs">Perfil</span>
+              <span className="text-[10px]">Perfil</span>
             </Button>
           </Link>
         </div>
