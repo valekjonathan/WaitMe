@@ -196,10 +196,10 @@ export default function Home() {
               className="flex flex-col items-center justify-center min-h-[80vh] px-6 gap-6"
             >
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-2">
-                  Cobra por <span className="text-purple-500">avisar</span>
+                <Logo size="lg" className="mb-6" />
+                <h1 className="text-2xl font-bold">
+                  Cobra por <span className="text-purple-500">avisar</span> de que te vas!
                 </h1>
-                <p className="text-gray-400">de que te vas</p>
               </div>
 
               <Button
