@@ -1,39 +1,43 @@
 import React from 'react';
 
-export default function Logo({ size = 'md', className = '', showText = false }) {
+export default function Logo({ size = 'md', className = '', iconOnly = false }) {
   const iconSizes = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-20 h-20',
+    sm: 'w-10 h-10',
+    md: 'w-14 h-14',
+    lg: 'w-24 h-24',
     xl: 'w-32 h-32'
   };
 
-  const lineSizes = {
-    sm: { width: 'w-4', height: 'h-0.5', gap: 'gap-1', square: 'w-1.5 h-1.5' },
-    md: { width: 'w-6', height: 'h-1', gap: 'gap-1.5', square: 'w-2 h-2' },
-    lg: { width: 'w-10', height: 'h-1.5', gap: 'gap-2', square: 'w-3 h-3' },
-    xl: { width: 'w-16', height: 'h-2', gap: 'gap-3', square: 'w-5 h-5' }
+  const arrowSizes = {
+    sm: 'w-5 h-5',
+    md: 'w-7 h-7',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16'
   };
 
-  const s = lineSizes[size];
+  const squareSizes = {
+    sm: 'w-2.5 h-2',
+    md: 'w-3.5 h-2.5',
+    lg: 'w-6 h-4',
+    xl: 'w-8 h-5'
+  };
 
   return (
     <div className={`flex items-center justify-center ${className}`}>
       {/* Icono cuadrado estilo iOS */}
-      <div className={`${iconSizes[size]} bg-black rounded-[22%] flex flex-col items-center justify-center ${s.gap} shadow-lg`}>
-        {/* Línea morada superior */}
-        <div className={`${s.width} ${s.height} bg-purple-500 rounded-full`}></div>
+      <div className={`${iconSizes[size]} bg-black rounded-[22%] flex items-center justify-center gap-1 shadow-lg`}>
+        {/* Flechas de intercambio */}
+        <svg className={`${arrowSizes[size]} text-purple-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
         
         {/* Cuadradito blanco (coche entrando) */}
-        <div className={`${s.square} bg-white rounded-sm`}></div>
-        
-        {/* Línea morada inferior */}
-        <div className={`${s.width} ${s.height} bg-purple-500 rounded-full`}></div>
+        <div className={`${squareSizes[size]} bg-white rounded-sm`}></div>
       </div>
       
-      {/* Texto WaitMe! solo si showText es true */}
-      {showText && (
-        <span className="text-white font-bold ml-3 text-lg tracking-tight">
+      {/* Texto WaitMe! solo si NO es iconOnly */}
+      {!iconOnly && (
+        <span className="text-white font-bold ml-3 text-xl tracking-tight">
           Wait<span className="text-purple-500">Me!</span>
         </span>
       )}

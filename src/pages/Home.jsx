@@ -168,7 +168,9 @@ export default function Home() {
             <div className="w-10" />
           )}
           
-          <Logo size="sm" showText={true} />
+          <span className="text-white font-bold text-xl tracking-tight">
+            Wait<span className="text-purple-500">Me!</span>
+          </span>
           
           <div className="flex items-center gap-2">
             <Link to={createPageUrl('Chats')}>
@@ -196,7 +198,7 @@ export default function Home() {
               className="flex flex-col items-center justify-center min-h-[80vh] px-6 gap-6"
             >
               <div className="text-center mb-8">
-                <Logo size="lg" className="mb-6" />
+                <Logo size="xl" iconOnly={true} className="mb-6" />
                 <h1 className="text-2xl font-bold">
                   Cobra por <span className="text-purple-500">avisar</span> de que te vas!
                 </h1>
