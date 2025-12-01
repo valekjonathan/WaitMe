@@ -168,7 +168,7 @@ export default function Home() {
             <div className="w-10" />
           )}
           
-          <Logo size="sm" />
+          <Logo size="sm" showText={true} />
           
           <div className="flex items-center gap-2">
             <Link to={createPageUrl('Chats')}>
