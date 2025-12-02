@@ -72,8 +72,8 @@ export default function Profile() {
 
   const selectedColor = carColors.find(c => c.value === formData.car_color) || carColors[5];
 
-  const CarIconProfile = ({ color, size = "w-12 h-8" }) => (
-    <svg viewBox="0 0 48 24" className={size} fill="none">
+  const CarIconProfile = ({ color }) => (
+    <svg viewBox="0 0 48 24" style={{ width: '48px', height: '24px' }} fill="none">
       {/* Cuerpo del coche - vista lateral */}
       <path 
         d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" 
