@@ -174,13 +174,13 @@ export default function Home() {
           
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Chats')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-11 h-11">
-                <MessageCircle className="w-7 h-7" />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-12 h-12 rounded-xl">
+                <MessageCircle className="w-8 h-8" strokeWidth={2} />
               </Button>
             </Link>
             <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-11 h-11">
-                <Settings className="w-7 h-7" />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-12 h-12 rounded-xl">
+                <Settings className="w-8 h-8" strokeWidth={2} />
               </Button>
             </Link>
           </div>
@@ -198,11 +198,13 @@ export default function Home() {
               className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6"
             >
               <div className="text-center mb-10">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/b4b70244c_WaitMe.png" 
-                  alt="WaitMe!" 
-                  className="w-28 h-28 mx-auto mb-5 rounded-2xl"
-                />
+                <div className="w-32 h-32 mx-auto mb-5 bg-black flex items-center justify-center">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/b4b70244c_WaitMe.png" 
+                    alt="WaitMe!" 
+                    className="w-28 h-28 rounded-2xl"
+                  />
+                </div>
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Cobra por <span className="text-purple-500">avisar</span> de que te vas!
                 </h1>
@@ -301,7 +303,7 @@ export default function Home() {
         <div className="flex items-center justify-center max-w-md mx-auto">
           <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
             <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-4 rounded-xl">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-xs font-medium">Historial</span>
@@ -322,9 +324,9 @@ export default function Home() {
           <Link to={createPageUrl('Profile')} className="flex-1 flex justify-center">
             <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-4 rounded-xl">
               {user?.photo_url ? (
-                <img src={user.photo_url} className="w-8 h-8 rounded-xl object-cover border-2 border-purple-500" alt="" />
+                <img src={user.photo_url} className="w-9 h-9 rounded-xl object-cover border-2 border-purple-500" alt="" />
               ) : (
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               )}
