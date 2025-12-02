@@ -150,7 +150,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           {mode ? (
             <Button 
@@ -198,13 +198,11 @@ export default function Home() {
               className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6"
             >
               <div className="text-center mb-10">
-                <div className="w-32 h-32 mx-auto mb-5 bg-black flex items-center justify-center">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/b4b70244c_WaitMe.png" 
-                    alt="WaitMe!" 
-                    className="w-28 h-28 rounded-2xl"
-                  />
-                </div>
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/715f8811c_26877F8B-7CB0-4F22-ABB1-D806EA625A85.png" 
+                  alt="WaitMe!" 
+                  className="w-40 h-40 mx-auto mb-5 object-contain"
+                />
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Cobra por <span className="text-purple-500">avisar</span> de que te vas!
                 </h1>
@@ -299,7 +297,7 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t border-gray-800 px-4 py-3 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb">
         <div className="flex items-center justify-center max-w-md mx-auto">
           <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
             <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-4 rounded-xl">

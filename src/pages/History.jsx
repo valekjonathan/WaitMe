@@ -97,9 +97,6 @@ export default function History() {
             <TabsTrigger value="transactions" className="flex-1 data-[state=active]:bg-purple-600">
               Transacciones
             </TabsTrigger>
-            <TabsTrigger value="completed" className="flex-1 data-[state=active]:bg-purple-600">
-              Pasadas
-            </TabsTrigger>
           </TabsList>
 
           {/* Alertas Activas */}
@@ -210,40 +207,6 @@ export default function History() {
             )}
           </TabsContent>
 
-          {/* Alertas Completadas */}
-          <TabsContent value="completed" className="space-y-4">
-            {loadingAlerts ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : completedAlerts.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No tienes alertas pasadas</p>
-              </div>
-            ) : (
-              completedAlerts.map((alert, index) => (
-                <motion.div
-                  key={alert.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-gray-900/50 rounded-xl p-4 border border-gray-800 opacity-60"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    {getStatusBadge(alert.status)}
-                    <span className="text-gray-400 font-bold">{alert.price}€</span>
-                  </div>
-                  
-                  <div className="flex items-start gap-2 text-gray-500 text-sm">
-                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>{alert.address || 'Ubicación marcada'}</span>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </TabsContent>
         </Tabs>
       </main>
     </div>
