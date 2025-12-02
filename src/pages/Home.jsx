@@ -168,7 +168,7 @@ export default function Home() {
             <div className="w-10" />
           )}
           
-          <span className="text-white font-bold text-xl tracking-tight">
+          <span className="text-white font-bold text-xl tracking-tight absolute left-1/2 -translate-x-1/2">
             Wait<span className="text-purple-500">Me!</span>
           </span>
           
