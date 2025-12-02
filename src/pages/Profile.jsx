@@ -72,11 +72,31 @@ export default function Profile() {
 
   const selectedColor = carColors.find(c => c.value === formData.car_color) || carColors[5];
 
-  const CarIcon = ({ color }) => (
-    <svg viewBox="0 0 24 24" className="w-10 h-10" fill={color} stroke="white" strokeWidth="1.5">
-      <path d="M5 11l1.5-4.5h11L19 11M5 11v6h2m-2-6h14m0 0v6h-2m2-6H5m12 6v2h-2v-2m-8 0v2H5v-2m2 0h10" />
-      <circle cx="7.5" cy="14.5" r="1.5" fill="white" />
-      <circle cx="16.5" cy="14.5" r="1.5" fill="white" />
+  const CarIconProfile = ({ color, size = "w-12 h-8" }) => (
+    <svg viewBox="0 0 48 24" className={size} fill="none">
+      {/* Cuerpo del coche - vista lateral */}
+      <path 
+        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" 
+        fill={color} 
+        stroke="white" 
+        strokeWidth="1.5"
+      />
+      {/* Ventanas */}
+      <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
+      {/* Rueda trasera */}
+      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+      <circle cx="14" cy="18" r="2" fill="#666"/>
+      {/* Rueda delantera */}
+      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+      <circle cx="36" cy="18" r="2" fill="#666"/>
+    </svg>
+  );
+  
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5"/>
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1"/>
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1"/>
     </svg>
   );
 
@@ -137,18 +157,27 @@ export default function Profile() {
               </div>
 
               {/* Info */}
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
                 
-                <div className="mt-4 flex items-center gap-3">
-                  <CarIcon color={selectedColor?.fill} />
+                <div className="flex items-center gap-3">
+                  <CarIconProfile color={selectedColor?.fill} />
                   <div>
                     <p className="text-white font-medium text-sm">
                       {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
                     </p>
-                    <p className="text-gray-400 text-xs font-mono">
-                      {formData.car_plate || '----XXX'}
-                    </p>
+                  </div>
+                </div>
+
+                {/* Matrícula estilo placa */}
+                <div className="mt-2 flex items-center">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">E</span>
+                    </div>
+                    <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                      {formData.car_plate || '0000 XXX'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -159,7 +188,7 @@ export default function Profile() {
           <div className="space-y-4">
             {/* Nombre editable */}
             <div className="space-y-2">
-              <Label className="text-gray-400">Nombre (máx. 15 caracteres)</Label>
+              <Label className="text-gray-400">Nombre</Label>
               <Input
                 value={formData.display_name}
                 onChange={(e) => setFormData({ ...formData, display_name: e.target.value.slice(0, 15) })}
@@ -170,7 +199,6 @@ export default function Profile() {
             </div>
 
             <h2 className="text-lg font-semibold flex items-center justify-center gap-2 pt-2">
-              <Car className="w-5 h-5 text-purple-500" />
               Datos del vehículo
             </h2>
 
@@ -209,7 +237,7 @@ export default function Profile() {
                   {carColors.map((color) => (
                     <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
-                        <CarIcon color={color.fill} />
+                        <CarIconSmall color={color.fill} />
                         {color.label}
                       </div>
                     </SelectItem>
@@ -220,19 +248,13 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label className="text-gray-400">Matrícula</Label>
-              {/* Placa de matrícula */}
-              <div className="relative">
-                <div className="absolute left-0 top-0 bottom-0 w-8 bg-blue-600 rounded-l-md flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">E</span>
-                </div>
-                <Input
-                  value={formData.car_plate}
-                  onChange={(e) => setFormData({ ...formData, car_plate: e.target.value.toUpperCase() })}
-                  placeholder="1234 ABC"
-                  className="bg-white text-black font-mono uppercase text-center text-lg font-bold pl-10 pr-4 py-6 rounded-md border-2 border-gray-400"
-                  maxLength={7}
-                />
-              </div>
+              <Input
+                value={formData.car_plate}
+                onChange={(e) => setFormData({ ...formData, car_plate: e.target.value.toUpperCase() })}
+                placeholder="1234 ABC"
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center"
+                maxLength={7}
+              />
             </div>
           </div>
         </motion.div>
