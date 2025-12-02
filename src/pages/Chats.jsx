@@ -26,16 +26,16 @@ export default function Chats() {
   }, []);
 
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['myChats', user?.id],
+    queryKey: ['myChats', user?.email],
     queryFn: async () => {
       // Obtener todos los mensajes donde soy emisor o receptor
       const [sent, received] = await Promise.all([
-        base44.entities.ChatMessage.filter({ sender_id: user?.id }),
-        base44.entities.ChatMessage.filter({ receiver_id: user?.id })
+        base44.entities.ChatMessage.filter({ sender_id: user?.email }),
+        base44.entities.ChatMessage.filter({ receiver_id: user?.email })
       ]);
       return [...sent, ...received];
     },
-    enabled: !!user?.id
+    enabled: !!user?.email
   });
 
   // Agrupar mensajes por conversación (alert_id + otro usuario)
@@ -43,8 +43,8 @@ export default function Chats() {
     const convMap = new Map();
     
     messages.forEach(msg => {
-      const otherUserId = msg.sender_id === user?.id ? msg.receiver_id : msg.sender_id;
-      const otherUserName = msg.sender_id === user?.id ? 'Usuario' : msg.sender_name;
+      const otherUserId = msg.sender_id === user?.email ? msg.receiver_id : msg.sender_id;
+      const otherUserName = msg.sender_id === user?.email ? 'Usuario' : msg.sender_name;
       const key = `${msg.alert_id}-${otherUserId}`;
       
       if (!convMap.has(key)) {
@@ -63,7 +63,7 @@ export default function Chats() {
       }
       
       // Contar no leídos
-      if (msg.receiver_id === user?.id && !msg.read) {
+      if (msg.receiver_id === user?.email && !msg.read) {
         convMap.get(key).unread++;
       }
     });
@@ -71,7 +71,7 @@ export default function Chats() {
     return Array.from(convMap.values()).sort((a, b) => 
       new Date(b.lastMessage.created_date) - new Date(a.lastMessage.created_date)
     );
-  }, [messages, user?.id]);
+  }, [messages, user?.email]);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -129,7 +129,7 @@ export default function Chats() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-400 truncate">
-                      {conv.lastMessage.sender_id === user?.id && (
+                      {conv.lastMessage.sender_id === user?.email && (
                         <span className="text-gray-500">Tú: </span>
                       )}
                       {conv.lastMessage.message}

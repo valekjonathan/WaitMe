@@ -49,8 +49,8 @@ export default function Chat() {
       const allMessages = await base44.entities.ChatMessage.filter({ alert_id: alertId });
       return allMessages
         .filter(m => 
-          (m.sender_id === user?.id && m.receiver_id === otherUserId) ||
-          (m.sender_id === otherUserId && m.receiver_id === user?.id)
+          (m.sender_id === user?.email && m.receiver_id === otherUserId) ||
+          (m.sender_id === otherUserId && m.receiver_id === user?.email)
         )
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
     },
@@ -61,15 +61,15 @@ export default function Chat() {
   // Marcar como leídos
   useEffect(() => {
     const markAsRead = async () => {
-      const unread = messages.filter(m => m.receiver_id === user?.id && !m.read);
+      const unread = messages.filter(m => m.receiver_id === user?.email && !m.read);
       for (const msg of unread) {
         await base44.entities.ChatMessage.update(msg.id, { read: true });
       }
     };
-    if (messages.length > 0 && user?.id) {
+    if (messages.length > 0 && user?.email) {
       markAsRead();
     }
-  }, [messages, user?.id]);
+  }, [messages, user?.email]);
 
   // Scroll al final
   useEffect(() => {
@@ -166,7 +166,7 @@ export default function Chat() {
           </div>
         ) : (
           messages.map((msg, index) => {
-            const isMine = msg.sender_id === user?.id;
+            const isMine = msg.sender_id === user?.email;
             const showDate = index === 0 || 
               format(new Date(msg.created_date), 'yyyy-MM-dd') !== 
               format(new Date(messages[index - 1].created_date), 'yyyy-MM-dd');

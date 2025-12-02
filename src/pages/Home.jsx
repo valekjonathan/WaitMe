@@ -36,6 +36,17 @@ export default function Home() {
     fetchUser();
   }, []);
 
+  // Obtener mensajes no leídos
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['unreadMessages', user?.email],
+    queryFn: async () => {
+      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
+      return messages.length;
+    },
+    enabled: !!user?.email,
+    refetchInterval: 5000
+  });
+
   // Obtener alertas activas
   const { data: alerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
@@ -166,8 +177,8 @@ export default function Home() {
             </Button>
           ) : (
             <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-10 h-10 rounded-xl">
-                <Settings className="w-6 h-6" strokeWidth={2} />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-12 h-12 rounded-xl">
+                <Settings className="w-8 h-8" strokeWidth={2} />
               </Button>
             </Link>
           )}
@@ -181,10 +192,15 @@ export default function Home() {
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
-            <Link to={createPageUrl('Chats')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-10 h-10 rounded-xl">
-                <MessageCircle className="w-6 h-6" strokeWidth={2} />
+            <Link to={createPageUrl('Chats')} className="relative">
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-12 h-12 rounded-xl">
+                <MessageCircle className="w-8 h-8" strokeWidth={2} />
               </Button>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
@@ -207,24 +223,24 @@ export default function Home() {
                   className="w-40 h-40 mx-auto mb-5 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap">
-                  Cobra por <span className="text-purple-500">avisar</span> de que te vas!
+                  Aparca donde te <span className="text-purple-500">avisen</span>
                 </h1>
               </div>
 
               <div className="w-full max-w-xs space-y-4">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-14 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3"
+                  className="w-full h-16 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <MapPin className="w-8 h-8 text-purple-500" />
+                  <MapPin className="w-10 h-10 text-purple-500" />
                   ¿Dónde quieres aparcar?
                 </Button>
 
                 <Button
                   onClick={() => setMode('create')}
-                  className="w-full h-14 bg-purple-600 hover:bg-purple-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3"
+                  className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <Car className="w-8 h-8" />
+                  <Car className="w-10 h-10" />
                   ¡Estoy aparcado aquí!
                 </Button>
               </div>
@@ -301,40 +317,40 @@ export default function Home() {
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-2 safe-area-pb">
-        <div className="flex items-center justify-center max-w-md mx-auto">
-          <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
-            <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-[10px] font-medium">Historial</span>
-            </Button>
-          </Link>
+      <div className="flex items-center justify-center max-w-md mx-auto">
+      <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
+        <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-[10px] font-medium">Historial</span>
+        </Button>
+      </Link>
 
-          <div className="flex justify-center px-4">
-            <Button 
-              onClick={() => setMode(null)}
-              className="w-24 h-24 rounded-full bg-purple-600 hover:bg-purple-500 shadow-xl -mt-12 mb-0 flex flex-col items-center justify-center p-0 border-4 border-purple-400"
-              style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.6), 0 0 60px rgba(168, 85, 247, 0.3)' }}
-            >
-              <span className="text-4xl">🌍</span>
-              <span className="text-[10px] font-bold text-white -mt-1">MAPA</span>
-            </Button>
-          </div>
+      <div className="flex justify-center px-4">
+        <Button 
+          onClick={() => setMode('search')}
+          className="w-24 h-24 rounded-full bg-purple-600 hover:bg-purple-500 shadow-xl -mt-12 mb-0 flex flex-col items-center justify-center p-0 border-4 border-purple-400"
+          style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.6), 0 0 60px rgba(168, 85, 247, 0.3)' }}
+        >
+          <span className="text-4xl">🌍</span>
+          <span className="text-[10px] font-bold text-white -mt-1">MAPA</span>
+        </Button>
+      </div>
 
-          <Link to={createPageUrl('Profile')} className="flex-1 flex justify-center">
-            <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
-              {user?.photo_url ? (
-                <img src={user.photo_url} className="w-6 h-6 rounded-lg object-cover border border-purple-500" alt="" />
-              ) : (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              )}
-              <span className="text-[10px] font-medium">Perfil</span>
-            </Button>
-          </Link>
-        </div>
+      <Link to={createPageUrl('Profile')} className="flex-1 flex justify-center">
+        <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
+          {user?.photo_url ? (
+            <img src={user.photo_url} className="w-8 h-8 rounded-lg object-cover border border-purple-500" alt="" />
+          ) : (
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          )}
+          <span className="text-[10px] font-medium">Perfil</span>
+        </Button>
+      </Link>
+      </div>
       </nav>
 
       {/* Confirm Dialog */}
