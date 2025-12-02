@@ -303,7 +303,7 @@ export default function Home() {
         <div className="flex items-center justify-center max-w-md mx-auto">
           <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
             <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-4 rounded-xl">
-              <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-xs font-medium">Historial</span>
