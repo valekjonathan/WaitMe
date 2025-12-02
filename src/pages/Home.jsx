@@ -58,7 +58,8 @@ export default function Home() {
     mutationFn: async (alertData) => {
       const newAlert = await base44.entities.ParkingAlert.create({
         user_id: user?.id,
-        user_name: user?.full_name || 'Usuario',
+        user_email: user?.email,
+        user_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
         user_photo: user?.photo_url,
         car_brand: user?.car_brand || 'Sin especificar',
         car_model: user?.car_model || '',
@@ -104,7 +105,8 @@ export default function Home() {
       await base44.entities.ParkingAlert.update(alert.id, {
         status: 'reserved',
         reserved_by_id: user?.id,
-        reserved_by_name: user?.full_name,
+        reserved_by_email: user?.email,
+        reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0],
         reserved_by_car: `${user?.car_brand} ${user?.car_model} ${user?.car_color}`,
         reserved_by_plate: user?.car_plate
       });
@@ -149,7 +151,7 @@ export default function Home() {
   };
 
   const handleChat = (alert) => {
-    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&oderId=${alert.created_by}`);
+    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
   };
 
   const handleCall = (alert) => {
