@@ -149,7 +149,7 @@ export default function Home() {
   };
 
   const handleChat = (alert) => {
-    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_id}`);
+    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&oderId=${alert.created_by}`);
   };
 
   const handleCall = (alert) => {
