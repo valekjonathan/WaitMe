@@ -79,14 +79,16 @@ export default function Chat() {
   // Enviar mensaje
   const sendMutation = useMutation({
     mutationFn: async (message) => {
-      return base44.entities.ChatMessage.create({
+      const msgData = {
         alert_id: alertId,
-        sender_id: user?.id,
-        sender_name: user?.full_name,
+        sender_id: user?.email || user?.id,
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
         receiver_id: otherUserId,
         message: message,
         read: false
-      });
+      };
+      console.log('Enviando mensaje:', msgData);
+      return base44.entities.ChatMessage.create(msgData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
@@ -95,7 +97,7 @@ export default function Chat() {
   });
 
   const handleSend = () => {
-    if (newMessage.trim()) {
+    if (newMessage.trim() && user) {
       sendMutation.mutate(newMessage.trim());
     }
   };
@@ -213,10 +215,14 @@ export default function Chat() {
           />
           <Button
             onClick={handleSend}
-            disabled={!newMessage.trim() || sendMutation.isPending}
+            disabled={!newMessage.trim() || sendMutation.isPending || !user}
             className="bg-purple-600 hover:bg-purple-700 rounded-full w-12 h-10"
           >
-            <Send className="w-5 h-5" />
+            {sendMutation.isPending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
           </Button>
         </div>
       </div>
