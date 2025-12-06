@@ -178,7 +178,7 @@ export default function Home() {
               <ArrowLeft className="w-6 h-6" />
             </Button>
           ) : (
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1 ml-2">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
           )}
@@ -187,7 +187,7 @@ export default function Home() {
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
           </span>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
                 <Settings className="w-12 h-12" strokeWidth={3} />
@@ -215,23 +215,23 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6"
+              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8"
             >
-              <div className="text-center mb-10 w-full flex flex-col items-center">
+              <div className="text-center mb-8 w-full flex flex-col items-center">
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" 
                   alt="WaitMe!" 
-                  className="w-48 h-48 mb-8 object-contain"
+                  className="w-48 h-48 mb-6 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
-              <div className="w-full max-w-xs mx-auto space-y-4">
+              <div className="w-full max-w-sm mx-auto space-y-4">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-18 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   <MapPin className="w-12 h-12 text-purple-500" strokeWidth={2.5} />
                   ¿Dónde quieres aparcar?
@@ -239,7 +239,7 @@ export default function Home() {
 
                 <Button
                   onClick={() => setMode('create')}
-                  className="w-full h-18 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   <Car className="w-12 h-12" strokeWidth={2.5} />
                   ¡Estoy aparcado aquí!
