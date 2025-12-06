@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BottomNav from '@/components/BottomNav';
 
 export default function Chats() {
   const [user, setUser] = useState(null);
@@ -88,7 +89,7 @@ export default function Chats() {
         </div>
       </header>
 
-      <main className="pt-16 pb-8">
+      <main className="pt-16 pb-24">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
@@ -147,7 +148,9 @@ export default function Chats() {
             ))}
           </div>
         )}
-      </main>
-    </div>
-  );
-}
+        </main>
+
+        <BottomNav />
+        </div>
+        );
+        }

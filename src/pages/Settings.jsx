@@ -84,7 +84,7 @@ export default function Settings() {
         </div>
       </header>
 
-      <main className="pt-20 pb-8 px-4 max-w-md mx-auto">
+      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -208,6 +208,8 @@ export default function Settings() {
           </div>
         </motion.div>
       </main>
+      
+      <BottomNav />
     </div>
   );
 }

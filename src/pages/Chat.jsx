@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BottomNav from '@/components/BottomNav';
 
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -204,7 +205,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-gray-800 p-4 bg-black">
+      <div className="border-t border-gray-800 p-4 bg-black pb-24">
         <div className="flex gap-2">
           <Input
             value={newMessage}
@@ -225,7 +226,9 @@ export default function Chat() {
             )}
           </Button>
         </div>
-      </div>
-    </div>
-  );
-}
+        </div>
+        </div>
+
+        <BottomNav />
+        );
+        }

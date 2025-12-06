@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BottomNav from '@/components/BottomNav';
 
 export default function History() {
   const [user, setUser] = useState(null);
@@ -88,7 +89,7 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-20 pb-8 px-4">
+      <main className="pt-20 pb-24 px-4">
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-6">
             <TabsTrigger value="active" className="flex-1 data-[state=active]:bg-purple-600">
@@ -129,6 +130,7 @@ export default function History() {
                         </Badge>
                       )}
                     </div>
+                    <span className="text-purple-400 font-bold">{alert.price}€</span>
                   </div>
                   
                   <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
@@ -136,16 +138,16 @@ export default function History() {
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-500 text-xs">
-                      <Clock className="w-3 h-3" />
-                      <span>Se va en {alert.available_in_minutes} min • {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                    </div>
-                    <span className="text-purple-400 font-bold">{alert.price}€</span>
+                  <div className="flex items-center gap-2 text-gray-500 text-xs">
+                    <Clock className="w-3 h-3" />
+                    <span>Se va en {alert.available_in_minutes} min • {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
 
                   {alert.status === 'reserved' && alert.reserved_by_name && (
                     <div className="mt-3 pt-3 border-t border-gray-800">
+                      <p className="text-sm text-gray-400">
+                        Reservado hasta: <span className="text-green-400 font-medium">{format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      </p>
                       <p className="text-sm text-green-400">
                         ✓ Reservado por <span className="font-medium">{alert.reserved_by_name.split(' ')[0]}</span>
                       </p>
@@ -217,6 +219,8 @@ export default function History() {
 
         </Tabs>
       </main>
+      
+      <BottomNav />
     </div>
   );
 }

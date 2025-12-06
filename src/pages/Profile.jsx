@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
+import BottomNav from '@/components/BottomNav';
 
 const carColors = [
 { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -121,7 +122,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="pt-20 pb-8 px-4 max-w-md mx-auto">
+      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -258,7 +259,9 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
-      </main>
-    </div>);
+        </main>
 
-}
+        <BottomNav />
+        </div>);
+
+        }
