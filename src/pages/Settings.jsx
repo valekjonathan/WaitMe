@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
+import BottomNav from '@/components/BottomNav';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
