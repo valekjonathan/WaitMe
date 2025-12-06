@@ -178,25 +178,27 @@ export default function Home() {
               <ArrowLeft className="w-6 h-6" />
             </Button>
           ) : (
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-14 h-14 rounded-xl">
-                <Settings className="w-9 h-9" strokeWidth={2.5} />
-              </Button>
-            </Link>
+            <div className="w-14" />
           )}
+          
+          {/* Créditos a la izquierda */}
+          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+            <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+          </div>
           
           <span className="text-white font-bold text-xl tracking-tight absolute left-1/2 -translate-x-1/2">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
           </span>
           
           <div className="flex items-center gap-2">
-            {/* Créditos */}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-            </div>
+            <Link to={createPageUrl('Settings')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-14 h-14 rounded-xl">
+                <Settings className="w-10 h-10" strokeWidth={3} />
+              </Button>
+            </Link>
             <Link to={createPageUrl('Chats')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-14 h-14 rounded-xl">
-                <MessageCircle className="w-9 h-9" strokeWidth={2.5} />
+                <MessageCircle className="w-10 h-10" strokeWidth={3} />
               </Button>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -222,10 +224,10 @@ export default function Home() {
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" 
                   alt="WaitMe!" 
-                  className="w-48 h-48 mx-auto mb-5 object-contain"
+                  className="w-48 h-48 mx-auto mb-8 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap">
-                  ¡Aparca donde te <span className="text-purple-500">avisen</span>!
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
@@ -322,8 +324,8 @@ export default function Home() {
       <div className="flex items-center justify-center max-w-md mx-auto">
       <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
         <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
-          <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-[10px] font-bold">Historial</span>
         </Button>
