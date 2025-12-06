@@ -178,13 +178,10 @@ export default function Home() {
               <ArrowLeft className="w-6 h-6" />
             </Button>
           ) : (
-            <div className="w-14" />
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+            </div>
           )}
-          
-          {/* Créditos a la izquierda */}
-          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-            <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-          </div>
           
           <span className="text-white font-bold text-xl tracking-tight absolute left-1/2 -translate-x-1/2">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
@@ -192,13 +189,13 @@ export default function Home() {
           
           <div className="flex items-center gap-2">
             <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-14 h-14 rounded-xl">
-                <Settings className="w-10 h-10" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
+                <Settings className="w-12 h-12" strokeWidth={3} />
               </Button>
             </Link>
             <Link to={createPageUrl('Chats')} className="relative">
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-14 h-14 rounded-xl">
-                <MessageCircle className="w-10 h-10" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
+                <MessageCircle className="w-12 h-12" strokeWidth={3} />
               </Button>
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -220,31 +217,31 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6"
             >
-              <div className="text-center mb-10">
+              <div className="text-center mb-10 w-full flex flex-col items-center">
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" 
                   alt="WaitMe!" 
-                  className="w-48 h-48 mx-auto mb-8 object-contain"
+                  className="w-48 h-48 mb-8 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
-              <div className="w-full max-w-xs space-y-4">
+              <div className="w-full max-w-xs mx-auto space-y-4">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-16 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-18 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <MapPin className="w-10 h-10 text-purple-500" />
+                  <MapPin className="w-12 h-12 text-purple-500" strokeWidth={2.5} />
                   ¿Dónde quieres aparcar?
                 </Button>
 
                 <Button
                   onClick={() => setMode('create')}
-                  className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-18 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <Car className="w-10 h-10" />
+                  <Car className="w-12 h-12" strokeWidth={2.5} />
                   ¡Estoy aparcado aquí!
                 </Button>
               </div>
@@ -324,7 +321,7 @@ export default function Home() {
       <div className="flex items-center justify-center max-w-md mx-auto">
       <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
         <Button variant="ghost" className="flex flex-col items-center gap-0.5 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-1 px-3 rounded-lg">
-          <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-11 h-11" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-[10px] font-bold">Historial</span>
