@@ -121,8 +121,14 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-4 border border-gray-800"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    {getStatusBadge(alert.status)}
-                    <span className="text-purple-400 font-bold">{alert.price}€</span>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(alert.status)}
+                      {alert.status === 'active' && (
+                        <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                          Tu oferta
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
@@ -130,17 +136,19 @@ export default function History() {
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-gray-500 text-xs">
-                    <Clock className="w-3 h-3" />
-                    <span>Se va en {alert.available_in_minutes} min</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-gray-500 text-xs">
+                      <Clock className="w-3 h-3" />
+                      <span>Se va en {alert.available_in_minutes} min • {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                    </div>
+                    <span className="text-purple-400 font-bold">{alert.price}€</span>
                   </div>
 
                   {alert.status === 'reserved' && alert.reserved_by_name && (
                     <div className="mt-3 pt-3 border-t border-gray-800">
                       <p className="text-sm text-green-400">
-                        ✓ Reservado por <span className="font-medium">{alert.reserved_by_name}</span>
+                        ✓ Reservado por <span className="font-medium">{alert.reserved_by_name.split(' ')[0]}</span>
                       </p>
-                      <p className="text-xs text-gray-500">{alert.reserved_by_car}</p>
                     </div>
                   )}
                 </motion.div>
