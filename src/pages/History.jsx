@@ -124,33 +124,30 @@ export default function History() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {getStatusBadge(alert.status)}
-                      {alert.status === 'active' && (
+                      {alert.status === 'active' && alert.user_id === user?.id && (
                         <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                          Tu oferta
+                          Tu alerta
                         </Badge>
                       )}
                     </div>
-                    <span className="text-purple-400 font-bold">{alert.price}€</span>
+                    <span className="text-purple-400 font-bold text-lg">{alert.price}€</span>
                   </div>
-                  
+
                   <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-gray-500 text-xs">
+
+                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-2">
                     <Clock className="w-3 h-3" />
-                    <span>Se va en {alert.available_in_minutes} min • {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                    <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
+                    <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
 
                   {alert.status === 'reserved' && alert.reserved_by_name && (
-                    <div className="mt-3 pt-3 border-t border-gray-800">
-                      <p className="text-sm text-gray-400">
-                        Reservado hasta: <span className="text-green-400 font-medium">{format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                      </p>
-                      <p className="text-sm text-green-400">
-                        ✓ Reservado por <span className="font-medium">{alert.reserved_by_name.split(' ')[0]}</span>
-                      </p>
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <span>Reservado hasta: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      <span>✓ Reservado por {alert.reserved_by_name.split(' ')[0]}</span>
                     </div>
                   )}
                 </motion.div>
