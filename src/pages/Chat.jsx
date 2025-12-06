@@ -226,9 +226,9 @@ export default function Chat() {
             )}
           </Button>
         </div>
-        </div>
-        </div>
+      </div>
 
-        <BottomNav />
-        );
-        }
+      <BottomNav />
+    </div>
+  );
+}
