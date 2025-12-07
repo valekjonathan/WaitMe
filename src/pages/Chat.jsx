@@ -127,9 +127,13 @@ export default function Chat() {
         </Link>
         
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-            <User className="w-5 h-5 text-gray-500" />
-          </div>
+          {alert?.user_photo ? (
+            <img src={alert.user_photo} className="w-10 h-10 rounded-full object-cover" alt={otherUserName} />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
+              {otherUserName?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
+          )}
           <div>
             <p className="font-medium">{otherUserName}</p>
             {alert && (
@@ -182,8 +186,13 @@ export default function Chat() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                 >
+                  {!isMine && (
+                    <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {msg.sender_name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                       isMine
