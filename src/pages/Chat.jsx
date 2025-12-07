@@ -119,44 +119,62 @@ export default function Chat() {
   return (
     <div className="h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="bg-black/90 backdrop-blur-sm border-b border-gray-800 px-4 py-3 flex items-center gap-4">
-        <Link to={createPageUrl('Chats')}>
-          <Button variant="ghost" size="icon" className="text-white">
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-        </Link>
-        
-        <div className="flex items-center gap-3 flex-1">
-          {alert?.user_photo ? (
-            <img src={alert.user_photo} className="w-10 h-10 rounded-full object-cover" alt={otherUserName} />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
-              {otherUserName?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
-          )}
-          <div>
-            <p className="font-medium">{otherUserName}</p>
-            {alert && (
-              <p className="text-xs text-gray-400">
-                {alert.car_brand} {alert.car_model} • {alert.car_plate}
-              </p>
+      <header className="bg-black/90 backdrop-blur-sm border-b border-gray-800 px-4 py-4">
+        <div className="flex items-center gap-4 mb-3">
+          <Link to={createPageUrl('Chats')}>
+            <Button variant="ghost" size="icon" className="text-white">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          </Link>
+          
+          <div className="flex items-center gap-3 flex-1">
+            {alert?.user_photo ? (
+              <img src={alert.user_photo} className="w-12 h-12 rounded-full object-cover border-2 border-purple-500" alt={otherUserName} />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-purple-500">
+                {otherUserName?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
             )}
+            <div className="flex-1">
+              <p className="font-bold text-lg">{otherUserName}</p>
+              <p className="text-xs text-gray-500">En línea</p>
+            </div>
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className={canCall ? 'text-green-400' : 'text-gray-600'}
+            onClick={() => canCall && (window.location.href = `tel:${alert.phone}`)}
+            disabled={!canCall}
+          >
+            {canCall ? (
+              <Phone className="w-5 h-5" />
+            ) : (
+              <PhoneOff className="w-5 h-5" />
+            )}
+          </Button>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={canCall ? 'text-green-400' : 'text-gray-600'}
-          onClick={() => canCall && (window.location.href = `tel:${alert.phone}`)}
-          disabled={!canCall}
-        >
-          {canCall ? (
-            <Phone className="w-5 h-5" />
-          ) : (
-            <PhoneOff className="w-5 h-5" />
-          )}
-        </Button>
+        {/* Info del coche */}
+        {alert && (
+          <div className="bg-gray-900/50 rounded-xl p-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg viewBox="0 0 48 24" className="w-10 h-6" fill="none">
+                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={alert.car_color === 'blanco' ? '#FFFFFF' : alert.car_color === 'negro' ? '#1a1a1a' : alert.car_color === 'rojo' ? '#ef4444' : alert.car_color === 'azul' ? '#3b82f6' : alert.car_color === 'amarillo' ? '#facc15' : '#6b7280'} stroke="white" strokeWidth="1.5" />
+                <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+              </svg>
+              <div>
+                <p className="text-white text-sm font-medium">{alert.car_brand} {alert.car_model}</p>
+                <p className="text-gray-400 text-xs">Color {alert.car_color}</p>
+              </div>
+            </div>
+            <div className="bg-gray-800 px-3 py-1 rounded-lg border border-gray-700">
+              <p className="text-white font-mono text-sm">{alert.car_plate}</p>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Messages */}
