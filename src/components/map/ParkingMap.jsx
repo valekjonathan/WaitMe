@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Car } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Polyline } from 'react-leaflet';
+import { Car, Navigation } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { Button } from '@/components/ui/button';
 
 // Fix para iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -117,9 +118,36 @@ export default function ParkingMap({
   selectedPosition,
   setSelectedPosition,
   userLocation,
+  selectedAlert,
+  showRoute = false,
   className = ''
 }) {
-  const defaultCenter = userLocation || [40.4168, -3.7038]; // Madrid por defecto
+  const defaultCenter = userLocation || [40.4168, -3.7038];
+  const [route, setRoute] = useState(null);
+  const [routeDistance, setRouteDistance] = useState(null);
+
+  // Calcular ruta cuando se selecciona una alerta
+  useEffect(() => {
+    if (showRoute && selectedAlert && userLocation) {
+      const start = { lat: userLocation[0], lng: userLocation[1] };
+      const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
+      
+      // Usar OSRM para calcular la ruta
+      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.routes && data.routes[0]) {
+            const coords = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            setRoute(coords);
+            setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
+          }
+        })
+        .catch(err => console.log('Error calculando ruta:', err));
+    } else {
+      setRoute(null);
+      setRouteDistance(null);
+    }
+  }, [showRoute, selectedAlert, userLocation]);
 
   return (
     <div className={`relative ${className}`}>
@@ -136,6 +164,13 @@ export default function ParkingMap({
         
         {userLocation && <FlyToLocation position={userLocation} />}
         
+        {/* Marcador de ubicación del usuario */}
+        {userLocation && (
+          <Marker position={userLocation}>
+            <Popup>Tu ubicación</Popup>
+          </Marker>
+        )}
+        
         {isSelecting && (
           <LocationMarker 
             position={selectedPosition} 
@@ -144,6 +179,18 @@ export default function ParkingMap({
           />
         )}
         
+        {/* Ruta */}
+        {route && (
+          <Polyline 
+            positions={route} 
+            color="#a855f7" 
+            weight={4}
+            opacity={0.8}
+            dashArray="10, 10"
+          />
+        )}
+        
+        {/* Alertas */}
         {alerts.map((alert) => (
           <Marker
             key={alert.id}
@@ -163,6 +210,16 @@ export default function ParkingMap({
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Información de ruta */}
+      {routeDistance && (
+        <div className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm rounded-xl px-4 py-2 border border-purple-500/30">
+          <div className="flex items-center gap-2 text-white">
+            <Navigation className="w-4 h-4 text-purple-400" />
+            <span className="text-sm font-bold">{routeDistance} km</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

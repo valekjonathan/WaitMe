@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, MessageCircle, MapPin, Car, X, ArrowLeft } from 'lucide-react';
+import { Settings, MessageCircle, MapPin, Car, X, ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,7 @@ import Logo from '@/components/Logo';
 import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
+import MapFilters from '@/components/map/MapFilters';
 
 export default function Home() {
   const [mode, setMode] = useState(null); // null, 'search', 'create'
@@ -20,6 +21,12 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
   const [user, setUser] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    maxPrice: 10,
+    maxMinutes: 60,
+    maxDistance: 5
+  });
   
   const queryClient = useQueryClient();
 
@@ -48,10 +55,44 @@ export default function Home() {
   });
 
   // Obtener alertas activas
-  const { data: alerts = [], isLoading: loadingAlerts } = useQuery({
+  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
+    refetchInterval: 5000 // Actualizar cada 5 segundos
   });
+
+  // Filtrar alertas según criterios
+  const alerts = rawAlerts.filter(alert => {
+    // Filtro de precio
+    if (alert.price > filters.maxPrice) return false;
+    
+    // Filtro de disponibilidad
+    if (alert.available_in_minutes > filters.maxMinutes) return false;
+    
+    // Filtro de distancia
+    if (userLocation) {
+      const distance = calculateDistance(
+        userLocation[0], userLocation[1],
+        alert.latitude, alert.longitude
+      );
+      if (distance > filters.maxDistance) return false;
+    }
+    
+    return true;
+  });
+
+  // Calcular distancia en km
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
 
   // Crear alerta
   const createAlertMutation = useMutation({
@@ -255,13 +296,38 @@ export default function Home() {
               exit={{ opacity: 0 }}
               className="h-[calc(100vh-8rem)]"
             >
-              <div className="h-1/2">
+              <div className="h-1/2 relative">
                 <ParkingMap
                   alerts={alerts}
                   onAlertClick={setSelectedAlert}
                   userLocation={userLocation}
+                  selectedAlert={selectedAlert}
+                  showRoute={!!selectedAlert}
                   className="h-full"
                 />
+
+                {/* Botón de filtros */}
+                {!showFilters && (
+                  <Button
+                    onClick={() => setShowFilters(true)}
+                    className="absolute top-4 left-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    size="icon"
+                  >
+                    <SlidersHorizontal className="w-5 h-5" />
+                  </Button>
+                )}
+
+                {/* Panel de filtros */}
+                <AnimatePresence>
+                  {showFilters && (
+                    <MapFilters
+                      filters={filters}
+                      onFilterChange={setFilters}
+                      onClose={() => setShowFilters(false)}
+                      alertsCount={alerts.length}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
               <div className="h-1/2 p-4 overflow-y-auto">
                 <UserAlertCard
