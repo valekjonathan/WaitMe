@@ -12,6 +12,23 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 
+const CarIconTiny = ({ color }) => (
+  <svg viewBox="0 0 48 24" className="w-5 h-3 inline-block" fill="none">
+    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+  </svg>
+);
+
+const carColorMap = {
+  'blanco': '#FFFFFF',
+  'negro': '#1a1a1a',
+  'rojo': '#ef4444',
+  'azul': '#3b82f6',
+  'amarillo': '#facc15',
+  'gris': '#6b7280'
+};
+
 export default function History() {
   const [user, setUser] = useState(null);
 
@@ -125,7 +142,10 @@ export default function History() {
                     <div className="flex items-center gap-2 flex-wrap">
                       {getStatusBadge(alert.status)}
                       {alert.status === 'reserved' && alert.reserved_by_name && (
-                        <span className="text-green-400 text-xs">✓ {alert.reserved_by_name.split(' ')[0]}</span>
+                        <span className="text-green-400 text-xs flex items-center gap-1">
+                          <CarIconTiny color={carColorMap[alert.reserved_by_car?.split(' ').pop()] || '#6b7280'} />
+                          {alert.reserved_by_name.split(' ')[0]}
+                        </span>
                       )}
                       {alert.status === 'active' && alert.user_id === user?.id && (
                         <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
