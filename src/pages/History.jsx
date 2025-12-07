@@ -122,8 +122,11 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-4 border border-gray-800"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {getStatusBadge(alert.status)}
+                      {alert.status === 'reserved' && alert.reserved_by_name && (
+                        <span className="text-green-400 text-xs">✓ {alert.reserved_by_name.split(' ')[0]}</span>
+                      )}
                       {alert.status === 'active' && alert.user_id === user?.id && (
                         <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
                           Tu alerta
@@ -138,18 +141,11 @@ export default function History() {
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-2">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs">
                     <Clock className="w-3 h-3" />
                     <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
                     <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
-
-                  {alert.status === 'reserved' && alert.reserved_by_name && (
-                    <div className="flex items-center gap-2 text-sm text-green-400">
-                      <span>Reservado hasta: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                      <span>✓ Reservado por {alert.reserved_by_name.split(' ')[0]}</span>
-                    </div>
-                  )}
                 </motion.div>
               ))
             )}
