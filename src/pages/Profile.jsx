@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Camera, Car } from 'lucide-react';
+import { ArrowLeft, Camera, Car, Bell, Phone, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/BottomNav';
 
@@ -29,8 +30,13 @@ export default function Profile() {
     car_model: '',
     car_color: 'gris',
     car_plate: '',
-    photo_url: ''
+    photo_url: '',
+    phone: '',
+    allow_phone_calls: false,
+    notifications_enabled: true,
+    email_notifications: true
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -43,7 +49,11 @@ export default function Profile() {
           car_model: currentUser.car_model || '',
           car_color: currentUser.car_color || 'gris',
           car_plate: currentUser.car_plate || '',
-          photo_url: currentUser.photo_url || ''
+          photo_url: currentUser.photo_url || '',
+          phone: currentUser.phone || '',
+          allow_phone_calls: currentUser.allow_phone_calls || false,
+          notifications_enabled: currentUser.notifications_enabled !== false,
+          email_notifications: currentUser.email_notifications !== false
         });
       } catch (error) {
         console.log('Error:', error);
@@ -54,9 +64,16 @@ export default function Profile() {
     fetchUser();
   }, []);
 
-  const handleBack = async () => {
-    await base44.auth.updateMe(formData);
-    navigate(createPageUrl('Home'));
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await base44.auth.updateMe(formData);
+      navigate(createPageUrl('Home'));
+    } catch (error) {
+      console.error('Error guardando:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePhotoUpload = async (e) => {
@@ -114,11 +131,25 @@ export default function Profile() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
-          <Button variant="ghost" size="icon" className="text-white" onClick={handleBack}>
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
+          <Link to={createPageUrl('Home')}>
+            <Button variant="ghost" size="icon" className="text-white">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          </Link>
           <h1 className="text-lg font-semibold">Mi Perfil</h1>
-          <div className="w-10" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-purple-400"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+          </Button>
         </div>
       </header>
 
@@ -255,8 +286,82 @@ export default function Profile() {
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center"
                 maxLength={7} />
-
             </div>
+
+            {/* Notificaciones y Contacto */}
+            <div className="space-y-4 pt-4">
+              <h2 className="text-lg font-semibold flex items-center justify-center gap-2">
+                Preferencias
+              </h2>
+
+              {/* Teléfono */}
+              <div className="space-y-2">
+                <Label className="text-gray-400">Teléfono</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+34 600 000 000"
+                  className="bg-gray-900 border-gray-700 text-white"
+                  type="tel"
+                />
+              </div>
+
+              {/* Permitir llamadas */}
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-purple-400" />
+                  <div>
+                    <p className="font-medium text-white">Permitir llamadas</p>
+                    <p className="text-xs text-gray-500">Los usuarios podrán llamarte</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.allow_phone_calls}
+                  onCheckedChange={(checked) => setFormData({ ...formData, allow_phone_calls: checked })}
+                />
+              </div>
+
+              {/* Notificaciones push */}
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-purple-400" />
+                  <div>
+                    <p className="font-medium text-white">Notificaciones push</p>
+                    <p className="text-xs text-gray-500">Alertas en tiempo real</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.notifications_enabled}
+                  onCheckedChange={(checked) => setFormData({ ...formData, notifications_enabled: checked })}
+                />
+              </div>
+
+              {/* Notificaciones email */}
+              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <div>
+                    <p className="font-medium text-white">Notificaciones email</p>
+                    <p className="text-xs text-gray-500">Recibir correos importantes</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.email_notifications}
+                  onCheckedChange={(checked) => setFormData({ ...formData, email_notifications: checked })}
+                />
+              </div>
+            </div>
+
+            {/* Botón guardar grande */}
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl mt-6"
+            >
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
           </div>
         </motion.div>
         </main>
