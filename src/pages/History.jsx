@@ -177,12 +177,10 @@ export default function History() {
                   {alert.status === 'reserved' ? (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {getStatusBadge(alert.status)}
-                          <span className="text-gray-500 text-xs">
-                            {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
-                          </span>
-                        </div>
+                        {getStatusBadge(alert.status)}
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                          {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                        </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                             <TrendingUp className="w-4 h-4 text-green-400" />
@@ -241,14 +239,12 @@ export default function History() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
-                            Activa
-                          </Badge>
-                          <span className="text-gray-500 text-xs">
-                            {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
-                          </span>
-                        </div>
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                          Activa
+                        </Badge>
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                          {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                        </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                             <TrendingUp className="w-4 h-4 text-green-400" />
@@ -272,11 +268,10 @@ export default function History() {
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>Te vas en {alert.available_in_minutes} min · Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                        </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Clock className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
+                        <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   )}
@@ -295,14 +290,12 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
-                        Finalizada
-                      </Badge>
-                      <span className="text-gray-500 text-xs">
-                        {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
-                      </span>
-                    </div>
+                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
+                      Finalizada
+                    </Badge>
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {isSeller ? (
                         <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
@@ -356,11 +349,9 @@ export default function History() {
                     <span>{tx.address || 'Ubicación'}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
-                    </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <Clock className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -393,12 +384,10 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(alert.status)}
-                      <span className="text-gray-500 text-xs">
-                        {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
-                      </span>
-                    </div>
+                    {getStatusBadge(alert.status)}
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                    </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                         <TrendingDown className="w-4 h-4 text-red-400" />
@@ -421,11 +410,10 @@ export default function History() {
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>Se va en {alert.available_in_minutes} min · Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                    </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <Clock className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
+                    <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -441,14 +429,12 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
-                        Finalizada
-                      </Badge>
-                      <span className="text-gray-500 text-xs">
-                        {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
-                      </span>
-                    </div>
+                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
+                      Finalizada
+                    </Badge>
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                         <TrendingDown className="w-4 h-4 text-red-400" />
@@ -473,11 +459,9 @@ export default function History() {
                     <span>{tx.address || 'Ubicación'}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <Clock className="w-3 h-3" />
-                      <span>Pagaste a {tx.seller_name} · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
-                    </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <Clock className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-500">Pagaste a {tx.seller_name} · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
