@@ -37,8 +37,6 @@ export default function Profile() {
     notifications_enabled: true,
     email_notifications: true
   });
-  const [saving, setSaving] = useState(false);
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -66,16 +64,18 @@ export default function Profile() {
     fetchUser();
   }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
+  const autoSave = async (data) => {
     try {
-      await base44.auth.updateMe(formData);
-      navigate(createPageUrl('Home'));
+      await base44.auth.updateMe(data);
     } catch (error) {
       console.error('Error guardando:', error);
-    } finally {
-      setSaving(false);
     }
+  };
+
+  const updateField = (field, value) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    autoSave(newData);
   };
 
   const handlePhotoUpload = async (e) => {
@@ -83,7 +83,7 @@ export default function Profile() {
     if (file) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setFormData({ ...formData, photo_url: file_url });
+        updateField('photo_url', file_url);
       } catch (error) {
         console.error('Error subiendo foto:', error);
       }
@@ -139,19 +139,7 @@ export default function Profile() {
             </Button>
           </Link>
           <h1 className="text-lg font-semibold">Mi Perfil</h1>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-purple-400"
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Save className="w-5 h-5" />
-            )}
-          </Button>
+          <div className="w-10" />
         </div>
       </header>
 
@@ -225,7 +213,7 @@ export default function Profile() {
               <Label className="text-gray-400">Nombre</Label>
               <Input
                 value={formData.display_name}
-                onChange={(e) => setFormData({ ...formData, display_name: e.target.value.slice(0, 15) })}
+                onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
                 placeholder="Tu nombre"
                 className="bg-gray-900 border-gray-700 text-white"
                 maxLength={15} />
@@ -241,7 +229,7 @@ export default function Profile() {
                 <Label className="text-gray-400">Marca</Label>
                 <Input
                   value={formData.car_brand}
-                  onChange={(e) => setFormData({ ...formData, car_brand: e.target.value })}
+                  onChange={(e) => updateField('car_brand', e.target.value)}
                   placeholder="Seat, Renault..."
                   className="bg-gray-900 border-gray-700 text-white" />
 
@@ -251,7 +239,7 @@ export default function Profile() {
                 <Label className="text-gray-400">Modelo</Label>
                 <Input
                   value={formData.car_model}
-                  onChange={(e) => setFormData({ ...formData, car_model: e.target.value })}
+                  onChange={(e) => updateField('car_model', e.target.value)}
                   placeholder="Ibiza, Megane..."
                   className="bg-gray-900 border-gray-700 text-white" />
 
@@ -263,7 +251,7 @@ export default function Profile() {
                 <Label className="text-gray-400">Color</Label>
                 <Select
                   value={formData.car_color}
-                  onValueChange={(value) => setFormData({ ...formData, car_color: value })}>
+                  onValueChange={(value) => updateField('car_color', value)}>
 
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
@@ -285,7 +273,7 @@ export default function Profile() {
                 <Label className="text-gray-400">Vehículo</Label>
                 <Select
                   value={formData.vehicle_type || 'car'}
-                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}>
+                  onValueChange={(value) => updateField('vehicle_type', value)}>
 
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
@@ -323,7 +311,7 @@ export default function Profile() {
               <Label className="text-gray-400">Matrícula</Label>
               <Input
                 value={formData.car_plate}
-                onChange={(e) => setFormData({ ...formData, car_plate: e.target.value.toUpperCase() })}
+                onChange={(e) => updateField('car_plate', e.target.value.toUpperCase())}
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center"
                 maxLength={7} />
@@ -340,7 +328,7 @@ export default function Profile() {
                 <Label className="text-gray-400">Teléfono</Label>
                 <Input
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => updateField('phone', e.target.value)}
                   placeholder="+34 600 000 000"
                   className="bg-gray-900 border-gray-700 text-white"
                   type="tel"
@@ -358,20 +346,11 @@ export default function Profile() {
                 </div>
                 <Switch
                   checked={formData.allow_phone_calls}
-                  onCheckedChange={(checked) => setFormData({ ...formData, allow_phone_calls: checked })}
+                  onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
                   className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                 />
               </div>
             </div>
-
-            {/* Botón guardar grande */}
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl mt-6"
-            >
-              {saving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
           </div>
         </motion.div>
         </main>
