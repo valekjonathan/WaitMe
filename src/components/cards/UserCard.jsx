@@ -76,7 +76,7 @@ export default function UserCard({
     return plate;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-purple-500/30">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border border-purple-500/30">
       {/* Header con precio */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-start mb-2">
@@ -86,7 +86,7 @@ export default function UserCard({
       )}
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-3 mb-3">
+      <div className="flex gap-3 mb-2">
         <div className="flex flex-col gap-2">
           <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
             {userPhoto ? (
@@ -103,7 +103,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg"
+                className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-gray-700"
                 onClick={onChat}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -111,7 +111,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className={`w-[28px] h-7 rounded-lg ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                className={`w-[28px] h-7 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                 onClick={onCall}
                 disabled={!allowPhoneCalls}
               >
@@ -120,7 +120,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-[28px] h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg"
+                className="w-[28px] h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-gray-700"
                 onClick={() => {
                   if (latitude && longitude) {
                     window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
@@ -141,11 +141,11 @@ export default function UserCard({
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
-          <div className="bg-white rounded-md px-2 py-1 flex items-center w-fit border-2 border-gray-400">
-            <div className="bg-blue-600 h-5 w-4 flex items-center justify-center mr-1 rounded-sm">
-              <span className="text-white text-[7px] font-bold">E</span>
+          <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+            <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+              <span className="text-white text-[8px] font-bold">E</span>
             </div>
-            <span className="text-black font-mono font-bold text-xs tracking-wider">
+            <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
               {formatPlate(carPlate)}
             </span>
           </div>

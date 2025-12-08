@@ -273,15 +273,13 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-3 py-1.5">
-                        Finalizada
-                      </Badge>
-                      <span className="text-gray-500 text-xs">
-                        {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-3 py-1.5">
+                      Finalizada
+                    </Badge>
+                    <span className="text-gray-500 text-xs">
+                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    </span>
                     {isSeller ? (
                       <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
                         <TrendingUp className="w-4 h-4 text-green-400" />
