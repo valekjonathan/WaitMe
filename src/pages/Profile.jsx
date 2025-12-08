@@ -182,13 +182,13 @@ export default function Profile() {
               <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
                 
-                <div className="flex items-center gap-3">
-                  <CarIconProfile color={selectedColor?.fill} />
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium text-sm">
                       {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
                     </p>
                   </div>
+                  <CarIconProfile color={selectedColor?.fill} />
                 </div>
 
                 {/* Matrícula estilo placa */}
@@ -246,10 +246,6 @@ export default function Profile() {
                 className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
               />
             </div>
-
-            <h2 className="text-sm font-semibold text-center text-gray-400 pt-1">
-              Datos del vehículo
-            </h2>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
