@@ -172,13 +172,13 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
+                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50 relative"
                 >
                   {alert.status === 'reserved' ? (
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-1">
                           {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -242,7 +242,7 @@ export default function History() {
                         <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
                           Activa
                         </Badge>
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-1">
                           {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -287,13 +287,13 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
+                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-1">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -379,11 +379,11 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
+                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     {getStatusBadge(alert.status)}
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-1">
                       {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -424,13 +424,13 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
+                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-1">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
