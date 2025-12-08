@@ -178,7 +178,7 @@ export default function History() {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-5">
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                           {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -242,7 +242,7 @@ export default function History() {
                         <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
                           Activa
                         </Badge>
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-5">
+                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                           {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -268,7 +268,7 @@ export default function History() {
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs">
+                      <div className="flex items-center gap-1 text-xs ml-0.5">
                         <Clock className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
                         <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
@@ -293,7 +293,7 @@ export default function History() {
                     <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-5">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -383,7 +383,7 @@ export default function History() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     {getStatusBadge(alert.status)}
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-5">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -408,7 +408,7 @@ export default function History() {
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-xs">
+                  <div className="flex items-center gap-1 text-xs ml-0.5">
                     <Clock className="w-3 h-3 text-gray-500" />
                     <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
                     <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
@@ -430,7 +430,7 @@ export default function History() {
                     <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-5">
+                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
