@@ -275,7 +275,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-50"
+                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
