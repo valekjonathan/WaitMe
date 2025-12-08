@@ -183,13 +183,23 @@ export default function History() {
                             {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                             <TrendingUp className="w-4 h-4 text-green-400" />
                             <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
                           </div>
+                          <Button
+                            size="icon"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                            onClick={() => cancelAlertMutation.mutate(alert.id)}
+                            disabled={cancelAlertMutation.isPending}
+                          >
+                            <X className="w-4 h-4" strokeWidth={3} />
+                          </Button>
                         </div>
                       </div>
+
+                      <p className="text-white text-xs mb-2">Estás aparcado en:</p>
 
                       {alert.reserved_by_name && (
                         <div className="mb-2">
@@ -255,6 +265,8 @@ export default function History() {
                         </div>
                       </div>
 
+                      <p className="text-white text-xs mb-2">Estás aparcado en:</p>
+
                       <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                         <MapPin className="w-4 h-4 flex-shrink-0" />
                         <span>{alert.address || 'Ubicación marcada'}</span>
@@ -263,9 +275,8 @@ export default function History() {
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2 text-gray-500">
                           <Clock className="w-3 h-3" />
-                          <span>Te vas en {alert.available_in_minutes} min</span>
+                          <span>Te vas en {alert.available_in_minutes} min · Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                         </div>
-                        <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   )}
@@ -292,22 +303,33 @@ export default function History() {
                         {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                       </span>
                     </div>
-                    {isSeller ? (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 flex-shrink-0 h-7">
-                        <TrendingUp className="w-4 h-4 text-green-400" />
-                        <span className="font-bold text-green-400 text-sm">
-                          {tx.seller_earnings?.toFixed(2)}€
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 flex-shrink-0 h-7">
-                        <TrendingDown className="w-4 h-4 text-red-400" />
-                        <span className="font-bold text-red-400 text-sm">
-                          -{tx.amount?.toFixed(2)}€
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {isSeller ? (
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                          <span className="font-bold text-green-400 text-sm">
+                            {tx.seller_earnings?.toFixed(2)}€
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingDown className="w-4 h-4 text-red-400" />
+                          <span className="font-bold text-red-400 text-sm">
+                            -{tx.amount?.toFixed(2)}€
+                          </span>
+                        </div>
+                      )}
+                      <Button
+                        size="icon"
+                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
+                        disabled
+                      >
+                        <X className="w-4 h-4" strokeWidth={3} />
+                      </Button>
+                    </div>
                   </div>
+
+                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
 
                   {isSeller && tx.buyer_name && (
                     <div className="mb-2">
@@ -337,9 +359,8 @@ export default function History() {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 text-gray-500">
                       <Clock className="w-3 h-3" />
-                      <span>Transacción completada</span>
+                      <span>Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                     </div>
-                    <span className="text-purple-400">{format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -378,13 +399,22 @@ export default function History() {
                         {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                         <TrendingDown className="w-4 h-4 text-red-400" />
                         <span className="text-red-400 font-bold text-sm">-{alert.price.toFixed(2)}€</span>
                       </div>
+                      <Button
+                        size="icon"
+                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
+                        disabled
+                      >
+                        <X className="w-4 h-4" strokeWidth={3} />
+                      </Button>
                     </div>
                   </div>
+
+                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
 
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -394,9 +424,8 @@ export default function History() {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 text-gray-500">
                       <Clock className="w-3 h-3" />
-                      <span>Se va en {alert.available_in_minutes} min</span>
+                      <span>Se va en {alert.available_in_minutes} min · Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                     </div>
-                    <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -420,15 +449,24 @@ export default function History() {
                         {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                         <TrendingDown className="w-4 h-4 text-red-400" />
                         <span className="font-bold text-red-400 text-sm">
                           -{tx.amount?.toFixed(2)}€
                         </span>
                       </div>
+                      <Button
+                        size="icon"
+                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
+                        disabled
+                      >
+                        <X className="w-4 h-4" strokeWidth={3} />
+                      </Button>
                     </div>
                   </div>
+                  
+                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
                   
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -438,9 +476,8 @@ export default function History() {
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 text-gray-500">
                       <Clock className="w-3 h-3" />
-                      <span>Pagaste a {tx.seller_name}</span>
+                      <span>Pagaste a {tx.seller_name} · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                     </div>
-                    <span className="text-purple-400">{format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
