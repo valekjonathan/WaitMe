@@ -138,7 +138,7 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-20 pb-24 px-4">
+      <main className="pt-20 pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
@@ -380,7 +380,9 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    {getStatusBadge(alert.status)}
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                      Activa
+                    </Badge>
                     <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
@@ -431,7 +433,7 @@ export default function History() {
                   <div className="flex items-center gap-1 text-xs ml-0.5">
                     <Clock className="w-3 h-3 text-gray-500" />
                     <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
-                    <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                    <span className="text-purple-400">Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
