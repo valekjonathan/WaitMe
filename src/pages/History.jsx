@@ -216,7 +216,12 @@ export default function History() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        {getStatusBadge(alert.status)}
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5">
+                          Activa
+                        </Badge>
+                        <span className="text-gray-500 text-xs">
+                          {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                        </span>
                         <div className="flex items-center gap-2">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
                             <TrendingUp className="w-4 h-4 text-green-400" />
@@ -259,7 +264,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
+                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-3 py-1.5">
@@ -304,7 +309,7 @@ export default function History() {
                       />
                     </div>
                   )}
-                  
+
                   <div className="flex items-start gap-2 text-gray-400 text-sm">
                     <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{tx.address || 'Ubicación'}</span>

@@ -145,7 +145,7 @@ export default function UserCard({
             <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
               <span className="text-white text-[8px] font-bold">E</span>
             </div>
-            <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+            <span className="flex-1 text-center text-black font-mono font-bold text-sm tracking-wider">
               {formatPlate(carPlate)}
             </span>
           </div>
