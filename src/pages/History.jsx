@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,7 @@ const carColorMap = {
 
 export default function History() {
   const [user, setUser] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -69,9 +70,14 @@ export default function History() {
   const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
   
   const myAlertsItems = [
-    ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date })),
-    ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+    ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
+    ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
+  ].sort((a, b) => {
+    // Activas primero
+    if (a.isActive && !b.isActive) return -1;
+    if (!a.isActive && b.isActive) return 1;
+    return new Date(b.date) - new Date(a.date);
+  });
 
   const myReservationsItems = [
     ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date })),
@@ -79,6 +85,16 @@ export default function History() {
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const isLoading = loadingAlerts || loadingTransactions;
+
+  // Cancelar alerta
+  const cancelAlertMutation = useMutation({
+    mutationFn: async (alertId) => {
+      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
+  });
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -119,7 +135,7 @@ export default function History() {
 
       <main className="pt-20 pb-24 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-6">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -128,7 +144,14 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
+          <Link to={createPageUrl('Home')}>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12 text-base font-semibold">
+              <Plus className="w-5 h-5 mr-2" />
+              + Crear alerta de aparcamiento
+            </Button>
+          </Link>
+
+          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-2" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -209,7 +232,21 @@ export default function History() {
                             Tu alerta
                           </Badge>
                         </div>
-                        <span className="text-purple-400 font-bold text-lg">{alert.price}€</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1">
+                            <TrendingUp className="w-5 h-5 text-green-400" />
+                            <span className="text-green-400 font-bold text-lg">{alert.price}€</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/20 w-8 h-8"
+                            onClick={() => cancelAlertMutation.mutate(alert.id)}
+                            disabled={cancelAlertMutation.isPending}
+                          >
+                            <X className="w-5 h-5" strokeWidth={3} />
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
@@ -283,7 +320,7 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
+          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-2" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -339,7 +376,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-50"
+                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
