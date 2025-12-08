@@ -80,9 +80,14 @@ export default function History() {
   });
 
   const myReservationsItems = [
-    ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date })),
-    ...transactions.filter(t => t.buyer_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+    ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: true })),
+    ...transactions.filter(t => t.buyer_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
+  ].sort((a, b) => {
+    // Activas primero
+    if (a.isActive && !b.isActive) return -1;
+    if (!a.isActive && b.isActive) return 1;
+    return new Date(b.date) - new Date(a.date);
+  });
 
   const isLoading = loadingAlerts || loadingTransactions;
 
@@ -143,13 +148,6 @@ export default function History() {
               Tus reservas
             </TabsTrigger>
           </TabsList>
-
-          <Link to={createPageUrl('Home?mode=create')}>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12 flex items-center justify-center gap-2">
-              <Plus className="w-6 h-6" strokeWidth={3} />
-              <span className="font-semibold">Crear alerta</span>
-            </Button>
-          </Link>
 
           <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
@@ -401,7 +399,29 @@ export default function History() {
                     </div>
                   </div>
 
-                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
+                  <p className="text-white text-xs mb-2">Reservaste a:</p>
+
+                  <div className="mb-2">
+                    <UserCard
+                      userName={alert.user_name}
+                      userPhoto={alert.user_photo}
+                      carBrand={alert.car_brand}
+                      carModel={alert.car_model}
+                      carColor={alert.car_color}
+                      carPlate={alert.car_plate}
+                      vehicleType={alert.vehicle_type}
+                      address={alert.address}
+                      availableInMinutes={alert.available_in_minutes}
+                      price={alert.price}
+                      showLocationInfo={false}
+                      showContactButtons={true}
+                      onChat={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`)}
+                      onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                      latitude={alert.latitude}
+                      longitude={alert.longitude}
+                      allowPhoneCalls={alert.allow_phone_calls}
+                    />
+                  </div>
 
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -449,15 +469,28 @@ export default function History() {
                       </Button>
                     </div>
                   </div>
+
+                  <div className="mb-2">
+                    <UserCard
+                      userName={tx.seller_name}
+                      userPhoto={null}
+                      carBrand="Sin"
+                      carModel="datos"
+                      carColor="gris"
+                      carPlate=""
+                      vehicleType="car"
+                      address={tx.address}
+                      showLocationInfo={false}
+                      showContactButtons={true}
+                      onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}
+                      onCall={() => {}}
+                      allowPhoneCalls={false}
+                    />
+                  </div>
                   
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span>{tx.address || 'Ubicación'}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-xs">
-                    <Clock className="w-3 h-3 text-gray-500" />
-                    <span className="text-gray-500">Pagaste a {tx.seller_name} · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
