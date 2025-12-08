@@ -91,11 +91,11 @@ export default function UserCard({
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-          <p className="font-bold text-white">{userName}</p>
+          <p className="font-bold text-white text-lg">{userName}</p>
 
-          <div className="flex items-center gap-2">
-            <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
+          <div className="flex items-center justify-between">
             <p className="text-white text-xs font-medium">{carBrand} {carModel}</p>
+            <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
           <div className="bg-white rounded px-2 py-0.5 flex items-center w-fit">

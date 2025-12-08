@@ -172,10 +172,12 @@ export default function History() {
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 text-gray-500 text-xs">
-                        <Clock className="w-3 h-3" />
-                        <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
-                        <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
+                        </div>
+                        <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   ) : (
