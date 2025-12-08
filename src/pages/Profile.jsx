@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/BottomNav';
-import GlobalHeader from '@/components/GlobalHeader';
 
 const carColors = [
 { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -131,9 +130,8 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <GlobalHeader />
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" size="icon" className="text-white">

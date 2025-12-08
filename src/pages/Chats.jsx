@@ -10,7 +10,6 @@ import { motion } from 'framer-motion';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
-import GlobalHeader from '@/components/GlobalHeader';
 
 export default function Chats() {
   const [user, setUser] = useState(null);
@@ -77,9 +76,8 @@ export default function Chats() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <GlobalHeader />
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" size="icon" className="text-white">
