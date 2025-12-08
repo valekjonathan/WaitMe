@@ -134,18 +134,18 @@ export default function UserCard({
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-          <p className="font-bold text-white text-lg">{userName}</p>
+          <p className="font-bold text-white text-lg">{userName?.split(' ')[0]}</p>
 
           <div className="flex items-center justify-between">
             <p className="text-white text-xs font-medium">{carBrand} {carModel}</p>
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
-          <div className="bg-white rounded px-2 py-0.5 flex items-center w-fit">
-            <div className="bg-blue-600 h-4 w-3 flex items-center justify-center mr-1">
-              <span className="text-white text-[6px] font-bold">E</span>
+          <div className="bg-white rounded-md px-2 py-1 flex items-center w-fit border-2 border-gray-400">
+            <div className="bg-blue-600 h-5 w-4 flex items-center justify-center mr-1 rounded-sm">
+              <span className="text-white text-[7px] font-bold">E</span>
             </div>
-            <span className="text-black font-mono font-bold text-[10px] tracking-wide">
+            <span className="text-black font-mono font-bold text-xs tracking-wider">
               {formatPlate(carPlate)}
             </span>
           </div>
