@@ -233,7 +233,7 @@ export default function Home() {
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
           </span>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 mr-7">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
                 <Settings className="w-12 h-12" strokeWidth={3} />
@@ -261,7 +261,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8"
+              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 mt-0"
             >
               <div className="text-center mb-8 w-full flex flex-col items-center">
                 <img 

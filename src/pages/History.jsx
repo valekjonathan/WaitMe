@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
+import GlobalHeader from '@/components/GlobalHeader';
 
 const CarIconTiny = ({ color }) => (
   <svg viewBox="0 0 48 24" className="w-5 h-3 inline-block" fill="none">
@@ -125,8 +126,9 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <GlobalHeader />
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b border-gray-800">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" size="icon" className="text-white">
