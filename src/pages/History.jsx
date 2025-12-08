@@ -145,9 +145,8 @@ export default function History() {
           </TabsList>
 
           <Link to={createPageUrl('Home')}>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12 text-base font-semibold">
-              <Plus className="w-5 h-5 mr-2" />
-              + Crear alerta de aparcamiento
+            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12">
+              <Plus className="w-8 h-8" strokeWidth={3} />
             </Button>
           </Link>
 
@@ -228,9 +227,6 @@ export default function History() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           {getStatusBadge(alert.status)}
-                          <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                            Tu alerta
-                          </Badge>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
@@ -238,9 +234,8 @@ export default function History() {
                             <span className="text-green-400 font-bold text-lg">{alert.price}€</span>
                           </div>
                           <Button
-                            variant="ghost"
                             size="icon"
-                            className="text-red-500 hover:text-red-400 hover:bg-red-500/20 w-8 h-8"
+                            className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 rounded-lg"
                             onClick={() => cancelAlertMutation.mutate(alert.id)}
                             disabled={cancelAlertMutation.isPending}
                           >
@@ -275,44 +270,60 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
+                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30">
+                        Finalizada
+                      </Badge>
+                      <span className="text-gray-500 text-xs">
+                        {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
                       {isSeller ? (
                         <>
                           <TrendingUp className="w-5 h-5 text-green-400" />
-                          <span className="font-bold text-green-400">
+                          <span className="font-bold text-green-400 text-lg">
                             +{tx.seller_earnings?.toFixed(2)}€
                           </span>
                         </>
                       ) : (
                         <>
                           <TrendingDown className="w-5 h-5 text-red-400" />
-                          <span className="font-bold text-red-400">
+                          <span className="font-bold text-red-400 text-lg">
                             -{tx.amount?.toFixed(2)}€
                           </span>
                         </>
                       )}
                     </div>
-                    <span className="text-gray-500 text-xs">
-                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
-                    </span>
                   </div>
-                  
-                  <p className="text-sm text-gray-400">
-                    {isSeller 
-                      ? `${tx.buyer_name} pagó por tu plaza`
-                      : `Pagaste a ${tx.seller_name}`
-                    }
-                  </p>
-                  
-                  {tx.address && (
-                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {tx.address}
-                    </p>
+
+                  {isSeller && tx.buyer_name && (
+                    <div className="mb-3">
+                      <UserCard
+                        userName={tx.buyer_name}
+                        userPhoto={null}
+                        carBrand="Sin"
+                        carModel="datos"
+                        carColor="gris"
+                        carPlate=""
+                        vehicleType="car"
+                        address={tx.address}
+                        showLocationInfo={false}
+                        showContactButtons={true}
+                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}
+                        onCall={() => {}}
+                        allowPhoneCalls={false}
+                      />
+                    </div>
                   )}
+                  
+                  <div className="flex items-start gap-2 text-gray-400 text-sm">
+                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{tx.address || 'Ubicación'}</span>
+                  </div>
                 </motion.div>
               );
             }
