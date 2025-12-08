@@ -285,7 +285,7 @@ export default function History() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1">
+                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                         Finalizada
                       </Badge>
                       <span className="text-gray-500 text-xs">
@@ -413,7 +413,7 @@ export default function History() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1">
+                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
                         Finalizada
                       </Badge>
                       <span className="text-gray-500 text-xs">
