@@ -176,8 +176,13 @@ export default function History() {
                 >
                   {alert.status === 'reserved' ? (
                     <>
-                      <div className="flex items-center justify-between mb-2">
-                        {getStatusBadge(alert.status)}
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(alert.status)}
+                          <span className="text-gray-500 text-xs flex-shrink-0">
+                            {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                          </span>
+                        </div>
                         <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                           <TrendingUp className="w-4 h-4 text-green-400" />
                           <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
