@@ -178,9 +178,9 @@ export default function History() {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                           <TrendingUp className="w-4 h-4 text-green-400" />
-                          <span className="text-green-400 font-bold text-sm">{alert.price}€</span>
+                          <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
                         </div>
                       </div>
 
@@ -216,20 +216,20 @@ export default function History() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5">
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1">
                           Activa
                         </Badge>
-                        <span className="text-gray-500 text-xs">
+                        <span className="text-gray-500 text-xs flex-shrink-0">
                           {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-2">
-                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                             <TrendingUp className="w-4 h-4 text-green-400" />
-                            <span className="text-green-400 font-bold text-sm">{alert.price}€</span>
+                            <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
                           </div>
                           <Button
                             size="icon"
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-3 py-1.5 h-auto border-2 border-gray-500"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-auto border-2 border-gray-500"
                             onClick={() => cancelAlertMutation.mutate(alert.id)}
                             disabled={cancelAlertMutation.isPending}
                           >
@@ -267,21 +267,21 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-3 py-1.5">
+                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs">
+                    <span className="text-gray-500 text-xs flex-shrink-0">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     {isSeller ? (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                         <TrendingUp className="w-4 h-4 text-green-400" />
                         <span className="font-bold text-green-400 text-sm">
                           +{tx.seller_earnings?.toFixed(2)}€
                         </span>
                       </div>
                     ) : (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                         <TrendingDown className="w-4 h-4 text-red-400" />
                         <span className="font-bold text-red-400 text-sm">
                           -{tx.amount?.toFixed(2)}€
