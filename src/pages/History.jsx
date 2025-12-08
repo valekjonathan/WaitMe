@@ -144,13 +144,14 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <Link to={createPageUrl('Home')}>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12">
-              <Plus className="w-8 h-8" strokeWidth={3} />
+          <Link to={createPageUrl('Home?mode=create')}>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white mb-6 h-12 flex items-center justify-center gap-2">
+              <Plus className="w-6 h-6" strokeWidth={3} />
+              <span className="font-semibold">Crear alerta</span>
             </Button>
           </Link>
 
-          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-2" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-4" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -228,8 +229,8 @@ export default function History() {
                         <div className="flex items-center gap-2 flex-wrap">
                           {getStatusBadge(alert.status)}
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
                             <TrendingUp className="w-5 h-5 text-green-400" />
                             <span className="text-green-400 font-bold text-lg">{alert.price}€</span>
                           </div>
@@ -281,23 +282,21 @@ export default function History() {
                         {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {isSeller ? (
-                        <>
-                          <TrendingUp className="w-5 h-5 text-green-400" />
-                          <span className="font-bold text-green-400 text-lg">
-                            +{tx.seller_earnings?.toFixed(2)}€
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <TrendingDown className="w-5 h-5 text-red-400" />
-                          <span className="font-bold text-red-400 text-lg">
-                            -{tx.amount?.toFixed(2)}€
-                          </span>
-                        </>
-                      )}
-                    </div>
+                    {isSeller ? (
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
+                        <TrendingUp className="w-5 h-5 text-green-400" />
+                        <span className="font-bold text-green-400 text-lg">
+                          +{tx.seller_earnings?.toFixed(2)}€
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
+                        <TrendingDown className="w-5 h-5 text-red-400" />
+                        <span className="font-bold text-red-400 text-lg">
+                          -{tx.amount?.toFixed(2)}€
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {isSeller && tx.buyer_name && (
@@ -331,7 +330,7 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-2" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-4" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
