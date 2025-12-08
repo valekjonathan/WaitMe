@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
+import UserCard from '@/components/cards/UserCard';
 
 const CarIconTiny = ({ color }) => (
   <svg viewBox="0 0 48 24" className="w-5 h-3 inline-block" fill="none">
@@ -152,37 +153,20 @@ export default function History() {
 
                   {/* Tarjeta del usuario que reservó */}
                   {alert.status === 'reserved' && alert.reserved_by_name && (
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-purple-500/30 mb-3">
+                    <div className="mb-3">
                       <p className="text-xs text-purple-400 mb-2">Reservado por:</p>
-                      <div className="flex gap-3">
-                        <div className="w-16 h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
-                          <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
-                            👤
-                          </div>
-                        </div>
-
-                        <div className="flex-1 flex flex-col justify-between">
-                          <p className="font-bold text-white">{alert.reserved_by_name}</p>
-
-                          <div className="flex items-center gap-2">
-                            <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
-                              <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carColorMap[alert.reserved_by_car?.split(' ').pop()] || '#6b7280'} stroke="white" strokeWidth="1.5" />
-                              <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                              <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                            </svg>
-                            <p className="text-white text-xs font-medium">{alert.reserved_by_car || 'Coche'}</p>
-                          </div>
-
-                          <div className="bg-white rounded px-2 py-0.5 flex items-center w-fit">
-                            <div className="bg-blue-600 h-4 w-3 flex items-center justify-center mr-1">
-                              <span className="text-white text-[6px] font-bold">E</span>
-                            </div>
-                            <span className="text-black font-mono font-bold text-[10px] tracking-wide">
-                              {alert.reserved_by_plate || '0000 XXX'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                      <UserCard
+                        userName={alert.reserved_by_name}
+                        userPhoto={null}
+                        carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                        carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                        carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                        carPlate={alert.reserved_by_plate}
+                        address={alert.address}
+                        availableInMinutes={alert.available_in_minutes}
+                        price={alert.price}
+                        showLocationInfo={false}
+                      />
                     </div>
                   )}
 

@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
+import UserCard from '@/components/cards/UserCard';
 
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -156,23 +157,21 @@ export default function Chat() {
           </Button>
         </div>
 
-        {/* Info del coche */}
+        {/* Tarjeta de usuario */}
         {alert && (
-          <div className="bg-gray-900/50 rounded-xl p-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg viewBox="0 0 48 24" className="w-10 h-6" fill="none">
-                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={alert.car_color === 'blanco' ? '#FFFFFF' : alert.car_color === 'negro' ? '#1a1a1a' : alert.car_color === 'rojo' ? '#ef4444' : alert.car_color === 'azul' ? '#3b82f6' : alert.car_color === 'amarillo' ? '#facc15' : '#6b7280'} stroke="white" strokeWidth="1.5" />
-                <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-              </svg>
-              <div>
-                <p className="text-white text-sm font-medium">{alert.car_brand} {alert.car_model}</p>
-                <p className="text-gray-400 text-xs">Color {alert.car_color}</p>
-              </div>
-            </div>
-            <div className="bg-gray-800 px-3 py-1 rounded-lg border border-gray-700">
-              <p className="text-white font-mono text-sm">{alert.car_plate}</p>
-            </div>
+          <div className="mt-2">
+            <UserCard
+              userName={otherUserName}
+              userPhoto={alert.user_photo}
+              carBrand={alert.car_brand}
+              carModel={alert.car_model}
+              carColor={alert.car_color}
+              carPlate={alert.car_plate}
+              address={alert.address}
+              availableInMinutes={alert.available_in_minutes}
+              price={alert.price}
+              showLocationInfo={true}
+            />
           </div>
         )}
       </header>
