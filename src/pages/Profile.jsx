@@ -143,14 +143,14 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
+      <main className="pt-16 pb-24 px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6">
+          className="space-y-4">
 
           {/* Tarjeta tipo DNI */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-gray-700 shadow-xl">
             <div className="flex gap-4">
               {/* Foto */}
               <div className="relative">
@@ -207,48 +207,71 @@ export default function Profile() {
           </div>
 
           {/* Formulario */}
-          <div className="space-y-4">
-            {/* Nombre editable */}
-            <div className="space-y-2">
-              <Label className="text-gray-400">Nombre</Label>
-              <Input
-                value={formData.display_name}
-                onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
-                placeholder="Tu nombre"
-                className="bg-gray-900 border-gray-700 text-white"
-                maxLength={15} />
+          <div className="space-y-3">
+            {/* Nombre y Teléfono en la misma fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Nombre</Label>
+                <Input
+                  value={formData.display_name}
+                  onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
+                  placeholder="Tu nombre"
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                  maxLength={15} />
+              </div>
 
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Teléfono</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="+34 600 00 00"
+                  className="bg-gray-900 border-gray-700 text-white h-9 text-sm"
+                  type="tel"
+                />
+              </div>
             </div>
 
-            <h2 className="text-lg font-semibold flex items-center justify-center gap-2 pt-2">
+            {/* Permitir llamadas - compacto */}
+            <div className="bg-gray-900 rounded-lg p-2 border border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-purple-400" />
+                <p className="text-sm text-white">Permitir llamadas</p>
+              </div>
+              <Switch
+                checked={formData.allow_phone_calls}
+                onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
+            </div>
+
+            <h2 className="text-base font-semibold flex items-center justify-center gap-2 pt-1">
               Datos del vehículo
             </h2>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-400">Marca</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Marca</Label>
                 <Input
                   value={formData.car_brand}
                   onChange={(e) => updateField('car_brand', e.target.value)}
                   placeholder="Seat, Renault..."
-                  className="bg-gray-900 border-gray-700 text-white" />
-
+                  className="bg-gray-900 border-gray-700 text-white h-9" />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-gray-400">Modelo</Label>
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Modelo</Label>
                 <Input
                   value={formData.car_model}
                   onChange={(e) => updateField('car_model', e.target.value)}
                   placeholder="Ibiza, Megane..."
-                  className="bg-gray-900 border-gray-700 text-white" />
-
+                  className="bg-gray-900 border-gray-700 text-white h-9" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-400">Color</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Color</Label>
                 <Select
                   value={formData.car_color}
                   onValueChange={(value) => updateField('car_color', value)}>
@@ -269,8 +292,8 @@ export default function Profile() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-gray-400">Vehículo</Label>
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Vehículo</Label>
                 <Select
                   value={formData.vehicle_type || 'car'}
                   onValueChange={(value) => updateField('vehicle_type', value)}>
@@ -319,49 +342,14 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-400">Matrícula</Label>
+            <div className="space-y-1.5">
+              <Label className="text-gray-400 text-sm">Matrícula</Label>
               <Input
                 value={formData.car_plate}
                 onChange={(e) => updateField('car_plate', e.target.value.toUpperCase())}
                 placeholder="1234 ABC"
-                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center"
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
                 maxLength={7} />
-            </div>
-
-            {/* Notificaciones y Contacto */}
-            <div className="space-y-4 pt-4">
-              <h2 className="text-lg font-semibold flex items-center justify-center gap-2">
-                Preferencias
-              </h2>
-
-              {/* Teléfono */}
-              <div className="space-y-2">
-                <Label className="text-gray-400">Teléfono</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="+34 600 000 000"
-                  className="bg-gray-900 border-gray-700 text-white"
-                  type="tel"
-                />
-              </div>
-
-              {/* Permitir llamadas */}
-              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="font-medium text-white">Permitir llamadas</p>
-                    <p className="text-xs text-gray-500">Los usuarios podrán llamarte</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={formData.allow_phone_calls}
-                  onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
-                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-                />
-              </div>
             </div>
           </div>
         </motion.div>
