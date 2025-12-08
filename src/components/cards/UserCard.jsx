@@ -1,7 +1,8 @@
 import React from 'react';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, Navigation } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
 
 const carColorMap = {
   'blanco': '#FFFFFF',
@@ -58,7 +59,13 @@ export default function UserCard({
   address,
   availableInMinutes,
   price,
-  showLocationInfo = true
+  showLocationInfo = true,
+  showContactButtons = false,
+  onChat,
+  onCall,
+  latitude,
+  longitude,
+  allowPhoneCalls = false
 }) {
   const formatPlate = (plate) => {
     if (!plate) return '0000 XXX';
@@ -80,12 +87,48 @@ export default function UserCard({
 
       {/* Tarjeta de usuario */}
       <div className="flex gap-3 mb-3">
-        <div className="w-16 h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
-          {userPhoto ? (
-            <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
-              👤
+        <div className="flex flex-col gap-2">
+          <div className="w-16 h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
+            {userPhoto ? (
+              <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
+                👤
+              </div>
+            )}
+          </div>
+          
+          {showContactButtons && (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg"
+                onClick={onChat}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`w-7 h-7 rounded-lg ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                onClick={onCall}
+                disabled={!allowPhoneCalls}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg"
+                onClick={() => {
+                  if (latitude && longitude) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+                  }
+                }}
+              >
+                <Navigation className="w-4 h-4" />
+              </Button>
             </div>
           )}
         </div>

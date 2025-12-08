@@ -158,6 +158,12 @@ export default function History() {
                             availableInMinutes={alert.available_in_minutes}
                             price={alert.price}
                             showLocationInfo={false}
+                            showContactButtons={true}
+                            onChat={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`)}
+                            onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                            latitude={alert.latitude}
+                            longitude={alert.longitude}
+                            allowPhoneCalls={alert.allow_phone_calls}
                           />
                         </div>
                       )}
