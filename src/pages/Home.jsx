@@ -106,6 +106,7 @@ export default function Home() {
         car_model: user?.car_model || '',
         car_color: user?.car_color || 'gris',
         car_plate: user?.car_plate || '',
+        vehicle_type: user?.vehicle_type || 'car',
         latitude: selectedPosition?.lat || userLocation?.[0] || 40.4168,
         longitude: selectedPosition?.lng || userLocation?.[1] || -3.7038,
         address: address,
@@ -149,7 +150,8 @@ export default function Home() {
         reserved_by_email: user?.email,
         reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0],
         reserved_by_car: `${user?.car_brand} ${user?.car_model} ${user?.car_color}`,
-        reserved_by_plate: user?.car_plate
+        reserved_by_plate: user?.car_plate,
+        reserved_by_vehicle_type: user?.vehicle_type
       });
 
       return alert;

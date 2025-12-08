@@ -162,6 +162,7 @@ export default function History() {
                         carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
                         carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
                         carPlate={alert.reserved_by_plate}
+                        vehicleType={alert.reserved_by_vehicle_type}
                         address={alert.address}
                         availableInMinutes={alert.available_in_minutes}
                         price={alert.price}

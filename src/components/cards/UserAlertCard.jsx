@@ -34,6 +34,7 @@ export default function UserAlertCard({
         carModel={alert.car_model}
         carColor={alert.car_color}
         carPlate={alert.car_plate}
+        vehicleType={alert.vehicle_type}
         address={alert.address}
         availableInMinutes={alert.available_in_minutes}
         price={alert.price}

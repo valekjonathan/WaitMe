@@ -12,13 +12,40 @@ const carColorMap = {
   'gris': '#6b7280'
 };
 
-const CarIconSmall = ({ color }) => (
-  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
-    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
-    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-  </svg>
-);
+const VehicleIcon = ({ color, type = 'car' }) => {
+  if (type === 'van') {
+    return (
+      <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+        <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill={color} stroke="white" strokeWidth="1.5" />
+        <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      </svg>
+    );
+  }
+  
+  if (type === 'suv') {
+    return (
+      <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+        <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+        <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+  );
+};
 
 export default function UserCard({ 
   userName, 
@@ -27,11 +54,20 @@ export default function UserCard({
   carModel, 
   carColor, 
   carPlate,
+  vehicleType = 'car',
   address,
   availableInMinutes,
   price,
   showLocationInfo = true
 }) {
+  const formatPlate = (plate) => {
+    if (!plate) return '0000 XXX';
+    const cleaned = plate.replace(/\s/g, '');
+    if (cleaned.length >= 4) {
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+    }
+    return plate;
+  };
   return (
     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border border-purple-500/30">
       {/* Header con precio */}
@@ -58,7 +94,7 @@ export default function UserCard({
           <p className="font-bold text-white">{userName}</p>
 
           <div className="flex items-center gap-2">
-            <CarIconSmall color={carColorMap[carColor] || '#6b7280'} />
+            <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
             <p className="text-white text-xs font-medium">{carBrand} {carModel}</p>
           </div>
 
@@ -67,7 +103,7 @@ export default function UserCard({
               <span className="text-white text-[6px] font-bold">E</span>
             </div>
             <span className="text-black font-mono font-bold text-[10px] tracking-wide">
-              {carPlate || '0000 XXX'}
+              {formatPlate(carPlate)}
             </span>
           </div>
         </div>

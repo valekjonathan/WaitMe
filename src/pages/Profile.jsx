@@ -286,7 +286,19 @@ export default function Profile() {
                           <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
                           <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
                         </svg>
-                        Coche
+                        Coche normal
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="suv" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Coche voluminoso
                       </div>
                     </SelectItem>
                     <SelectItem value="van" className="text-white hover:bg-gray-800">
