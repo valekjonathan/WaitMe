@@ -182,7 +182,7 @@ export default function Profile() {
               <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
                 
-                <div className="f fl fle flex- flex-r flex-ro flex-row- flex-row-r flex-row-re flex-row-rev flex-row-reve flex-row-rever flex-row-revers flex items-center gap-3 flex-row-reverse">
+                <div className="flex items-center gap-3">
                   <CarIconProfile color={selectedColor?.fill} />
                   <div>
                     <p className="text-white font-medium text-sm">
@@ -198,7 +198,9 @@ export default function Profile() {
                       <span className="text-white text-[8px] font-bold">E</span>
                     </div>
                     <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                      {formData.car_plate || '0000 XXX'}
+                      {formData.car_plate ? 
+                        `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : 
+                        '0000 XXX'}
                     </span>
                   </div>
                 </div>
@@ -245,7 +247,7 @@ export default function Profile() {
               />
             </div>
 
-            <h2 className="text-base font-semibold flex items-center justify-center gap-2 pt-1">
+            <h2 className="text-sm font-semibold text-center text-gray-400 pt-1">
               Datos del vehículo
             </h2>
 
