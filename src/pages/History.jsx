@@ -277,7 +277,7 @@ export default function History() {
                       <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1">
                         <TrendingUp className="w-4 h-4 text-green-400" />
                         <span className="font-bold text-green-400 text-sm">
-                          +{tx.seller_earnings?.toFixed(2)}€
+                          {tx.seller_earnings?.toFixed(2)}€
                         </span>
                       </div>
                     ) : (
