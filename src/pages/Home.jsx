@@ -14,7 +14,10 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 
 export default function Home() {
-  const [mode, setMode] = useState(null); // null, 'search', 'create'
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialMode = urlParams.get('mode');
+  
+  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
