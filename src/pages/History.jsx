@@ -80,7 +80,7 @@ export default function History() {
     };
     const labels = {
       active: 'Activa',
-      reserved: 'Reservada',
+      reserved: 'Reservado por:',
       completed: 'Completada',
       cancelled: 'Cancelada',
       expired: 'Expirada'
@@ -139,48 +139,71 @@ export default function History() {
                   transition={{ delay: index * 0.1 }}
                   className="bg-gray-900 rounded-xl p-4 border border-gray-800"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {getStatusBadge(alert.status)}
-                      {alert.status === 'active' && alert.user_id === user?.id && (
-                        <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                          Tu alerta
-                        </Badge>
+                  {alert.status === 'reserved' ? (
+                    <>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getStatusBadge(alert.status)}
+                        </div>
+                        <span className="text-purple-400 font-bold text-lg">{alert.price}€</span>
+                      </div>
+
+                      {/* Tarjeta del usuario que reservó */}
+                      {alert.reserved_by_name && (
+                        <div className="mb-3">
+                          <UserCard
+                            userName={alert.reserved_by_name}
+                            userPhoto={null}
+                            carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                            carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                            carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                            carPlate={alert.reserved_by_plate}
+                            vehicleType={alert.reserved_by_vehicle_type}
+                            address={alert.address}
+                            availableInMinutes={alert.available_in_minutes}
+                            price={alert.price}
+                            showLocationInfo={false}
+                          />
+                        </div>
                       )}
-                    </div>
-                    <span className="text-purple-400 font-bold text-lg">{alert.price}€</span>
-                  </div>
 
-                  {/* Tarjeta del usuario que reservó */}
-                  {alert.status === 'reserved' && alert.reserved_by_name && (
-                    <div className="mb-3">
-                      <p className="text-xs text-purple-400 mb-2">Reservado por:</p>
-                      <UserCard
-                        userName={alert.reserved_by_name}
-                        userPhoto={null}
-                        carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
-                        carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
-                        carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
-                        carPlate={alert.reserved_by_plate}
-                        vehicleType={alert.reserved_by_vehicle_type}
-                        address={alert.address}
-                        availableInMinutes={alert.available_in_minutes}
-                        price={alert.price}
-                        showLocationInfo={false}
-                      />
-                    </div>
+                      <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{alert.address || 'Ubicación marcada'}</span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 text-gray-500 text-xs">
+                        <Clock className="w-3 h-3" />
+                        <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
+                        <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getStatusBadge(alert.status)}
+                          {alert.status === 'active' && alert.user_id === user?.id && (
+                            <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                              Tu alerta
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-purple-400 font-bold text-lg">{alert.price}€</span>
+                      </div>
+
+                      <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span>{alert.address || 'Ubicación marcada'}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-gray-500 text-xs">
+                        <Clock className="w-3 h-3" />
+                        <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
+                        <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      </div>
+                    </>
                   )}
-
-                  <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>{alert.address || 'Ubicación marcada'}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-gray-500 text-xs">
-                    <Clock className="w-3 h-3" />
-                    <span>{alert.user_id === user?.id ? 'Te vas' : 'Se va'} en {alert.available_in_minutes} min</span>
-                    <span className="text-purple-400"> • Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
-                  </div>
                 </motion.div>
               ))
             )}
