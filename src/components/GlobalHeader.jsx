@@ -33,7 +33,7 @@ export default function GlobalHeader() {
   });
 
   return (
-    <header className="fixed top-0 right-0 z-50 flex items-center gap-1 px-4 py-3 pr-6">
+    <header className="fixed top-0 right-0 z-50 flex items-center gap-1 px-4 py-3 pr-16">
       <Link to={createPageUrl('Settings')}>
         <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
           <Settings className="w-12 h-12" strokeWidth={3} />
