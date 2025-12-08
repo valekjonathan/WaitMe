@@ -261,7 +261,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 mt-8"
+              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 mt-0"
             >
               <div className="text-center mb-8 w-full flex flex-col items-center">
                 <img 
