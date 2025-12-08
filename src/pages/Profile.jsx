@@ -29,6 +29,7 @@ export default function Profile() {
     car_brand: '',
     car_model: '',
     car_color: 'gris',
+    vehicle_type: 'car',
     car_plate: '',
     photo_url: '',
     phone: '',
@@ -48,6 +49,7 @@ export default function Profile() {
           car_brand: currentUser.car_brand || '',
           car_model: currentUser.car_model || '',
           car_color: currentUser.car_color || 'gris',
+          vehicle_type: currentUser.vehicle_type || 'car',
           car_plate: currentUser.car_plate || '',
           photo_url: currentUser.photo_url || '',
           phone: currentUser.phone || '',
@@ -256,26 +258,65 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-400">Color</Label>
-              <Select
-                value={formData.car_color}
-                onValueChange={(value) => setFormData({ ...formData, car_color: value })}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-400">Color</Label>
+                <Select
+                  value={formData.car_color}
+                  onValueChange={(value) => setFormData({ ...formData, car_color: value })}>
 
-                <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700">
-                  {carColors.map((color) =>
-                  <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    {carColors.map((color) =>
+                    <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                        <div className="flex items-center gap-2">
+                          <CarIconSmall color={color.fill} />
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-400">Vehículo</Label>
+                <Select
+                  value={formData.vehicle_type || 'car'}
+                  onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}>
+
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="car" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
-                        <CarIconSmall color={color.fill} />
-                        {color.label}
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Coche
                       </div>
                     </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    <SelectItem value="van" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Furgoneta
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -318,38 +359,7 @@ export default function Profile() {
                 <Switch
                   checked={formData.allow_phone_calls}
                   onCheckedChange={(checked) => setFormData({ ...formData, allow_phone_calls: checked })}
-                />
-              </div>
-
-              {/* Notificaciones push */}
-              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="font-medium text-white">Notificaciones push</p>
-                    <p className="text-xs text-gray-500">Alertas en tiempo real</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={formData.notifications_enabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, notifications_enabled: checked })}
-                />
-              </div>
-
-              {/* Notificaciones email */}
-              <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <div>
-                    <p className="font-medium text-white">Notificaciones email</p>
-                    <p className="text-xs text-gray-500">Recibir correos importantes</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={formData.email_notifications}
-                  onCheckedChange={(checked) => setFormData({ ...formData, email_notifications: checked })}
+                  className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                 />
               </div>
             </div>
