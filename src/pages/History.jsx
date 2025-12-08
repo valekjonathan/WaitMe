@@ -393,8 +393,19 @@ export default function History() {
                       </div>
                       <Button
                         size="icon"
-                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
-                        disabled
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                        onClick={async () => {
+                          await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                          await base44.entities.ChatMessage.create({
+                            alert_id: alert.id,
+                            sender_id: user?.email || user?.id,
+                            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                            receiver_id: alert.user_email || alert.user_id,
+                            message: `He cancelado mi reserva de ${alert.price}€`,
+                            read: false
+                          });
+                          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                        }}
                       >
                         <X className="w-4 h-4" strokeWidth={3} />
                       </Button>
