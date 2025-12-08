@@ -176,18 +176,16 @@ export default function History() {
                 >
                   {alert.status === 'reserved' ? (
                     <>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {getStatusBadge(alert.status)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="w-5 h-5 text-green-400" />
-                          <span className="text-green-400 font-bold text-lg">{alert.price}€</span>
+                      <div className="flex items-center justify-between mb-2">
+                        {getStatusBadge(alert.status)}
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                          <span className="text-green-400 font-bold text-sm">{alert.price}€</span>
                         </div>
                       </div>
 
                       {alert.reserved_by_name && (
-                        <div className="mb-3">
+                        <div className="mb-2">
                           <UserCard
                             userName={alert.reserved_by_name}
                             userPhoto={null}
@@ -210,17 +208,9 @@ export default function History() {
                         </div>
                       )}
 
-                      <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
+                      <div className="flex items-start gap-2 text-gray-400 text-sm">
                         <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
                         <span>{alert.address || 'Ubicación marcada'}</span>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>Te vas en {alert.available_in_minutes} min</span>
-                        </div>
-                        <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   ) : (
@@ -236,7 +226,7 @@ export default function History() {
                           </div>
                           <Button
                             size="icon"
-                            className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 rounded-lg"
+                            className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 rounded-lg border border-red-500"
                             onClick={() => cancelAlertMutation.mutate(alert.id)}
                             disabled={cancelAlertMutation.isPending}
                           >
