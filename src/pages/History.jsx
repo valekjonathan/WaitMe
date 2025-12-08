@@ -151,7 +151,7 @@ export default function History() {
             </Button>
           </Link>
 
-          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-4" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -271,7 +271,7 @@ export default function History() {
                       <div className="flex items-center gap-1 text-xs">
                         <Clock className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
-                        <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                        <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   )}
@@ -322,8 +322,6 @@ export default function History() {
                     </div>
                   </div>
 
-                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
-
                   {isSeller && tx.buyer_name && (
                     <div className="mb-2">
                       <UserCard
@@ -360,7 +358,7 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-4" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -413,7 +411,7 @@ export default function History() {
                   <div className="flex items-center gap-1 text-xs">
                     <Clock className="w-3 h-3 text-gray-500" />
                     <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
-                    <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                    <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -451,8 +449,6 @@ export default function History() {
                       </Button>
                     </div>
                   </div>
-                  
-                  <p className="text-white text-xs mb-2">Estás aparcado en:</p>
                   
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
