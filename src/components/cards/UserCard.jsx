@@ -88,7 +88,7 @@ export default function UserCard({
       {/* Tarjeta de usuario */}
       <div className="flex gap-3 mb-3">
         <div className="flex flex-col gap-2">
-          <div className="w-16 h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
+          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
             {userPhoto ? (
               <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
             ) : (
@@ -97,13 +97,13 @@ export default function UserCard({
               </div>
             )}
           </div>
-          
+
           {showContactButtons && (
             <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-7 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg"
+                className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg"
                 onClick={onChat}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -111,7 +111,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className={`w-7 h-7 rounded-lg ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                className={`w-[28px] h-7 rounded-lg ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                 onClick={onCall}
                 disabled={!allowPhoneCalls}
               >
@@ -120,7 +120,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-7 h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg"
+                className="w-[28px] h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg"
                 onClick={() => {
                   if (latitude && longitude) {
                     window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');

@@ -273,9 +273,9 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-3 py-1.5">
                         Finalizada
                       </Badge>
                       <span className="text-gray-500 text-xs">
@@ -283,16 +283,16 @@ export default function History() {
                       </span>
                     </div>
                     {isSeller ? (
-                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
-                        <TrendingUp className="w-5 h-5 text-green-400" />
-                        <span className="font-bold text-green-400 text-lg">
+                      <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                        <span className="font-bold text-green-400 text-sm">
                           +{tx.seller_earnings?.toFixed(2)}€
                         </span>
                       </div>
                     ) : (
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
-                        <TrendingDown className="w-5 h-5 text-red-400" />
-                        <span className="font-bold text-red-400 text-lg">
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                        <span className="font-bold text-red-400 text-sm">
                           -{tx.amount?.toFixed(2)}€
                         </span>
                       </div>
