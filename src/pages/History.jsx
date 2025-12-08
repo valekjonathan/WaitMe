@@ -64,10 +64,18 @@ export default function History() {
     enabled: !!user?.id
   });
 
-  // Combinar alertas activas/reservadas con transacciones completadas
-  const allItems = [
-    ...myAlerts.filter(a => a.status === 'active' || a.status === 'reserved').map(a => ({ type: 'alert', data: a, date: a.created_date })),
-    ...transactions.map(t => ({ type: 'transaction', data: t, date: t.created_date }))
+  // Separar por: Mis alertas creadas vs Mis reservas
+  const myActiveAlerts = myAlerts.filter(a => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved'));
+  const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
+  
+  const myAlertsItems = [
+    ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date })),
+    ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date }))
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const myReservationsItems = [
+    ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date })),
+    ...transactions.filter(t => t.buyer_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const isLoading = loadingAlerts || loadingTransactions;
@@ -109,19 +117,30 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-20 pb-24 px-4 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
-        {isLoading ? (
-          <div className="text-center py-12 text-gray-500">
-            <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-            Cargando...
-          </div>
-        ) : allItems.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>No tienes historial</p>
-          </div>
-        ) : (
-          allItems.map((item, index) => {
+      <main className="pt-20 pb-24 px-4">
+        <Tabs defaultValue="alerts" className="w-full">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-6">
+            <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
+              Tus alertas
+            </TabsTrigger>
+            <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
+              Tus reservas
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="alerts" className="space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
+                Cargando...
+              </div>
+            ) : myAlertsItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No tienes alertas</p>
+              </div>
+            ) : (
+              myAlertsItems.map((item, index) => {
             if (item.type === 'alert') {
               const alert = item.data;
               return (
@@ -262,6 +281,95 @@ export default function History() {
             }
           })
         )}
+          </TabsContent>
+
+          <TabsContent value="reservations" className="space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-gray-800">
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
+                Cargando...
+              </div>
+            ) : myReservationsItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No tienes reservas</p>
+              </div>
+            ) : (
+              myReservationsItems.map((item, index) => {
+            if (item.type === 'alert') {
+              const alert = item.data;
+              return (
+                <motion.div
+                  key={`alert-${alert.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {getStatusBadge(alert.status)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <TrendingDown className="w-5 h-5 text-red-400" />
+                      <span className="text-red-400 font-bold text-lg">{alert.price}€</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
+                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{alert.address || 'Ubicación marcada'}</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Clock className="w-3 h-3" />
+                      <span>Se va en {alert.available_in_minutes} min</span>
+                    </div>
+                    <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                  </div>
+                </motion.div>
+              );
+            } else {
+              const tx = item.data;
+              
+              return (
+                <motion.div
+                  key={`tx-${tx.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/30 opacity-50"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="w-5 h-5 text-red-400" />
+                      <span className="font-bold text-red-400">
+                        -{tx.amount?.toFixed(2)}€
+                      </span>
+                    </div>
+                    <span className="text-gray-500 text-xs">
+                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-gray-400">
+                    Pagaste a {tx.seller_name}
+                  </p>
+                  
+                  {tx.address && (
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {tx.address}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            }
+          })
+        )}
+          </TabsContent>
+        </Tabs>
       </main>
       
       <BottomNav />
