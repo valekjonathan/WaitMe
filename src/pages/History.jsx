@@ -215,28 +215,26 @@ export default function History() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {getStatusBadge(alert.status)}
-                        </div>
+                      <div className="flex items-center justify-between mb-2">
+                        {getStatusBadge(alert.status)}
                         <div className="flex items-center gap-2">
-                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2 flex items-center gap-1">
-                            <TrendingUp className="w-5 h-5 text-green-400" />
-                            <span className="text-green-400 font-bold text-lg">{alert.price}€</span>
+                          <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-1.5 flex items-center gap-1">
+                            <TrendingUp className="w-4 h-4 text-green-400" />
+                            <span className="text-green-400 font-bold text-sm">{alert.price}€</span>
                           </div>
                           <Button
                             size="icon"
-                            className="bg-red-600 hover:bg-red-700 text-white w-10 h-10 rounded-lg border border-red-500"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-3 py-1.5 h-auto border-2 border-gray-500"
                             onClick={() => cancelAlertMutation.mutate(alert.id)}
                             disabled={cancelAlertMutation.isPending}
                           >
-                            <X className="w-5 h-5" strokeWidth={3} />
+                            <X className="w-4 h-4" strokeWidth={3} />
                           </Button>
                         </div>
                       </div>
 
-                      <div className="flex items-start gap-2 text-gray-400 text-sm mb-2">
-                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
@@ -245,7 +243,7 @@ export default function History() {
                           <Clock className="w-3 h-3" />
                           <span>Te vas en {alert.available_in_minutes} min</span>
                         </div>
-                        <span className="text-purple-400">Te espera hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                        <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   )}
