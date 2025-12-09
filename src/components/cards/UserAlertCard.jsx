@@ -39,22 +39,41 @@ export default function UserAlertCard({
         availableInMinutes={alert.available_in_minutes}
         price={alert.price}
         showLocationInfo={true}
-        showContactButtons={true}
-        onChat={() => onChat(alert)}
-        onCall={() => onCall(alert)}
-        latitude={alert.latitude}
-        longitude={alert.longitude}
-        allowPhoneCalls={alert.allow_phone_calls}
       />
 
-      {/* Botón de reserva */}
-      <Button
-        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3"
-        onClick={() => onBuyAlert(alert)}
-        disabled={isLoading}
-      >
-        {isLoading ? 'Procesando...' : '¡WaitMe!'}
-      </Button>
+      {/* Botones de acción */}
+      <div className="mt-4 flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-gray-700 hover:bg-gray-800"
+          onClick={() => onChat(alert)}
+        >
+          <MessageCircle className="w-5 h-5 text-purple-400" />
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="icon"
+          className={`border-gray-700 ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+          onClick={() => alert.allow_phone_calls && onCall(alert)}
+          disabled={!alert.allow_phone_calls}
+        >
+          {alert.allow_phone_calls ? (
+            <Phone className="w-5 h-5 text-green-400" />
+          ) : (
+            <PhoneOff className="w-5 h-5 text-gray-600" />
+          )}
+        </Button>
+
+        <Button
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+          onClick={() => onBuyAlert(alert)}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Procesando...' : '¡WaitMe!'}
+        </Button>
+      </div>
     </div>
   );
 }
