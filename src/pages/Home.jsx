@@ -267,7 +267,7 @@ export default function Home() {
                 <img 
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" 
                   alt="WaitMe!" 
-                  className="w-48 h-48 mb-6 mt-[50px] object-contain"
+                  className="w-48 h-48 mb-6 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
