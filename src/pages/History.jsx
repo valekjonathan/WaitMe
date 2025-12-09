@@ -299,7 +299,7 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
                     <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -307,16 +307,16 @@ export default function History() {
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {isSeller ? (
-                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                          <TrendingUp className="w-4 h-4 text-green-400" />
-                          <span className="font-bold text-green-400 text-sm">
+                        <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingUp className="w-4 h-4 text-gray-600" />
+                          <span className="font-bold text-gray-600 text-sm">
                             {tx.seller_earnings?.toFixed(2)}€
                           </span>
                         </div>
                       ) : (
-                        <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                          <TrendingDown className="w-4 h-4 text-red-400" />
-                          <span className="font-bold text-red-400 text-sm">
+                        <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingDown className="w-4 h-4 text-gray-600" />
+                          <span className="font-bold text-gray-600 text-sm">
                             -{tx.amount?.toFixed(2)}€
                           </span>
                         </div>
@@ -471,16 +471,16 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-4 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gray-500/20 text-gray-400 border border-gray-500/30 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
                     <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                        <TrendingDown className="w-4 h-4 text-red-400" />
-                        <span className="font-bold text-red-400 text-sm">
+                      <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                        <TrendingDown className="w-4 h-4 text-gray-600" />
+                        <span className="font-bold text-gray-600 text-sm">
                           -{tx.amount?.toFixed(2)}€
                         </span>
                       </div>
