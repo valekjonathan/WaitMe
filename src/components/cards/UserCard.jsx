@@ -66,7 +66,8 @@ export default function UserCard({
   latitude,
   longitude,
   allowPhoneCalls = false,
-  muted = false
+  muted = false,
+  renderExtraButton
 }) {
   const formatPlate = (plate) => {
     if (!plate) return '0000 XXX';
