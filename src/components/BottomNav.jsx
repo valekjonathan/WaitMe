@@ -39,9 +39,9 @@ export default function BottomNav() {
       <div className="flex items-center justify-around max-w-md mx-auto gap-2">
         <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
           <Button variant="ghost" className="relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9l-6-6-6 6" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 15l6 6 6-6" />
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
+              <path d="M4 8 L14 8 L14 6 L18 9 L14 12 L14 10 L4 10 Z" fill="currentColor"/>
+              <path d="M20 16 L10 16 L10 18 L6 15 L10 12 L10 14 L20 14 Z" fill="currentColor"/>
             </svg>
             <span className="text-[10px] font-bold">Actividad</span>
             {activeAlerts.length > 0 && (
