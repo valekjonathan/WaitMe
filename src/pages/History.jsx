@@ -126,7 +126,7 @@ export default function History() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <Link to={createPageUrl('Home')}>

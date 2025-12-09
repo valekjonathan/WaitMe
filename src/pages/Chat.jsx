@@ -120,27 +120,20 @@ export default function Chat() {
   return (
     <div className="h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="bg-black/90 backdrop-blur-sm border-b border-gray-800 px-4 py-4">
-        <div className="flex items-center gap-4 mb-3">
-          <Link to={createPageUrl('Chats')}>
-            <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-          </Link>
-          
-          <div className="flex items-center gap-3 flex-1">
-            {alert?.user_photo ? (
-              <img src={alert.user_photo} className="w-12 h-12 rounded-full object-cover border-2 border-purple-500" alt={otherUserName} />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-purple-500">
-                {otherUserName?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="font-bold text-lg">{otherUserName}</p>
-              <p className="text-xs text-gray-500">En línea</p>
+      <header className="bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Link to={createPageUrl('Chats')}>
+              <Button variant="ghost" size="icon" className="text-white">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+            </Link>
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
           </div>
+          
+          <h1 className="text-lg font-semibold">{otherUserName}</h1>
 
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
@@ -153,19 +146,6 @@ export default function Chat() {
                 <MessageCircle className="w-5 h-5" />
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={canCall ? 'text-green-400' : 'text-gray-600'}
-              onClick={() => canCall && (window.location.href = `tel:${alert.phone}`)}
-              disabled={!canCall}
-            >
-              {canCall ? (
-                <Phone className="w-5 h-5" />
-              ) : (
-                <PhoneOff className="w-5 h-5" />
-              )}
-            </Button>
           </div>
         </div>
 
