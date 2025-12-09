@@ -165,7 +165,7 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1 pb-6" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -373,7 +373,7 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1 pb-6" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
