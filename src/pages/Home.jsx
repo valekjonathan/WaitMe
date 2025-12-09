@@ -17,7 +17,7 @@ import BottomNav from '@/components/BottomNav';
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
-  
+
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -31,7 +31,7 @@ export default function Home() {
     maxMinutes: 60,
     maxDistance: 5
   });
-  
+
   const queryClient = useQueryClient();
 
   // Obtener usuario actual
@@ -66,13 +66,13 @@ export default function Home() {
   });
 
   // Filtrar alertas según criterios
-  const alerts = rawAlerts.filter(alert => {
+  const alerts = rawAlerts.filter((alert) => {
     // Filtro de precio
     if (alert.price > filters.maxPrice) return false;
-    
+
     // Filtro de disponibilidad
     if (alert.available_in_minutes > filters.maxMinutes) return false;
-    
+
     // Filtro de distancia
     if (userLocation) {
       const distance = calculateDistance(
@@ -81,7 +81,7 @@ export default function Home() {
       );
       if (distance > filters.maxDistance) return false;
     }
-    
+
     return true;
   });
 
@@ -90,11 +90,11 @@ export default function Home() {
     const R = 6371; // Radio de la Tierra en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 
@@ -176,13 +176,13 @@ export default function Home() {
           setUserLocation([latitude, longitude]);
           setSelectedPosition({ lat: latitude, lng: longitude });
           // Obtener dirección aproximada
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.display_name) {
-                setAddress(data.display_name.split(',').slice(0, 3).join(', '));
-              }
-            });
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`).
+          then((res) => res.json()).
+          then((data) => {
+            if (data.display_name) {
+              setAddress(data.display_name.split(',').slice(0, 3).join(', '));
+            }
+          });
         },
         (error) => console.log('Error obteniendo ubicación:', error)
       );
@@ -213,23 +213,23 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            {mode ? (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => {
-                  setMode(null);
-                  setSelectedAlert(null);
-                }}
-                className="text-white"
-              >
+            {mode ?
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setMode(null);
+                setSelectedAlert(null);
+              }}
+              className="text-white">
+
+                <ArrowLeft className="w-6 h-6" />
+              </Button> :
+
+            <Button variant="ghost" size="icon" className="text-white invisible">
                 <ArrowLeft className="w-6 h-6" />
               </Button>
-            ) : (
-              <Button variant="ghost" size="icon" className="text-white invisible">
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            )}
+            }
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
@@ -248,11 +248,11 @@ export default function Home() {
             <Link to={createPageUrl('Chats')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <MessageCircle className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount > 0 &&
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
-                )}
+                }
               </Button>
             </Link>
           </div>
@@ -260,21 +260,21 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-0 pb-24">
+      <main className="mt-4 pt-24 pb-24">
         <AnimatePresence mode="wait">
-          {!mode && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8"
-            >
+          {!mode &&
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8">
+
               <div className="text-center mb-8 w-full flex flex-col items-center">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" 
-                  alt="WaitMe!" 
-                  className="w-48 h-48 mb-6 object-contain"
-                />
+                <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                alt="WaitMe!"
+                className="w-48 h-48 mb-6 object-contain" />
+
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
@@ -282,114 +282,114 @@ export default function Home() {
 
               <div className="w-full max-w-sm mx-auto space-y-4">
                 <Button
-                  onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
-                >
+                onClick={() => setMode('search')}
+                className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
+
                   <MapPin className="w-12 h-12 text-purple-500" strokeWidth={2.5} />
                   ¿Dónde quieres aparcar?
                 </Button>
 
                 <Button
-                  onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
-                >
+                onClick={() => setMode('create')}
+                className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
+
                   <Car className="w-12 h-12" strokeWidth={2.5} />
                   ¡Estoy aparcado aquí!
                 </Button>
               </div>
             </motion.div>
-          )}
+          }
 
-          {mode === 'search' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-screen pt-16"
-            >
+          {mode === 'search' &&
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-screen pt-16">
+
               <div className="h-[35%] relative px-3 pt-1">
                 <ParkingMap
-                  alerts={alerts}
-                  onAlertClick={setSelectedAlert}
-                  userLocation={userLocation}
-                  selectedAlert={selectedAlert}
-                  showRoute={!!selectedAlert}
-                  className="h-full"
-                />
+                alerts={alerts}
+                onAlertClick={setSelectedAlert}
+                userLocation={userLocation}
+                selectedAlert={selectedAlert}
+                showRoute={!!selectedAlert}
+                className="h-full" />
+
 
                 {/* Botón de filtros */}
-                {!showFilters && (
-                  <Button
-                    onClick={() => setShowFilters(true)}
-                    className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                    size="icon"
-                  >
+                {!showFilters &&
+              <Button
+                onClick={() => setShowFilters(true)}
+                className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                size="icon">
+
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
-                )}
+              }
 
                 {/* Panel de filtros */}
                 <AnimatePresence>
-                  {showFilters && (
-                    <MapFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      onClose={() => setShowFilters(false)}
-                      alertsCount={alerts.length}
-                    />
-                  )}
+                  {showFilters &&
+                <MapFilters
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  onClose={() => setShowFilters(false)}
+                  alertsCount={alerts.length} />
+
+                }
                 </AnimatePresence>
               </div>
               <div className="px-4 pt-2">
                 <UserAlertCard
-                  alert={selectedAlert}
-                  isEmpty={!selectedAlert}
-                  onBuyAlert={handleBuyAlert}
-                  onChat={handleChat}
-                  onCall={handleCall}
-                  isLoading={buyAlertMutation.isPending}
-                />
+                alert={selectedAlert}
+                isEmpty={!selectedAlert}
+                onBuyAlert={handleBuyAlert}
+                onChat={handleChat}
+                onCall={handleCall}
+                isLoading={buyAlertMutation.isPending} />
+
               </div>
             </motion.div>
-          )}
+          }
 
-          {mode === 'create' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-[calc(100vh-8rem)]"
-            >
+          {mode === 'create' &&
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-[calc(100vh-8rem)]">
+
               <div className="h-1/2">
                 <ParkingMap
-                  isSelecting={true}
-                  selectedPosition={selectedPosition}
-                  setSelectedPosition={(pos) => {
-                    setSelectedPosition(pos);
-                    // Obtener dirección
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.display_name) {
-                          setAddress(data.display_name.split(',').slice(0, 3).join(', '));
-                        }
-                      });
-                  }}
-                  userLocation={userLocation}
-                  className="h-full"
-                />
+                isSelecting={true}
+                selectedPosition={selectedPosition}
+                setSelectedPosition={(pos) => {
+                  setSelectedPosition(pos);
+                  // Obtener dirección
+                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
+                  then((res) => res.json()).
+                  then((data) => {
+                    if (data.display_name) {
+                      setAddress(data.display_name.split(',').slice(0, 3).join(', '));
+                    }
+                  });
+                }}
+                userLocation={userLocation}
+                className="h-full" />
+
               </div>
               <div className="h-1/2 p-4 overflow-y-auto">
                 <CreateAlertCard
-                  address={address}
-                  onAddressChange={setAddress}
-                  onUseCurrentLocation={getCurrentLocation}
-                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                  isLoading={createAlertMutation.isPending}
-                />
+                address={address}
+                onAddressChange={setAddress}
+                onUseCurrentLocation={getCurrentLocation}
+                onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                isLoading={createAlertMutation.isPending} />
+
               </div>
             </motion.div>
-          )}
+          }
         </AnimatePresence>
       </main>
 
@@ -419,23 +419,23 @@ export default function Home() {
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setConfirmDialog({ open: false, alert: null })}
-              className="flex-1 border-gray-700"
-            >
+              className="flex-1 border-gray-700">
+
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending}
-            >
+              disabled={buyAlertMutation.isPending}>
+
               {buyAlertMutation.isPending ? 'Procesando...' : '¡Confirmar!'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 }
