@@ -45,7 +45,7 @@ export default function BottomNav() {
             </svg>
             <span className="text-[10px] font-bold">Actividad</span>
             {activeAlerts.length > 0 && (
-              <span className="absolute -top-1 right-1 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
