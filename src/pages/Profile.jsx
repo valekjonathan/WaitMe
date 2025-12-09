@@ -159,7 +159,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="pt-16 pb-24 px-4 max-w-md mx-auto">
+      <main className="pt-[74px] pb-24 px-4 max-w-md mx-auto overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
