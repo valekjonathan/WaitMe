@@ -154,7 +154,7 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-20 pb-16 px-4">
+      <main className="pt-20 pb-0 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
