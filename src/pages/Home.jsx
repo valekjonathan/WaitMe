@@ -12,6 +12,7 @@ import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
+import BottomNav from '@/components/BottomNav';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -211,8 +212,8 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
-          {mode ? (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {mode ? (
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -224,35 +225,35 @@ export default function Home() {
               >
                 <ArrowLeft className="w-6 h-6" />
               </Button>
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-                <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1 ml-2">
+            ) : (
+              <Button variant="ghost" size="icon" className="text-white invisible">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+            )}
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
-          )}
-          
-          <span className="text-white font-bold text-xl tracking-tight absolute left-1/2 -translate-x-1/2">
+          </div>
+
+          <h1 className="text-lg font-semibold">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-          </span>
-          
+          </h1>
+
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
-                <Settings className="w-12 h-12" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <Settings className="w-5 h-5" />
               </Button>
             </Link>
             <Link to={createPageUrl('Chats')} className="relative">
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
-                <MessageCircle className="w-12 h-12" strokeWidth={3} />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <MessageCircle className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </Button>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
             </Link>
           </div>
         </div>
@@ -392,41 +393,7 @@ export default function Home() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb">
-      <div className="flex items-center justify-around max-w-md mx-auto gap-2">
-      <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
-        <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-[10px] font-bold">Historial</span>
-        </Button>
-      </Link>
-
-      <div className="flex-1 flex justify-center">
-        <Button 
-          onClick={() => setMode('search')}
-          variant="ghost"
-          className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg"
-        >
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          <span className="text-[10px] font-bold">Mapa</span>
-        </Button>
-      </div>
-
-      <Link to={createPageUrl('Profile')} className="flex-1 flex justify-center">
-        <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          <span className="text-[10px] font-bold">Perfil</span>
-        </Button>
-      </Link>
-      </div>
-      </nav>
+      <BottomNav />
 
       {/* Confirm Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
