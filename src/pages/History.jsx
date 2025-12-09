@@ -166,7 +166,7 @@ export default function History() {
           </TabsList>
 
           <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-scroll pr-1 pb-32" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-xs mb-3 ml-1">Estás aparcado en:</p>
+            <p className="text-white text-sm mb-3 text-center">Estás aparcado en:</p>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -371,7 +371,7 @@ export default function History() {
           </TabsContent>
 
           <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-scroll pr-1 pb-32" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-xs mb-3 ml-1">Reservaste a:</p>
+            <p className="text-white text-sm mb-3 text-center">Reservaste a:</p>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
