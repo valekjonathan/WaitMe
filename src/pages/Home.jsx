@@ -212,17 +212,22 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           {mode ? (
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => {
-                setMode(null);
-                setSelectedAlert(null);
-              }}
-              className="text-white"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => {
+                  setMode(null);
+                  setSelectedAlert(null);
+                }}
+                className="text-white"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+                <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+              </div>
+            </div>
           ) : (
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1 ml-2">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
@@ -315,7 +320,7 @@ export default function Home() {
                 {!showFilters && (
                   <Button
                     onClick={() => setShowFilters(true)}
-                    className="absolute top-4 left-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
                     size="icon"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
