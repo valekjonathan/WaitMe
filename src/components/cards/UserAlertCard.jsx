@@ -26,39 +26,35 @@ export default function UserAlertCard({
 
   return (
     <div className="space-y-4">
-      {/* User Card con botones integrados */}
-      <div className="space-y-0">
-        <UserCard
-          userName={alert.user_name}
-          userPhoto={alert.user_photo}
-          carBrand={alert.car_brand}
-          carModel={alert.car_model}
-          carColor={alert.car_color}
-          carPlate={alert.car_plate}
-          vehicleType={alert.vehicle_type}
-          address={alert.address}
-          availableInMinutes={alert.available_in_minutes}
-          price={alert.price}
-          showLocationInfo={true}
-          showContactButtons={true}
-          onChat={() => onChat(alert)}
-          onCall={() => onCall(alert)}
-          latitude={alert.latitude}
-          longitude={alert.longitude}
-          allowPhoneCalls={alert.allow_phone_calls}
-          renderExtraButton={() => (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-[44px] h-7 bg-purple-600 hover:bg-purple-700 text-white rounded-lg border border-purple-500"
-              onClick={() => onBuyAlert(alert)}
-              disabled={isLoading}
-            >
-              {isLoading ? '...' : 'WM!'}
-            </Button>
-          )}
-        />
-      </div>
+      {/* User Card */}
+      <UserCard
+        userName={alert.user_name}
+        userPhoto={alert.user_photo}
+        carBrand={alert.car_brand}
+        carModel={alert.car_model}
+        carColor={alert.car_color}
+        carPlate={alert.car_plate}
+        vehicleType={alert.vehicle_type}
+        address={alert.address}
+        availableInMinutes={alert.available_in_minutes}
+        price={alert.price}
+        showLocationInfo={true}
+        showContactButtons={true}
+        onChat={() => onChat(alert)}
+        onCall={() => onCall(alert)}
+        latitude={alert.latitude}
+        longitude={alert.longitude}
+        allowPhoneCalls={alert.allow_phone_calls}
+      />
+
+      {/* Botón de reserva */}
+      <Button
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3"
+        onClick={() => onBuyAlert(alert)}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Procesando...' : '¡WaitMe!'}
+      </Button>
     </div>
   );
 }

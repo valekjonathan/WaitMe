@@ -66,8 +66,7 @@ export default function UserCard({
   latitude,
   longitude,
   allowPhoneCalls = false,
-  muted = false,
-  renderExtraButton
+  muted = false
 }) {
   const formatPlate = (plate) => {
     if (!plate) return '0000 XXX';
@@ -99,29 +98,6 @@ export default function UserCard({
               </div>
             )}
           </div>
-
-          {showContactButtons && (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-[29px] h-7 bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white rounded-lg border border-gray-700"
-                onClick={onChat}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`w-[29px] h-7 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
-                onClick={onCall}
-                disabled={!allowPhoneCalls}
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
-              {renderExtraButton && renderExtraButton()}
-            </div>
-          )}
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
@@ -162,7 +138,43 @@ export default function UserCard({
               </span>
             </div>
           )}
-
+          
+          {showContactButtons && (
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white rounded-lg border border-gray-700"
+                onClick={onChat}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Chat
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`flex-1 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                onClick={onCall}
+                disabled={!allowPhoneCalls}
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Llamar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex-1 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-gray-700"
+                onClick={() => {
+                  if (latitude && longitude) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+                  }
+                }}
+              >
+                <Navigation className="w-4 h-4 mr-2" />
+                WaitMe
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
