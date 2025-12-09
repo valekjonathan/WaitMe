@@ -267,7 +267,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8"
+              className="flex flex-col items-center justify-center h-[calc(100vh-140px)]"
             >
               <div className="text-center mb-8 w-full flex flex-col items-center">
                 <img 
@@ -280,7 +280,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-4">
+              <div className="w-full max-w-sm space-y-4">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
