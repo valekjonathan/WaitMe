@@ -129,7 +129,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="h-screen bg-black text-white overflow-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
@@ -159,7 +159,7 @@ export default function Profile() {
         </div>
       </header>
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden h-screen">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
