@@ -124,7 +124,7 @@ export default function History() {
   };
 
   return (
-    <div className="bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
@@ -154,7 +154,7 @@ export default function History() {
         </div>
       </header>
 
-      <main className="bg-black min-h-screen4">
+      <main className="pt-20 pb-16 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
