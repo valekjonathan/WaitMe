@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -85,7 +85,11 @@ export default function Chats() {
             </Button>
           </Link>
           <h1 className="text-lg font-semibold">Mensajes</h1>
-          <div className="w-10" />
+          <Link to={createPageUrl('Settings')}>
+            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+              <Settings className="w-5 h-5" />
+            </Button>
+          </Link>
         </div>
       </header>
 

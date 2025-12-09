@@ -3,18 +3,19 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { 
-  ArrowLeft, 
-  User, 
-  Phone, 
-  Wallet, 
-  Bell, 
-  Shield, 
-  LogOut, 
-  ChevronRight,
-  CreditCard,
-  HelpCircle,
-  Star
-} from 'lucide-react';
+        ArrowLeft, 
+        User, 
+        Phone, 
+        Wallet, 
+        Bell, 
+        Shield, 
+        LogOut, 
+        ChevronRight,
+        CreditCard,
+        HelpCircle,
+        Star,
+        MessageCircle
+      } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,11 @@ export default function Settings() {
             </Button>
           </Link>
           <h1 className="text-lg font-semibold">Configuración</h1>
-          <div className="w-10" />
+          <Link to={createPageUrl('Chats')}>
+            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+          </Link>
         </div>
       </header>
 

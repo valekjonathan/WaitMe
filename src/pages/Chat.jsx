@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Send, Phone, PhoneOff, User } from 'lucide-react';
+import { ArrowLeft, Send, Phone, PhoneOff, User, Settings, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -142,19 +142,31 @@ export default function Chat() {
             </div>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className={canCall ? 'text-green-400' : 'text-gray-600'}
-            onClick={() => canCall && (window.location.href = `tel:${alert.phone}`)}
-            disabled={!canCall}
-          >
-            {canCall ? (
-              <Phone className="w-5 h-5" />
-            ) : (
-              <PhoneOff className="w-5 h-5" />
-            )}
-          </Button>
+          <div className="flex items-center gap-1">
+            <Link to={createPageUrl('Settings')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to={createPageUrl('Chats')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={canCall ? 'text-green-400' : 'text-gray-600'}
+              onClick={() => canCall && (window.location.href = `tel:${alert.phone}`)}
+              disabled={!canCall}
+            >
+              {canCall ? (
+                <Phone className="w-5 h-5" />
+              ) : (
+                <PhoneOff className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Tarjeta de usuario */}
