@@ -259,7 +259,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 pb-24">
+      <main className="pt-0 pb-24">
         <AnimatePresence mode="wait">
           {!mode && (
             <motion.div
@@ -304,9 +304,9 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-[calc(100vh-8rem)]"
+              className="h-screen pt-16"
             >
-              <div className="h-[40%] relative px-3 pt-2">
+              <div className="h-[35%] relative px-3 pt-1">
                 <ParkingMap
                   alerts={alerts}
                   onAlertClick={setSelectedAlert}
@@ -339,7 +339,7 @@ export default function Home() {
                   )}
                 </AnimatePresence>
               </div>
-              <div className="h-1/2 p-4 overflow-y-auto">
+              <div className="flex-1 px-4 pb-4 overflow-y-auto">
                 <UserAlertCard
                   alert={selectedAlert}
                   isEmpty={!selectedAlert}
