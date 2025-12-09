@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Camera, Car, Bell, Phone, Save } from 'lucide-react';
+import { ArrowLeft, Camera, Car, Bell, Phone, Save, Settings, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -139,7 +139,18 @@ export default function Profile() {
             </Button>
           </Link>
           <h1 className="text-lg font-semibold">Mi Perfil</h1>
-          <div className="w-10" />
+          <div className="flex items-center gap-1">
+            <Link to={createPageUrl('Settings')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to={createPageUrl('Chats')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
