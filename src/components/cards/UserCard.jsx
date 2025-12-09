@@ -99,29 +99,6 @@ export default function UserCard({
               </div>
             )}
           </div>
-
-          {showContactButtons && (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-[29px] h-7 bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white rounded-lg border border-gray-700"
-                onClick={onChat}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`w-[29px] h-7 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
-                onClick={onCall}
-                disabled={!allowPhoneCalls}
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
-              {renderExtraButton && renderExtraButton()}
-            </div>
-          )}
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
@@ -154,12 +131,37 @@ export default function UserCard({
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-2 text-gray-500 text-xs">
-              <Clock className="w-3 h-3" />
-              <span>Se va en {availableInMinutes} min</span>
-              <span className="text-purple-400">
-                • Hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
-              </span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-500 text-xs">
+                <Clock className="w-3 h-3" />
+                <span>Se va en {availableInMinutes} min</span>
+              </div>
+              <p className="text-purple-400 text-xs">
+                El usuario espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+              </p>
+              
+              {showContactButtons && (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-[29px] h-7 bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white rounded-lg border border-gray-700"
+                    onClick={onChat}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`w-[29px] h-7 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                    onClick={onCall}
+                    disabled={!allowPhoneCalls}
+                  >
+                    <Phone className="w-4 h-4" />
+                  </Button>
+                  {renderExtraButton && renderExtraButton()}
+                </div>
+              )}
             </div>
           )}
 
