@@ -23,7 +23,7 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       <div className="flex items-center justify-around max-w-md mx-auto gap-2">
         <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
-          <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
+          <Button variant="ghost" className="flex flex-col items-center gap-1 text-green-400 hover:text-green-300 hover:bg-green-500/20 h-auto py-2 px-3 rounded-lg">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
