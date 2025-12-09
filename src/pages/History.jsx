@@ -72,22 +72,12 @@ export default function History() {
   const myAlertsItems = [
     ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
     ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
-  ].sort((a, b) => {
-    // Activas primero
-    if (a.isActive && !b.isActive) return -1;
-    if (!a.isActive && b.isActive) return 1;
-    return new Date(b.date) - new Date(a.date);
-  });
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const myReservationsItems = [
     ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: true })),
     ...transactions.filter(t => t.buyer_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
-  ].sort((a, b) => {
-    // Activas primero
-    if (a.isActive && !b.isActive) return -1;
-    if (!a.isActive && b.isActive) return 1;
-    return new Date(b.date) - new Date(a.date);
-  });
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const isLoading = loadingAlerts || loadingTransactions;
 
