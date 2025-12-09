@@ -126,7 +126,7 @@ export default function History() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" size="icon" className="text-white">
@@ -136,20 +136,20 @@ export default function History() {
           <h1 className="text-lg font-semibold">Historial</h1>
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
+                <Settings className="w-12 h-12" strokeWidth={3} />
               </Button>
             </Link>
             <Link to={createPageUrl('Chats')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <MessageCircle className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 w-16 h-16 rounded-xl">
+                <MessageCircle className="w-12 h-12" strokeWidth={3} />
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="pt-20 pb-16 px-4">
+      <main className="pt-20 pb-0 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
@@ -160,7 +160,7 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -367,7 +367,7 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-280px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+          <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
