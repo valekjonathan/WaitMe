@@ -339,7 +339,7 @@ export default function Home() {
                   )}
                 </AnimatePresence>
               </div>
-              <div className="flex-1 px-4 pb-4 overflow-y-auto">
+              <div className="px-4 pt-2">
                 <UserAlertCard
                   alert={selectedAlert}
                   isEmpty={!selectedAlert}
