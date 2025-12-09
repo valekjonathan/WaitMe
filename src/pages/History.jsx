@@ -347,6 +347,7 @@ export default function History() {
                         onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}
                         onCall={() => {}}
                         allowPhoneCalls={false}
+                        muted={true}
                       />
                     </div>
                   )}
@@ -509,6 +510,7 @@ export default function History() {
                       onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}
                       onCall={() => {}}
                       allowPhoneCalls={false}
+                      muted={true}
                     />
                   </div>
                   
