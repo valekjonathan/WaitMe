@@ -156,7 +156,7 @@ export default function History() {
 
       <main className="pt-20 pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-4">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-2">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -166,6 +166,7 @@ export default function History() {
           </TabsList>
 
           <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1 pb-6" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-3 ml-1">Estás aparcado en:</p>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -210,8 +211,6 @@ export default function History() {
                           </Button>
                         </div>
                       </div>
-
-                      <p className="text-white text-xs mb-2">Estás aparcado en:</p>
 
                       {alert.reserved_by_name && (
                         <div className="mb-2">
@@ -274,8 +273,6 @@ export default function History() {
                           </Button>
                         </div>
                       </div>
-
-                      <p className="text-white text-xs mb-2">Estás aparcado en:</p>
 
                       <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                         <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -374,6 +371,7 @@ export default function History() {
           </TabsContent>
 
           <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-240px)] overflow-y-scroll pr-1 pb-6" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-3 ml-1">Reservaste a:</p>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -428,8 +426,6 @@ export default function History() {
                       </Button>
                     </div>
                   </div>
-
-                  <p className="text-white text-xs mb-2">Reservaste a:</p>
 
                   <div className="mb-2">
                     <UserCard

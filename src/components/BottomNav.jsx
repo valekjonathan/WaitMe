@@ -40,12 +40,12 @@ export default function BottomNav() {
         <Link to={createPageUrl('History')} className="flex-1 flex justify-center">
           <Button variant="ghost" className="relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
             <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none">
-              <path d="M4 8 L14 8 L14 6 L18 9 L14 12 L14 10 L4 10 Z" fill="currentColor"/>
-              <path d="M20 16 L10 16 L10 18 L6 15 L10 12 L10 14 L20 14 Z" fill="currentColor"/>
+              <path d="M20 8 L10 8 L10 6 L6 9 L10 12 L10 10 L20 10 Z" fill="currentColor"/>
+              <path d="M4 16 L14 16 L14 18 L18 15 L14 12 L14 14 L4 14 Z" fill="currentColor"/>
             </svg>
             <span className="text-[10px] font-bold">Actividad</span>
             {activeAlerts.length > 0 && (
-              <span className="absolute top-1 right-2 bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute -top-1 right-1 bg-green-500/20 border-2 border-green-500 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
