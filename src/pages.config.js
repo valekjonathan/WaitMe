@@ -4,7 +4,6 @@ import History from './pages/History';
 import Chats from './pages/Chats';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
-import CodeEditor from './pages/CodeEditor';
 
 
 export const PAGES = {
@@ -14,7 +13,6 @@ export const PAGES = {
     "Chats": Chats,
     "Chat": Chat,
     "Settings": Settings,
-    "CodeEditor": CodeEditor,
 }
 
 export const pagesConfig = {
