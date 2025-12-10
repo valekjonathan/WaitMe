@@ -190,7 +190,7 @@ export default function ParkingMap({
     <div className={`relative ${className}`}>
       <MapContainer
         center={defaultCenter}
-        zoom={25}
+        zoom={15}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl">
 
