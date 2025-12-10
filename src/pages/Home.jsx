@@ -275,7 +275,7 @@ export default function Home() {
                 alt="WaitMe!"
                 className="w-48 h-48 mb-0 object-contain" />
 
-                <h1 className="text-xl font-bold whitespace-nowrap -mt-1">
+                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
