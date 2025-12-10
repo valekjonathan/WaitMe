@@ -209,13 +209,12 @@ export default function ParkingMap({
           draggable={isSelecting}>
           </Marker>
         }
-        
-        {isSelecting &&
-        <LocationMarker
-          position={selectedPosition}
-          setPosition={setSelectedPosition}
-          isSelecting={isSelecting} />
 
+        {isSelecting && selectedPosition && selectedPosition.lat !== userLocation?.[0] &&
+        <Marker
+          position={selectedPosition}
+          icon={createUserLocationIcon()}>
+          </Marker>
         }
         
         {/* Ruta */}

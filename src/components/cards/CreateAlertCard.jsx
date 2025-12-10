@@ -20,7 +20,7 @@ export default function CreateAlertCard({
   };
 
   return (
-    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-500/30 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(168, 85, 247, 0.1)' }}>
+    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
       <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
         <MapPin className="w-5 h-5 text-purple-500" />
         ¿Dónde estás aparcado?
@@ -57,7 +57,7 @@ export default function CreateAlertCard({
             min={5}
             max={60}
             step={5}
-            className="py-2"
+            className="py-2 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
           <div className="flex justify-between text-xs text-gray-500">
             <span>5 min</span>
@@ -71,6 +71,7 @@ export default function CreateAlertCard({
           <Label className="text-gray-400 flex items-center gap-2">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
+            <span className="text-gray-400 text-sm ml-2">Ganarás {(price * 0.8).toFixed(2)}€</span>
           </Label>
           <Slider
             value={[price]}
@@ -78,21 +79,13 @@ export default function CreateAlertCard({
             min={1}
             max={15}
             step={0.5}
-            className="py-2"
+            className="py-2 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
           <div className="flex justify-between text-xs text-gray-500">
             <span>1€</span>
             <span>Hora punta</span>
             <span>Evento especial</span>
           </div>
-        </div>
-
-        {/* Info de ganancias */}
-        <div className="bg-gray-800/50 rounded-lg p-3 mt-4">
-          <p className="text-gray-400 text-sm">
-            Ganarás <span className="text-green-400 font-bold">{(price * 0.8).toFixed(2)}€</span> 
-            <span className="text-gray-500 text-xs ml-1">(WaitMe! se lleva 20%)</span>
-          </p>
         </div>
       </div>
 
@@ -101,7 +94,7 @@ export default function CreateAlertCard({
         onClick={handleCreate}
         disabled={isLoading || !address}
       >
-        {isLoading ? 'Creando alerta...' : 'Publicar mi plaza'}
+        {isLoading ? 'Creando alerta...' : 'Publicar mi WaitMe!'}
       </Button>
     </div>
   );
