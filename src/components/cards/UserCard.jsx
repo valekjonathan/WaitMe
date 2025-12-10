@@ -40,7 +40,7 @@ const VehicleIcon = ({ color, type = 'car' }) => {
   }
   
   return (
-    <svg viewBox="0 0 48 24" className="w-15 h-20" fill="none">
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
       <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
       <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
@@ -101,7 +101,7 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
       {/* Header con precio y distancia */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-center mb-2">
