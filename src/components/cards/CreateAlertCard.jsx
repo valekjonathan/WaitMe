@@ -20,7 +20,7 @@ export default function CreateAlertCard({
   };
 
   return (
-    <div className="bg-gray-900/90 backdrop-blur-sm rounded-2xl p-5 border border-gray-800 shadow-xl">
+    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-500/30 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(168, 85, 247, 0.1)' }}>
       <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
         <MapPin className="w-5 h-5 text-purple-500" />
         ¿Dónde estás aparcado?

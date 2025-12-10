@@ -355,42 +355,42 @@ export default function Home() {
           }
 
           {mode === 'create' &&
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-[calc(100vh-8rem)]">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-screen pt-4">
 
-              <div className="h-1/2">
-                <ParkingMap
-                isSelecting={true}
-                selectedPosition={selectedPosition}
-                setSelectedPosition={(pos) => {
-                  setSelectedPosition(pos);
-                  // Obtener dirección
-                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
-                  then((res) => res.json()).
-                  then((data) => {
-                    if (data.display_name) {
-                      setAddress(data.display_name.split(',').slice(0, 3).join(', '));
-                    }
-                  });
-                }}
-                userLocation={userLocation}
-                className="h-full" />
+                <div className="h-[35%] relative px-3">
+                  <ParkingMap
+                  isSelecting={true}
+                  selectedPosition={selectedPosition}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    // Obtener dirección
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
+                    then((res) => res.json()).
+                    then((data) => {
+                      if (data.display_name) {
+                        setAddress(data.display_name.split(',').slice(0, 3).join(', '));
+                      }
+                    });
+                  }}
+                  userLocation={userLocation}
+                  className="h-full" />
 
-              </div>
-              <div className="h-1/2 p-4 overflow-y-auto">
-                <CreateAlertCard
-                address={address}
-                onAddressChange={setAddress}
-                onUseCurrentLocation={getCurrentLocation}
-                onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                isLoading={createAlertMutation.isPending} />
+                </div>
+                <div className="px-4 pt-2">
+                  <CreateAlertCard
+                  address={address}
+                  onAddressChange={setAddress}
+                  onUseCurrentLocation={getCurrentLocation}
+                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                  isLoading={createAlertMutation.isPending} />
 
-              </div>
-            </motion.div>
-          }
+                </div>
+              </motion.div>
+            }
         </AnimatePresence>
       </main>
 
