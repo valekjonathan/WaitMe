@@ -222,33 +222,53 @@ export default function Notifications() {
                   }}
                 >
                   {notif.type === 'reservation_accepted' && notif.alert ? (
-                    // Mostrar tarjeta completa del usuario que aceptó
+                    // Mostrar tarjeta del vendedor con sus datos
                     <div>
                       <div className="flex justify-between items-center mb-3">
                         <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]} aceptó tu reserva</p>
                         <p className="text-xs text-gray-500">{format(new Date(notif.created_date), 'HH:mm')}</p>
                       </div>
-                      <UserCard
-                        user={{
-                          name: notif.sender_name,
-                          photo: notif.sender_photo,
-                          car_brand: notif.alert.car_brand,
-                          car_model: notif.alert.car_model,
-                          car_color: notif.alert.car_color,
-                          car_plate: notif.alert.car_plate,
-                          vehicle_type: notif.alert.vehicle_type,
-                          phone: notif.alert.phone
-                        }}
-                        location={{
-                          address: notif.alert.address,
-                          distance: null,
-                          eta: notif.alert.available_in_minutes
-                        }}
-                        price={notif.amount}
-                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`)}
-                        onCall={notif.alert.allow_phone_calls && notif.alert.phone ? () => window.location.href = `tel:${notif.alert.phone}` : null}
-                        showActionButtons={true}
-                      />
+
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
+                        {/* Tarjeta de usuario */}
+                        <div className="flex gap-3 mb-3">
+                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
+                            {notif.sender_photo ? (
+                              <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 flex flex-col justify-between">
+                            <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
+                            <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+
+                            {/* Matrícula */}
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-white">E</span>
+                              </div>
+                              <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
+                                {notif.alert.car_plate?.replace(/\s/g, '').toUpperCase().slice(0, 4)} {notif.alert.car_plate?.replace(/\s/g, '').toUpperCase().slice(4)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Botón IR a Google Maps */}
+                        <Button
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                          onClick={() => {
+                            if (notif.alert.latitude && notif.alert.longitude) {
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
+                            }
+                          }}
+                        >
+                          <MapPin className="w-4 h-4 mr-2" />
+                          IR
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <>
