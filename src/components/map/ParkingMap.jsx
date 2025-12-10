@@ -86,6 +86,12 @@ function createUserLocationIcon() {
   return L.divIcon({
     className: 'user-location-marker',
     html: `
+      <style>
+        @keyframes pulse-purple {
+          0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+        }
+      </style>
       <div style="position: relative; width: 40px; height: 60px;">
         <div style="
           position: absolute;
@@ -93,20 +99,20 @@ function createUserLocationIcon() {
           left: 50%;
           transform: translateX(-50%);
           width: 2px;
-          height: 30px;
+          height: 35px;
           background: #a855f7;
         "></div>
         <div style="
           position: absolute;
-          bottom: 25px;
+          bottom: 30px;
           left: 50%;
           transform: translateX(-50%);
-          width: 16px;
-          height: 16px;
-          background: white;
-          border: 3px solid #a855f7;
+          width: 18px;
+          height: 18px;
+          background: #a855f7;
           border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+          box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+          animation: pulse-purple 1.5s ease-in-out infinite;
         "></div>
       </div>
     `,
