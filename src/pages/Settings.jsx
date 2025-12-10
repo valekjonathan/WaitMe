@@ -86,7 +86,11 @@ export default function Settings() {
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
           </div>
-          <h1 className="text-lg font-semibold">Configuración</h1>
+          <Link to={createPageUrl('Home')}>
+            <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+            </h1>
+          </Link>
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
