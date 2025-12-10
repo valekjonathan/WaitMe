@@ -204,26 +204,27 @@ export default function History() {
 
                       {alert.reserved_by_name && (
                         <div className="mb-2">
-                          <UserCard
-                            userName={alert.reserved_by_name}
-                            userPhoto={null}
-                            carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
-                            carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
-                            carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
-                            carPlate={alert.reserved_by_plate}
-                            vehicleType={alert.reserved_by_vehicle_type}
-                            address={alert.address}
-                            availableInMinutes={alert.available_in_minutes}
-                            price={alert.price}
-                            showLocationInfo={false}
-                            showContactButtons={true}
-                            onChat={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`)}
-                            onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
-                            latitude={alert.latitude}
-                            longitude={alert.longitude}
-                            allowPhoneCalls={alert.allow_phone_calls}
-                          />
-                        </div>
+                            <UserCard
+                              userName={alert.reserved_by_name}
+                              userPhoto={null}
+                              carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                              carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                              carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                              carPlate={alert.reserved_by_plate}
+                              vehicleType={alert.reserved_by_vehicle_type}
+                              address={alert.address}
+                              availableInMinutes={alert.available_in_minutes}
+                              price={alert.price}
+                              showLocationInfo={false}
+                              showContactButtons={true}
+                              onChat={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`)}
+                              onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                              latitude={alert.latitude}
+                              longitude={alert.longitude}
+                              allowPhoneCalls={alert.allow_phone_calls}
+                              isReserved={true}
+                            />
+                          </div>
                       )}
 
                       <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
@@ -436,6 +437,7 @@ export default function History() {
                       latitude={alert.latitude}
                       longitude={alert.longitude}
                       allowPhoneCalls={alert.allow_phone_calls}
+                      isReserved={true}
                     />
                   </div>
 

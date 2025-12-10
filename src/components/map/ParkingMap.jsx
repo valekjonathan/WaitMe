@@ -203,7 +203,7 @@ export default function ParkingMap({
 
       {/* Información de ruta */}
       {routeDistance &&
-      <div className="bg-black/90 mr-8 ml-1 px-4 py-2 rounded-xl absolute top-4 right-4 z-[1000] backdrop-blur-sm border border-purple-500/30">
+      <div className="bg-black/60 mr-8 ml-1 px-4 py-2 rounded-xl absolute top-4 right-4 z-[1000] backdrop-blur-sm border border-purple-500/30">
           <div className="flex items-center gap-2 text-white">
             <Navigation className="w-4 h-4 text-purple-400" />
             <span className="text-sm font-bold">{routeDistance} km</span>

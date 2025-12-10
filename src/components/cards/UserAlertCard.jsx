@@ -49,7 +49,7 @@ export default function UserAlertCard({
           className="border-gray-700 hover:bg-gray-800"
           onClick={() => onChat(alert)}
         >
-          <MessageCircle className="w-5 h-5 text-purple-400" />
+          <MessageCircle className="w-5 h-5 text-green-400" />
         </Button>
         
         <Button
@@ -71,7 +71,7 @@ export default function UserAlertCard({
           onClick={() => onBuyAlert(alert)}
           disabled={isLoading}
         >
-          {isLoading ? 'Procesando...' : '¡WaitMe!'}
+          {isLoading ? 'Procesando...' : 'WaitMe!'}
         </Button>
       </div>
     </div>

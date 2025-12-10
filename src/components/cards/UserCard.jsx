@@ -66,7 +66,8 @@ export default function UserCard({
   latitude,
   longitude,
   allowPhoneCalls = false,
-  muted = false
+  muted = false,
+  isReserved = false
 }) {
   const formatPlate = (plate) => {
     if (!plate) return 'XXXX XXX';
@@ -77,13 +78,13 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border border-purple-500/30">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
       {/* Header con precio */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-start mb-2">
           <p className="text-xs text-purple-400">Información del usuario</p>
           <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-            <span className="text-purple-400 font-bold text-sm">{price.toFixed(2)}€</span>
+            <span className="text-purple-400 font-bold text-sm">{price}€</span>
           </div>
         </div>
       )}
@@ -144,14 +145,25 @@ export default function UserCard({
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
-          <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
-            <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
-              <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+          {isReserved ? (
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
+                <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+              </div>
+              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+                {formatPlate(carPlate)}
+              </span>
             </div>
-            <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-              {formatPlate(carPlate)}
-            </span>
-          </div>
+          ) : (
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
+                <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+              </div>
+              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+                XXXX XXX
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -167,7 +179,7 @@ export default function UserCard({
           
           {availableInMinutes !== undefined && (
             <div className="flex items-center gap-2 text-gray-500 text-xs">
-              <Clock className="w-3 h-3" />
+              <Clock className="w-3 h-3 ml-0.5" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
