@@ -264,73 +264,38 @@ export default function Home() {
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-screen pt-4">
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8">
 
-              <div className="h-[35%] relative px-3">
-                <ParkingMap
-                alerts={alerts}
-                onAlertClick={setSelectedAlert}
-                userLocation={userLocation}
-                selectedAlert={selectedAlert}
-                showRoute={!!selectedAlert}
-                className="h-full" />
+              <div className="text-center mb-4 w-full flex flex-col items-center">
+                <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                alt="WaitMe!"
+                className="w-48 h-48 mb-0 object-contain" />
 
-
-                {/* Botón de filtros */}
-                {!showFilters &&
-                <Button
-                onClick={() => setShowFilters(true)}
-                className="absolute top-4 right-4 z-[1000] bg-black/40 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                size="icon">
-
-                    <SlidersHorizontal className="w-5 h-5" />
-                  </Button>
-                }
-
-                {/* Panel de filtros */}
-                <AnimatePresence>
-                  {showFilters &&
-                <MapFilters
-                  filters={filters}
-                  onFilterChange={setFilters}
-                  onClose={() => setShowFilters(false)}
-                  alertsCount={alerts.length} />
-
-                }
-                </AnimatePresence>
+                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                </h1>
               </div>
-              <div className="px-4 pt-2">
-                <div className="border-2 border-purple-500 rounded-2xl">
-                  <UserAlertCard
-                  alert={selectedAlert}
-                  isEmpty={!selectedAlert}
-                  onBuyAlert={handleBuyAlert}
-                  onChat={handleChat}
-                  onCall={handleCall}
-                  isLoading={buyAlertMutation.isPending}
-                  userLocation={userLocation} />
-                </div>
 
-                <div className="w-full max-w-sm mx-auto space-y-4 mt-4">
-                  <Button
-                  onClick={() => setMode('search')}
-                  className="w-full h-16 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3">
+              <div className="w-full max-w-sm mx-auto space-y-4">
+                <Button
+                onClick={() => setMode('search')}
+                className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                    <MapPin className="w-8 h-8 text-purple-500" strokeWidth={2.5} />
-                    ¿Dónde quieres aparcar?
-                  </Button>
+                  <MapPin className="w-12 h-12 text-purple-500" strokeWidth={2.5} />
+                  ¿Dónde quieres aparcar?
+                </Button>
 
-                  <Button
-                  onClick={() => setMode('create')}
-                  className="w-full h-16 bg-purple-600 hover:bg-purple-700 text-white text-base font-medium rounded-2xl flex items-center justify-center gap-3">
+                <Button
+                onClick={() => setMode('create')}
+                className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                    <Car className="w-8 h-8" strokeWidth={2.5} />
-                    ¡Estoy aparcado aquí!
-                  </Button>
-                </div>
+                  <Car className="w-12 h-12" strokeWidth={2.5} />
+                  ¡Estoy aparcado aquí!
+                </Button>
               </div>
             </motion.div>
           }
