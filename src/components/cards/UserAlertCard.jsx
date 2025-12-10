@@ -47,7 +47,7 @@ export default function UserAlertCard({
         />
         
         {/* Botones dentro de la tarjeta */}
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex gap-2 justify-between">
           <Button
             size="icon"
             className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
@@ -71,7 +71,7 @@ export default function UserAlertCard({
           </Button>
 
           <Button
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9 px-6"
             onClick={() => onBuyAlert(alert)}
             disabled={isLoading}
           >
