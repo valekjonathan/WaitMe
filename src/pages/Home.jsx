@@ -141,32 +141,20 @@ export default function Home() {
     }
   });
 
-  // Comprar alerta
+  // Comprar alerta - ahora crea notificación
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
-      // Crear transacción
-      await base44.entities.Transaction.create({
+      // Crear notificación para el vendedor
+      await base44.entities.Notification.create({
+        type: 'reservation_request',
+        recipient_id: alert.user_id,
+        recipient_email: alert.user_email || alert.created_by,
+        sender_id: user?.id,
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        sender_photo: user?.photo_url,
         alert_id: alert.id,
-        seller_id: alert.user_id,
-        seller_name: alert.user_name,
-        buyer_id: user?.id,
-        buyer_name: user?.full_name,
         amount: alert.price,
-        seller_earnings: alert.price * 0.8,
-        platform_fee: alert.price * 0.2,
-        status: 'completed',
-        address: alert.address
-      });
-
-      // Actualizar alerta
-      await base44.entities.ParkingAlert.update(alert.id, {
-        status: 'reserved',
-        reserved_by_id: user?.id,
-        reserved_by_email: user?.email,
-        reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0],
-        reserved_by_car: `${user?.car_brand} ${user?.car_model} ${user?.car_color}`,
-        reserved_by_plate: user?.car_plate,
-        reserved_by_vehicle_type: user?.vehicle_type
+        status: 'pending'
       });
 
       return alert;
@@ -426,8 +414,8 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
             <DialogDescription className="text-gray-400">
-              Vas a pagar <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> para que{' '}
-              <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span> te espere.
+              Vas a enviar una solicitud de reserva por <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> a{' '}
+              <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span>
             </DialogDescription>
           </DialogHeader>
           
@@ -456,7 +444,7 @@ export default function Home() {
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               disabled={buyAlertMutation.isPending}>
 
-              {buyAlertMutation.isPending ? 'Procesando...' : '¡Confirmar!'}
+              {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
             </Button>
           </DialogFooter>
         </DialogContent>

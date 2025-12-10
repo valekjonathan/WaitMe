@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Bell } from 'lucide-react';
 
 export default function BottomNav() {
   const [user, setUser] = useState(null);
@@ -32,6 +33,20 @@ export default function BottomNav() {
     },
     enabled: !!user?.email,
     refetchInterval: 5000
+  });
+
+  // Obtener notificaciones no leídas
+  const { data: unreadNotifications = [] } = useQuery({
+    queryKey: ['unreadNotifications', user?.email],
+    queryFn: async () => {
+      const notifs = await base44.entities.Notification.filter({ 
+        recipient_email: user?.email, 
+        read: false 
+      });
+      return notifs;
+    },
+    enabled: !!user?.email,
+    refetchInterval: 3000
   });
 
   return (
@@ -68,6 +83,20 @@ export default function BottomNav() {
             <span className="text-[10px] font-bold">Mapa</span>
           </Button>
         </div>
+
+        <div className="w-px h-10 bg-gray-700"></div>
+
+        <Link to={createPageUrl('Notifications')} className="flex-1 flex justify-center">
+          <Button variant="ghost" className="relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
+            <Bell className="w-8 h-8" />
+            <span className="text-[10px] font-bold">Avisos</span>
+            {unreadNotifications.length > 0 && (
+              <span className="absolute -top-1 -right-3 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+              </span>
+            )}
+          </Button>
+        </Link>
 
         <div className="w-px h-10 bg-gray-700"></div>
 
