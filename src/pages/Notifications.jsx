@@ -242,7 +242,28 @@ export default function Notifications() {
 
                           <div className="flex-1 flex flex-col justify-between">
                             <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
-                            <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+                              {(() => {
+                                const carColors = {
+                                  'blanco': '#FFFFFF',
+                                  'negro': '#1a1a1a',
+                                  'rojo': '#ef4444',
+                                  'azul': '#3b82f6',
+                                  'amarillo': '#facc15',
+                                  'gris': '#6b7280'
+                                };
+                                const color = carColors[notif.alert.car_color] || '#6b7280';
+                                return (
+                                  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+                                    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              })()}
+                            </div>
 
                             {/* Matrícula */}
                             <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
@@ -250,7 +271,10 @@ export default function Notifications() {
                                 <span className="text-[8px] font-bold text-white">E</span>
                               </div>
                               <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
-                                {notif.alert.car_plate?.replace(/\s/g, '').toUpperCase().slice(0, 4)} {notif.alert.car_plate?.replace(/\s/g, '').toUpperCase().slice(4)}
+                                {(() => {
+                                  const plate = notif.alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
+                                  return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
+                                })()}
                               </span>
                             </div>
                           </div>
