@@ -1,8 +1,7 @@
 import React from 'react';
-import { Phone, PhoneOff, MessageCircle } from 'lucide-react';
+import { Phone, PhoneOff, MessageCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UserCard from './UserCard';
-import { MapPin } from 'lucide-react';
 
 export default function UserAlertCard({ 
   alert, 
