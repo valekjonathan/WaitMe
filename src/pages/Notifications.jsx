@@ -33,10 +33,10 @@ export default function Notifications() {
     queryKey: ['notifications', user?.email],
     queryFn: async () => {
       const notifs = await base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date');
-      // Para las notificaciones aceptadas, obtener datos de la alerta
+      // Para las notificaciones aceptadas y solicitudes, obtener datos de la alerta
       const notifsWithAlerts = await Promise.all(
         notifs.map(async (notif) => {
-          if (notif.type === 'reservation_accepted') {
+          if (notif.type === 'reservation_accepted' || notif.type === 'reservation_request') {
             const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
             return { ...notif, alert: alerts[0] };
           }
@@ -256,33 +256,38 @@ export default function Notifications() {
                           
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
-                            <p className="text-sm text-gray-300 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">{getNotificationText(notif)}</p>
+                            <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
                             
-                            {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex gap-2 mt-2">
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedNotification(notif);
-                                  }}
-                                >
-                                  <Check className="w-4 h-4 mr-1" />
-                                  Aceptar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="bg-red-600 hover:bg-red-700 border-2 border-red-500"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    rejectMutation.mutate(notif);
-                                  }}
-                                >
-                                  <X className="w-4 h-4 mr-1" />
-                                  Rechazar
-                                </Button>
-                              </div>
+                            {notif.type === 'reservation_request' && notif.status === 'pending' && notif.alert && (
+                              <>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Si aceptas, debes esperar hasta las {format(new Date(new Date(notif.created_date).getTime() + notif.alert.available_in_minutes * 60000), 'HH:mm')}
+                                </p>
+                                <div className="flex gap-2 mt-2 mr-3">
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedNotification(notif);
+                                    }}
+                                  >
+                                    <Check className="w-4 h-4 mr-1" />
+                                    Aceptar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-red-600 hover:bg-red-700 border-2 border-red-500"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      rejectMutation.mutate(notif);
+                                    }}
+                                  >
+                                    <X className="w-4 h-4 mr-1" />
+                                    Rechazar
+                                  </Button>
+                                </div>
+                              </>
                             )}
                           </div>
                         </div>
