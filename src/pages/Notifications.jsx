@@ -264,7 +264,7 @@ export default function Notifications() {
                             
                             {notif.type === 'reservation_request' && notif.status === 'pending' && notif.alert && (
                               <>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-purple-400 mt-1">
                                   Si aceptas, debes esperar hasta las {format(new Date(new Date(notif.created_date).getTime() + notif.alert.available_in_minutes * 60000), 'HH:mm')}
                                 </p>
                                 <div className="flex gap-2 mt-2 mr-3">
