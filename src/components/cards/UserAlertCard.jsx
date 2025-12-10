@@ -44,12 +44,11 @@ export default function UserAlertCard({
       {/* Botones de acción */}
       <div className="mt-4 flex gap-2">
         <Button
-          variant="outline"
           size="icon"
-          className="border-gray-700 hover:bg-gray-800"
+          className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
           onClick={() => onChat(alert)}
         >
-          <MessageCircle className="w-5 h-5 text-green-400" />
+          <MessageCircle className="w-5 h-5" />
         </Button>
         
         <Button

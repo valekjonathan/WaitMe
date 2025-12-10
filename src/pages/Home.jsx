@@ -319,14 +319,14 @@ export default function Home() {
 
                 {/* Botón de filtros */}
                 {!showFilters &&
-              <Button
+                <Button
                 onClick={() => setShowFilters(true)}
-                className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                className="absolute top-4 right-4 z-[1000] bg-black/40 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
                 size="icon">
 
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
-              }
+                }
 
                 {/* Panel de filtros */}
                 <AnimatePresence>
