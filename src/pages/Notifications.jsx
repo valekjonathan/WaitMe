@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
+import UserCard from '@/components/cards/UserCard';
 
 export default function Notifications() {
   const [user, setUser] = useState(null);
@@ -32,7 +33,17 @@ export default function Notifications() {
     queryKey: ['notifications', user?.email],
     queryFn: async () => {
       const notifs = await base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date');
-      return notifs;
+      // Para las notificaciones aceptadas, obtener datos de la alerta
+      const notifsWithAlerts = await Promise.all(
+        notifs.map(async (notif) => {
+          if (notif.type === 'reservation_accepted') {
+            const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
+            return { ...notif, alert: alerts[0] };
+          }
+          return notif;
+        })
+      );
+      return notifsWithAlerts;
     },
     enabled: !!user?.email,
     refetchInterval: 3000
@@ -125,9 +136,9 @@ export default function Notifications() {
   const getNotificationText = (notif) => {
     switch (notif.type) {
       case 'reservation_request':
-        return `Quiere reservar tu plaza por ${notif.amount}€`;
+        return `Quiere reservar tu alerta!`;
       case 'reservation_accepted':
-        return `Aceptó tu reserva. ¡Dirígete al punto!`;
+        return null; // Se mostrará la tarjeta del usuario
       case 'reservation_rejected':
         return `Rechazó tu reserva`;
       case 'buyer_nearby':
@@ -202,51 +213,84 @@ export default function Notifications() {
                     }
                   }}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex gap-3 flex-1 min-w-0">
-                      {notif.sender_photo ? (
-                        <img src={notif.sender_photo} className="w-24 h-28 rounded-xl object-cover flex-shrink-0 border-2 border-purple-500" alt="" />
-                      ) : (
-                        <div className="w-24 h-28 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0 border-2 border-purple-500">
-                          <Bell className="w-8 h-8 text-gray-500" />
-                        </div>
-                      )}
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
-                        <p className="text-sm text-gray-300 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">{getNotificationText(notif)}</p>
+                  {notif.type === 'reservation_accepted' && notif.alert ? (
+                    // Mostrar tarjeta completa del usuario que aceptó
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]} aceptó tu reserva</p>
+                        <p className="text-xs text-gray-500">{format(new Date(notif.created_date), 'HH:mm')}</p>
                       </div>
-                    </div>
-                    <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                      {format(new Date(notif.created_date), 'HH:mm')}
-                    </p>
-                  </div>
-                  
-                  {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedNotification(notif);
+                      <UserCard
+                        user={{
+                          name: notif.sender_name,
+                          photo: notif.sender_photo,
+                          car_brand: notif.alert.car_brand,
+                          car_model: notif.alert.car_model,
+                          car_color: notif.alert.car_color,
+                          car_plate: notif.alert.car_plate,
+                          vehicle_type: notif.alert.vehicle_type,
+                          phone: notif.alert.phone
                         }}
-                      >
-                        <Check className="w-4 h-4 mr-1" />
-                        Aceptar
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700 border-2 border-red-500"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          rejectMutation.mutate(notif);
+                        location={{
+                          address: notif.alert.address,
+                          distance: null,
+                          eta: notif.alert.available_in_minutes
                         }}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Rechazar
-                      </Button>
+                        price={notif.amount}
+                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`)}
+                        onCall={notif.alert.allow_phone_calls && notif.alert.phone ? () => window.location.href = `tel:${notif.alert.phone}` : null}
+                        showActionButtons={true}
+                      />
                     </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex gap-3 flex-1 min-w-0">
+                          {notif.sender_photo ? (
+                            <img src={notif.sender_photo} className="w-24 h-28 rounded-xl object-cover flex-shrink-0 border-2 border-purple-500" alt="" />
+                          ) : (
+                            <div className="w-24 h-28 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0 border-2 border-purple-500">
+                              <Bell className="w-8 h-8 text-gray-500" />
+                            </div>
+                          )}
+                          
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
+                            <p className="text-sm text-gray-300 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">{getNotificationText(notif)}</p>
+                            
+                            {notif.type === 'reservation_request' && notif.status === 'pending' && (
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedNotification(notif);
+                                  }}
+                                >
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Aceptar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="bg-red-600 hover:bg-red-700 border-2 border-red-500"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    rejectMutation.mutate(notif);
+                                  }}
+                                >
+                                  <X className="w-4 h-4 mr-1" />
+                                  Rechazar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                          {format(new Date(notif.created_date), 'HH:mm')}
+                        </p>
+                      </div>
+                    </>
                   )}
                 </motion.div>
               ))}
