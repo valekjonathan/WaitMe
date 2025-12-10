@@ -262,11 +262,13 @@ export default function Notifications() {
                             <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
                             <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
                             
-                            {notif.type === 'reservation_request' && notif.status === 'pending' && notif.alert && (
+                            {notif.type === 'reservation_request' && notif.status === 'pending' && (
                               <>
-                                <p className="text-xs text-purple-400 mt-1">
-                                  Si aceptas, debes esperar hasta las {format(new Date(new Date(notif.created_date).getTime() + notif.alert.available_in_minutes * 60000), 'HH:mm')}
-                                </p>
+                                {notif.alert && (
+                                  <p className="text-xs text-purple-400 mt-1">
+                                    Si aceptas, debes esperar hasta las {format(new Date(new Date(notif.created_date).getTime() + notif.alert.available_in_minutes * 60000), 'HH:mm')}
+                                  </p>
+                                )}
                                 <div className="flex gap-2 mt-2 mr-3">
                                   <Button
                                     size="sm"
