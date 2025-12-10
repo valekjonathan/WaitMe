@@ -25,22 +25,23 @@ export default function CreateAlertCard({
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <Input
-              value={address}
-              onChange={(e) => onAddressChange(e.target.value)}
-              placeholder="Calle, número..."
-              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-            />
-            <Button
-              variant="outline"
-              className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
-              onClick={onUseCurrentLocation}
-            >
-              <Navigation className="w-3 h-3 mr-1" />
-              Ubicación actual
-            </Button>
-          </div>
+          <Input
+            value={address}
+            onChange={(e) => onAddressChange(e.target.value)}
+            placeholder="Calle, número..."
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 flex-shrink-0"></div>
+          <Button
+            variant="outline"
+            className="flex-1 border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
+            onClick={onUseCurrentLocation}
+          >
+            <Navigation className="w-3 h-3 mr-1" />
+            Ubicación actual
+          </Button>
         </div>
 
         {/* Tiempo */}
@@ -64,7 +65,7 @@ export default function CreateAlertCard({
           <Label className="text-gray-400 flex items-center gap-2 text-sm">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
-            <span className="text-green-400 text-xs ml-2 font-semibold">Ganarás {(price * 0.8).toFixed(2)}€</span>
+            <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)}€)</span>
           </Label>
           <Slider
             value={[price]}
