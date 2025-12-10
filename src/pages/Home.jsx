@@ -380,9 +380,8 @@ export default function Home() {
                   className="h-full" />
 
                 </div>
-                <h3 className="text-white font-semibold text-center py-3 flex items-center justify-center gap-2">
-                  <MapPin className="w-5 h-5 text-purple-500" />
-                  ¿Dónde estás aparcado?
+                <h3 className="text-white font-semibold text-center py-3">
+                  ¿ Dónde estas aparcado ?
                 </h3>
                 <div className="px-4">
                   <CreateAlertCard
