@@ -125,13 +125,13 @@ export default function Notifications() {
   const getNotificationText = (notif) => {
     switch (notif.type) {
       case 'reservation_request':
-        return `${notif.sender_name} quiere reservar tu plaza por ${notif.amount}€`;
+        return `Quiere reservar tu plaza por ${notif.amount}€`;
       case 'reservation_accepted':
-        return `${notif.sender_name} aceptó tu reserva. ¡Dirígete al punto!`;
+        return `Aceptó tu reserva. ¡Dirígete al punto!`;
       case 'reservation_rejected':
-        return `${notif.sender_name} rechazó tu reserva`;
+        return `Rechazó tu reserva`;
       case 'buyer_nearby':
-        return `${notif.sender_name} está cerca. El pago se liberará pronto`;
+        return `Está cerca. El pago se liberará pronto`;
       case 'payment_completed':
         return `Pago completado. Has ganado ${(notif.amount * 0.8).toFixed(2)}€`;
       default:
@@ -202,51 +202,53 @@ export default function Notifications() {
                     }
                   }}
                 >
-                  <div className="flex gap-3">
-                    {notif.sender_photo ? (
-                      <img src={notif.sender_photo} className="w-16 h-16 rounded-full object-cover flex-shrink-0" alt="" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
-                        <Bell className="w-8 h-8 text-gray-500" />
-                      </div>
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-white text-lg">{notif.sender_name}</p>
-                      <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(notif.created_date), { addSuffix: true, locale: es })}
-                      </p>
-                      
-                      {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedNotification(notif);
-                            }}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Aceptar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-red-500/30 text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              rejectMutation.mutate(notif);
-                            }}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Rechazar
-                          </Button>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex gap-3 flex-1">
+                      {notif.sender_photo ? (
+                        <img src={notif.sender_photo} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" alt="" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                          <Bell className="w-8 h-8 text-gray-500" />
                         </div>
                       )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
+                        <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
+                      </div>
                     </div>
+                    <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                      {formatDistanceToNow(new Date(notif.created_date), { addSuffix: true, locale: es })}
+                    </p>
                   </div>
+                  
+                  {notif.type === 'reservation_request' && notif.status === 'pending' && (
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedNotification(notif);
+                        }}
+                      >
+                        <Check className="w-4 h-4 mr-1" />
+                        Aceptar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500/30 text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          rejectMutation.mutate(notif);
+                        }}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Rechazar
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
