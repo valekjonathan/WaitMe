@@ -260,7 +260,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="mt-0 pt-24 pb-24">
+      <main className="mt-0 pt-15 pb-24">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
