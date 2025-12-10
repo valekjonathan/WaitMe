@@ -33,29 +33,37 @@ function createCarIcon(color, price, vehicleType = 'car') {
   
   if (vehicleType === 'van') {
     vehicleSVG = `
-      <svg width="40" height="28" viewBox="0 0 40 28" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <rect x="4" y="8" width="32" height="16" fill="${carColor}" stroke="white" stroke-width="2" rx="3"/>
-        <rect x="8" y="4" width="24" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
-        <circle cx="12" cy="24" r="2" fill="#333"/>
-        <circle cx="28" cy="24" r="2" fill="#333"/>
+      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
+        <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
+        <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
+        <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="3" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="34" cy="18" r="3" fill="#333" stroke="white" stroke-width="1"/>
+        <text x="24" y="16" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   } else if (vehicleType === 'suv') {
     vehicleSVG = `
-      <svg width="40" height="28" viewBox="0 0 40 28" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <rect x="4" y="10" width="32" height="14" fill="${carColor}" stroke="white" stroke-width="2" rx="4"/>
-        <rect x="10" y="5" width="20" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
-        <circle cx="12" cy="24" r="2.5" fill="#333"/>
-        <circle cx="28" cy="24" r="2.5" fill="#333"/>
+      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
+        <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+        <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <text x="24" y="15" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   } else {
     vehicleSVG = `
-      <svg width="40" height="24" viewBox="0 0 40 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <rect x="4" y="10" width="32" height="10" fill="${carColor}" stroke="white" stroke-width="2" rx="3"/>
-        <rect x="12" y="5" width="16" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
-        <circle cx="12" cy="20" r="2" fill="#333"/>
-        <circle cx="28" cy="20" r="2" fill="#333"/>
+      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="14" cy="18" r="2" fill="#666"/>
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="36" cy="18" r="2" fill="#666"/>
+        <text x="24" y="15" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   }
@@ -63,28 +71,13 @@ function createCarIcon(color, price, vehicleType = 'car') {
   return L.divIcon({
     className: 'custom-car-marker',
     html: `
-      <div style="position: relative; width: 50px; height: 50px;">
-        <div style="position: absolute; top: 12px; left: 5px;">
-          ${vehicleSVG}
-        </div>
-        <div style="
-          position: absolute;
-          top: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #a855f7;
-          color: white;
-          font-size: 10px;
-          font-weight: bold;
-          padding: 2px 6px;
-          border-radius: 10px;
-          white-space: nowrap;
-        ">${Math.round(price)}€</div>
+      <div style="position: relative; width: 50px; height: 30px;">
+        ${vehicleSVG}
       </div>
     `,
-    iconSize: [50, 50],
-    iconAnchor: [25, 40],
-    popupAnchor: [0, -40]
+    iconSize: [50, 30],
+    iconAnchor: [25, 30],
+    popupAnchor: [0, -30]
   });
 }
 
