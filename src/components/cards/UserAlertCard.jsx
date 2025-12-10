@@ -71,7 +71,7 @@ export default function UserAlertCard({
           </Button>
 
           <Button
-            className="flex-1 bg-purple-600 hover:bg-purple-900 text-white font-semibold h-9"
+            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9"
             onClick={() => onBuyAlert(alert)}
             disabled={isLoading}
           >
