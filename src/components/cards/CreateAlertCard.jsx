@@ -20,24 +20,24 @@ export default function CreateAlertCard({
   };
 
   return (
-    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
+    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-3 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
       {/* Dirección */}
-      <div className="space-y-3">
-        <div className="relative">
-          <MapPin className="w-5 h-5 text-purple-500 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-purple-500 flex-shrink-0" />
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
             placeholder="Calle, número..."
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 pl-11"
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
           />
         </div>
         <Button
           variant="outline"
-          className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-8 text-sm"
+          className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
           onClick={onUseCurrentLocation}
         >
-          <Navigation className="w-4 h-4 mr-1" />
+          <Navigation className="w-3 h-3 mr-1" />
           Ubicación actual
         </Button>
 
@@ -64,10 +64,10 @@ export default function CreateAlertCard({
 
         {/* Precio */}
         <div className="space-y-2">
-          <Label className="text-gray-400 flex items-center gap-2">
+          <Label className="text-gray-400 flex items-center gap-2 text-sm">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
-            <span className="text-green-400 text-sm ml-2 font-semibold">Ganarás {(price * 0.8).toFixed(2)}€</span>
+            <span className="text-green-400 text-xs ml-2 font-semibold">Ganarás {(price * 0.8).toFixed(2)}€</span>
           </Label>
           <Slider
             value={[price]}
@@ -75,7 +75,7 @@ export default function CreateAlertCard({
             min={1}
             max={15}
             step={1}
-            className="py-2 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
           <div className="flex justify-between text-xs text-gray-500">
             <span>1€</span>

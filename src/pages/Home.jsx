@@ -179,8 +179,10 @@ export default function Home() {
           fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`).
           then((res) => res.json()).
           then((data) => {
-            if (data.display_name) {
-              setAddress(data.display_name.split(',').slice(0, 3).join(', '));
+            if (data.address) {
+              const road = data.address.road || data.address.street || '';
+              const number = data.address.house_number || '';
+              setAddress(`${road} ${number}`.trim());
             }
           });
         },
@@ -371,8 +373,10 @@ export default function Home() {
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
                     then((res) => res.json()).
                     then((data) => {
-                      if (data.display_name) {
-                        setAddress(data.display_name.split(',').slice(0, 3).join(', '));
+                      if (data.address) {
+                        const road = data.address.road || data.address.street || '';
+                        const number = data.address.house_number || '';
+                        setAddress(`${road} ${number}`.trim());
                       }
                     });
                   }}
@@ -380,7 +384,7 @@ export default function Home() {
                   className="h-full" />
 
                 </div>
-                <h3 className="text-white font-semibold text-center py-3">
+                <h3 className="text-white font-semibold text-center py-2 text-sm">
                   ¿ Dónde estas aparcado ?
                 </h3>
                 <div className="px-4">
