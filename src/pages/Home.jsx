@@ -269,11 +269,11 @@ export default function Home() {
             exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8">
 
-              <div className="text-center mb-8 w-full flex flex-col items-center">
+              <div className="text-center mb-4 w-full flex flex-col items-center">
                 <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                 alt="WaitMe!"
-                className="w-48 h-48 mb-6 object-contain" />
+                className="w-48 h-48 mb-2 object-contain" />
 
                 <h1 className="text-xl font-bold whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
