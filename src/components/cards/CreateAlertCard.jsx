@@ -42,10 +42,10 @@ export default function CreateAlertCard({
         </Button>
 
         {/* Tiempo */}
-        <div className="space-y-2">
-          <Label className="text-gray-400 flex items-center gap-2">
+        <div className="space-y-1">
+          <Label className="text-gray-400 flex items-center gap-2 text-sm">
             <Clock className="w-4 h-4" />
-            Me voy en: <span className="text-purple-400 font-bold">{minutes} minutos</span>
+            Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
             value={[minutes]}
@@ -53,17 +53,12 @@ export default function CreateAlertCard({
             min={5}
             max={60}
             step={5}
-            className="py-2 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>5 min</span>
-            <span>30 min</span>
-            <span>60 min</span>
-          </div>
         </div>
 
         {/* Precio */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Label className="text-gray-400 flex items-center gap-2 text-sm">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
@@ -77,20 +72,15 @@ export default function CreateAlertCard({
             step={1}
             className="py-1 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>1€</span>
-            <span>Hora punta</span>
-            <span>Evento especial</span>
-          </div>
         </div>
       </div>
 
       <Button
-        className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-6"
+        className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9"
         onClick={handleCreate}
         disabled={isLoading || !address}
       >
-        {isLoading ? 'Creando alerta...' : 'Publicar mi WaitMe!'}
+        {isLoading ? 'Publicando...' : 'Publicar mi WaitMe!'}
       </Button>
     </div>
   );
