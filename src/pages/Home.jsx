@@ -305,9 +305,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-16">
+            className="h-screen pt-4">
 
-              <div className="h-[35%] relative px-3 pt-1">
+              <div className="h-[35%] relative px-3">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
