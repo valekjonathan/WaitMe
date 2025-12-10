@@ -23,20 +23,25 @@ export default function CreateAlertCard({
     <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-3 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
       {/* Dirección */}
       <div className="space-y-2">
-        <Input
-          value={address}
-          onChange={(e) => onAddressChange(e.target.value)}
-          placeholder="Calle, número..."
-          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-        />
-        <Button
-          variant="outline"
-          className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
-          onClick={onUseCurrentLocation}
-        >
-          <Navigation className="w-3 h-3 mr-1" />
-          Ubicación actual
-        </Button>
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Input
+              value={address}
+              onChange={(e) => onAddressChange(e.target.value)}
+              placeholder="Calle, número..."
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+            />
+            <Button
+              variant="outline"
+              className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
+              onClick={onUseCurrentLocation}
+            >
+              <Navigation className="w-3 h-3 mr-1" />
+              Ubicación actual
+            </Button>
+          </div>
+        </div>
 
         {/* Tiempo */}
         <div className="space-y-1">
