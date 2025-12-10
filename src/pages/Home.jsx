@@ -347,7 +347,8 @@ export default function Home() {
                 onBuyAlert={handleBuyAlert}
                 onChat={handleChat}
                 onCall={handleCall}
-                isLoading={buyAlertMutation.isPending} />
+                isLoading={buyAlertMutation.isPending}
+                userLocation={userLocation} />
 
               </div>
             </motion.div>

@@ -33,37 +33,37 @@ function createCarIcon(color, price, vehicleType = 'car') {
   
   if (vehicleType === 'van') {
     vehicleSVG = `
-      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <svg width="72" height="36" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
         <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
         <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
         <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="3" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="34" cy="18" r="3" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="16" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
+        <text x="24" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   } else if (vehicleType === 'suv') {
     vehicleSVG = `
-      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <svg width="72" height="36" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
         <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="15" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
+        <text x="24" y="15" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   } else {
     vehicleSVG = `
-      <svg width="48" height="24" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+      <svg width="72" height="36" viewBox="0 0 48 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="14" cy="18" r="2" fill="#666"/>
         <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="36" cy="18" r="2" fill="#666"/>
-        <text x="24" y="15" text-anchor="middle" fill="white" font-size="8" font-weight="bold">${Math.round(price)}€</text>
+        <text x="24" y="15" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${Math.round(price)}€</text>
       </svg>
     `;
   }
@@ -71,13 +71,47 @@ function createCarIcon(color, price, vehicleType = 'car') {
   return L.divIcon({
     className: 'custom-car-marker',
     html: `
-      <div style="position: relative; width: 50px; height: 30px;">
+      <div style="position: relative; width: 72px; height: 36px;">
         ${vehicleSVG}
       </div>
     `,
-    iconSize: [50, 30],
-    iconAnchor: [25, 30],
-    popupAnchor: [0, -30]
+    iconSize: [72, 36],
+    iconAnchor: [36, 36],
+    popupAnchor: [0, -36]
+  });
+}
+
+// Crear icono de ubicación del usuario estilo Uber
+function createUserLocationIcon() {
+  return L.divIcon({
+    className: 'user-location-marker',
+    html: `
+      <div style="position: relative; width: 40px; height: 60px;">
+        <div style="
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 2px;
+          height: 30px;
+          background: #3b82f6;
+        "></div>
+        <div style="
+          position: absolute;
+          bottom: 25px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 16px;
+          height: 16px;
+          background: white;
+          border: 3px solid #3b82f6;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        "></div>
+      </div>
+    `,
+    iconSize: [40, 60],
+    iconAnchor: [20, 60]
   });
 }
 
@@ -167,9 +201,12 @@ export default function ParkingMap({
         
         {userLocation && <FlyToLocation position={userLocation} />}
         
-        {/* Marcador de ubicación del usuario */}
+        {/* Marcador de ubicación del usuario estilo Uber */}
         {userLocation &&
-        <Marker position={userLocation}>
+        <Marker 
+          position={userLocation}
+          icon={createUserLocationIcon()}
+          draggable={isSelecting}>
           </Marker>
         }
         

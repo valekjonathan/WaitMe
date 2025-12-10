@@ -67,8 +67,30 @@ export default function UserCard({
   longitude,
   allowPhoneCalls = false,
   muted = false,
-  isReserved = false
+  isReserved = false,
+  userLocation
 }) {
+  // Calcular distancia
+  const calculateDistance = () => {
+    if (!userLocation || !latitude || !longitude) return null;
+    
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (latitude - userLocation[0]) * Math.PI / 180;
+    const dLon = (longitude - userLocation[1]) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(latitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceKm = R * c;
+    
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
+  };
+
+  const distance = calculateDistance();
   const formatPlate = (plate) => {
     if (!plate) return 'XXXX XXX';
     const cleaned = plate.replace(/\s/g, '').toUpperCase();
@@ -79,12 +101,19 @@ export default function UserCard({
   };
   return (
     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
-      {/* Header con precio */}
+      {/* Header con precio y distancia */}
       {showLocationInfo && price && (
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-center mb-2">
           <p className="text-xs text-purple-400">Información del usuario:</p>
-          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-            <span className="text-purple-400 font-bold text-sm">{price}€</span>
+          <div className="flex items-center gap-2">
+            {distance && (
+              <div className="bg-gray-800/50 border border-gray-700 rounded-full px-2 py-0.5">
+                <span className="text-gray-300 font-medium text-xs">{distance}</span>
+              </div>
+            )}
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+              <span className="text-purple-400 font-bold text-sm">{Math.round(price)}€</span>
+            </div>
           </div>
         </div>
       )}
