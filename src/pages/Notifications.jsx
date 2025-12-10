@@ -7,7 +7,7 @@ import { ArrowLeft, Bell, Check, X, Clock, MapPin, Settings, MessageCircle } fro
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 
