@@ -177,7 +177,7 @@ export default function Notifications() {
 
       <main className="pt-16 pb-24">
         <div className="px-4 py-4">
-          <h2 className="text-xl font-bold mb-4">Notificaciones</h2>
+          <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
 
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">Cargando...</div>
@@ -202,17 +202,18 @@ export default function Notifications() {
                     }
                   }}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex gap-3">
                     {notif.sender_photo ? (
-                      <img src={notif.sender_photo} className="w-12 h-12 rounded-full object-cover" alt="" />
+                      <img src={notif.sender_photo} className="w-16 h-16 rounded-full object-cover flex-shrink-0" alt="" />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
-                        <Bell className="w-6 h-6 text-gray-500" />
+                      <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <Bell className="w-8 h-8 text-gray-500" />
                       </div>
                     )}
                     
-                    <div className="flex-1">
-                      <p className="font-medium text-white">{getNotificationText(notif)}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white text-lg">{notif.sender_name}</p>
+                      <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
                       <p className="text-xs text-gray-500 mt-1">
                         {formatDistanceToNow(new Date(notif.created_date), { addSuffix: true, locale: es })}
                       </p>

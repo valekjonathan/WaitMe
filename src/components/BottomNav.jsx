@@ -58,9 +58,9 @@ export default function BottomNav() {
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
             </svg>
-            <span className="text-[10px] font-bold">Actividad</span>
+            <span className="text-[10px] font-bold">Alertas</span>
             {activeAlerts.length > 0 && (
-              <span className="absolute -top-1 -right-3 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className="absolute -top-1 right-0 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
@@ -89,9 +89,9 @@ export default function BottomNav() {
         <Link to={createPageUrl('Notifications')} className="flex-1 flex justify-center">
           <Button variant="ghost" className="relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
             <Bell className="w-8 h-8" />
-            <span className="text-[10px] font-bold">Avisos</span>
+            <span className="text-[10px] font-bold">Notificaciones</span>
             {unreadNotifications.length > 0 && (
-              <span className="absolute -top-1 -right-3 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className="absolute -top-1 right-0 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
               </span>
             )}
