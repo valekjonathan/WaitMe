@@ -21,29 +21,22 @@ export default function CreateAlertCard({
 
   return (
     <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
-      <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-        <MapPin className="w-5 h-5 text-purple-500" />
-        ¿Dónde estás aparcado?
-      </h3>
-
       {/* Dirección */}
       <div className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            value={address}
-            onChange={(e) => onAddressChange(e.target.value)}
-            placeholder="Calle, número..."
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-          />
-          <Button
-            variant="outline"
-            className="border-purple-500 text-purple-400 hover:bg-purple-500/20 whitespace-nowrap"
-            onClick={onUseCurrentLocation}
-          >
-            <Navigation className="w-4 h-4 mr-1" />
-            Ubicación actual
-          </Button>
-        </div>
+        <Input
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          placeholder="Calle, número..."
+          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+        />
+        <Button
+          variant="outline"
+          className="w-full border-purple-500 text-purple-400 hover:bg-purple-500/20 h-9"
+          onClick={onUseCurrentLocation}
+        >
+          <Navigation className="w-4 h-4 mr-1" />
+          Ubicación actual
+        </Button>
 
         {/* Tiempo */}
         <div className="space-y-2">
@@ -71,14 +64,14 @@ export default function CreateAlertCard({
           <Label className="text-gray-400 flex items-center gap-2">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
-            <span className="text-gray-400 text-sm ml-2">Ganarás {(price * 0.8).toFixed(2)}€</span>
+            <span className="text-green-400 text-sm ml-2 font-semibold">Ganarás {(price * 0.8).toFixed(2)}€</span>
           </Label>
           <Slider
             value={[price]}
             onValueChange={(v) => setPrice(v[0])}
             min={1}
             max={15}
-            step={0.5}
+            step={1}
             className="py-2 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
           />
           <div className="flex justify-between text-xs text-gray-500">
