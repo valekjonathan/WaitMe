@@ -140,7 +140,11 @@ export default function Notifications() {
   const getNotificationText = (notif) => {
     switch (notif.type) {
       case 'reservation_request':
-        return `Quiere reservar tu alerta!`;
+        return (
+          <span>
+            Quiere un <span className="text-purple-500 font-semibold">WaitMe!</span>
+          </span>
+        );
       case 'reservation_accepted':
         return null; // Se mostrará la tarjeta del usuario
       case 'reservation_rejected':
@@ -265,8 +269,8 @@ export default function Notifications() {
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
                               <>
                                 {notif.alert && (
-                                  <p className="text-xs text-white mt-2 mb-1 whitespace-nowrap">
-                                    Debes esperar hasta las: <span className="text-purple-500 font-semibold">{format(new Date(new Date(notif.created_date).getTime() + (notif.alert.available_in_minutes || 0) * 60000), 'HH:mm')}</span>
+                                  <p className="text-xs text-purple-500 mt-2 mb-1 whitespace-nowrap">
+                                    Debes esperar hasta las: <span className="font-semibold">{format(new Date(new Date(notif.created_date).getTime() + (notif.alert.available_in_minutes || 0) * 60000), 'HH:mm')}</span>
                                   </p>
                                 )}
                                 <div className="flex gap-1.5 mt-2">
