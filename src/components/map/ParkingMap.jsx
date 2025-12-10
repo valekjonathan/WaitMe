@@ -94,7 +94,6 @@ function LocationMarker({ position, setPosition, isSelecting }) {
 
   return position === null ? null :
   <Marker position={position}>
-      <Popup>Tu ubicación</Popup>
     </Marker>;
 
 }
@@ -198,14 +197,6 @@ export default function ParkingMap({
           eventHandlers={{
             click: () => onAlertClick && onAlertClick(alert)
           }}>
-
-            <Popup>
-              <div className="text-center">
-                <p className="font-bold">{alert.user_name}</p>
-                <p className="text-sm">{alert.car_brand} {alert.car_model}</p>
-                <p className="text-purple-600 font-bold">{alert.price}€</p>
-              </div>
-            </Popup>
           </Marker>
         )}
       </MapContainer>
