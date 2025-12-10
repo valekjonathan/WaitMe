@@ -19,6 +19,17 @@ export default function Home() {
   const initialMode = urlParams.get('mode');
 
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
+  
+  // Resetear mode cuando se navega a Home sin parámetros
+  useEffect(() => {
+    const checkReset = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('mode')) {
+        setMode(null);
+      }
+    };
+    checkReset();
+  }, [window.location.search]);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -237,11 +248,15 @@ export default function Home() {
             </div>
           </div>
 
-          <Link to={createPageUrl('Home')}>
-            <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-            </h1>
-          </Link>
+          <h1 
+            className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => {
+              setMode(null);
+              window.history.pushState({}, '', createPageUrl('Home'));
+            }}
+          >
+            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+          </h1>
 
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
