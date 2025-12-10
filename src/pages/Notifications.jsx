@@ -265,31 +265,31 @@ export default function Notifications() {
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
                               <>
                                 {notif.alert && (
-                                  <p className="text-xs text-purple-400 mt-2 mb-1">
-                                    Debes esperar hasta las: {format(new Date(new Date(notif.created_date).getTime() + (notif.alert.available_in_minutes || 0) * 60000), 'HH:mm')}
+                                  <p className="text-xs text-white mt-2 mb-1 whitespace-nowrap">
+                                    Debes esperar hasta las: <span className="text-purple-500 font-semibold">{format(new Date(new Date(notif.created_date).getTime() + (notif.alert.available_in_minutes || 0) * 60000), 'HH:mm')}</span>
                                   </p>
                                 )}
-                                <div className="flex gap-2 mt-2">
+                                <div className="flex gap-1.5 mt-2">
                                   <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700 border-2 border-green-500 w-auto px-4"
+                                    className="bg-green-600 hover:bg-green-700 border-2 border-green-500 h-7 px-2 text-xs"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setSelectedNotification(notif);
                                     }}
                                   >
-                                    <Check className="w-4 h-4 mr-1" />
+                                    <Check className="w-3 h-3 mr-1" />
                                     Aceptar
                                   </Button>
                                   <Button
                                     size="sm"
-                                    className="bg-red-600 hover:bg-red-700 border-2 border-red-500 w-auto px-4"
+                                    className="bg-red-600 hover:bg-red-700 border-2 border-red-500 h-7 px-2 text-xs"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       rejectMutation.mutate(notif);
                                     }}
                                   >
-                                    <X className="w-4 h-4 mr-1" />
+                                    <X className="w-3 h-3 mr-1" />
                                     Rechazar
                                   </Button>
                                 </div>
