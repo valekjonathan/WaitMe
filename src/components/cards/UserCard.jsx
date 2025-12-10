@@ -82,7 +82,7 @@ export default function UserCard({
       {/* Header con precio */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-start mb-2">
-          <p className="text-xs text-purple-400">Información del usuario</p>
+          <p className="text-xs text-purple-400">Información del usuario:</p>
           <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
             <span className="text-purple-400 font-bold text-sm">{price}€</span>
           </div>
