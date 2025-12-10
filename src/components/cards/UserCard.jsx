@@ -68,7 +68,8 @@ export default function UserCard({
   allowPhoneCalls = false,
   muted = false,
   isReserved = false,
-  userLocation
+  userLocation,
+  actionButtons
 }) {
   // Calcular distancia
   const calculateDistance = () => {
@@ -214,6 +215,13 @@ export default function UserCard({
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
               </span>
+            </div>
+          )}
+          
+          {/* Botones de acción dentro de la tarjeta */}
+          {actionButtons && (
+            <div className="mt-3">
+              {actionButtons}
             </div>
           )}
         </div>
