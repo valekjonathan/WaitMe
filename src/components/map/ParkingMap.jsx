@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Polyline } from 'react-leaflet';
-import { Car, Navigation } from 'lucide-react';
+import { Car } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Button } from '@/components/ui/button';
@@ -94,7 +94,7 @@ function createUserLocationIcon() {
           transform: translateX(-50%);
           width: 2px;
           height: 30px;
-          background: #3b82f6;
+          background: #a855f7;
         "></div>
         <div style="
           position: absolute;
@@ -104,9 +104,9 @@ function createUserLocationIcon() {
           width: 16px;
           height: 16px;
           background: white;
-          border: 3px solid #3b82f6;
+          border: 3px solid #a855f7;
           border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
         "></div>
       </div>
     `,
@@ -242,15 +242,7 @@ export default function ParkingMap({
         )}
       </MapContainer>
 
-      {/* Información de ruta */}
-      {routeDistance &&
-      <div className="bg-black/40 mr-8 ml-1 px-4 py-2 rounded-xl absolute top-4 right-4 z-[1000] backdrop-blur-sm border border-purple-500/30">
-          <div className="flex items-center gap-2 text-white">
-            <Navigation className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-bold">{routeDistance} km</span>
-          </div>
-        </div>
-      }
+
     </div>);
 
 }

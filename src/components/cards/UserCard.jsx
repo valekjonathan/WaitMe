@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, MessageCircle, Phone, Navigation } from 'lucide-react';
+import { MapPin, Clock, Navigation } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -107,8 +107,9 @@ export default function UserCard({
           <p className="text-xs text-purple-400">Información del usuario:</p>
           <div className="flex items-center gap-2">
             {distance && (
-              <div className="bg-gray-800/50 border border-gray-700 rounded-full px-2 py-0.5">
-                <span className="text-gray-300 font-medium text-xs">{distance}</span>
+              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-xl px-3 py-1 flex items-center gap-1.5">
+                <Navigation className="w-3 h-3 text-purple-400" />
+                <span className="text-white font-bold text-xs">{distance}</span>
               </div>
             )}
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
