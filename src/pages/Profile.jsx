@@ -166,7 +166,7 @@ export default function Profile() {
           className="space-y-4">
 
           {/* Tarjeta tipo DNI */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-gray-700 shadow-xl">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
             <div className="flex gap-4">
               {/* Foto */}
               <div className="relative">
