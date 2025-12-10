@@ -101,7 +101,7 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
       {/* Header con precio y distancia */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-center mb-2">
