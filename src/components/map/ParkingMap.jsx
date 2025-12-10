@@ -167,7 +167,6 @@ export default function ParkingMap({
         {/* Marcador de ubicación del usuario */}
         {userLocation &&
         <Marker position={userLocation}>
-            <Popup>Tu ubicación</Popup>
           </Marker>
         }
         

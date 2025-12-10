@@ -69,12 +69,12 @@ export default function UserCard({
   muted = false
 }) {
   const formatPlate = (plate) => {
-    if (!plate) return '0000 XXX';
-    const cleaned = plate.replace(/\s/g, '');
+    if (!plate) return 'XXXX XXX';
+    const cleaned = plate.replace(/\s/g, '').toUpperCase();
     if (cleaned.length >= 4) {
       return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
     }
-    return plate;
+    return cleaned;
   };
   return (
     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border border-purple-500/30">
@@ -82,7 +82,9 @@ export default function UserCard({
       {showLocationInfo && price && (
         <div className="flex justify-between items-start mb-2">
           <p className="text-xs text-purple-400">Información del usuario</p>
-          <span className="text-purple-400 font-bold text-lg">{price}€</span>
+          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+            <span className="text-purple-400 font-bold text-sm">{price.toFixed(2)}€</span>
+          </div>
         </div>
       )}
 
@@ -168,7 +170,7 @@ export default function UserCard({
               <Clock className="w-3 h-3" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
-                • Hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
               </span>
             </div>
           )}
