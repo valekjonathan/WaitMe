@@ -37,8 +37,12 @@ export default function Notifications() {
       const notifsWithAlerts = await Promise.all(
         notifs.map(async (notif) => {
           if (notif.type === 'reservation_accepted' || notif.type === 'reservation_request') {
-            const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
-            return { ...notif, alert: alerts[0] };
+            try {
+              const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
+              return { ...notif, alert: alerts[0] || null };
+            } catch (error) {
+              return { ...notif, alert: null };
+            }
           }
           return notif;
         })
@@ -46,7 +50,7 @@ export default function Notifications() {
       return notifsWithAlerts;
     },
     enabled: !!user?.email,
-    refetchInterval: 3000
+    refetchInterval: 5000
   });
 
   const acceptMutation = useMutation({
