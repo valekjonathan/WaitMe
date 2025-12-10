@@ -10,7 +10,7 @@ delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
 });
 
 const carColors = {
@@ -28,7 +28,7 @@ const carColors = {
 
 function createCarIcon(color, price) {
   const carColor = carColors[color] || '#6b7280';
-  
+
   return L.divIcon({
     className: 'custom-car-marker',
     html: `
@@ -83,7 +83,7 @@ function LocationMarker({ position, setPosition, isSelecting }) {
       if (isSelecting) {
         setPosition(e.latlng);
       }
-    },
+    }
   });
 
   useEffect(() => {
@@ -92,28 +92,28 @@ function LocationMarker({ position, setPosition, isSelecting }) {
     }
   }, [position, map]);
 
-  return position === null ? null : (
-    <Marker position={position}>
+  return position === null ? null :
+  <Marker position={position}>
       <Popup>Tu ubicación</Popup>
-    </Marker>
-  );
+    </Marker>;
+
 }
 
 function FlyToLocation({ position }) {
   const map = useMap();
-  
+
   useEffect(() => {
     if (position) {
       map.flyTo(position, 16);
     }
   }, [position, map]);
-  
+
   return null;
 }
 
-export default function ParkingMap({ 
-  alerts = [], 
-  onAlertClick, 
+export default function ParkingMap({
+  alerts = [],
+  onAlertClick,
   isSelecting = false,
   selectedPosition,
   setSelectedPosition,
@@ -131,18 +131,18 @@ export default function ParkingMap({
     if (showRoute && selectedAlert && userLocation) {
       const start = { lat: userLocation[0], lng: userLocation[1] };
       const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
-      
+
       // Usar OSRM para calcular la ruta
-      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.routes && data.routes[0]) {
-            const coords = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-            setRoute(coords);
-            setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
-          }
-        })
-        .catch(err => console.log('Error calculando ruta:', err));
+      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
+      then((res) => res.json()).
+      then((data) => {
+        if (data.routes && data.routes[0]) {
+          const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
+          setRoute(coords);
+          setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
+        }
+      }).
+      catch((err) => console.log('Error calculando ruta:', err));
     } else {
       setRoute(null);
       setRouteDistance(null);
@@ -155,51 +155,51 @@ export default function ParkingMap({
         center={defaultCenter}
         zoom={15}
         style={{ height: '100%', width: '100%' }}
-        className="rounded-2xl"
-      >
+        className="rounded-2xl">
+
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-        />
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
+
         
         {userLocation && <FlyToLocation position={userLocation} />}
         
         {/* Marcador de ubicación del usuario */}
-        {userLocation && (
-          <Marker position={userLocation}>
+        {userLocation &&
+        <Marker position={userLocation}>
             <Popup>Tu ubicación</Popup>
           </Marker>
-        )}
+        }
         
-        {isSelecting && (
-          <LocationMarker 
-            position={selectedPosition} 
-            setPosition={setSelectedPosition}
-            isSelecting={isSelecting}
-          />
-        )}
+        {isSelecting &&
+        <LocationMarker
+          position={selectedPosition}
+          setPosition={setSelectedPosition}
+          isSelecting={isSelecting} />
+
+        }
         
         {/* Ruta */}
-        {route && (
-          <Polyline 
-            positions={route} 
-            color="#a855f7" 
-            weight={4}
-            opacity={0.8}
-            dashArray="10, 10"
-          />
-        )}
+        {route &&
+        <Polyline
+          positions={route}
+          color="#a855f7"
+          weight={4}
+          opacity={0.8}
+          dashArray="10, 10" />
+
+        }
         
         {/* Alertas */}
-        {alerts.map((alert) => (
-          <Marker
-            key={alert.id}
-            position={[alert.latitude, alert.longitude]}
-            icon={createCarIcon(alert.car_color, alert.price)}
-            eventHandlers={{
-              click: () => onAlertClick && onAlertClick(alert)
-            }}
-          >
+        {alerts.map((alert) =>
+        <Marker
+          key={alert.id}
+          position={[alert.latitude, alert.longitude]}
+          icon={createCarIcon(alert.car_color, alert.price)}
+          eventHandlers={{
+            click: () => onAlertClick && onAlertClick(alert)
+          }}>
+
             <Popup>
               <div className="text-center">
                 <p className="font-bold">{alert.user_name}</p>
@@ -208,18 +208,18 @@ export default function ParkingMap({
               </div>
             </Popup>
           </Marker>
-        ))}
+        )}
       </MapContainer>
 
       {/* Información de ruta */}
-      {routeDistance && (
-        <div className="absolute top-4 right-4 z-[1000] bg-black/90 backdrop-blur-sm rounded-xl px-4 py-2 border border-purple-500/30">
+      {routeDistance &&
+      <div className="bg-black/90 mr-8 ml-1 px-4 py-2 rounded-xl absolute top-4 right-4 z-[1000] backdrop-blur-sm border border-purple-500/30">
           <div className="flex items-center gap-2 text-white">
             <Navigation className="w-4 h-4 text-purple-400" />
             <span className="text-sm font-bold">{routeDistance} km</span>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }
