@@ -203,22 +203,22 @@ export default function Notifications() {
                   }}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex gap-3 flex-1">
+                    <div className="flex gap-3 flex-1 min-w-0">
                       {notif.sender_photo ? (
-                        <img src={notif.sender_photo} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" alt="" />
+                        <img src={notif.sender_photo} className="w-24 h-28 rounded-xl object-cover flex-shrink-0 border-2 border-purple-500" alt="" />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <div className="w-24 h-28 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0 border-2 border-purple-500">
                           <Bell className="w-8 h-8 text-gray-500" />
                         </div>
                       )}
                       
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
-                        <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
+                        <p className="text-sm text-gray-300 mt-1 whitespace-nowrap overflow-hidden text-ellipsis">{getNotificationText(notif)}</p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                      {formatDistanceToNow(new Date(notif.created_date), { addSuffix: true, locale: es })}
+                      {format(new Date(notif.created_date), 'HH:mm')}
                     </p>
                   </div>
                   
@@ -226,7 +226,7 @@ export default function Notifications() {
                     <div className="flex gap-2 mt-3">
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 hover:bg-green-700 border-2 border-green-500"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedNotification(notif);
@@ -237,8 +237,7 @@ export default function Notifications() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="border-red-500/30 text-red-400"
+                        className="bg-red-600 hover:bg-red-700 border-2 border-red-500"
                         onClick={(e) => {
                           e.stopPropagation();
                           rejectMutation.mutate(notif);
