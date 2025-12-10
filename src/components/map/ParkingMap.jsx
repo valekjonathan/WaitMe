@@ -26,35 +26,46 @@ const carColors = {
   marron: '#92400e'
 };
 
-function createCarIcon(color, price) {
+function createCarIcon(color, price, vehicleType = 'car') {
   const carColor = carColors[color] || '#6b7280';
+  
+  let vehicleSVG = '';
+  
+  if (vehicleType === 'van') {
+    vehicleSVG = `
+      <svg width="40" height="28" viewBox="0 0 40 28" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <rect x="4" y="8" width="32" height="16" fill="${carColor}" stroke="white" stroke-width="2" rx="3"/>
+        <rect x="8" y="4" width="24" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
+        <circle cx="12" cy="24" r="2" fill="#333"/>
+        <circle cx="28" cy="24" r="2" fill="#333"/>
+      </svg>
+    `;
+  } else if (vehicleType === 'suv') {
+    vehicleSVG = `
+      <svg width="40" height="28" viewBox="0 0 40 28" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <rect x="4" y="10" width="32" height="14" fill="${carColor}" stroke="white" stroke-width="2" rx="4"/>
+        <rect x="10" y="5" width="20" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
+        <circle cx="12" cy="24" r="2.5" fill="#333"/>
+        <circle cx="28" cy="24" r="2.5" fill="#333"/>
+      </svg>
+    `;
+  } else {
+    vehicleSVG = `
+      <svg width="40" height="24" viewBox="0 0 40 24" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <rect x="4" y="10" width="32" height="10" fill="${carColor}" stroke="white" stroke-width="2" rx="3"/>
+        <rect x="12" y="5" width="16" height="8" fill="${carColor}" stroke="white" stroke-width="2" rx="2"/>
+        <circle cx="12" cy="20" r="2" fill="#333"/>
+        <circle cx="28" cy="20" r="2" fill="#333"/>
+      </svg>
+    `;
+  }
 
   return L.divIcon({
     className: 'custom-car-marker',
     html: `
       <div style="position: relative; width: 50px; height: 50px;">
-        <div style="
-          width: 40px;
-          height: 24px;
-          background: ${carColor};
-          border-radius: 8px 8px 4px 4px;
-          position: absolute;
-          top: 12px;
-          left: 5px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          border: 2px solid white;
-        ">
-          <div style="
-            position: absolute;
-            top: -8px;
-            left: 6px;
-            width: 28px;
-            height: 12px;
-            background: ${carColor};
-            border-radius: 6px 6px 0 0;
-            border: 2px solid white;
-            border-bottom: none;
-          "></div>
+        <div style="position: absolute; top: 12px; left: 5px;">
+          ${vehicleSVG}
         </div>
         <div style="
           position: absolute;
@@ -193,7 +204,7 @@ export default function ParkingMap({
         <Marker
           key={alert.id}
           position={[alert.latitude, alert.longitude]}
-          icon={createCarIcon(alert.car_color, alert.price)}
+          icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
           eventHandlers={{
             click: () => onAlertClick && onAlertClick(alert)
           }}>
