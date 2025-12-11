@@ -138,7 +138,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-gray-700"
+                className="flex-1 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
                 onClick={onChat}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -146,25 +146,25 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className={`w-[28px] h-7 rounded-lg border border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                 onClick={onCall}
                 disabled={!allowPhoneCalls}
               >
                 <Phone className="w-4 h-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-[28px] h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-gray-700"
-                onClick={() => {
-                  if (latitude && longitude) {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
-                  }
-                }}
-              >
-                <Navigation className="w-4 h-4" />
-              </Button>
             </div>
+          )}
+          {showContactButtons && latitude && longitude && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-full h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
+              onClick={() => {
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+              }}
+            >
+              <Navigation className="w-4 h-4" />
+            </Button>
           )}
         </div>
 
