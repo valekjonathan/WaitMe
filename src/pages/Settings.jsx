@@ -14,7 +14,8 @@ import {
         CreditCard,
         HelpCircle,
         Star,
-        MessageCircle
+        MessageCircle,
+        Settings as SettingsIcon
       } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -94,7 +95,7 @@ export default function Settings() {
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
+                <SettingsIcon className="w-5 h-5" />
               </Button>
             </Link>
             <Link to={createPageUrl('Chats')} className="relative">
