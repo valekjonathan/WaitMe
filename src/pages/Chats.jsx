@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, MessageCircle, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -91,32 +90,9 @@ export default function Chats() {
             </Link>
           </div>
         </div>
-
-        {/* Buscador */}
-        <div className="px-4 pb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar conversaciones..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
       </header>
 
-      <main className="pt-32 pb-24">
+      <main className="pt-20 pb-24">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
