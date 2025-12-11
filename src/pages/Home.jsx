@@ -182,7 +182,7 @@ export default function Home() {
             if (data.address) {
               const road = data.address.road || data.address.street || '';
               const number = data.address.house_number || '';
-              setAddress(`${road} ${number}`.trim());
+              setAddress(number ? `${road}, ${number}` : road);
             }
           });
         },
@@ -401,7 +401,7 @@ export default function Home() {
                     if (data.address) {
                       const road = data.address.road || data.address.street || '';
                       const number = data.address.house_number || '';
-                      setAddress(`${road} ${number}`.trim());
+                      setAddress(number ? `${road}, ${number}` : road);
                     }
                   });
                 }}
