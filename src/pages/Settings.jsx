@@ -114,7 +114,7 @@ export default function Settings() {
         >
           {/* Perfil resumen */}
           <Link to={createPageUrl('Profile')}>
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-700/50 flex items-center gap-4 hover:border-purple-500/50 transition-colors">
+            <div className="bg-gray-900 rounded-2xl p-4 border-2 border-purple-500 flex items-center gap-4 hover:border-purple-500/50 transition-colors">
               {user?.photo_url ? (
                 <img src={user.photo_url} className="w-14 h-14 rounded-full object-cover" alt="" />
               ) : (
