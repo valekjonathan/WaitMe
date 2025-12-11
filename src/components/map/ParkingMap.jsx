@@ -233,14 +233,6 @@ export default function ParkingMap({
         .leaflet-control-zoom-out {
           border-radius: 0 0 8px 8px !important;
         }
-        .leaflet-control-zoom-in:before {
-          content: '+' !important;
-          display: block !important;
-        }
-        .leaflet-control-zoom-out:before {
-          content: '−' !important;
-          display: block !important;
-        }
       `}</style>
       <MapContainer
         center={defaultCenter}
