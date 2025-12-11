@@ -161,7 +161,6 @@ export default function ParkingMap({
   zoomControl = true
 }) {
   const defaultCenter = userLocation || [40.4168, -3.7038];
-  const mapKey = userLocation ? `${userLocation[0]}-${userLocation[1]}` : 'default';
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
 
@@ -191,9 +190,8 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`}>
       <MapContainer
-        key={mapKey}
         center={defaultCenter}
-        zoom={16}
+        zoom={15}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
         zoomControl={zoomControl}>
@@ -201,6 +199,9 @@ export default function ParkingMap({
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
+
+        
+        {userLocation && <FlyToLocation position={userLocation} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
         {userLocation &&

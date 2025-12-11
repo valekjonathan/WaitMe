@@ -359,7 +359,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="absolute inset-x-0 bottom-0 px-4 pb-20 pt-2" style={{ top: 'calc(35% + 1rem)' }}>
+              <div className="px-4 pt-2 pb-20">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
