@@ -39,7 +39,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full [&_[role=slider]]:bg-purple-600 [&_span]:bg-purple-600"
+            className="w-full"
           />
         </div>
 
@@ -54,7 +54,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={60}
             min={5}
             step={5}
-            className="w-full [&_[role=slider]]:bg-purple-600 [&_span]:bg-purple-600"
+            className="w-full"
           />
         </div>
 
@@ -69,7 +69,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={5}
             min={0.5}
             step={0.5}
-            className="w-full [&_[role=slider]]:bg-purple-600 [&_span]:bg-purple-600"
+            className="w-full"
           />
         </div>
 
