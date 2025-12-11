@@ -19,7 +19,7 @@ export default function Home() {
   const initialMode = urlParams.get('mode');
 
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
-  
+
   // Resetear mode cuando se navega a Home sin parámetros
   useEffect(() => {
     const checkReset = () => {
@@ -213,32 +213,32 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
-          {mode ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setMode(null);
-                setSelectedAlert(null);
-              }}
-              className="text-white">
+          {mode ?
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setMode(null);
+              setSelectedAlert(null);
+            }}
+            className="text-white">
               <ArrowLeft className="w-6 h-6" />
-            </Button>
-          ) : (
-            <div className="w-10"></div>
-          )}
+            </Button> :
+
+          <div className="w-10"></div>
+          }
 
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+            <div className="bg-purple-600/20 mr-32 px-3 py-1 rounded-full border border-purple-500/30 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
-            <h1 
+            <h1
               className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => {
                 setMode(null);
                 window.history.pushState({}, '', createPageUrl('Home'));
-              }}
-            >
+              }}>
+
               <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
             </h1>
           </div>
@@ -276,10 +276,10 @@ export default function Home() {
               {/* Mapa de fondo apagado */}
               <div className="absolute inset-0 -bottom-8 opacity-20">
                 <ParkingMap
-                  alerts={alerts}
-                  userLocation={userLocation}
-                  className="h-full pointer-events-none"
-                  zoomControl={false} />
+                alerts={alerts}
+                userLocation={userLocation}
+                className="h-full pointer-events-none"
+                zoomControl={false} />
               </div>
 
               {/* Overlay morado apagado */}
@@ -317,7 +317,7 @@ export default function Home() {
                 </Button>
               </div>
               </motion.div>
-              }
+          }
 
           {mode === 'search' &&
           <motion.div
@@ -338,14 +338,14 @@ export default function Home() {
 
                 {/* Botón de filtros */}
                 {!showFilters &&
-                <Button
+              <Button
                 onClick={() => setShowFilters(true)}
                 className="absolute top-4 right-4 z-[1000] bg-black/40 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
                 size="icon">
 
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
-                }
+              }
 
                 {/* Panel de filtros */}
                 <AnimatePresence>
@@ -374,31 +374,31 @@ export default function Home() {
           }
 
           {mode === 'create' &&
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-screen pt-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-screen pt-4">
 
                 <div className="h-[35%] relative px-3">
                   <ParkingMap
-                  isSelecting={true}
-                  selectedPosition={selectedPosition}
-                  setSelectedPosition={(pos) => {
-                    setSelectedPosition(pos);
-                    // Obtener dirección
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
-                    then((res) => res.json()).
-                    then((data) => {
-                      if (data.address) {
-                        const road = data.address.road || data.address.street || '';
-                        const number = data.address.house_number || '';
-                        setAddress(`${road} ${number}`.trim());
-                      }
-                    });
-                  }}
-                  userLocation={userLocation}
-                  className="h-full" />
+                isSelecting={true}
+                selectedPosition={selectedPosition}
+                setSelectedPosition={(pos) => {
+                  setSelectedPosition(pos);
+                  // Obtener dirección
+                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
+                  then((res) => res.json()).
+                  then((data) => {
+                    if (data.address) {
+                      const road = data.address.road || data.address.street || '';
+                      const number = data.address.house_number || '';
+                      setAddress(`${road} ${number}`.trim());
+                    }
+                  });
+                }}
+                userLocation={userLocation}
+                className="h-full" />
 
                 </div>
                 <h3 className="text-white font-semibold text-center py-2 text-sm">
@@ -406,15 +406,15 @@ export default function Home() {
                 </h3>
                 <div className="px-4">
                   <CreateAlertCard
-                  address={address}
-                  onAddressChange={setAddress}
-                  onUseCurrentLocation={getCurrentLocation}
-                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                  isLoading={createAlertMutation.isPending} />
+                address={address}
+                onAddressChange={setAddress}
+                onUseCurrentLocation={getCurrentLocation}
+                onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                isLoading={createAlertMutation.isPending} />
 
                 </div>
               </motion.div>
-            }
+          }
         </AnimatePresence>
       </main>
 
