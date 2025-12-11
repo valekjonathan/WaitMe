@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 export default function NotificationSettings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [masterToggle, setMasterToggle] = useState(true);
   const [settings, setSettings] = useState({
     notify_reservations: true,
     notify_payments: true,
@@ -24,6 +25,7 @@ export default function NotificationSettings() {
         setUser(currentUser);
         
         // Cargar preferencias guardadas
+        setMasterToggle(currentUser.notifications_enabled ?? true);
         setSettings({
           notify_reservations: currentUser.notify_reservations ?? true,
           notify_payments: currentUser.notify_payments ?? true,
@@ -38,6 +40,15 @@ export default function NotificationSettings() {
     };
     fetchUser();
   }, []);
+
+  const updateMasterToggle = async (value) => {
+    setMasterToggle(value);
+    try {
+      await base44.auth.updateMe({ notifications_enabled: value });
+    } catch (error) {
+      console.log('Error guardando preferencia:', error);
+    }
+  };
 
   const updateSetting = async (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -81,98 +92,105 @@ export default function NotificationSettings() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-6"
         >
-          {/* Info Box */}
-          <div className="bg-purple-600/10 border border-purple-500/30 rounded-xl p-4 mb-6">
-            <p className="text-sm text-gray-300">
-              Gestiona qué notificaciones quieres recibir en tu smartphone. Los cambios se guardan automáticamente.
-            </p>
+          {/* Master Toggle */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold">Permitir notificaciones:</h2>
+            <Switch
+              checked={masterToggle}
+              onCheckedChange={updateMasterToggle}
+              className={masterToggle ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500'}
+            />
           </div>
 
           {/* Notificaciones de Reservas */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-start gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl">
-                <Bell className="w-6 h-6 text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Reservas</h3>
-                <p className="text-sm text-gray-400 mb-3">
-                  Recibe alertas cuando alguien solicita, acepta o rechaza tu oferta de plaza
-                </p>
-                <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2">
-                  <span className="text-sm">Activar notificaciones de reservas</span>
-                  <Switch
-                    checked={settings.notify_reservations}
-                    onCheckedChange={(checked) => updateSetting('notify_reservations', checked)}
-                  />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-600/20 p-3 rounded-xl">
+                  <Bell className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Reservas</h3>
+                  <p className="text-sm text-gray-400">
+                    Recibe alertas cuando alguien solicita, acepta o rechaza tu oferta de plaza
+                  </p>
                 </div>
               </div>
+              <Switch
+                checked={settings.notify_reservations}
+                onCheckedChange={(checked) => updateSetting('notify_reservations', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
             </div>
           </div>
 
           {/* Notificaciones de Pago */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-start gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl">
-                <CreditCard className="w-6 h-6 text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Pagos</h3>
-                <p className="text-sm text-gray-400 mb-3">
-                  Recibe alertas cuando un pago se completa con éxito y ganas dinero
-                </p>
-                <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2">
-                  <span className="text-sm">Activar notificaciones de pagos</span>
-                  <Switch
-                    checked={settings.notify_payments}
-                    onCheckedChange={(checked) => updateSetting('notify_payments', checked)}
-                  />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-600/20 p-3 rounded-xl">
+                  <CreditCard className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Pagos</h3>
+                  <p className="text-sm text-gray-400">
+                    Recibe alertas cuando un pago se completa con éxito y ganas dinero
+                  </p>
                 </div>
               </div>
+              <Switch
+                checked={settings.notify_payments}
+                onCheckedChange={(checked) => updateSetting('notify_payments', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
             </div>
           </div>
 
           {/* Alertas de Proximidad */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-start gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl">
-                <MapPin className="w-6 h-6 text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Proximidad</h3>
-                <p className="text-sm text-gray-400 mb-3">
-                  Recibe alertas cuando el comprador está cerca de tu ubicación
-                </p>
-                <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2">
-                  <span className="text-sm">Activar alertas de proximidad</span>
-                  <Switch
-                    checked={settings.notify_proximity}
-                    onCheckedChange={(checked) => updateSetting('notify_proximity', checked)}
-                  />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-600/20 p-3 rounded-xl">
+                  <MapPin className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Proximidad</h3>
+                  <p className="text-sm text-gray-400">
+                    Recibe alertas cuando el comprador está cerca de tu ubicación
+                  </p>
                 </div>
               </div>
+              <Switch
+                checked={settings.notify_proximity}
+                onCheckedChange={(checked) => updateSetting('notify_proximity', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
             </div>
           </div>
 
           {/* Promociones y Novedades */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-start gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl">
-                <Megaphone className="w-6 h-6 text-purple-500" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">Promociones y Novedades</h3>
-                <p className="text-sm text-gray-400 mb-3">
-                  Entérate de nuevas funciones, ofertas especiales y actualizaciones de WaitMe!
-                </p>
-                <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-2">
-                  <span className="text-sm">Activar promociones</span>
-                  <Switch
-                    checked={settings.notify_promotions}
-                    onCheckedChange={(checked) => updateSetting('notify_promotions', checked)}
-                  />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="bg-purple-600/20 p-3 rounded-xl">
+                  <Megaphone className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Promociones y Novedades</h3>
+                  <p className="text-sm text-gray-400">
+                    Entérate de nuevas funciones, ofertas especiales y actualizaciones de WaitMe!
+                  </p>
                 </div>
               </div>
+              <Switch
+                checked={settings.notify_promotions}
+                onCheckedChange={(checked) => updateSetting('notify_promotions', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
             </div>
           </div>
 

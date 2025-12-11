@@ -44,6 +44,8 @@ export default function NotificationManager({ user }) {
         setLastNotificationId(latest.id);
         
         // Verificar preferencias del usuario
+        if (user?.notifications_enabled === false) return;
+        
         const shouldNotify = 
           (latest.type === 'reservation_request' && user?.notify_reservations !== false) ||
           (latest.type === 'reservation_accepted' && user?.notify_reservations !== false) ||
