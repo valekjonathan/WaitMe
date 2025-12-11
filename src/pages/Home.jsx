@@ -328,7 +328,6 @@ export default function Home() {
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
-                zoomControl={true}
                 className="h-full" />
 
 
@@ -355,7 +354,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="px-4 pt-2 pb-20">
+              <div className="px-4 pt-2">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}

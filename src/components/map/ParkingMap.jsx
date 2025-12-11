@@ -190,31 +190,37 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`}>
       <style>{`
+        .leaflet-top.leaflet-left {
+          top: 10px !important;
+          left: 10px !important;
+        }
         .leaflet-control-zoom {
-          border: 2px solid rgba(168, 85, 247, 0.3) !important;
-          border-radius: 12px !important;
+          border: 2px solid rgba(168, 85, 247, 0.5) !important;
+          border-radius: 8px !important;
           overflow: hidden !important;
-          margin-left: 16px !important;
-          margin-top: 16px !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.6) !important;
+          background-color: rgba(0, 0, 0, 0.7) !important;
+          backdrop-filter: blur(10px) !important;
           color: white !important;
           border: none !important;
-          width: 40px !important;
-          height: 40px !important;
-          line-height: 40px !important;
+          width: 36px !important;
+          height: 36px !important;
+          line-height: 36px !important;
+          font-size: 20px !important;
+          font-weight: bold !important;
         }
         .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.8) !important;
+          background-color: rgba(168, 85, 247, 0.9) !important;
         }
-        .leaflet-touch .leaflet-control-zoom {
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+        .leaflet-control-zoom-in {
+          border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
         }
       `}</style>
       <MapContainer
         center={defaultCenter}
-        zoom={15}
+        zoom={16}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
         zoomControl={true}>
