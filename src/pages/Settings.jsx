@@ -5,8 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { 
         ArrowLeft, 
         User, 
-        Phone, 
-        Wallet, 
+        Coins, 
         Bell, 
         Shield, 
         LogOut, 
@@ -115,7 +114,7 @@ export default function Settings() {
         >
           {/* Perfil resumen */}
           <Link to={createPageUrl('Profile')}>
-            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-800 flex items-center gap-4 hover:border-purple-500/50 transition-colors">
+            <div className="bg-gray-900 rounded-2xl p-4 border border-gray-700/50 flex items-center gap-4 hover:border-purple-500/50 transition-colors">
               {user?.photo_url ? (
                 <img src={user.photo_url} className="w-14 h-14 rounded-full object-cover" alt="" />
               ) : (
@@ -132,10 +131,10 @@ export default function Settings() {
           </Link>
 
           {/* Créditos */}
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border border-purple-500/30">
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <Wallet className="w-6 h-6 text-purple-400" />
+                <Coins className="w-6 h-6 text-purple-400" />
                 <span className="font-medium">Mis créditos</span>
               </div>
               <span className="text-2xl font-bold text-purple-400">
@@ -146,45 +145,6 @@ export default function Settings() {
               <CreditCard className="w-4 h-4 mr-2" />
               Añadir créditos
             </Button>
-          </div>
-
-          {/* Teléfono */}
-          <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800 space-y-4">
-            <h3 className="font-medium flex items-center gap-2">
-              <Phone className="w-5 h-5 text-purple-500" />
-              Teléfono
-            </h3>
-            
-            <div className="space-y-3">
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+34 600 000 000"
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-              
-              <div className="flex items-center justify-between">
-                <Label className="text-gray-400 text-sm">
-                  Permitir que me llamen
-                </Label>
-                <Switch
-                  checked={allowCalls}
-                  onCheckedChange={setAllowCalls}
-                />
-              </div>
-              
-              <p className="text-xs text-gray-500">
-                Si activas esta opción, los usuarios podrán llamarte directamente desde la app
-              </p>
-              
-              <Button 
-                onClick={handleSavePhone}
-                disabled={saving}
-                className="w-full bg-gray-800 hover:bg-gray-700"
-              >
-                {saving ? 'Guardando...' : 'Guardar teléfono'}
-              </Button>
-            </div>
           </div>
 
           {/* Opciones */}
