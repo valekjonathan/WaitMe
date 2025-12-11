@@ -212,9 +212,8 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            {mode ?
+        <div className="relative flex items-center justify-between px-4 py-3">
+          {mode ? (
             <Button
               variant="ghost"
               size="icon"
@@ -223,21 +222,16 @@ export default function Home() {
                 setSelectedAlert(null);
               }}
               className="text-white">
-
-                <ArrowLeft className="w-6 h-6" />
-              </Button> :
-
-            <Button variant="ghost" size="icon" className="text-white invisible">
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            }
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          ) : (
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
-          </div>
+          )}
 
           <h1 
-            className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
+            className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => {
               setMode(null);
               window.history.pushState({}, '', createPageUrl('Home'));
@@ -303,7 +297,10 @@ export default function Home() {
                 onClick={() => setMode('search')}
                 className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                  <MapPin className="w-20 h-20 text-purple-500" strokeWidth={3} />
+                  <svg className="w-24 h-24 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                   ¿Dónde quieres aparcar?
                 </Button>
 
