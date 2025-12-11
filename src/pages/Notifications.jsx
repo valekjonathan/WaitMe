@@ -225,75 +225,64 @@ export default function Notifications() {
                     // Mostrar tarjeta del vendedor con sus datos
                     <div>
                       <div className="flex justify-between items-center mb-3">
-                        <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]} aceptó tu reserva</p>
+                        <p className="font-semibold text-white text-lg">
+                          {notif.sender_name.split(' ')[0]} aceptó tu <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+                        </p>
                         <p className="text-xs text-gray-500">{format(new Date(notif.created_date), 'HH:mm')}</p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
-                        {/* Tarjeta de usuario */}
-                        <div className="flex gap-3 mb-3">
-                          <div className="flex flex-col gap-2">
-                            <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0">
-                              {notif.sender_photo ? (
-                                <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
-                              )}
-                            </div>
-
-                            {/* Botón IR a Google Maps */}
-                            <Button
-                              className="w-24 bg-blue-600 hover:bg-blue-700 text-white font-bold h-7 text-xs"
-                              onClick={() => {
-                                if (notif.alert.latitude && notif.alert.longitude) {
-                                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
-                                }
-                              }}
-                            >
-                              <MapPin className="w-3 h-3 mr-1" />
-                              IR
-                            </Button>
-                          </div>
-
-                          <div className="flex-1 flex flex-col justify-between">
-                            <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
-
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
-                              {(() => {
-                                const carColors = {
-                                  'blanco': '#FFFFFF',
-                                  'negro': '#1a1a1a',
-                                  'rojo': '#ef4444',
-                                  'azul': '#3b82f6',
-                                  'amarillo': '#facc15',
-                                  'gris': '#6b7280'
-                                };
-                                const color = carColors[notif.alert.car_color] || '#6b7280';
-                                return (
-                                  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
-                                    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
-                                    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                                    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                                  </svg>
-                                );
-                              })()}
-                            </div>
-
-                            {/* Matrícula */}
-                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-                                <span className="text-[8px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
-                                {(() => {
-                                  const plate = notif.alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
-                                  return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
-                                })()}
-                              </span>
-                            </div>
-                          </div>
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 border-2 border-purple-500 space-y-3">
+                        {/* Nombre */}
+                        <p className="font-bold text-2xl text-white text-center">{notif.sender_name.split(' ')[0]}</p>
+                        
+                        {/* Marca y Modelo con icono */}
+                        <div className="flex items-center justify-center gap-2">
+                          <p className="text-sm font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+                          {(() => {
+                            const carColors = {
+                              'blanco': '#FFFFFF',
+                              'negro': '#1a1a1a',
+                              'rojo': '#ef4444',
+                              'azul': '#3b82f6',
+                              'amarillo': '#facc15',
+                              'gris': '#6b7280'
+                            };
+                            const color = carColors[notif.alert.car_color] || '#6b7280';
+                            return (
+                              <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+                                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                              </svg>
+                            );
+                          })()}
                         </div>
+                        
+                        {/* Matrícula */}
+                        <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8 max-w-[180px] mx-auto">
+                          <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                            <span className="text-[9px] font-bold text-white">E</span>
+                          </div>
+                          <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+                            {(() => {
+                              const plate = notif.alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
+                              return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
+                            })()}
+                          </span>
+                        </div>
+
+                        {/* Botón IR a Google Maps */}
+                        <Button
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-9"
+                          onClick={() => {
+                            if (notif.alert.latitude && notif.alert.longitude) {
+                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
+                            }
+                          }}
+                        >
+                          <MapPin className="w-4 h-4 mr-2" />
+                          IR
+                        </Button>
                       </div>
                     </div>
                   ) : (
