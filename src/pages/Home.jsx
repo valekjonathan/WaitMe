@@ -274,10 +274,10 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="relative flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8 overflow-hidden">
+            className="relative flex flex-col items-center justify-center h-[calc(100vh-60px)] px-6 -mt-8 overflow-hidden">
 
               {/* Mapa de fondo apagado */}
-              <div className="absolute inset-0 opacity-20">
+              <div className="absolute inset-0 -bottom-8 opacity-20">
                 <ParkingMap
                   alerts={alerts}
                   userLocation={userLocation}
@@ -285,7 +285,7 @@ export default function Home() {
               </div>
 
               {/* Overlay morado apagado */}
-              <div className="absolute inset-0 bg-purple-900/40"></div>
+              <div className="absolute inset-0 -bottom-8 bg-purple-900/40"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
                 <img
