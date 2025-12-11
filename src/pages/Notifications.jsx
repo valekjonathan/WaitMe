@@ -289,14 +289,8 @@ export default function Notifications() {
                               </span>
                             </div>
 
-                            {/* Texto informativo */}
-                            <div className="text-xs text-gray-400 leading-tight mb-2">
-                              <p>Está cerca</p>
-                              <p>El pago se liberará pronto</p>
-                            </div>
-
                             {/* Botones de acción en una fila */}
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 mt-1">
                               <Button
                                 className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
                                 onClick={(e) => {
@@ -319,7 +313,7 @@ export default function Notifications() {
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                               <Button
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 border-2 border-white text-xs"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 border-2 border-white text-xs"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.latitude && notif.alert.longitude) {
@@ -329,6 +323,12 @@ export default function Notifications() {
                               >
                                 IR <Navigation className="w-3 h-3" />
                               </Button>
+                            </div>
+                            
+                            {/* Texto informativo debajo de los botones */}
+                            <div className="text-xs text-gray-400 leading-tight mt-2">
+                              <p>Está cerca</p>
+                              <p>El pago se liberará pronto</p>
                             </div>
                           </div>
                         </div>
@@ -348,7 +348,7 @@ export default function Notifications() {
                             )}
 
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 mt-1">
                                 <Button
                                   className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
                                   onClick={(e) => {
