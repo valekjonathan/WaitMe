@@ -122,18 +122,18 @@ export default function Chat() {
       {/* Header */}
       <header className="bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
+          <Link to={createPageUrl('Chats')}>
+            <Button variant="ghost" size="icon" className="text-white">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          </Link>
+
           <div className="flex items-center gap-2">
-            <Link to={createPageUrl('Chats')}>
-              <Button variant="ghost" size="icon" className="text-white">
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            </Link>
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
+            <h1 className="text-lg font-semibold">{otherUserName}</h1>
           </div>
-          
-          <h1 className="text-lg font-semibold">{otherUserName}</h1>
 
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>

@@ -10,7 +10,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
       initial={{ x: -300 }}
       animate={{ x: 0 }}
       exit={{ x: -300 }}
-      className="absolute top-4 left-4 z-[1000] bg-black/95 backdrop-blur-lg rounded-2xl p-5 border border-purple-500/30 shadow-2xl w-72"
+      className="absolute top-4 left-4 z-[1000] bg-black/95 backdrop-blur-lg rounded-2xl p-5 border-2 border-purple-500 shadow-2xl w-72"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
