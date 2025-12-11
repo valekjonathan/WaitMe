@@ -319,9 +319,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-4 overflow-hidden">
+            className="fixed inset-0 top-[60px] bottom-[88px] overflow-hidden">
 
-              <div className="h-[35%] relative px-3">
+              <div className="h-[35%] relative px-3 pt-1">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
@@ -335,7 +335,7 @@ export default function Home() {
                 {!showFilters &&
               <Button
                 onClick={() => setShowFilters(true)}
-                className="absolute top-4 right-4 z-[1000] bg-black/40 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
                 size="icon">
 
                     <SlidersHorizontal className="w-5 h-5" />
@@ -354,7 +354,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="px-4 pt-2">
+              <div className="h-[65%] px-4 pt-2">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
