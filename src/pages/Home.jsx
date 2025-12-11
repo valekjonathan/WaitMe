@@ -319,9 +319,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 top-[60px] bottom-[88px] overflow-hidden">
+            className="fixed inset-0 top-[60px] bottom-[88px] overflow-hidden flex flex-col">
 
-              <div className="h-[35%] relative px-3 pt-1">
+              <div className="h-[40%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
@@ -354,7 +354,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="h-[65%] px-4 pt-2">
+              <div className="flex-1 px-4 pt-2 min-h-0">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
