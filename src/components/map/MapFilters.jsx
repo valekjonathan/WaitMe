@@ -15,7 +15,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-5 h-5 text-purple-400" />
-          <h3 className="font-bold text-white">Filtros</h3>
+          <h3 className="font-bold text-white">Filtros:</h3>
         </div>
         <Button
           variant="ghost"
@@ -31,14 +31,14 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Precio máximo */}
         <div>
           <label className="text-sm text-gray-300 mb-2 block">
-            Precio máximo: <span className="text-purple-400 font-bold">{filters.maxPrice}€</span>
+            Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
           </label>
           <Slider
             value={[filters.maxPrice]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxPrice: value })}
-            max={10}
+            max={30}
             min={1}
-            step={0.5}
+            step={1}
             className="w-full"
           />
         </div>
@@ -82,7 +82,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
 
         {/* Reset */}
         <Button
-          onClick={() => onFilterChange({ maxPrice: 10, maxMinutes: 60, maxDistance: 5 })}
+          onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
           variant="outline"
           className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
         >
