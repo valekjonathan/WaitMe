@@ -148,18 +148,6 @@ function FlyToLocation({ position }) {
   return null;
 }
 
-function CenterMap({ center }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center) {
-      map.setView(center, 16, { animate: false });
-    }
-  }, []);
-  
-  return null;
-}
-
 export default function ParkingMap({
   alerts = [],
   onAlertClick,
@@ -212,7 +200,6 @@ export default function ParkingMap({
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
-        <CenterMap center={userLocation} />
         
         {!isSelecting && userLocation && <FlyToLocation position={userLocation} />}
         
