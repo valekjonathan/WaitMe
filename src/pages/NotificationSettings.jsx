@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone } from 'lucide-react';
+import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone, Settings as SettingsIcon, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
@@ -78,10 +78,28 @@ export default function NotificationSettings() {
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </Link>
-          
-          <h1 className="text-lg font-semibold">Notificaciones</h1>
-          
-          <div className="w-10"></div>
+          <div className="flex items-center gap-2">
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+            </div>
+            <Link to={createPageUrl('Home')}>
+              <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+                <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+              </h1>
+            </Link>
+          </div>
+          <div className="flex items-center gap-1">
+            <Link to={createPageUrl('Settings')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <SettingsIcon className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to={createPageUrl('Chats')} className="relative">
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
