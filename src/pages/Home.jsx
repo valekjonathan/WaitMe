@@ -69,11 +69,12 @@ export default function Home() {
     refetchInterval: 5000
   });
 
-  // Obtener alertas activas
+  // Obtener alertas activas solo cuando estamos en modo search
   const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    refetchInterval: 5000 // Actualizar cada 5 segundos
+    refetchInterval: mode === 'search' ? 5000 : false,
+    enabled: mode === 'search'
   });
 
   // Filtrar alertas según criterios
@@ -213,24 +214,25 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
-          {mode ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setMode(null);
-                setSelectedAlert(null);
-              }}
-              className="text-white">
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-          ) : (
+          <div className="flex items-center gap-2">
+            {mode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setMode(null);
+                  setSelectedAlert(null);
+                }}
+                className="text-white">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+            )}
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
                 <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
               </div>
             </Link>
-          )}
+          </div>
 
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
@@ -326,6 +328,7 @@ export default function Home() {
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
+                zoomControl={true}
                 className="h-full" />
 
 
@@ -391,6 +394,7 @@ export default function Home() {
                   });
                 }}
                 userLocation={userLocation}
+                zoomControl={true}
                 className="h-full" />
 
                 </div>
