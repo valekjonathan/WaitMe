@@ -195,6 +195,16 @@ export default function Home() {
     getCurrentLocation();
   }, []);
 
+  // Centrar en ubicación cuando se entra en modo search
+  useEffect(() => {
+    if (mode === 'search' && userLocation) {
+      // Dar tiempo para que el mapa se renderice
+      setTimeout(() => {
+        getCurrentLocation();
+      }, 300);
+    }
+  }, [mode]);
+
   const handleBuyAlert = (alert) => {
     setConfirmDialog({ open: true, alert });
   };

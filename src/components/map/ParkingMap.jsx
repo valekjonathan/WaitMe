@@ -247,7 +247,8 @@ export default function ParkingMap({
         zoom={16}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
-        zoomControl={zoomControl}>
+        zoomControl={zoomControl}
+        key={`map-${zoomControl}`}>
 
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
