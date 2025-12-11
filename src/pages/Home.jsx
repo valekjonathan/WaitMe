@@ -321,7 +321,7 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 top-[60px] bottom-[88px] overflow-hidden flex flex-col">
 
-              <div className="h-[40%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[48%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}

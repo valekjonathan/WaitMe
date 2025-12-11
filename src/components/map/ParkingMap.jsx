@@ -141,7 +141,7 @@ function FlyToLocation({ position }) {
 
   useEffect(() => {
     if (position) {
-      map.flyTo(position, 16);
+      map.setView(position, 16);
     }
   }, [position, map]);
 
@@ -195,27 +195,32 @@ export default function ParkingMap({
           left: 10px !important;
         }
         .leaflet-control-zoom {
-          border: 2px solid rgba(168, 85, 247, 0.5) !important;
+          border: 1px solid rgba(168, 85, 247, 0.3) !important;
           border-radius: 8px !important;
           overflow: hidden !important;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+          box-shadow: none !important;
+          background: transparent !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.7) !important;
-          backdrop-filter: blur(10px) !important;
+          background-color: rgba(0, 0, 0, 0.6) !important;
+          backdrop-filter: blur(4px) !important;
           color: white !important;
           border: none !important;
-          width: 36px !important;
-          height: 36px !important;
-          line-height: 36px !important;
-          font-size: 20px !important;
-          font-weight: bold !important;
+          width: 40px !important;
+          height: 40px !important;
+          line-height: 40px !important;
+          font-size: 18px !important;
+          font-weight: normal !important;
         }
         .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.9) !important;
+          background-color: rgba(168, 85, 247, 0.6) !important;
         }
         .leaflet-control-zoom-in {
           border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
+          border-radius: 8px 8px 0 0 !important;
+        }
+        .leaflet-control-zoom-out {
+          border-radius: 0 0 8px 8px !important;
         }
       `}</style>
       <MapContainer
