@@ -264,7 +264,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16 overflow-hidden">
+      <main className="mt-5 pt-9 pb-24 overflow-hidden">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
@@ -324,16 +324,15 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
+            className="h-[calc(100vh-60px)] pt-4 flex flex-col overflow-hidden">
 
-              <div className="h-[38%] relative px-3 flex-shrink-0 pt-2">
+              <div className="h-[40%] relative px-3 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
-                zoomControl={true}
                 className="h-full" />
 
 
@@ -360,7 +359,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
                 </div>
-                <div className="flex-1 px-4 pt-2 pb-16 overflow-hidden min-h-0">
+                <div className="flex-1 px-4 pt-2 pb-20 overflow-hidden">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
