@@ -173,12 +173,19 @@ export default function Chats() {
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
               const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
               const otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
               const alert = alertsMap.get(conv.alert_id);
-              const isUnread = unreadCount > 0;
-
-              // Extraer iniciales para fallback
-              const initials = otherUserName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+              
+              // Borde encendido solo para las 2 primeras
+              const isHighlighted = index < 2;
+              
+              // Avatar con fallback a pravatar
+              const avatarUrl = otherUserPhoto || `https://i.pravatar.cc/150?u=${otherUserId}`;
+              
+              // Obtener teléfono del otro usuario
+              const otherUserPhone = null; // TODO: obtener del usuario si está disponible
+              
+              // Calcular minutos
+              const minutesSince = getMinutesSince(conv.last_message_at);
 
               return (
                 <motion.div
@@ -187,36 +194,51 @@ export default function Chats() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Link
-                    to={createPageUrl(`Chat?conversationId=${conv.id}`)}
+                  <div
                     className={`
-                      block bg-gray-900 rounded-2xl p-4 transition-all
-                      ${isUnread 
+                      bg-gray-900 rounded-2xl p-4 transition-all
+                      ${isHighlighted 
                         ? 'border-2 border-purple-500 shadow-lg shadow-purple-500/20' 
                         : 'border-2 border-gray-800'
                       }
-                      hover:bg-gray-800/50
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar */}
-                      {otherUserPhoto ? (
-                        <img 
-                          src={otherUserPhoto} 
-                          className="w-12 h-12 rounded-full object-cover flex-shrink-0" 
-                          alt="" 
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-purple-600/20 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
-                          <span className="text-purple-400 font-bold text-sm">{initials}</span>
-                        </div>
-                      )}
+                      {/* Avatar + botón llamar */}
+                      <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <img 
+                            src={avatarUrl} 
+                            className="w-12 h-12 rounded-full object-cover" 
+                            alt="" 
+                          />
+                        </Link>
+                        
+                        {otherUserPhone ? (
+                          <a 
+                            href={`tel:${otherUserPhone}`}
+                            className="flex items-center gap-1 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 hover:bg-purple-600/30 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Phone className="w-3 h-3 text-purple-400" />
+                            <span className="text-purple-400 text-[10px] font-medium">Llamar</span>
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-gray-800/50 border border-gray-700 rounded-full px-2 py-0.5 opacity-40">
+                            <Phone className="w-3 h-3 text-gray-500" />
+                            <span className="text-gray-500 text-[10px]">Sin tel.</span>
+                          </div>
+                        )}
+                      </div>
 
                       {/* Info */}
-                      <div className="flex-1 min-w-0">
+                      <Link 
+                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
+                        className="flex-1 min-w-0"
+                      >
                         {/* Fila superior: nombre + pill + hora */}
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${isUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <span className={`font-medium ${isHighlighted ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </span>
                           
@@ -229,27 +251,17 @@ export default function Chats() {
                           )}
                           
                           <span className="text-xs text-gray-500 ml-auto flex-shrink-0">
-                            {conv.last_message_at && formatDistanceToNow(new Date(conv.last_message_at), { 
-                              addSuffix: true, 
-                              locale: es 
-                            })}
+                            hace {minutesSince} minutos
                           </span>
                         </div>
                         
                         {/* Fila inferior: último mensaje */}
-                        <p className={`text-sm truncate ${isUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                        <p className={`text-sm truncate ${isHighlighted ? 'text-gray-300' : 'text-gray-500'}`}>
                           {conv.last_message_text || 'Sin mensajes'}
                         </p>
-                      </div>
-
-                      {/* Badge numérico opcional */}
-                      {isUnread && (
-                        <div className="bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 flex-shrink-0">
-                          {unreadCount > 9 ? '9+' : unreadCount}
-                        </div>
-                      )}
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 </motion.div>
               );
             })}
