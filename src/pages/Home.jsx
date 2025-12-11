@@ -274,9 +274,20 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8">
+            className="relative flex flex-col items-center justify-center h-[calc(100vh-140px)] px-6 -mt-8 overflow-hidden">
 
-              <div className="text-center mb-4 w-full flex flex-col items-center">
+              {/* Mapa de fondo apagado */}
+              <div className="absolute inset-0 opacity-20">
+                <ParkingMap
+                  alerts={alerts}
+                  userLocation={userLocation}
+                  className="h-full pointer-events-none" />
+              </div>
+
+              {/* Overlay morado apagado */}
+              <div className="absolute inset-0 bg-purple-900/40"></div>
+
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
                 <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                 alt="WaitMe!"
@@ -287,7 +298,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-4">
+              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10">
                 <Button
                 onClick={() => setMode('search')}
                 className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
@@ -304,8 +315,8 @@ export default function Home() {
                   ¡Estoy aparcado aquí!
                 </Button>
               </div>
-            </motion.div>
-          }
+              </motion.div>
+              }
 
           {mode === 'search' &&
           <motion.div
