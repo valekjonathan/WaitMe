@@ -148,11 +148,23 @@ export default function Notifications() {
       case 'reservation_accepted':
         return null; // Se mostrará la tarjeta del usuario
       case 'reservation_rejected':
-        return `Rechazó tu reserva`;
+        return `Rechazó tu reserva.`;
       case 'buyer_nearby':
-        return `Está cerca. El pago se liberará pronto`;
+        return (
+          <>
+            Está cerca.
+            <br />
+            El pago se liberará pronto
+          </>
+        );
       case 'payment_completed':
-        return `Pago completado. Has ganado ${(notif.amount * 0.8).toFixed(2)}€`;
+        return (
+          <>
+            Pago completado.
+            <br />
+            <span className="text-green-400">Has ganado {(notif.amount * 0.8).toFixed(2)}€</span>
+          </>
+        );
       default:
         return 'Nueva notificación';
     }
