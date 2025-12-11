@@ -150,13 +150,7 @@ export default function Notifications() {
       case 'reservation_rejected':
         return `Rechazó tu reserva.`;
       case 'buyer_nearby':
-        return (
-          <>
-            Está cerca.
-            <br />
-            El pago se liberará pronto.
-          </>
-        );
+        return 'Está cerca. El pago se liberará pronto.';
       case 'payment_completed':
         return (
           <>
@@ -244,7 +238,7 @@ export default function Notifications() {
                       </div>
 
                       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 px-2">
                           {/* Foto a la izquierda */}
                           <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500">
                             {notif.sender_photo ? (
@@ -255,7 +249,7 @@ export default function Notifications() {
                           </div>
 
                           {/* Info a la derecha */}
-                          <div className="flex-1 flex flex-col justify-between">
+                          <div className="flex-1 flex flex-col justify-between pr-2">
                             {/* Nombre */}
                             <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
                             
@@ -319,7 +313,7 @@ export default function Notifications() {
                                 <MessageCircle className="w-5 h-5" />
                               </Button>
                               <Button
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-10 rounded-xl font-semibold"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-10 rounded-xl font-semibold flex items-center justify-center gap-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.latitude && notif.alert.longitude) {
@@ -327,7 +321,7 @@ export default function Notifications() {
                                   }
                                 }}
                               >
-                                <span className="text-white">Wait</span><span className="text-white">Me!</span>
+                                IR <Navigation className="w-4 h-4" />
                               </Button>
                             </div>
                           </div>
