@@ -104,17 +104,12 @@ export default function NotificationSettings() {
 
           {/* Notificaciones de Reservas */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
                   <Bell className="w-6 h-6 text-purple-500" />
                 </div>
-                <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-lg mb-1">Reservas</h3>
-                  <p className="text-sm text-gray-400 line-clamp-2">
-                    Recibe alertas cuando alguien solicita, acepta o rechaza tu oferta de plaza
-                  </p>
-                </div>
+                <h3 className="font-semibold text-lg">Reservas</h3>
               </div>
               <Switch
                 checked={settings.notify_reservations}
@@ -127,17 +122,12 @@ export default function NotificationSettings() {
 
           {/* Notificaciones de Pago */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
                   <CreditCard className="w-6 h-6 text-purple-500" />
                 </div>
-                <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-lg mb-1">Pagos</h3>
-                  <p className="text-sm text-gray-400 line-clamp-2">
-                    Recibe alertas cuando un pago se completa con éxito y ganas dinero
-                  </p>
-                </div>
+                <h3 className="font-semibold text-lg">Pagos</h3>
               </div>
               <Switch
                 checked={settings.notify_payments}
@@ -150,17 +140,12 @@ export default function NotificationSettings() {
 
           {/* Alertas de Proximidad */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-6 h-6 text-purple-500" />
                 </div>
-                <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-lg mb-1">Proximidad</h3>
-                  <p className="text-sm text-gray-400 line-clamp-2">
-                    Recibe alertas cuando el comprador está cerca de tu ubicación
-                  </p>
-                </div>
+                <h3 className="font-semibold text-lg">Proximidad</h3>
               </div>
               <Switch
                 checked={settings.notify_proximity}
@@ -173,17 +158,12 @@ export default function NotificationSettings() {
 
           {/* Novedades */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
                   <Megaphone className="w-6 h-6 text-purple-500" />
                 </div>
-                <div className="flex-1 pr-4">
-                  <h3 className="font-semibold text-lg mb-1">Novedades</h3>
-                  <p className="text-sm text-gray-400 line-clamp-2">
-                    Entérate de nuevas funciones, ofertas especiales y actualizaciones de WaitMe!
-                  </p>
-                </div>
+                <h3 className="font-semibold text-lg">Novedades</h3>
               </div>
               <Switch
                 checked={settings.notify_promotions}
