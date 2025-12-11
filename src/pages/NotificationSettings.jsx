@@ -90,7 +90,7 @@ export default function NotificationSettings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto space-y-6"
+          className="max-w-md mx-auto space-y-6"
         >
           {/* Master Toggle */}
           <div className="flex items-center justify-between mb-6">
