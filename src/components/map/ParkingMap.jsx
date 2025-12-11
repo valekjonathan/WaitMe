@@ -189,6 +189,29 @@ export default function ParkingMap({
 
   return (
     <div className={`relative ${className}`}>
+      <style>{`
+        .leaflet-control-zoom {
+          border: 2px solid rgba(168, 85, 247, 0.3) !important;
+          border-radius: 12px !important;
+          overflow: hidden !important;
+          margin-left: 16px !important;
+          margin-top: 16px !important;
+        }
+        .leaflet-control-zoom a {
+          background-color: rgba(0, 0, 0, 0.6) !important;
+          color: white !important;
+          border: none !important;
+          width: 40px !important;
+          height: 40px !important;
+          line-height: 40px !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background-color: rgba(168, 85, 247, 0.8) !important;
+        }
+        .leaflet-touch .leaflet-control-zoom {
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+        }
+      `}</style>
       <MapContainer
         center={defaultCenter}
         zoom={15}
