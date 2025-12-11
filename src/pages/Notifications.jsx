@@ -150,7 +150,13 @@ export default function Notifications() {
       case 'reservation_rejected':
         return `Rechazó tu reserva.`;
       case 'buyer_nearby':
-        return 'Está cerca. El pago se liberará pronto.';
+        return (
+          <>
+            Está cerca.
+            <br />
+            El pago se liberara cuando estes a 10 metros.
+          </>
+        );
       case 'payment_completed':
         return (
           <>
@@ -287,12 +293,6 @@ export default function Notifications() {
                                   return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
                                 })()}
                               </span>
-                            </div>
-
-                            {/* Texto informativo */}
-                            <div className="text-[11px] text-gray-400 leading-tight mt-1">
-                              <p>Está cerca.</p>
-                              <p>El pago se liberara cuando estes a 10 metros.</p>
                             </div>
 
                             {/* Botones de acción en una fila */}
