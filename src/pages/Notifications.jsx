@@ -232,12 +232,27 @@ export default function Notifications() {
                       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
                         {/* Tarjeta de usuario */}
                         <div className="flex gap-3 mb-3">
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
-                            {notif.sender_photo ? (
-                              <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
-                            )}
+                          <div className="flex flex-col gap-2">
+                            <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0">
+                              {notif.sender_photo ? (
+                                <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
+                              )}
+                            </div>
+
+                            {/* Botón IR a Google Maps */}
+                            <Button
+                              className="w-24 bg-blue-600 hover:bg-blue-700 text-white font-bold h-7 text-xs"
+                              onClick={() => {
+                                if (notif.alert.latitude && notif.alert.longitude) {
+                                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
+                                }
+                              }}
+                            >
+                              <MapPin className="w-3 h-3 mr-1" />
+                              IR
+                            </Button>
                           </div>
 
                           <div className="flex-1 flex flex-col justify-between">
@@ -279,19 +294,6 @@ export default function Notifications() {
                             </div>
                           </div>
                         </div>
-
-                        {/* Botón IR a Google Maps */}
-                        <Button
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
-                          onClick={() => {
-                            if (notif.alert.latitude && notif.alert.longitude) {
-                              window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
-                            }
-                          }}
-                        >
-                          <MapPin className="w-4 h-4 mr-2" />
-                          IR
-                        </Button>
                       </div>
                     </div>
                   ) : (
