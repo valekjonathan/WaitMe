@@ -56,7 +56,7 @@ export default function CreateAlertCard({
             min={5}
             max={60}
             step={5}
-            className="py-1 [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
@@ -73,7 +73,7 @@ export default function CreateAlertCard({
             min={1}
             max={15}
             step={1}
-            className="py-1 [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
       </div>

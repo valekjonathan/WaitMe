@@ -39,7 +39,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
@@ -54,7 +54,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={60}
             min={5}
             step={5}
-            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
@@ -69,7 +69,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={5}
             min={0.5}
             step={0.5}
-            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
