@@ -157,7 +157,8 @@ export default function ParkingMap({
   userLocation,
   selectedAlert,
   showRoute = false,
-  className = ''
+  className = '',
+  zoomControl = true
 }) {
   const defaultCenter = userLocation || [40.4168, -3.7038];
   const [route, setRoute] = useState(null);
@@ -192,7 +193,8 @@ export default function ParkingMap({
         center={defaultCenter}
         zoom={15}
         style={{ height: '100%', width: '100%' }}
-        className="rounded-2xl">
+        className="rounded-2xl"
+        zoomControl={zoomControl}>
 
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'

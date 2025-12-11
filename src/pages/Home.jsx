@@ -275,7 +275,8 @@ export default function Home() {
                 <ParkingMap
                   alerts={alerts}
                   userLocation={userLocation}
-                  className="h-full pointer-events-none" />
+                  className="h-full pointer-events-none"
+                  zoomControl={false} />
               </div>
 
               {/* Overlay morado apagado */}
