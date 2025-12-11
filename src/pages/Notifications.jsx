@@ -350,28 +350,30 @@ export default function Notifications() {
                             )}
 
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  className="bg-green-600 hover:bg-green-700 text-white h-10 w-10 rounded-xl flex items-center justify-center p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
-                                      window.location.href = `tel:${notif.alert.phone}`;
-                                    }
-                                  }}
-                                  disabled={!notif.alert?.allow_phone_calls || !notif.alert?.phone}
-                                >
-                                  <Phone className="w-5 h-5" />
-                                </Button>
-                                <Button
-                                  className="bg-white hover:bg-gray-100 text-black h-10 w-10 rounded-xl flex items-center justify-center p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                  }}
-                                >
-                                  <MessageCircle className="w-5 h-5" />
-                                </Button>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    className="bg-purple-600 hover:bg-purple-700 text-white h-10 flex-1 rounded-xl flex items-center justify-center p-0 border-2 border-purple-500"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
+                                    }}
+                                  >
+                                    <MessageCircle className="w-5 h-5" />
+                                  </Button>
+                                  <Button
+                                    className="bg-green-600 hover:bg-green-700 text-white h-10 flex-1 rounded-xl flex items-center justify-center p-0 border-2 border-green-500"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
+                                        window.location.href = `tel:${notif.alert.phone}`;
+                                      }
+                                    }}
+                                    disabled={!notif.alert?.allow_phone_calls || !notif.alert?.phone}
+                                  >
+                                    <Phone className="w-5 h-5" />
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>
