@@ -213,16 +213,16 @@ export default function Home() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
-          {mode ? (
-            <>
+          {mode ?
+          <>
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setMode(null);
-                  setSelectedAlert(null);
-                }}
-                className="text-white">
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setMode(null);
+                setSelectedAlert(null);
+              }}
+              className="text-white">
                 <ArrowLeft className="w-6 h-6" />
               </Button>
               <Link to={createPageUrl('Settings')} className="absolute left-14">
@@ -230,14 +230,14 @@ export default function Home() {
                   <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
                 </div>
               </Link>
-            </>
-          ) : (
-            <Link to={createPageUrl('Settings')}>
+            </> :
+
+          <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
                 <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
               </div>
             </Link>
-          )}
+          }
 
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
@@ -341,8 +341,8 @@ export default function Home() {
                 {/* Botón de filtros */}
                 {!showFilters &&
               <Button
-                onClick={() => setShowFilters(true)}
-                className="absolute top-4 right-4 z-[1000] bg-black/40 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                onClick={() => setShowFilters(true)} className="bg-black/40 text-white mr-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow h-9 w-9 absolute top-4 right-4 z-[1000] backdrop-blur-sm border border-purple-500/30 hover:bg-purple-600"
+
                 size="icon">
 
                     <SlidersHorizontal className="w-5 h-5" />
