@@ -14,6 +14,7 @@ import BottomNav from '@/components/BottomNav';
 
 export default function Chats() {
   const [user, setUser] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -26,6 +27,16 @@ export default function Chats() {
       }
     };
     fetchUser();
+    
+    // Obtener ubicación del usuario
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => console.log('Error obteniendo ubicación:', error)
+      );
+    }
   }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
@@ -175,17 +186,34 @@ export default function Chats() {
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
               const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
               const otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
+              const otherUserPhone = isP1 ? conv.participant2_phone : conv.participant1_phone;
               const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
               const alert = alertsMap.get(conv.alert_id);
               
               // Borde encendido SOLO si tiene mensajes no leídos
               const hasUnread = unreadCount > 0;
               
-              // Avatar con orden de prioridad y fallback
-              const avatarUrl = otherUserPhoto || `https://i.pravatar.cc/150?u=${conv.id}`;
+              // Construir objeto otherUser para reutilizar el componente de UserCard
+              const otherUser = {
+                name: otherUserName,
+                photo: otherUserPhoto || `https://i.pravatar.cc/150?u=${conv.id}`,
+                phone: otherUserPhone
+              };
               
-              // Obtener teléfono del otro usuario (buscar en participant data)
-              const otherUserPhone = isP1 ? conv.participant2_phone : conv.participant1_phone;
+              // Calcular distancia (si hay datos de alert)
+              const calculateDistance = () => {
+                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+                const R = 6371;
+                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceKm = R * c;
+                return distanceKm < 1 ? `${Math.round(distanceKm * 1000)}m` : `${distanceKm.toFixed(1)}km`;
+              };
+              const distance = calculateDistance();
               
               // Calcular minutos
               const minutesSince = getMinutesSince(conv.last_message_at);
@@ -207,29 +235,29 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botón llamar */}
-                      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                      {/* Avatar + botón llamar - COPIADO DE UserCard */}
+                      <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <img 
-                            src={avatarUrl} 
-                            className="w-12 h-12 rounded-full object-cover" 
-                            alt="" 
-                          />
-                        </Link>
-                        
-                        {otherUserPhone ? (
-                          <a 
-                            href={`tel:${otherUserPhone}`}
-                            className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
-                        ) : (
-                          <div className="flex items-center gap-1 text-gray-600 opacity-40">
-                            <Phone className="w-3.5 h-3.5" />
+                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800">
+                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
                           </div>
-                        )}
+                        </Link>
+
+                        {/* Botón de teléfono - EXACTO de UserCard */}
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${otherUser.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (otherUser.phone) window.location.href = `tel:${otherUser.phone}`;
+                            }}
+                            disabled={!otherUser.phone}
+                          >
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
 
                       {/* Info */}
@@ -246,7 +274,7 @@ export default function Chats() {
                           {alert && (
                             <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
                               <span className="text-purple-400 text-xs font-medium">
-                                {alert.price}€ / {alert.available_in_minutes}min
+                                {alert.price}€ / {alert.available_in_minutes}min {distance && `• ${distance}`}
                               </span>
                             </div>
                           )}
