@@ -229,7 +229,7 @@ export default function Home() {
           }
 
           <div className="flex-1 flex items-center justify-center">
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-lg font-semibold ml-[3px]">
               <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
             </h1>
           </div>
