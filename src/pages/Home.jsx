@@ -266,19 +266,19 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="relative flex flex-col items-center justify-center h-[calc(100vh-60px)] px-6 -mt-8">
+            className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col items-center justify-center px-6 overflow-hidden">
 
               {/* Mapa de fondo apagado */}
-              <div className="absolute inset-0 -bottom-8 opacity-20">
+              <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
-                className="h-full pointer-events-none"
+                className="h-full"
                 zoomControl={false} />
               </div>
 
               {/* Overlay morado apagado */}
-              <div className="absolute inset-0 -bottom-8 bg-purple-900/40"></div>
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
                 <img
@@ -296,7 +296,7 @@ export default function Home() {
                 onClick={() => setMode('search')}
                 className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                  <svg className="w-24 h-24 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -307,7 +307,7 @@ export default function Home() {
                 onClick={() => setMode('create')}
                 className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                  <Car className="w-12 h-12" strokeWidth={2.5} />
+                  <Car className="w-14 h-14" strokeWidth={2.5} />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
