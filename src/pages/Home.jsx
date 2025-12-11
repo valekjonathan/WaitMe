@@ -259,13 +259,14 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="mt-5 pt-9 pb-24">
+      <main className="fixed inset-0 top-[60px] bottom-[88px]">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }} className="mt-3 px-6 fixed inset-0 top-[60px] bottom-[88px] flex flex-col items-center justify-center overflow-hidden">
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute inset-0 flex flex-col items-center justify-center px-6 overflow-hidden">
 
 
               {/* Mapa de fondo apagado */}
