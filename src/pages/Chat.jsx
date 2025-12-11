@@ -3,19 +3,17 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Send, Phone, PhoneOff, User, Settings, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Send, User, MapPin, Clock, Euro, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import BottomNav from '@/components/BottomNav';
-import UserCard from '@/components/cards/UserCard';
 
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
-  const alertId = urlParams.get('alertId');
-  const otherUserId = urlParams.get('userId');
+  const conversationId = urlParams.get('conversationId');
   
   const [user, setUser] = useState(null);
   const [newMessage, setNewMessage] = useState('');
@@ -34,220 +32,244 @@ export default function Chat() {
     fetchUser();
   }, []);
 
-  // Obtener alerta para info del otro usuario
-  const { data: alert } = useQuery({
-    queryKey: ['alert', alertId],
+  // Obtener conversación
+  const { data: conversation } = useQuery({
+    queryKey: ['conversation', conversationId],
     queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
+      const convs = await base44.entities.Conversation.filter({ id: conversationId });
+      return convs[0];
+    },
+    enabled: !!conversationId
+  });
+
+  // Obtener alerta relacionada
+  const { data: alert } = useQuery({
+    queryKey: ['alertInChat', conversation?.alert_id],
+    queryFn: async () => {
+      if (!conversation?.alert_id) return null;
+      const alerts = await base44.entities.ParkingAlert.filter({ id: conversation.alert_id });
       return alerts[0];
     },
-    enabled: !!alertId
+    enabled: !!conversation?.alert_id
   });
 
   // Obtener mensajes
-  const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['chatMessages', alertId, user?.id, otherUserId],
+  const { data: messages = [] } = useQuery({
+    queryKey: ['chatMessages', conversationId],
     queryFn: async () => {
-      const allMessages = await base44.entities.ChatMessage.filter({ alert_id: alertId });
-      return allMessages
-        .filter(m => 
-          (m.sender_id === user?.email && m.receiver_id === otherUserId) ||
-          (m.sender_id === otherUserId && m.receiver_id === user?.email)
-        )
-        .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId });
+      return msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
     },
-    enabled: !!alertId && !!user?.id && !!otherUserId,
-    refetchInterval: 3000 // Actualizar cada 3 segundos
+    enabled: !!conversationId,
+    refetchInterval: 3000
   });
 
-  // Marcar como leídos
+  // Marcar mensajes como leídos
   useEffect(() => {
-    const markAsRead = async () => {
-      const unread = messages.filter(m => m.receiver_id === user?.email && !m.read);
-      for (const msg of unread) {
+    if (!messages.length || !user?.id) return;
+    
+    const unreadMessages = messages.filter(m => m.receiver_id === user.id && !m.read);
+    if (unreadMessages.length > 0) {
+      unreadMessages.forEach(async (msg) => {
         await base44.entities.ChatMessage.update(msg.id, { read: true });
+      });
+      
+      // Actualizar contador en conversación
+      if (conversation) {
+        const isP1 = conversation.participant1_id === user.id;
+        const updateData = isP1 
+          ? { unread_count_p1: 0 }
+          : { unread_count_p2: 0 };
+        base44.entities.Conversation.update(conversation.id, updateData);
       }
-    };
-    if (messages.length > 0 && user?.email) {
-      markAsRead();
+      
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     }
-  }, [messages, user?.email]);
+  }, [messages, user?.id, conversation, queryClient]);
 
-  // Scroll al final
+  // Scroll al último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Enviar mensaje
-  const sendMutation = useMutation({
-    mutationFn: async (message) => {
-      const msgData = {
-        alert_id: alertId,
-        sender_id: user?.email || user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageText) => {
+      const otherUserId = conversation.participant1_id === user?.id 
+        ? conversation.participant2_id 
+        : conversation.participant1_id;
+      
+      await base44.entities.ChatMessage.create({
+        conversation_id: conversationId,
+        alert_id: conversation.alert_id,
+        sender_id: user?.id,
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        sender_photo: user?.photo_url,
         receiver_id: otherUserId,
-        message: message,
+        message: messageText,
+        message_type: 'user',
         read: false
-      };
-      console.log('Enviando mensaje:', msgData);
-      return base44.entities.ChatMessage.create(msgData);
+      });
+
+      // Actualizar última actividad de conversación
+      const isP1 = conversation.participant1_id === user?.id;
+      await base44.entities.Conversation.update(conversationId, {
+        last_message_text: messageText,
+        last_message_at: new Date().toISOString(),
+        [isP1 ? 'unread_count_p2' : 'unread_count_p1']: (isP1 ? conversation.unread_count_p2 : conversation.unread_count_p1) + 1
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setNewMessage('');
     }
   });
 
-  const handleSend = () => {
-    if (newMessage.trim() && user) {
-      sendMutation.mutate(newMessage.trim());
-    }
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    sendMessageMutation.mutate(newMessage);
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendMessage(e);
     }
   };
 
-  const otherUserName = alert?.user_id === otherUserId 
-    ? alert?.user_name 
-    : alert?.reserved_by_name || 'Usuario';
+  if (!conversation || !user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
 
-  const canCall = alert?.allow_phone_calls && alert?.phone;
+  const isP1 = conversation.participant1_id === user?.id;
+  const otherUserName = isP1 ? conversation.participant2_name : conversation.participant1_name;
+  const otherUserPhoto = isP1 ? conversation.participant2_photo : conversation.participant1_photo;
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Chats')}>
             <Button variant="ghost" size="icon" className="text-white">
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+          {/* User info */}
+          <div className="flex items-center gap-3">
+            {otherUserPhoto ? (
+              <img src={otherUserPhoto} className="w-10 h-10 rounded-full object-cover" alt="" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-500" />
+              </div>
+            )}
+            <div>
+              <p className="font-medium text-sm">{otherUserName}</p>
+              {alert && (
+                <p className="text-xs text-gray-400">{alert.price}€ • {alert.available_in_minutes} min</p>
+              )}
             </div>
-            <h1 className="text-lg font-semibold">{otherUserName}</h1>
           </div>
 
-          <div className="flex items-center gap-1">
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
+          {/* Ver alerta button */}
+          {alert && (
+            <Link to={createPageUrl(`Home?mode=search`)}>
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs">
+                Ver alerta
               </Button>
             </Link>
-            <Link to={createPageUrl('Chats')} className="relative">
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
+          )}
         </div>
-
-        {/* Tarjeta de usuario */}
-        {alert && (
-          <div className="mt-2">
-            <UserCard
-              userName={otherUserName}
-              userPhoto={alert.user_photo}
-              carBrand={alert.car_brand}
-              carModel={alert.car_model}
-              carColor={alert.car_color}
-              carPlate={alert.car_plate}
-              vehicleType={alert.vehicle_type}
-              address={alert.address}
-              availableInMinutes={alert.available_in_minutes}
-              price={alert.price}
-              showLocationInfo={true}
-            />
-          </div>
-        )}
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-2">
-        {isLoading ? (
-          <div className="text-center text-gray-500 py-8">
-            Cargando mensajes...
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            <p>Inicia la conversación</p>
-          </div>
-        ) : (
-          messages.map((msg, index) => {
-            const isMine = msg.sender_id === user?.email;
-            const showDate = index === 0 || 
-              format(new Date(msg.created_date), 'yyyy-MM-dd') !== 
-              format(new Date(messages[index - 1].created_date), 'yyyy-MM-dd');
+      <main className="flex-1 pt-20 pb-20 px-4 overflow-y-auto">
+        <AnimatePresence>
+          {messages.map((msg, index) => {
+            const isMine = msg.sender_id === user?.id;
+            const isSystem = msg.message_type === 'system';
+            const showTimestamp = index === 0 || 
+              (new Date(msg.created_date).getTime() - new Date(messages[index - 1].created_date).getTime() > 300000);
 
             return (
-              <React.Fragment key={msg.id}>
-                {showDate && (
-                  <div className="text-center text-gray-500 text-xs py-2">
-                    {format(new Date(msg.created_date), "d 'de' MMMM", { locale: es })}
+              <div key={msg.id}>
+                {showTimestamp && (
+                  <div className="text-center text-xs text-gray-500 my-4">
+                    {format(new Date(msg.created_date), "d 'de' MMMM, HH:mm", { locale: es })}
                   </div>
                 )}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
-                >
-                  {!isMine && (
-                    <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {msg.sender_name?.charAt(0)?.toUpperCase() || 'U'}
-                    </div>
-                  )}
-                  <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                      isMine
-                        ? 'bg-purple-600 text-white rounded-br-md'
-                        : 'bg-gray-800 text-white rounded-bl-md'
-                    }`}
+
+                {isSystem ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex justify-center my-4"
                   >
-                    <p className="break-words">{msg.message}</p>
-                    <p className={`text-xs mt-1 ${isMine ? 'text-purple-200' : 'text-gray-500'}`}>
-                      {format(new Date(msg.created_date), 'HH:mm')}
-                    </p>
-                  </div>
-                </motion.div>
-              </React.Fragment>
+                    <div className="bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-400 max-w-xs text-center">
+                      {msg.message}
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, x: isMine ? 20 : -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`flex mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`max-w-[75%] ${isMine ? 'order-2' : 'order-1'}`}>
+                      <div
+                        className={`rounded-2xl px-4 py-2 ${
+                          isMine
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-800 text-white'
+                        }`}
+                      >
+                        <p className="text-sm break-words">{msg.message}</p>
+                      </div>
+                      <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                        <span>{format(new Date(msg.created_date), 'HH:mm')}</span>
+                        {isMine && (
+                          <span>{msg.read ? '✓✓' : '✓'}</span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             );
-          })
-        )}
+          })}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
-      </div>
+      </main>
 
       {/* Input */}
-      <div className="border-t border-gray-800 p-4 bg-black pb-6">
-        <div className="flex gap-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
+        <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
-            className="bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 rounded-full"
+            className="flex-1 bg-gray-900 border-gray-800 text-white"
+            disabled={sendMessageMutation.isPending}
           />
           <Button
-            onClick={handleSend}
-            disabled={!newMessage.trim() || sendMutation.isPending || !user}
-            className="bg-purple-600 hover:bg-purple-700 rounded-full w-12 h-10"
+            type="submit"
+            size="icon"
+            className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
+            disabled={!newMessage.trim() || sendMessageMutation.isPending}
           >
-            {sendMutation.isPending ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            <Send className="w-5 h-5" />
           </Button>
-        </div>
+        </form>
       </div>
-
-      <BottomNav />
     </div>
   );
 }
