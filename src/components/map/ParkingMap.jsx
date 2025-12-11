@@ -201,7 +201,7 @@ export default function ParkingMap({
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
         
-        {userLocation && <FlyToLocation position={userLocation} />}
+        {!isSelecting && userLocation && <FlyToLocation position={userLocation} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
         {userLocation &&
