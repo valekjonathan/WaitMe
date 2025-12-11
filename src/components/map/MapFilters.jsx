@@ -30,7 +30,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
       <div className="space-y-5">
         {/* Precio máximo */}
         <div>
-          <label className="text-sm text-gray-300 mb-2 block">
+          <label className="text-sm text-white mb-2 block font-medium">
             Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
           </label>
           <Slider
@@ -39,13 +39,13 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full"
+            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Disponibilidad */}
         <div>
-          <label className="text-sm text-gray-300 mb-2 block">
+          <label className="text-sm text-white mb-2 block font-medium">
             Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
           </label>
           <Slider
@@ -54,13 +54,13 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={60}
             min={5}
             step={5}
-            className="w-full"
+            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Distancia máxima */}
         <div>
-          <label className="text-sm text-gray-300 mb-2 block">
+          <label className="text-sm text-white mb-2 block font-medium">
             Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
           </label>
           <Slider
@@ -69,7 +69,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={5}
             min={0.5}
             step={0.5}
-            className="w-full"
+            className="w-full [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
