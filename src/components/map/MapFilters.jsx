@@ -84,7 +84,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         <Button
           onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
           variant="outline"
-          className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
+          className="w-full border-gray-700 text-gray-900 hover:bg-gray-800 hover:text-white bg-white"
         >
           Restablecer filtros
         </Button>

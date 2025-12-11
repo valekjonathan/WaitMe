@@ -14,8 +14,8 @@ export default function UserAlertCard({
 }) {
   if (isEmpty || !alert) {
     return (
-      <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-500/50">
-        <div className="flex items-center justify-center h-40">
+      <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-500/50 min-h-[calc(65vh-5rem)]">
+        <div className="flex items-center justify-center h-full">
           <div className="text-center text-gray-500">
             <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">Toca un coche en el mapa para ver sus datos</p>
