@@ -38,9 +38,9 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    maxPrice: 10,
-    maxMinutes: 60,
-    maxDistance: 5
+    maxPrice: 7,
+    maxMinutes: 25,
+    maxDistance: 1
   });
 
   const queryClient = useQueryClient();
@@ -321,7 +321,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-4">
+            className="h-screen pt-4 overflow-hidden">
 
               <div className="h-[35%] relative px-3">
                 <ParkingMap
