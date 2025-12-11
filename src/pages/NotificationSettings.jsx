@@ -15,7 +15,7 @@ export default function NotificationSettings() {
     notify_reservations: true,
     notify_payments: true,
     notify_proximity: true,
-    notify_promotions: false
+    notify_promotions: true
   });
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function NotificationSettings() {
           notify_reservations: currentUser.notify_reservations ?? true,
           notify_payments: currentUser.notify_payments ?? true,
           notify_proximity: currentUser.notify_proximity ?? true,
-          notify_promotions: currentUser.notify_promotions ?? false
+          notify_promotions: currentUser.notify_promotions ?? true
         });
       } catch (error) {
         console.log('Error:', error);
@@ -177,7 +177,7 @@ export default function NotificationSettings() {
           {/* Info adicional */}
           <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-center">
             <p className="text-xs text-gray-500">
-              Las notificaciones push requieren permisos del navegador. Si no recibes notificaciones, revisa la configuración de tu dispositivo.
+              Las notificaciones push requieren permisos del navegador. Si no las recibes, revisa tu configuración.
             </p>
           </div>
         </motion.div>
