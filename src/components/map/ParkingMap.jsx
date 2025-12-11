@@ -193,27 +193,38 @@ export default function ParkingMap({
         .leaflet-top.leaflet-left {
           top: 10px !important;
           left: 10px !important;
+          z-index: 1000 !important;
+          display: block !important;
+          visibility: visible !important;
         }
         .leaflet-control-zoom {
           border: 1px solid rgba(168, 85, 247, 0.3) !important;
           border-radius: 8px !important;
           overflow: hidden !important;
-          box-shadow: none !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
           background: transparent !important;
+          display: flex !important;
+          flex-direction: column !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.6) !important;
+          background-color: rgba(0, 0, 0, 0.7) !important;
           backdrop-filter: blur(4px) !important;
           color: white !important;
           border: none !important;
           width: 40px !important;
           height: 40px !important;
           line-height: 40px !important;
-          font-size: 18px !important;
-          font-weight: normal !important;
+          font-size: 20px !important;
+          font-weight: bold !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-decoration: none !important;
         }
         .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.6) !important;
+          background-color: rgba(168, 85, 247, 0.8) !important;
         }
         .leaflet-control-zoom-in {
           border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
@@ -221,6 +232,14 @@ export default function ParkingMap({
         }
         .leaflet-control-zoom-out {
           border-radius: 0 0 8px 8px !important;
+        }
+        .leaflet-control-zoom-in:before {
+          content: '+' !important;
+          display: block !important;
+        }
+        .leaflet-control-zoom-out:before {
+          content: '−' !important;
+          display: block !important;
         }
       `}</style>
       <MapContainer
