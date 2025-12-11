@@ -86,15 +86,15 @@ export default function NotificationSettings() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-20 pb-8 px-4">
+      <main className="pt-20 px-4 h-screen overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md mx-auto space-y-6"
+          className="max-w-md mx-auto space-y-4"
         >
           {/* Master Toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Permitir notificaciones:</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Permitir notificaciones:</h2>
             <Switch
               checked={masterToggle}
               onCheckedChange={updateMasterToggle}
@@ -103,13 +103,13 @@ export default function NotificationSettings() {
           </div>
 
           {/* Notificaciones de Reservas */}
-          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
-                  <Bell className="w-6 h-6 text-purple-500" />
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <Bell className="w-5 h-5 text-purple-500" />
                 </div>
-                <h3 className="font-semibold text-lg">Reservas</h3>
+                <h3 className="font-semibold text-base">Reservas</h3>
               </div>
               <Switch
                 checked={settings.notify_reservations}
@@ -121,13 +121,13 @@ export default function NotificationSettings() {
           </div>
 
           {/* Notificaciones de Pago */}
-          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
-                  <CreditCard className="w-6 h-6 text-purple-500" />
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-5 h-5 text-purple-500" />
                 </div>
-                <h3 className="font-semibold text-lg">Pagos</h3>
+                <h3 className="font-semibold text-base">Pagos</h3>
               </div>
               <Switch
                 checked={settings.notify_payments}
@@ -139,13 +139,13 @@ export default function NotificationSettings() {
           </div>
 
           {/* Alertas de Proximidad */}
-          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-6 h-6 text-purple-500" />
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-purple-500" />
                 </div>
-                <h3 className="font-semibold text-lg">Proximidad</h3>
+                <h3 className="font-semibold text-base">Proximidad</h3>
               </div>
               <Switch
                 checked={settings.notify_proximity}
@@ -157,13 +157,13 @@ export default function NotificationSettings() {
           </div>
 
           {/* Novedades */}
-          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-600/20 p-3 rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0">
-                  <Megaphone className="w-6 h-6 text-purple-500" />
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <Megaphone className="w-5 h-5 text-purple-500" />
                 </div>
-                <h3 className="font-semibold text-lg">Novedades</h3>
+                <h3 className="font-semibold text-base">Novedades</h3>
               </div>
               <Switch
                 checked={settings.notify_promotions}
