@@ -6,6 +6,7 @@ import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone, Settings as SettingsIco
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
+import BottomNav from '@/components/BottomNav';
 
 export default function NotificationSettings() {
   const [user, setUser] = useState(null);
@@ -104,7 +105,7 @@ export default function NotificationSettings() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-20 px-4 h-screen overflow-hidden">
+      <main className="pt-20 pb-24 px-4 h-screen overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -200,6 +201,8 @@ export default function NotificationSettings() {
           </div>
         </motion.div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }
