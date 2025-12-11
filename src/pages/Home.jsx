@@ -228,13 +228,11 @@ export default function Home() {
           <div className="w-10"></div>
           }
 
-          <div className="flex-1 flex items-center justify-center pl-[3px]">
-            <h1 className="text-lg font-semibold">
-              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-            </h1>
-          </div>
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
+            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+          </h1>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 ml-auto">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <Settings className="w-5 h-5" />
