@@ -289,12 +289,6 @@ export default function Notifications() {
                               </span>
                             </div>
 
-                            {/* Texto informativo */}
-                            <div className="text-xs text-gray-400 leading-tight mt-1">
-                              <p>Está cerca.</p>
-                              <p>El pago se liberará pronto</p>
-                            </div>
-
                             {/* Botones de acción en una fila */}
                             <div className="flex items-center gap-1.5 mt-1">
                               <Button
