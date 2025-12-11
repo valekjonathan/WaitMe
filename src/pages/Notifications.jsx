@@ -296,9 +296,9 @@ export default function Notifications() {
                             </div>
 
                             {/* Botones de acción */}
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-2 mt-2">
                               <Button
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10 rounded-xl"
+                                className="bg-green-600 hover:bg-green-700 text-white h-10 w-10 rounded-xl flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.allow_phone_calls && notif.alert.phone) {
@@ -310,7 +310,7 @@ export default function Notifications() {
                                 <Phone className="w-5 h-5" />
                               </Button>
                               <Button
-                                className="flex-1 bg-white hover:bg-gray-100 text-black h-10 rounded-xl"
+                                className="bg-white hover:bg-gray-100 text-black h-10 w-10 rounded-xl flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
@@ -319,7 +319,7 @@ export default function Notifications() {
                                 <MessageCircle className="w-5 h-5" />
                               </Button>
                               <Button
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-10 rounded-xl"
+                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-10 rounded-xl font-semibold"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.latitude && notif.alert.longitude) {
@@ -327,7 +327,7 @@ export default function Notifications() {
                                   }
                                 }}
                               >
-                                <Navigation className="w-5 h-5" />
+                                <span className="text-white">Wait</span><span className="text-white">Me!</span>
                               </Button>
                             </div>
                           </div>
@@ -348,9 +348,9 @@ export default function Notifications() {
                             )}
 
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <Button
-                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10 rounded-xl"
+                                  className="bg-green-600 hover:bg-green-700 text-white h-10 w-10 rounded-xl flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
@@ -362,7 +362,7 @@ export default function Notifications() {
                                   <Phone className="w-5 h-5" />
                                 </Button>
                                 <Button
-                                  className="flex-1 bg-white hover:bg-gray-100 text-black h-10 rounded-xl"
+                                  className="bg-white hover:bg-gray-100 text-black h-10 w-10 rounded-xl flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
