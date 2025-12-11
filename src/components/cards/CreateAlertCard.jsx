@@ -46,7 +46,7 @@ export default function CreateAlertCard({
 
         {/* Tiempo */}
         <div className="space-y-1">
-          <Label className="text-gray-400 flex items-center gap-2 text-sm">
+          <Label className="text-white flex items-center gap-2 text-sm font-medium">
             <Clock className="w-4 h-4" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
@@ -56,13 +56,13 @@ export default function CreateAlertCard({
             min={5}
             max={60}
             step={5}
-            className="py-1 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Precio */}
         <div className="space-y-1">
-          <Label className="text-gray-400 flex items-center gap-2 text-sm">
+          <Label className="text-white flex items-center gap-2 text-sm font-medium">
             <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
             <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)}€)</span>
@@ -73,7 +73,7 @@ export default function CreateAlertCard({
             min={1}
             max={15}
             step={1}
-            className="py-1 [&>span:first-child]:bg-purple-600 [&_[role=slider]]:border-purple-500 [&_[role=slider]]:bg-purple-500"
+            className="py-1 [&>span:first-child]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
       </div>

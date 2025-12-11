@@ -69,7 +69,7 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700"></div>
 
-        <Link to={createPageUrl('Home')} className="flex-1 flex justify-center">
+        <a href={createPageUrl('Home')} className="flex-1 flex justify-center">
           <Button 
             variant="ghost" 
             className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg"
@@ -79,7 +79,7 @@ export default function BottomNav() {
             </svg>
             <span className="text-[10px] font-bold">Mapa</span>
           </Button>
-        </Link>
+        </a>
 
         <div className="w-px h-10 bg-gray-700"></div>
 
