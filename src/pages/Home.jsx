@@ -228,7 +228,11 @@ export default function Home() {
           <div className="w-10"></div>
           }
 
-          <div className="flex-1"></div>
+          <div className="flex-1 flex items-center justify-center">
+            <h1 className="text-lg font-semibold">
+              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+            </h1>
+          </div>
 
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
