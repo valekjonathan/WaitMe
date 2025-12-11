@@ -324,10 +324,12 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-4 overflow-hidden">
+            className="h-screen pt-4 overflow-hidden"
+            key="search-mode">
 
               <div className="h-[35%] relative px-3">
                 <ParkingMap
+                key={`map-${userLocation?.[0]}-${userLocation?.[1]}`}
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
                 userLocation={userLocation}
