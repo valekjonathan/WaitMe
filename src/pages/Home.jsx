@@ -181,11 +181,7 @@ export default function Home() {
             if (data.address) {
               const road = data.address.road || data.address.street || '';
               const number = data.address.house_number || '';
-              if (road && number) {
-                setAddress(`${road}, ${number}`);
-              } else if (road) {
-                setAddress(road);
-              }
+              setAddress(`${road} ${number}`.trim());
             }
           });
         },
@@ -394,11 +390,7 @@ export default function Home() {
                       if (data.address) {
                         const road = data.address.road || data.address.street || '';
                         const number = data.address.house_number || '';
-                        if (road && number) {
-                          setAddress(`${road}, ${number}`);
-                        } else if (road) {
-                          setAddress(road);
-                        }
+                        setAddress(`${road} ${number}`.trim());
                       }
                     });
                   }}
