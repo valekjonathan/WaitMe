@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,6 @@ import BottomNav from '@/components/BottomNav';
 
 export default function Chats() {
   const [user, setUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -57,21 +56,7 @@ export default function Chats() {
     return map;
   }, [alerts]);
 
-  // Filtrar conversaciones
-  const filteredConversations = React.useMemo(() => {
-    if (!searchQuery) return conversations;
-    
-    const query = searchQuery.toLowerCase();
-    return conversations.filter(conv => {
-      const otherUserName = conv.participant1_id === user?.id 
-        ? conv.participant2_name 
-        : conv.participant1_name;
-      const lastMessage = conv.last_message_text || '';
-      
-      return otherUserName?.toLowerCase().includes(query) || 
-             lastMessage.toLowerCase().includes(query);
-    });
-  }, [conversations, searchQuery, user?.id]);
+
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -136,19 +121,17 @@ export default function Chats() {
           <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
           </div>
-        ) : filteredConversations.length === 0 ? (
+        ) : conversations.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg mb-2">
-              {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
-            </p>
+            <p className="text-lg mb-2">Sin conversaciones</p>
             <p className="text-sm">
-              {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
+              Cuando reserves o alguien reserve tu plaza, podrás chatear aquí
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {filteredConversations.map((conv, index) => {
+            {conversations.map((conv, index) => {
               const isP1 = conv.participant1_id === user?.id;
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
               const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
@@ -207,9 +190,9 @@ export default function Chats() {
 
                     {/* Unread badge */}
                     {unreadCount > 0 && (
-                      <Badge className="bg-purple-600 text-white min-w-[24px] h-6 flex items-center justify-center">
+                      <div className="bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[24px] h-6 flex items-center justify-center px-2">
                         {unreadCount > 9 ? '9+' : unreadCount}
-                      </Badge>
+                      </div>
                     )}
                   </Link>
                 </motion.div>
