@@ -210,7 +210,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen bg-black text-white overflow-hidden">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
@@ -259,26 +259,26 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="fixed inset-0 top-[60px] bottom-[88px] overflow-hidden">
+      <main className="mt-5 pt-9 pb-24">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full h-full flex flex-col items-center justify-center px-6 overflow-hidden relative">
+            exit={{ opacity: 0, y: -20 }} className="mt-2 px-6 w-full h-full flex flex-col items-center justify-center overflow-hidden relative">
+
 
               {/* Mapa de fondo apagado */}
-              <div className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
+              <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
-                className="w-full h-full"
+                className="h-full"
                 zoomControl={false} />
               </div>
 
               {/* Overlay morado apagado */}
-              <div className="absolute inset-0 w-full h-full bg-purple-900/40 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
                 <img
