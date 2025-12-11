@@ -163,13 +163,6 @@ export default function ParkingMap({
   const defaultCenter = userLocation || [40.4168, -3.7038];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
-  const [initialCenter, setInitialCenter] = useState(defaultCenter);
-  
-  useEffect(() => {
-    if (userLocation) {
-      setInitialCenter(userLocation);
-    }
-  }, []);
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
@@ -197,7 +190,7 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`}>
       <MapContainer
-        center={initialCenter}
+        center={defaultCenter}
         zoom={15}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
