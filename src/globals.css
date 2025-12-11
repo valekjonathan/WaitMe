@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -66,17 +67,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* Custom styles for purple sliders */
-[role="slider"] {
-  @apply bg-purple-600;
-}
-
-.slider-track {
-  @apply bg-purple-600/30;
-}
-
-[data-orientation="horizontal"][role="slider"] ~ span {
-  @apply bg-purple-600;
 }
