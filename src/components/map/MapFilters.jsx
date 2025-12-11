@@ -10,7 +10,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
       initial={{ x: -300 }}
       animate={{ x: 0 }}
       exit={{ x: -300 }}
-      className="absolute top-4 left-4 z-[1000] bg-black/95 backdrop-blur-lg rounded-2xl p-5 border-2 border-purple-500 shadow-2xl w-72"
+      className="absolute top-4 left-4 z-[1000] bg-black/95 backdrop-blur-lg rounded-2xl p-5 border-2 border-purple-500 shadow-2xl w-72 max-h-[85vh] overflow-hidden"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
@@ -54,7 +54,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={60}
             min={5}
             step={5}
-            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
@@ -69,7 +69,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={5}
             min={0.5}
             step={0.5}
-            className="w-full [&>span:first-child]:bg-purple-500 [&>span:first-child>span]:bg-gray-800 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
