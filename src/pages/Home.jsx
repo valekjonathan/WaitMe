@@ -228,21 +228,7 @@ export default function Home() {
           <div className="w-10"></div>
           }
 
-          <div className="flex-1 flex items-center justify-between px-2">
-            <div className="bg-purple-600/20 px-3 py-1 rounded-full border border-purple-500/30 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-            </div>
-            <h1
-              className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity ml-[30px]"
-              onClick={() => {
-                setMode(null);
-                window.history.pushState({}, '', createPageUrl('Home'));
-              }}>
-
-              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-            </h1>
-            <div className="w-20"></div>
-          </div>
+          <div className="flex-1"></div>
 
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
