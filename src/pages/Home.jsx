@@ -233,7 +233,7 @@ export default function Home() {
               <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
             </div>
             <h1
-              className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity ml-[15px]"
+              className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity ml-[30px]"
               onClick={() => {
                 setMode(null);
                 window.history.pushState({}, '', createPageUrl('Home'));
