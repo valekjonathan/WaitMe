@@ -296,22 +296,9 @@ export default function Notifications() {
                             </div>
 
                             {/* Botones de acción */}
-                            <div className="flex gap-1">
+                            <div className="flex gap-2">
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-gray-700"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                }}
-                              >
-                                <MessageCircle className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={`w-[28px] h-7 rounded-lg border border-gray-700 ${notif.alert.allow_phone_calls && notif.alert.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10 rounded-xl"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.allow_phone_calls && notif.alert.phone) {
@@ -320,12 +307,19 @@ export default function Notifications() {
                                 }}
                                 disabled={!notif.alert.allow_phone_calls || !notif.alert.phone}
                               >
-                                <Phone className="w-4 h-4" />
+                                <Phone className="w-5 h-5" />
                               </Button>
                               <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-[28px] h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border border-gray-700"
+                                className="flex-1 bg-white hover:bg-gray-100 text-black h-10 rounded-xl"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
+                                }}
+                              >
+                                <MessageCircle className="w-5 h-5" />
+                              </Button>
+                              <Button
+                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-10 rounded-xl"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.latitude && notif.alert.longitude) {
@@ -333,7 +327,7 @@ export default function Notifications() {
                                   }
                                 }}
                               >
-                                <Navigation className="w-4 h-4" />
+                                <Navigation className="w-5 h-5" />
                               </Button>
                             </div>
                           </div>
@@ -354,22 +348,9 @@ export default function Notifications() {
                             )}
 
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex gap-1">
+                              <div className="flex gap-2">
                                 <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="w-[28px] h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border border-gray-700"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                  }}
-                                >
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`w-[28px] h-7 rounded-lg border border-gray-700 ${notif.alert?.allow_phone_calls && notif.alert?.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10 rounded-xl"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
@@ -378,7 +359,16 @@ export default function Notifications() {
                                   }}
                                   disabled={!notif.alert?.allow_phone_calls || !notif.alert?.phone}
                                 >
-                                  <Phone className="w-4 h-4" />
+                                  <Phone className="w-5 h-5" />
+                                </Button>
+                                <Button
+                                  className="flex-1 bg-white hover:bg-gray-100 text-black h-10 rounded-xl"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
+                                  }}
+                                >
+                                  <MessageCircle className="w-5 h-5" />
                                 </Button>
                               </div>
                             )}
