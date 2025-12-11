@@ -324,9 +324,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-4 overflow-hidden">
+            className="h-[calc(100vh-60px)] pt-4 flex flex-col overflow-hidden">
 
-              <div className="h-[35%] relative px-3">
+              <div className="h-[40%] relative px-3 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
@@ -358,8 +358,8 @@ export default function Home() {
 
                 }
                 </AnimatePresence>
-              </div>
-              <div className="px-4 pt-2 pb-20">
+                </div>
+                <div className="flex-1 px-4 pt-2 pb-20 overflow-hidden">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
@@ -369,9 +369,9 @@ export default function Home() {
                 isLoading={buyAlertMutation.isPending}
                 userLocation={userLocation} />
 
-              </div>
-            </motion.div>
-          }
+                </div>
+                </motion.div>
+                }
 
           {mode === 'create' &&
           <motion.div
