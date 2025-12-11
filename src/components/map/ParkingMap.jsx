@@ -150,12 +150,16 @@ function FlyToLocation({ position }) {
 
 function CenterMap({ center }) {
   const map = useMap();
+  const [hasCenter, setHasCenter] = useState(false);
   
   useEffect(() => {
-    if (center) {
-      map.setView(center, 16, { animate: false });
+    if (center && !hasCenter) {
+      setTimeout(() => {
+        map.setView(center, 16, { animate: true });
+      }, 100);
+      setHasCenter(true);
     }
-  }, []);
+  }, [center, hasCenter, map]);
   
   return null;
 }
@@ -212,9 +216,7 @@ export default function ParkingMap({
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
-        <CenterMap center={userLocation} />
-        
-        {!isSelecting && userLocation && <FlyToLocation position={userLocation} />}
+        {userLocation && <CenterMap center={userLocation} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
         {userLocation &&
