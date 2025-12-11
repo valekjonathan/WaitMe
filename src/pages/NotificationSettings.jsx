@@ -104,13 +104,13 @@ export default function NotificationSettings() {
 
           {/* Notificaciones de Reservas */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0 self-start">
+            <div className="flex gap-3">
+              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0">
                 <Bell className="w-6 h-6 text-purple-500" />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg mb-1">Reservas</h3>
-                <p className="text-sm text-gray-400 flex-1">
+                <p className="text-sm text-gray-400 line-clamp-2">
                   Recibe alertas cuando alguien solicita, acepta o rechaza tu oferta de plaza
                 </p>
               </div>
@@ -118,20 +118,20 @@ export default function NotificationSettings() {
                 checked={settings.notify_reservations}
                 onCheckedChange={(checked) => updateSetting('notify_reservations', checked)}
                 disabled={!masterToggle}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0 self-start"
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
               />
             </div>
           </div>
 
           {/* Notificaciones de Pago */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0 self-start">
+            <div className="flex gap-3">
+              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0">
                 <CreditCard className="w-6 h-6 text-purple-500" />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg mb-1">Pagos</h3>
-                <p className="text-sm text-gray-400 flex-1">
+                <p className="text-sm text-gray-400 line-clamp-2">
                   Recibe alertas cuando un pago se completa con éxito y ganas dinero
                 </p>
               </div>
@@ -139,20 +139,20 @@ export default function NotificationSettings() {
                 checked={settings.notify_payments}
                 onCheckedChange={(checked) => updateSetting('notify_payments', checked)}
                 disabled={!masterToggle}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0 self-start"
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
               />
             </div>
           </div>
 
           {/* Alertas de Proximidad */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0 self-start">
+            <div className="flex gap-3">
+              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0">
                 <MapPin className="w-6 h-6 text-purple-500" />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg mb-1">Proximidad</h3>
-                <p className="text-sm text-gray-400 flex-1">
+                <p className="text-sm text-gray-400 line-clamp-2">
                   Recibe alertas cuando el comprador está cerca de tu ubicación
                 </p>
               </div>
@@ -160,20 +160,20 @@ export default function NotificationSettings() {
                 checked={settings.notify_proximity}
                 onCheckedChange={(checked) => updateSetting('notify_proximity', checked)}
                 disabled={!masterToggle}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0 self-start"
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
               />
             </div>
           </div>
 
           {/* Promociones y Novedades */}
           <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 p-5">
-            <div className="flex gap-4">
-              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0 self-start">
+            <div className="flex gap-3">
+              <div className="bg-purple-600/20 p-3 rounded-xl flex-shrink-0">
                 <Megaphone className="w-6 h-6 text-purple-500" />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg mb-1">Promociones y Novedades</h3>
-                <p className="text-sm text-gray-400 flex-1">
+                <p className="text-sm text-gray-400 line-clamp-2">
                   Entérate de nuevas funciones, ofertas especiales y actualizaciones de WaitMe!
                 </p>
               </div>
@@ -181,7 +181,7 @@ export default function NotificationSettings() {
                 checked={settings.notify_promotions}
                 onCheckedChange={(checked) => updateSetting('notify_promotions', checked)}
                 disabled={!masterToggle}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0 self-start"
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
               />
             </div>
           </div>
