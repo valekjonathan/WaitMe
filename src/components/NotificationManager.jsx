@@ -43,6 +43,16 @@ export default function NotificationManager({ user }) {
       if (lastNotificationId !== latest.id) {
         setLastNotificationId(latest.id);
         
+        // Verificar preferencias del usuario
+        const shouldNotify = 
+          (latest.type === 'reservation_request' && user?.notify_reservations !== false) ||
+          (latest.type === 'reservation_accepted' && user?.notify_reservations !== false) ||
+          (latest.type === 'reservation_rejected' && user?.notify_reservations !== false) ||
+          (latest.type === 'buyer_nearby' && user?.notify_proximity !== false) ||
+          (latest.type === 'payment_completed' && user?.notify_payments !== false);
+        
+        if (!shouldNotify) return;
+        
         let title = 'WaitMe!';
         let body = '';
         
@@ -77,7 +87,7 @@ export default function NotificationManager({ user }) {
         });
       }
     }
-  }, [notifications, permission, lastNotificationId]);
+  }, [notifications, permission, lastNotificationId, user]);
 
   // Notificar cuando hay nuevos mensajes
   useEffect(() => {

@@ -149,11 +149,11 @@ export default function Settings() {
 
           {/* Opciones */}
           <div className="bg-gray-900 rounded-2xl border border-gray-800 divide-y divide-gray-800">
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+            <Link to={createPageUrl('NotificationSettings')} className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Bell className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Notificaciones</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
-            </button>
+            </Link>
             
             <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Shield className="w-5 h-5 text-purple-500" />

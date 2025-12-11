@@ -5,6 +5,7 @@ import Chats from './pages/Chats';
 import Chat from './pages/Chat';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+import NotificationSettings from './pages/NotificationSettings';
 
 
 export const PAGES = {
@@ -15,6 +16,7 @@ export const PAGES = {
     "Chat": Chat,
     "Settings": Settings,
     "Notifications": Notifications,
+    "NotificationSettings": NotificationSettings,
 }
 
 export const pagesConfig = {
