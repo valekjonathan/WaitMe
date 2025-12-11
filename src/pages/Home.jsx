@@ -324,10 +324,10 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-[calc(100vh-60px)] overflow-hidden flex flex-col"
+            className="h-screen pt-4 overflow-hidden"
             key="search-mode">
 
-              <div className="h-[35%] relative px-3 flex-shrink-0">
+              <div className="h-[35%] relative px-3">
                 <ParkingMap
                 key={`map-${userLocation?.[0]}-${userLocation?.[1]}`}
                 alerts={alerts}
@@ -361,7 +361,7 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="flex-1 px-4 pt-2 pb-20 overflow-hidden">
+              <div className="px-4 pt-2 pb-20">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
