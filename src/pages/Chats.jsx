@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -29,15 +29,15 @@ export default function Chats() {
   }, []);
 
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ['conversations', user?.id],
+    queryKey: ['conversations'],
     queryFn: async () => {
-      // Obtener TODAS las conversaciones (incluye las demo)
+      // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list();
       return allConversations.sort((a, b) => 
-        new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date)
+        new Date(b.last_message_at || b.updated_date || b.created_date) - 
+        new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
-    enabled: !!user?.id,
     refetchInterval: 5000
   });
 
@@ -54,6 +54,15 @@ export default function Chats() {
     return map;
   }, [alerts]);
 
+  // Calcular total de no leídos
+  const totalUnread = React.useMemo(() => {
+    return conversations.reduce((sum, conv) => {
+      const isP1 = conv.participant1_id === user?.id;
+      const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+      return sum + (unread || 0);
+    }, 0);
+  }, [conversations, user?.id]);
+
   // Filtrar conversaciones por búsqueda
   const filteredConversations = React.useMemo(() => {
     if (!searchQuery) return conversations;
@@ -69,6 +78,13 @@ export default function Chats() {
              lastMessage.toLowerCase().includes(query);
     });
   }, [conversations, searchQuery, user?.id]);
+
+  // Función para calcular minutos desde el último mensaje
+  const getMinutesSince = (timestamp) => {
+    if (!timestamp) return 1;
+    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
+    return Math.max(1, minutes);
+  };
 
 
 
@@ -102,6 +118,11 @@ export default function Chats() {
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <MessageCircle className="w-5 h-5" />
               </Button>
+              {totalUnread > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                  {totalUnread > 9 ? '9+' : totalUnread}
+                </span>
+              )}
             </Link>
           </div>
         </div>
