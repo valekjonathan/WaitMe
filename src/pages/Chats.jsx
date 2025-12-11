@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,6 +14,7 @@ import BottomNav from '@/components/BottomNav';
 
 export default function Chats() {
   const [user, setUser] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,12 +31,9 @@ export default function Chats() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations', user?.id],
     queryFn: async () => {
-      // Obtener conversaciones donde soy participante
-      const [asP1, asP2] = await Promise.all([
-        base44.entities.Conversation.filter({ participant1_id: user?.id }),
-        base44.entities.Conversation.filter({ participant2_id: user?.id })
-      ]);
-      return [...asP1, ...asP2].sort((a, b) => 
+      // Obtener TODAS las conversaciones (incluye las demo)
+      const allConversations = await base44.entities.Conversation.list();
+      return allConversations.sort((a, b) => 
         new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date)
       );
     },
@@ -54,6 +53,22 @@ export default function Chats() {
     alerts.forEach(alert => map.set(alert.id, alert));
     return map;
   }, [alerts]);
+
+  // Filtrar conversaciones por búsqueda
+  const filteredConversations = React.useMemo(() => {
+    if (!searchQuery) return conversations;
+    
+    const query = searchQuery.toLowerCase();
+    return conversations.filter(conv => {
+      const otherUserName = conv.participant1_id === user?.id 
+        ? conv.participant2_name 
+        : conv.participant1_name;
+      const lastMessage = conv.last_message_text || '';
+      
+      return otherUserName?.toLowerCase().includes(query) || 
+             lastMessage.toLowerCase().includes(query);
+    });
+  }, [conversations, searchQuery, user?.id]);
 
 
 
@@ -90,24 +105,49 @@ export default function Chats() {
             </Link>
           </div>
         </div>
+
+        {/* Buscador */}
+        <div className="px-4 pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar conversaciones..."
+              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </div>
       </header>
 
-      <main className="pt-20 pb-24">
+      <main className="pt-32 pb-24">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
           </div>
-        ) : conversations.length === 0 ? (
+        ) : filteredConversations.length === 0 ? (
           <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg mb-2">Sin conversaciones</p>
+            <p className="text-lg mb-2">
+              {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
+            </p>
             <p className="text-sm">
-              Cuando reserves o alguien reserve tu plaza, podrás chatear aquí
+              {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {conversations.map((conv, index) => {
+            {filteredConversations.map((conv, index) => {
               const isP1 = conv.participant1_id === user?.id;
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
               const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
