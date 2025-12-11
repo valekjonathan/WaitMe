@@ -228,8 +228,8 @@ export default function Home() {
           <div className="w-10"></div>
           }
 
-          <div className="flex-1 flex items-center justify-center">
-            <h1 className="text-lg font-semibold ml-[3px]">
+          <div className="flex-1 flex items-center justify-center pl-[3px]">
+            <h1 className="text-lg font-semibold">
               <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
             </h1>
           </div>
