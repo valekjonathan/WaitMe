@@ -203,14 +203,14 @@ export default function UserCard({
         <div className="space-y-2 pt-2 border-t border-gray-700">
           {address && (
             <div className="flex items-start gap-2 text-gray-400 text-sm">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <MapPin className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span>{address}</span>
             </div>
           )}
           
           {availableInMinutes !== undefined && (
             <div className="flex items-center gap-2 text-gray-500 text-xs">
-              <Clock className="w-3 h-3 ml-0.5" />
+              <Clock className="w-5 h-5" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
