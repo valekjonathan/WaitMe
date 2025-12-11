@@ -154,7 +154,7 @@ export default function Notifications() {
           <>
             Está cerca.
             <br />
-            El pago se liberará pronto
+            El pago se liberará pronto.
           </>
         );
       case 'payment_completed':
