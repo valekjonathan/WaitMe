@@ -127,8 +127,12 @@ export default function Chats() {
           </div>
         </div>
 
-        {/* Buscador */}
-        <div className="px-4 pb-3">
+
+      </header>
+
+      <main className="pt-[60px] pb-24">
+        {/* Buscador justo debajo del header */}
+        <div className="px-4 pt-2 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
@@ -149,9 +153,7 @@ export default function Chats() {
             )}
           </div>
         </div>
-      </header>
 
-      <main className="pt-32 pb-24">
         {isLoading ? (
           <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
@@ -173,16 +175,17 @@ export default function Chats() {
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
               const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
               const otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
+              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
               const alert = alertsMap.get(conv.alert_id);
               
-              // Borde encendido solo para las 2 primeras
-              const isHighlighted = index < 2;
+              // Borde encendido SOLO si tiene mensajes no leídos
+              const hasUnread = unreadCount > 0;
               
-              // Avatar con fallback a pravatar
-              const avatarUrl = otherUserPhoto || `https://i.pravatar.cc/150?u=${otherUserId}`;
+              // Avatar con orden de prioridad y fallback
+              const avatarUrl = otherUserPhoto || `https://i.pravatar.cc/150?u=${conv.id}`;
               
-              // Obtener teléfono del otro usuario
-              const otherUserPhone = null; // TODO: obtener del usuario si está disponible
+              // Obtener teléfono del otro usuario (buscar en participant data)
+              const otherUserPhone = isP1 ? conv.participant2_phone : conv.participant1_phone;
               
               // Calcular minutos
               const minutesSince = getMinutesSince(conv.last_message_at);
@@ -197,7 +200,7 @@ export default function Chats() {
                   <div
                     className={`
                       bg-gray-900 rounded-2xl p-4 transition-all
-                      ${isHighlighted 
+                      ${hasUnread 
                         ? 'border-2 border-purple-500 shadow-lg shadow-purple-500/20' 
                         : 'border-2 border-gray-800'
                       }
@@ -205,7 +208,7 @@ export default function Chats() {
                   >
                     <div className="flex items-start gap-3">
                       {/* Avatar + botón llamar */}
-                      <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <img 
                             src={avatarUrl} 
@@ -217,16 +220,14 @@ export default function Chats() {
                         {otherUserPhone ? (
                           <a 
                             href={`tel:${otherUserPhone}`}
-                            className="flex items-center gap-1 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 hover:bg-purple-600/30 transition-colors"
+                            className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Phone className="w-3 h-3 text-purple-400" />
-                            <span className="text-purple-400 text-[10px] font-medium">Llamar</span>
+                            <Phone className="w-3.5 h-3.5" />
                           </a>
                         ) : (
-                          <div className="flex items-center gap-1 bg-gray-800/50 border border-gray-700 rounded-full px-2 py-0.5 opacity-40">
-                            <Phone className="w-3 h-3 text-gray-500" />
-                            <span className="text-gray-500 text-[10px]">Sin tel.</span>
+                          <div className="flex items-center gap-1 text-gray-600 opacity-40">
+                            <Phone className="w-3.5 h-3.5" />
                           </div>
                         )}
                       </div>
@@ -238,7 +239,7 @@ export default function Chats() {
                       >
                         {/* Fila superior: nombre + pill + hora */}
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${isHighlighted ? 'text-white' : 'text-gray-300'}`}>
+                          <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </span>
                           
@@ -256,7 +257,7 @@ export default function Chats() {
                         </div>
                         
                         {/* Fila inferior: último mensaje */}
-                        <p className={`text-sm truncate ${isHighlighted ? 'text-gray-300' : 'text-gray-500'}`}>
+                        <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
                           {conv.last_message_text || 'Sin mensajes'}
                         </p>
                       </Link>
