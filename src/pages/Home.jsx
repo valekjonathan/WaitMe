@@ -264,7 +264,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="mt-5 pt-9 pb-24">
+      <main className="mt-5 pt-9 pb-24 overflow-hidden">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
