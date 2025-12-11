@@ -298,7 +298,7 @@ export default function Notifications() {
                             {/* Botones de acción en una fila */}
                             <div className="flex items-center gap-1.5 mt-1">
                               <Button
-                                className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
+                                className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
@@ -307,7 +307,7 @@ export default function Notifications() {
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                               <Button
-                                className="bg-white hover:bg-gray-100 text-black h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
+                                className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.allow_phone_calls && notif.alert.phone) {
@@ -319,7 +319,7 @@ export default function Notifications() {
                                 <Phone className="w-4 h-4" />
                               </Button>
                               <Button
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 border-2 border-white text-xs"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.latitude && notif.alert.longitude) {
@@ -350,7 +350,7 @@ export default function Notifications() {
                             {notif.type === 'reservation_request' && notif.status === 'pending' && (
                               <div className="flex items-center gap-1.5 mt-1">
                                 <Button
-                                  className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
+                                  className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
@@ -359,7 +359,7 @@ export default function Notifications() {
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
                                 <Button
-                                  className="bg-white hover:bg-gray-100 text-black h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
+                                  className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
