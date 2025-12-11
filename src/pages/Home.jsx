@@ -303,7 +303,7 @@ export default function Home() {
                 onClick={() => setMode('search')}
                 className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
 
-                  <MapPin className="w-12 h-12 text-purple-500" strokeWidth={2.5} />
+                  <MapPin className="w-16 h-16 text-purple-500" strokeWidth={2.5} />
                   ¿Dónde quieres aparcar?
                 </Button>
 
