@@ -290,24 +290,15 @@ export default function Notifications() {
                             </div>
 
                             {/* Texto informativo */}
-                            <div className="text-xs text-gray-400 leading-tight">
+                            <div className="text-xs text-gray-400 leading-tight mb-2">
                               <p>Está cerca</p>
-                              <p>El pago se liberara pronto</p>
+                              <p>El pago se liberará pronto</p>
                             </div>
 
-                            {/* Botones de acción */}
-                            <div className="flex items-center gap-2 mt-2">
+                            {/* Botones de acción en una fila */}
+                            <div className="flex items-center gap-1.5">
                               <Button
-                                className="bg-purple-600 hover:bg-purple-700 text-white h-10 flex-1 rounded-xl flex items-center justify-center p-0 border-2 border-purple-500"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                }}
-                              >
-                                <MessageCircle className="w-5 h-5" />
-                              </Button>
-                              <Button
-                                className="bg-green-600 hover:bg-green-700 text-white h-10 flex-1 rounded-xl flex items-center justify-center p-0 border-2 border-green-500"
+                                className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (notif.alert.allow_phone_calls && notif.alert.phone) {
@@ -316,22 +307,29 @@ export default function Notifications() {
                                 }}
                                 disabled={!notif.alert.allow_phone_calls || !notif.alert.phone}
                               >
-                                <Phone className="w-5 h-5" />
+                                <Phone className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                className="bg-white hover:bg-gray-100 text-black h-7 w-11 rounded-lg flex items-center justify-center p-0 border-2 border-white"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
+                                }}
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 border-2 border-white text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (notif.alert.latitude && notif.alert.longitude) {
+                                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
+                                  }
+                                }}
+                              >
+                                IR <Navigation className="w-3 h-3" />
                               </Button>
                             </div>
-                            
-                            {/* Botón IR debajo */}
-                            <Button
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10 rounded-xl font-semibold flex items-center justify-center gap-1 mt-2 border-2 border-blue-500"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (notif.alert.latitude && notif.alert.longitude) {
-                                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
-                                }
-                              }}
-                            >
-                              IR <Navigation className="w-4 h-4" />
-                            </Button>
                           </div>
                         </div>
                       </div>
