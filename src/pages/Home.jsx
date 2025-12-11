@@ -330,7 +330,7 @@ export default function Home() {
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
-                zoomControl={false}
+                zoomControl={true}
                 className="h-full" />
 
 
