@@ -39,8 +39,8 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="flex-1 h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
-      <span className="text-purple-400 text-xs font-mono font-bold">{timeLeft}</span>
+    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
     </div>
   );
 }
@@ -285,7 +285,7 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botón llamar + contador */}
+                      {/* Avatar + botones (teléfono + chat) + contador */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
@@ -297,15 +297,15 @@ export default function Chats() {
                           </div>
                         </Link>
 
-                        {/* Botón de teléfono verde + contador */}
-                        <div className="flex gap-2 w-full">
+                        {/* Botones de teléfono + mensaje */}
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`h-7 w-7 rounded-lg border-2 flex-shrink-0 ${
+                            className={`h-8 w-8 rounded-full flex-shrink-0 ${
                               otherUser.allowCalls && otherUser.phone 
-                                ? 'bg-green-600 hover:bg-green-700 text-white border-green-500' 
-                                : 'bg-gray-800/50 text-gray-600 opacity-50 border-gray-700'
+                                ? 'bg-green-500 hover:bg-green-600 text-white' 
+                                : 'bg-gray-700/50 text-gray-500 opacity-50'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
@@ -318,41 +318,54 @@ export default function Chats() {
                           >
                             <Phone className="w-4 h-4" />
                           </Button>
-                          
-                          {alert && (
-                            <CountdownTimer 
-                              availableInMinutes={alert.available_in_minutes} 
-                              createdDate={alert.created_date}
-                            />
-                          )}
+
+                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-full flex-shrink-0 bg-gray-700 hover:bg-gray-600 text-white"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </Button>
+                          </Link>
                         </div>
                       </div>
 
                       {/* Info */}
-                      <Link 
-                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        className="flex-1 min-w-0"
-                      >
-                        {/* Fila superior: nombre + pill */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
-                            {otherUserName}
-                          </span>
+                      <div className="flex-1 min-w-0 flex flex-col gap-2">
+                        <Link 
+                          to={createPageUrl(`Chat?conversationId=${conv.id}`)}
+                          className="flex-1 min-w-0"
+                        >
+                          {/* Fila superior: nombre + pill */}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                              {otherUserName}
+                            </span>
+                            
+                            {alert && (
+                              <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
+                                <span className="text-purple-400 text-xs font-medium">
+                                  {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                           
-                          {alert && (
-                            <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
-                              <span className="text-purple-400 text-xs font-medium">
-                                {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Fila inferior: último mensaje */}
-                        <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {conv.last_message_text || 'Sin mensajes'}
-                        </p>
-                      </Link>
+                          {/* Fila inferior: último mensaje */}
+                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {conv.last_message_text || 'Sin mensajes'}
+                          </p>
+                        </Link>
+
+                        {/* Contador de cuenta atrás */}
+                        {alert && (
+                          <CountdownTimer 
+                            availableInMinutes={alert.available_in_minutes} 
+                            createdDate={alert.created_date}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
