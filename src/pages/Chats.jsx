@@ -322,8 +322,8 @@ export default function Chats() {
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                             <Button
                             variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-full flex-shrink-0 bg-gray-700 hover:bg-gray-600 text-white">
+                            size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9">
+
 
                               <MessageCircle className="w-4 h-4" />
                             </Button>
