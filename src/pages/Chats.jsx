@@ -12,6 +12,46 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 
+// Componente para el contador en tiempo real
+function CountdownTimer({ waitingUntil, waitingMode }) {
+  const [countdown, setCountdown] = useState(null);
+  
+  useEffect(() => {
+    if (!waitingUntil) return;
+    
+    const updateCountdown = () => {
+      const now = Date.now();
+      const until = new Date(waitingUntil).getTime();
+      const diff = until - now;
+      if (diff <= 0) {
+        setCountdown(null);
+        return;
+      }
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [waitingUntil]);
+  
+  if (!countdown) return null;
+  
+  const waitingText = waitingMode === 'me_espera' ? 'Te espera' : 'Le esperas';
+  
+  return (
+    <div className="flex justify-end">
+      <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
+        <span className="text-purple-400 text-xs font-medium whitespace-nowrap">
+          {waitingText} {countdown}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -237,31 +277,6 @@ export default function Chats() {
                 return `${meters}m`;
               };
               const distanceStr = calculateDistance();
-              
-              // Estado para countdown en tiempo real
-              const [countdown, setCountdown] = React.useState(null);
-              const waitingText = conv.waiting_mode === 'me_espera' ? 'Te espera' : 'Le esperas';
-
-              React.useEffect(() => {
-                if (!conv.waiting_until) return;
-                
-                const updateCountdown = () => {
-                  const now = Date.now();
-                  const until = new Date(conv.waiting_until).getTime();
-                  const diff = until - now;
-                  if (diff <= 0) {
-                    setCountdown(null);
-                    return;
-                  }
-                  const minutes = Math.floor(diff / 60000);
-                  const seconds = Math.floor((diff % 60000) / 1000);
-                  setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
-                };
-                
-                updateCountdown();
-                const interval = setInterval(updateCountdown, 1000);
-                return () => clearInterval(interval);
-              }, [conv.waiting_until]);
 
               return (
                 <motion.div
@@ -341,15 +356,10 @@ export default function Chats() {
                         </Link>
 
                         {/* Contador debajo del mensaje */}
-                        {countdown && (
-                          <div className="flex justify-end">
-                            <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
-                              <span className="text-purple-400 text-xs font-medium whitespace-nowrap">
-                                {waitingText} {countdown}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                        <CountdownTimer 
+                          waitingUntil={conv.waiting_until} 
+                          waitingMode={conv.waiting_mode} 
+                        />
                       </div>
                     </div>
                   </div>
