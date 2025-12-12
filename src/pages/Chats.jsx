@@ -12,6 +12,39 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 
+// Componente contador de cuenta atrás
+function CountdownTimer({ availableInMinutes, createdDate }) {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const created = new Date(createdDate);
+      const targetTime = new Date(created.getTime() + availableInMinutes * 60000);
+      const now = new Date();
+      const diff = targetTime - now;
+
+      if (diff <= 0) {
+        setTimeLeft('0:00');
+        return;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [availableInMinutes, createdDate]);
+
+  return (
+    <div className="flex-1 h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
+      <span className="text-purple-400 text-xs font-mono font-bold">{timeLeft}</span>
+    </div>
+  );
+}
+
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -219,7 +252,7 @@ export default function Chats() {
                 initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
               };
               
-              // Calcular distancia en METROS (sin decimales)
+              // Calcular distancia (metros o km)
               const calculateDistance = () => {
                 if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
                 const R = 6371;
@@ -230,9 +263,10 @@ export default function Chats() {
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 const distanceKm = R * c;
-                return Math.round(distanceKm * 1000); // Siempre en metros, sin decimales
+                const meters = Math.round(distanceKm * 1000);
+                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
               };
-              const distanceMeters = calculateDistance();
+              const distanceText = calculateDistance();
 
               return (
                 <motion.div
@@ -251,7 +285,7 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botón llamar */}
+                      {/* Avatar + botón llamar + contador */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
@@ -263,15 +297,15 @@ export default function Chats() {
                           </div>
                         </Link>
 
-                        {/* Botón de teléfono verde */}
-                        <div className="flex gap-1">
+                        {/* Botón de teléfono verde + contador */}
+                        <div className="flex gap-2 w-full">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${
+                            className={`h-7 w-7 rounded-lg border-2 flex-shrink-0 ${
                               otherUser.allowCalls && otherUser.phone 
-                                ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
-                                : 'bg-gray-800/50 text-gray-600 opacity-50'
+                                ? 'bg-green-600 hover:bg-green-700 text-white border-green-500' 
+                                : 'bg-gray-800/50 text-gray-600 opacity-50 border-gray-700'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
@@ -284,6 +318,13 @@ export default function Chats() {
                           >
                             <Phone className="w-4 h-4" />
                           </Button>
+                          
+                          {alert && (
+                            <CountdownTimer 
+                              availableInMinutes={alert.available_in_minutes} 
+                              createdDate={alert.created_date}
+                            />
+                          )}
                         </div>
                       </div>
 
@@ -301,7 +342,7 @@ export default function Chats() {
                           {alert && (
                             <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
                               <span className="text-purple-400 text-xs font-medium">
-                                {alert.price}€ · {alert.available_in_minutes}min{distanceMeters ? ` · ${distanceMeters}m` : ''}
+                                {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
                               </span>
                             </div>
                           )}
