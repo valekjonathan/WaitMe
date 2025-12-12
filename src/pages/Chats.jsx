@@ -52,6 +52,19 @@ export default function Chats() {
     refetchInterval: 5000
   });
 
+  // Obtener usuarios para resolver datos completos
+  const { data: users = [] } = useQuery({
+    queryKey: ['usersForChats'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!user?.id
+  });
+
+  const usersMap = React.useMemo(() => {
+    const map = new Map();
+    users.forEach(u => map.set(u.id, u));
+    return map;
+  }, [users]);
+
   // Obtener alertas para mostrar info
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats'],
@@ -184,23 +197,29 @@ export default function Chats() {
             {filteredConversations.map((conv, index) => {
               const isP1 = conv.participant1_id === user?.id;
               const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-              const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
-              const otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-              const otherUserPhone = isP1 ? conv.participant2_phone : conv.participant1_phone;
               const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
               const alert = alertsMap.get(conv.alert_id);
               
               // Borde encendido SOLO si tiene mensajes no leídos
               const hasUnread = unreadCount > 0;
               
-              // Construir objeto otherUser para reutilizar el componente de UserCard
+              // Resolver datos del otro usuario desde usersMap
+              const otherUserData = usersMap.get(otherUserId);
+              const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+              const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+              const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
+              const allowCalls = otherUserData?.allow_phone_calls ?? false;
+              
+              // Construir objeto otherUser
               const otherUser = {
                 name: otherUserName,
-                photo: otherUserPhoto || `https://i.pravatar.cc/150?u=${conv.id}`,
-                phone: otherUserPhone
+                photo: otherUserPhoto,
+                phone: otherUserPhone,
+                allowCalls: allowCalls,
+                initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
               };
               
-              // Calcular distancia (si hay datos de alert)
+              // Calcular distancia en METROS (sin decimales)
               const calculateDistance = () => {
                 if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
                 const R = 6371;
@@ -211,12 +230,9 @@ export default function Chats() {
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 const distanceKm = R * c;
-                return distanceKm < 1 ? `${Math.round(distanceKm * 1000)}m` : `${distanceKm.toFixed(1)}km`;
+                return Math.round(distanceKm * 1000); // Siempre en metros, sin decimales
               };
-              const distance = calculateDistance();
-              
-              // Calcular minutos
-              const minutesSince = getMinutesSince(conv.last_message_at);
+              const distanceMeters = calculateDistance();
 
               return (
                 <motion.div
@@ -235,25 +251,36 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botón llamar - COPIADO DE UserCard */}
+                      {/* Avatar + botón llamar */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800">
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                            {otherUser.photo ? (
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                            ) : (
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                            )}
                           </div>
                         </Link>
 
-                        {/* Botón de teléfono - EXACTO de UserCard */}
+                        {/* Botón de teléfono verde */}
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${otherUser.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${
+                              otherUser.allowCalls && otherUser.phone 
+                                ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
+                                : 'bg-gray-800/50 text-gray-600 opacity-50'
+                            }`}
                             onClick={(e) => {
                               e.preventDefault();
-                              if (otherUser.phone) window.location.href = `tel:${otherUser.phone}`;
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
                             }}
-                            disabled={!otherUser.phone}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
                           >
                             <Phone className="w-4 h-4" />
                           </Button>
@@ -265,7 +292,7 @@ export default function Chats() {
                         to={createPageUrl(`Chat?conversationId=${conv.id}`)}
                         className="flex-1 min-w-0"
                       >
-                        {/* Fila superior: nombre + pill + hora */}
+                        {/* Fila superior: nombre + pill */}
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
@@ -274,14 +301,10 @@ export default function Chats() {
                           {alert && (
                             <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
                               <span className="text-purple-400 text-xs font-medium">
-                                {alert.price}€ / {alert.available_in_minutes}min {distance && `• ${distance}`}
+                                {alert.price}€ · {alert.available_in_minutes}min{distanceMeters ? ` · ${distanceMeters}m` : ''}
                               </span>
                             </div>
                           )}
-                          
-                          <span className="text-xs text-gray-500 ml-auto flex-shrink-0">
-                            hace {minutesSince} minutos
-                          </span>
                         </div>
                         
                         {/* Fila inferior: último mensaje */}
