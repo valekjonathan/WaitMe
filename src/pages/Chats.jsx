@@ -285,7 +285,7 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botones (teléfono + chat) + contador */}
+                      {/* Avatar + botones copiados de JONATHAN */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
@@ -297,16 +297,23 @@ export default function Chats() {
                           </div>
                         </Link>
 
-                        {/* Botones de teléfono + mensaje */}
+                        {/* BOTONES COPIADOS EXACTOS DE UserCard - línea 137-156 */}
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className={`h-8 w-8 rounded-full flex-shrink-0 ${
-                              otherUser.allowCalls && otherUser.phone 
-                                ? 'bg-green-500 hover:bg-green-600 text-white' 
-                                : 'bg-gray-700/50 text-gray-500 opacity-50'
-                            }`}
+                            className="flex-1 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${otherUser.allowCalls && otherUser.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                             onClick={(e) => {
                               e.preventDefault();
                               if (otherUser.allowCalls && otherUser.phone) {
@@ -314,28 +321,17 @@ export default function Chats() {
                               }
                             }}
                             disabled={!otherUser.allowCalls || !otherUser.phone}
-                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
                           >
                             <Phone className="w-4 h-4" />
                           </Button>
-
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 rounded-full flex-shrink-0 bg-gray-700 hover:bg-gray-600 text-white"
-                            >
-                              <MessageCircle className="w-4 h-4" />
-                            </Button>
-                          </Link>
                         </div>
                       </div>
 
                       {/* Info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2">
+                      <div className="flex-1 min-w-0 flex flex-col">
                         <Link 
                           to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                          className="flex-1 min-w-0"
+                          className="flex-1 min-w-0 mb-2"
                         >
                           {/* Fila superior: nombre + pill */}
                           <div className="flex items-center gap-2 mb-1">
@@ -358,12 +354,15 @@ export default function Chats() {
                           </p>
                         </Link>
 
-                        {/* Contador de cuenta atrás */}
+                        {/* Contador de cuenta atrás a la derecha de los botones */}
                         {alert && (
-                          <CountdownTimer 
-                            availableInMinutes={alert.available_in_minutes} 
-                            createdDate={alert.created_date}
-                          />
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1"></div>
+                            <CountdownTimer 
+                              availableInMinutes={alert.available_in_minutes} 
+                              createdDate={alert.created_date}
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
