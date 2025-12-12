@@ -219,7 +219,7 @@ export default function Chats() {
                 initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
               };
               
-              // Calcular distancia en METROS (sin decimales)
+              // Calcular distancia: m si <1000, km si >=1000
               const calculateDistance = () => {
                 if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
                 const R = 6371;
@@ -230,9 +230,27 @@ export default function Chats() {
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 const distanceKm = R * c;
-                return Math.round(distanceKm * 1000); // Siempre en metros, sin decimales
+                const meters = Math.round(distanceKm * 1000);
+                if (meters >= 1000) {
+                  return `${Math.round(meters / 1000)}km`;
+                }
+                return `${meters}m`;
               };
-              const distanceMeters = calculateDistance();
+              const distanceStr = calculateDistance();
+              
+              // Calcular countdown si hay waiting_until
+              const getCountdown = () => {
+                if (!conv.waiting_until) return null;
+                const now = Date.now();
+                const until = new Date(conv.waiting_until).getTime();
+                const diff = until - now;
+                if (diff <= 0) return null;
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+              };
+              const countdown = getCountdown();
+              const waitingText = conv.waiting_mode === 'me_espera' ? 'Te espera' : 'Le esperas';
 
               return (
                 <motion.div
@@ -251,67 +269,74 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botón llamar */}
-                      <div className="flex flex-col gap-2 flex-shrink-0">
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
-                            {otherUser.photo ? (
-                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
-                            ) : (
-                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                            )}
-                          </div>
-                        </Link>
-
-                        {/* Botón de teléfono verde */}
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${
-                              otherUser.allowCalls && otherUser.phone 
-                                ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
-                                : 'bg-gray-800/50 text-gray-600 opacity-50'
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (otherUser.allowCalls && otherUser.phone) {
-                                window.location.href = `tel:${otherUser.phone}`;
-                              }
-                            }}
-                            disabled={!otherUser.allowCalls || !otherUser.phone}
-                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
-                          >
-                            <Phone className="w-4 h-4" />
-                          </Button>
+                      {/* Avatar solo */}
+                      <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                        <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center flex-shrink-0">
+                          {otherUser.photo ? (
+                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                          ) : (
+                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                          )}
                         </div>
-                      </div>
+                      </Link>
 
                       {/* Info */}
-                      <Link 
-                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        className="flex-1 min-w-0"
-                      >
-                        {/* Fila superior: nombre + pill */}
+                      <div className="flex-1 min-w-0">
+                        {/* Fila superior: nombre + pill + botón teléfono + countdown */}
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
-                            {otherUserName}
-                          </span>
+                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                              {otherUserName}
+                            </span>
+                            
+                            {alert && (
+                              <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
+                                <span className="text-purple-400 text-xs font-medium">
+                                  {alert.price}€ · {alert.available_in_minutes}min{distanceStr ? ` · ${distanceStr}` : ''}
+                                </span>
+                              </div>
+                            )}
+                          </Link>
                           
-                          {alert && (
-                            <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
-                              <span className="text-purple-400 text-xs font-medium">
-                                {alert.price}€ · {alert.available_in_minutes}min{distanceMeters ? ` · ${distanceMeters}m` : ''}
-                              </span>
-                            </div>
-                          )}
+                          {/* Botón teléfono + countdown a la derecha */}
+                          <div className="flex items-center gap-1.5 flex-shrink-0 pr-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`w-8 h-8 rounded-lg border-2 border-gray-700 ${
+                                otherUser.allowCalls && otherUser.phone 
+                                  ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
+                                  : 'bg-gray-800/50 text-gray-600 opacity-50'
+                              }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (otherUser.allowCalls && otherUser.phone) {
+                                  window.location.href = `tel:${otherUser.phone}`;
+                                }
+                              }}
+                              disabled={!otherUser.allowCalls || !otherUser.phone}
+                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
+                            >
+                              <Phone className="w-4 h-4" />
+                            </Button>
+                            
+                            {countdown && (
+                              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
+                                <span className="text-purple-400 text-xs font-medium whitespace-nowrap">
+                                  {waitingText} {countdown}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Fila inferior: último mensaje */}
-                        <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                          {conv.last_message_text || 'Sin mensajes'}
-                        </p>
-                      </Link>
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {conv.last_message_text || 'Sin mensajes'}
+                          </p>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
