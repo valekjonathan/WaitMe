@@ -238,19 +238,30 @@ export default function Chats() {
               };
               const distanceStr = calculateDistance();
               
-              // Calcular countdown si hay waiting_until
-              const getCountdown = () => {
-                if (!conv.waiting_until) return null;
-                const now = Date.now();
-                const until = new Date(conv.waiting_until).getTime();
-                const diff = until - now;
-                if (diff <= 0) return null;
-                const minutes = Math.floor(diff / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-              };
-              const countdown = getCountdown();
+              // Estado para countdown en tiempo real
+              const [countdown, setCountdown] = React.useState(null);
               const waitingText = conv.waiting_mode === 'me_espera' ? 'Te espera' : 'Le esperas';
+
+              React.useEffect(() => {
+                if (!conv.waiting_until) return;
+                
+                const updateCountdown = () => {
+                  const now = Date.now();
+                  const until = new Date(conv.waiting_until).getTime();
+                  const diff = until - now;
+                  if (diff <= 0) {
+                    setCountdown(null);
+                    return;
+                  }
+                  const minutes = Math.floor(diff / 60000);
+                  const seconds = Math.floor((diff % 60000) / 1000);
+                  setCountdown(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+                };
+                
+                updateCountdown();
+                const interval = setInterval(updateCountdown, 1000);
+                return () => clearInterval(interval);
+              }, [conv.waiting_until]);
 
               return (
                 <motion.div
@@ -269,22 +280,45 @@ export default function Chats() {
                     `}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Avatar solo */}
-                      <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                        <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center flex-shrink-0">
-                          {otherUser.photo ? (
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
-                          ) : (
-                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                          )}
-                        </div>
-                      </Link>
+                      {/* Columna izquierda: Avatar + botón teléfono */}
+                      <div className="flex flex-col gap-2 flex-shrink-0">
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                            {otherUser.photo ? (
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                            ) : (
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                            )}
+                          </div>
+                        </Link>
 
-                      {/* Info */}
+                        {/* Botón teléfono debajo del avatar */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`w-full h-7 rounded-lg border-2 border-gray-700 text-xs ${
+                            otherUser.allowCalls && otherUser.phone 
+                              ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
+                              : 'bg-gray-800/50 text-gray-600 opacity-50'
+                          }`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (otherUser.allowCalls && otherUser.phone) {
+                              window.location.href = `tel:${otherUser.phone}`;
+                            }
+                          }}
+                          disabled={!otherUser.allowCalls || !otherUser.phone}
+                        >
+                          <Phone className="w-3 h-3 mr-1" />
+                          {otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
+                        </Button>
+                      </div>
+
+                      {/* Columna derecha: Info */}
                       <div className="flex-1 min-w-0">
-                        {/* Fila superior: nombre + pill + botón teléfono + countdown */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex items-center gap-2 flex-1 min-w-0">
+                        {/* Header: nombre + pill */}
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <div className="flex items-center gap-2 mb-1">
                             <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                               {otherUserName}
                             </span>
@@ -296,46 +330,26 @@ export default function Chats() {
                                 </span>
                               </div>
                             )}
-                          </Link>
-                          
-                          {/* Botón teléfono + countdown a la derecha */}
-                          <div className="flex items-center gap-1.5 flex-shrink-0 pr-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className={`w-8 h-8 rounded-lg border-2 border-gray-700 ${
-                                otherUser.allowCalls && otherUser.phone 
-                                  ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' 
-                                  : 'bg-gray-800/50 text-gray-600 opacity-50'
-                              }`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (otherUser.allowCalls && otherUser.phone) {
-                                  window.location.href = `tel:${otherUser.phone}`;
-                                }
-                              }}
-                              disabled={!otherUser.allowCalls || !otherUser.phone}
-                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}
-                            >
-                              <Phone className="w-4 h-4" />
-                            </Button>
-                            
-                            {countdown && (
-                              <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
-                                <span className="text-purple-400 text-xs font-medium whitespace-nowrap">
-                                  {waitingText} {countdown}
-                                </span>
-                              </div>
-                            )}
                           </div>
-                        </div>
+                        </Link>
                         
-                        {/* Fila inferior: último mensaje */}
+                        {/* Último mensaje */}
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <p className={`text-sm truncate mb-1 ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
                             {conv.last_message_text || 'Sin mensajes'}
                           </p>
                         </Link>
+
+                        {/* Contador debajo del mensaje */}
+                        {countdown && (
+                          <div className="flex justify-end">
+                            <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
+                              <span className="text-purple-400 text-xs font-medium whitespace-nowrap">
+                                {waitingText} {countdown}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
