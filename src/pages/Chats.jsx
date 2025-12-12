@@ -29,7 +29,7 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
       }
 
       const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor(diff % 60000 / 1000);
+      const seconds = Math.floor((diff % 60000) / 1000);
       setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
     };
 
@@ -39,10 +39,10 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-20 mt-6">
+    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
+    </div>
+  );
 }
 
 export default function Chats() {
@@ -60,7 +60,7 @@ export default function Chats() {
       }
     };
     fetchUser();
-
+    
     // Obtener ubicación del usuario
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -77,9 +77,9 @@ export default function Chats() {
     queryFn: async () => {
       // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list();
-      return allConversations.sort((a, b) =>
-      new Date(b.last_message_at || b.updated_date || b.created_date) -
-      new Date(a.last_message_at || a.updated_date || a.created_date)
+      return allConversations.sort((a, b) => 
+        new Date(b.last_message_at || b.updated_date || b.created_date) - 
+        new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
     refetchInterval: 5000
@@ -94,7 +94,7 @@ export default function Chats() {
 
   const usersMap = React.useMemo(() => {
     const map = new Map();
-    users.forEach((u) => map.set(u.id, u));
+    users.forEach(u => map.set(u.id, u));
     return map;
   }, [users]);
 
@@ -107,7 +107,7 @@ export default function Chats() {
 
   const alertsMap = React.useMemo(() => {
     const map = new Map();
-    alerts.forEach((alert) => map.set(alert.id, alert));
+    alerts.forEach(alert => map.set(alert.id, alert));
     return map;
   }, [alerts]);
 
@@ -123,16 +123,16 @@ export default function Chats() {
   // Filtrar conversaciones por búsqueda
   const filteredConversations = React.useMemo(() => {
     if (!searchQuery) return conversations;
-
+    
     const query = searchQuery.toLowerCase();
-    return conversations.filter((conv) => {
-      const otherUserName = conv.participant1_id === user?.id ?
-      conv.participant2_name :
-      conv.participant1_name;
+    return conversations.filter(conv => {
+      const otherUserName = conv.participant1_id === user?.id 
+        ? conv.participant2_name 
+        : conv.participant1_name;
       const lastMessage = conv.last_message_text || '';
-
-      return otherUserName?.toLowerCase().includes(query) ||
-      lastMessage.toLowerCase().includes(query);
+      
+      return otherUserName?.toLowerCase().includes(query) || 
+             lastMessage.toLowerCase().includes(query);
     });
   }, [conversations, searchQuery, user?.id]);
 
@@ -175,11 +175,11 @@ export default function Chats() {
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <MessageCircle className="w-5 h-5" />
               </Button>
-              {totalUnread > 0 &&
-              <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+              {totalUnread > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
                   {totalUnread > 9 ? '9+' : totalUnread}
                 </span>
-              }
+              )}
             </Link>
           </div>
         </div>
@@ -196,27 +196,27 @@ export default function Chats() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar conversaciones..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white" />
-
-            {searchQuery &&
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7">
-
+              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+              >
                 <X className="w-4 h-4" />
               </Button>
-            }
+            )}
           </div>
         </div>
 
-        {isLoading ?
-        <div className="text-center py-12 text-gray-500">
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
-          </div> :
-        filteredConversations.length === 0 ?
-        <div className="text-center py-20 text-gray-500">
+          </div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-lg mb-2">
               {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
@@ -224,132 +224,128 @@ export default function Chats() {
             <p className="text-sm">
               {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
             </p>
-          </div> :
-
-        <div className="px-4 space-y-3">
+          </div>
+        ) : (
+          <div className="px-4 space-y-3">
             {filteredConversations.map((conv, index) => {
-            const isP1 = conv.participant1_id === user?.id;
-            const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const alert = alertsMap.get(conv.alert_id);
+              const isP1 = conv.participant1_id === user?.id;
+              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
+              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+              const alert = alertsMap.get(conv.alert_id);
+              
+              // Borde encendido SOLO si tiene mensajes no leídos
+              const hasUnread = unreadCount > 0;
+              
+              // Resolver datos del otro usuario desde usersMap
+              const otherUserData = usersMap.get(otherUserId);
+              const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+              const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+              const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
+              const allowCalls = otherUserData?.allow_phone_calls ?? false;
+              
+              // Construir objeto otherUser
+              const otherUser = {
+                name: otherUserName,
+                photo: otherUserPhoto,
+                phone: otherUserPhone,
+                allowCalls: allowCalls,
+                initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
+              };
+              
+              // Calcular distancia (metros o km)
+              const calculateDistance = () => {
+                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+                const R = 6371;
+                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceKm = R * c;
+                const meters = Math.round(distanceKm * 1000);
+                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              };
+              const distanceText = calculateDistance();
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
-
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
-
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
-
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-            };
-            const distanceText = calculateDistance();
-
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
+              return (
+                <motion.div
+                  key={conv.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
                   <div
-                  className={`
+                    className={`
                       bg-gray-900 rounded-2xl p-4 transition-all
-                      ${hasUnread ?
-                  'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
-                  'border-2 border-gray-800'}
-                    `
-                  }>
-
+                      ${hasUnread 
+                        ? 'border-2 border-purple-500 shadow-lg shadow-purple-500/20' 
+                        : 'border-2 border-gray-800'
+                      }
+                    `}
+                  >
                     <div className="flex items-start gap-3">
-                      {/* Avatar + botones (teléfono + chat) + contador */}
+                      {/* Avatar + botones copiados de JONATHAN */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
-                            {otherUser.photo ?
-                          <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
-
-                          <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                          }
+                            {otherUser.photo ? (
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                            ) : (
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                            )}
                           </div>
                         </Link>
 
-                        {/* Botones de teléfono + mensaje */}
+                        {/* BOTONES COPIADOS EXACTOS DE UserCard - línea 137-156 */}
                         <div className="flex gap-1">
                           <Button
-                          variant="ghost"
-                          size="icon"
-                          className={`h-8 w-8 rounded-full flex-shrink-0 ${
-                          otherUser.allowCalls && otherUser.phone ?
-                          'bg-green-500 hover:bg-green-600 text-white' :
-                          'bg-gray-700/50 text-gray-500 opacity-50'}`
-                          }
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (otherUser.allowCalls && otherUser.phone) {
-                              window.location.href = `tel:${otherUser.phone}`;
-                            }
-                          }}
-                          disabled={!otherUser.allowCalls || !otherUser.phone}
-                          title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-
-                            <Phone className="w-4 h-4" />
-                          </Button>
-
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 rounded-full flex-shrink-0 bg-gray-700 hover:bg-gray-600 text-white">
-
-                              <MessageCircle className="w-4 h-4" />
-                            </Button>
-                          </Link>
+                            className="flex-1 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${otherUser.allowCalls && otherUser.phone ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
+                            }}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                          >
+                            <Phone className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
 
                       {/* Info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2">
-                        <Link
-                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        className="flex-1 min-w-0">
-
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <Link 
+                          to={createPageUrl(`Chat?conversationId=${conv.id}`)}
+                          className="flex-1 min-w-0 mb-2"
+                        >
                           {/* Fila superior: nombre + pill */}
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                               {otherUserName}
                             </span>
                             
-                            {alert &&
-                          <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
+                            {alert && (
+                              <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
                                 <span className="text-purple-400 text-xs font-medium">
                                   {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
                                 </span>
                               </div>
-                          }
+                            )}
                           </div>
                           
                           {/* Fila inferior: último mensaje */}
@@ -358,24 +354,27 @@ export default function Chats() {
                           </p>
                         </Link>
 
-                        {/* Contador de cuenta atrás */}
-                        {alert &&
-                      <CountdownTimer
-                        availableInMinutes={alert.available_in_minutes}
-                        createdDate={alert.created_date} />
-
-                      }
+                        {/* Contador de cuenta atrás a la derecha de los botones */}
+                        {alert && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1"></div>
+                            <CountdownTimer 
+                              availableInMinutes={alert.available_in_minutes} 
+                              createdDate={alert.created_date}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                </motion.div>);
-
-          })}
+                </motion.div>
+              );
+            })}
           </div>
-        }
+        )}
       </main>
 
       <BottomNav />
-    </div>);
-
+    </div>
+  );
 }
