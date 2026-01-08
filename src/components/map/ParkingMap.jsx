@@ -158,7 +158,8 @@ export default function ParkingMap({
   selectedAlert,
   showRoute = false,
   className = '',
-  zoomControl = true
+  zoomControl = true,
+  buyerLocations = []
 }) {
   const defaultCenter = userLocation || [40.4168, -3.7038];
   const [route, setRoute] = useState(null);
@@ -257,6 +258,46 @@ export default function ParkingMap({
           draggable={isSelecting}>
           </Marker>
         }
+
+        {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
+        {buyerLocations.map((loc) => (
+          <Marker 
+            key={loc.id}
+            position={[loc.latitude, loc.longitude]} 
+            icon={L.divIcon({
+              className: 'custom-buyer-icon',
+              html: `
+                <style>
+                  @keyframes pulse-buyer {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.1); }
+                  }
+                </style>
+                <div style="
+                  width: 40px; 
+                  height: 40px; 
+                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                  border: 3px solid white;
+                  border-radius: 50%;
+                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  animation: pulse-buyer 2s infinite;
+                ">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2L2 19h20L12 2z"/>
+                  </svg>
+                </div>
+              `,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20]
+            })}
+            zIndexOffset={1500}
+          >
+            <Popup>Usuario en camino</Popup>
+          </Marker>
+        ))}
 
         {isSelecting && selectedPosition && selectedPosition.lat !== userLocation?.[0] &&
         <Marker

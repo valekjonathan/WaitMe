@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
+import SellerLocationTracker from '@/components/SellerLocationTracker';
 
 const CarIconTiny = ({ color }) => (
   <svg viewBox="0 0 48 24" className="w-5 h-3 inline-block" fill="none">
@@ -32,6 +33,7 @@ const carColorMap = {
 
 export default function History() {
   const [user, setUser] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -44,6 +46,16 @@ export default function History() {
       }
     };
     fetchUser();
+
+    // Obtener ubicación del usuario
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => console.log('Error obteniendo ubicación:', error)
+      );
+    }
   }, []);
 
   // Obtener todas las alertas y transacciones
@@ -521,6 +533,18 @@ export default function History() {
       </main>
       
       <BottomNav />
+
+      {/* Mostrar tracker de comprador para alertas reservadas */}
+      {myActiveAlerts
+        .filter(a => a.status === 'reserved')
+        .map(alert => (
+          <SellerLocationTracker 
+            key={alert.id}
+            alertId={alert.id}
+            userLocation={userLocation}
+          />
+        ))
+      }
     </div>
   );
 }
