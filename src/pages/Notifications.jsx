@@ -322,9 +322,7 @@ export default function Notifications() {
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (notif.alert.latitude && notif.alert.longitude) {
-                                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${notif.alert.latitude},${notif.alert.longitude}`, '_blank');
-                                  }
+                                  window.location.href = createPageUrl(`Navigate?alertId=${notif.alert_id}`);
                                 }}
                               >
                                 IR <Navigation className="w-3 h-3" />
