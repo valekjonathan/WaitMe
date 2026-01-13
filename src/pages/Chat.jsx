@@ -530,11 +530,23 @@ export default function Chat() {
                         }`}
                       >
                         <p className="text-sm break-words">{msg.message}</p>
+                        {msg.attachments && JSON.parse(msg.attachments).map((att, idx) => (
+                          <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs underline hover:opacity-80">
+                            {att.type.includes('image') ? (
+                              <img src={att.url} alt={att.name} className="max-w-[150px] rounded" />
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <FileText className="w-3 h-3" />
+                                {att.name}
+                              </div>
+                            )}
+                          </a>
+                        ))}
                       </div>
-                      <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex items-center gap-1 mt-1 text-xs ${isMine ? 'justify-end text-purple-400' : 'text-gray-500 justify-start'}`}>
                         <span>{format(new Date(msg.created_date), 'HH:mm')}</span>
                         {isMine && (
-                          <span>{msg.read ? '✓✓' : '✓'}</span>
+                          <span className="font-bold">{msg.read ? '✓✓' : '✓'}</span>
                         )}
                       </div>
                     </div>
