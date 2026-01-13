@@ -35,7 +35,7 @@ function CountdownTimer({ availableInMinutes }) {
   }, [availableInMinutes]);
 
   return (
-    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
     </div>);
 
@@ -467,7 +467,7 @@ export default function Chats() {
                             </div>
 
                             {/* Countdown Timer */}
-                            <div>
+                            <div className="flex-1">
                               <CountdownTimer availableInMinutes={alert.available_in_minutes} />
                             </div>
                           </div>
