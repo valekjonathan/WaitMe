@@ -44,7 +44,7 @@ export default function UserAlertCard({
         <div className="flex gap-2">
             <Button
             size="icon"
-            className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-8"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
             onClick={() => onChat(alert)}>
 
               <MessageCircle className="w-4 h-4" />
@@ -64,7 +64,7 @@ export default function UserAlertCard({
             }
             </Button>
 
-            <Button className="bg-purple-600 text-white ml-6 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow flex-1 hover:bg-purple-700 h-9"
+            <Button className="bg-purple-600 text-white ml-[34px] px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow flex-1 hover:bg-purple-700 h-9"
 
           onClick={() => onBuyAlert(alert)}
           disabled={isLoading}>
