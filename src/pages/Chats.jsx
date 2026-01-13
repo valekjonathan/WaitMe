@@ -343,34 +343,34 @@ export default function Chats() {
 
                           {/* Botones debajo */}
                           <div className="flex gap-1 w-full">
-                            <div className="flex gap-1 w-[92px]">
-                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </Link>
-
+                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
                               <Button
                               variant="ghost"
                               size="icon"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (otherUser.allowCalls && otherUser.phone) {
-                                  window.location.href = `tel:${otherUser.phone}`;
-                                }
-                              }}
-                              disabled={!otherUser.allowCalls || !otherUser.phone}
-                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-                                <Phone className="w-4 h-4" />
+                              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
+                                <MessageCircle className="w-4 h-4" />
                               </Button>
-                            </div>
+                            </Link>
+
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
+                            }}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
+                              <Phone className="w-4 h-4" />
+                            </Button>
 
                             {alert?.available_in_minutes !== undefined && (
-                              <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
+                              <div className="flex-1">
+                                <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
+                              </div>
                             )}
                           </div>
                         </div>
