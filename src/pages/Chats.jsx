@@ -344,6 +344,15 @@ export default function Chats() {
                           {/* Botones debajo */}
                           <div className="flex gap-1 w-full">
                             <div className="flex gap-1 w-[92px]">
+                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                                <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </Link>
+
                               <Button
                               variant="ghost"
                               size="icon"
@@ -358,15 +367,6 @@ export default function Chats() {
                               title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
                                 <Phone className="w-4 h-4" />
                               </Button>
-
-                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </Link>
                             </div>
 
                             {alert?.available_in_minutes !== undefined && (
