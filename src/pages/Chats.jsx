@@ -373,7 +373,7 @@ export default function Chats() {
                               <Button
                               variant="ghost"
                               size="icon"
-                              className="flex-1 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8"
+                              className="flex-7 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8"
                               title="Tiempo restante">
                                 <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
                               </Button>
