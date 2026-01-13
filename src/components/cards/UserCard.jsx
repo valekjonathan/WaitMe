@@ -101,10 +101,10 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'}`}>
+    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'} flex flex-col h-full`}>
       {/* Header con precio y distancia */}
       {showLocationInfo && price && (
-        <div className="flex justify-between items-center mb-1.5">
+        <div className="flex justify-between items-center mb-2">
           <p className="text-[10px] text-purple-400">Información del usuario:</p>
           <div className="flex items-center gap-1.5">
             {distance && (
@@ -121,36 +121,36 @@ export default function UserCard({
       )}
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-2.5 mb-1.5">
-        <div className="flex flex-col gap-1.5">
-          <div className={`w-[85px] h-[72px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
+      <div className="flex gap-3 mb-2 flex-1">
+        <div className="flex flex-col gap-2">
+          <div className={`w-[100px] h-[88px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ? (
               <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
+              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
                 👤
               </div>
             )}
           </div>
 
           {showContactButtons && (
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-1 h-7 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+                className="flex-1 h-9 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
                 onClick={onChat}
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className={`flex-1 h-7 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                className={`flex-1 h-9 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                 onClick={onCall}
                 disabled={!allowPhoneCalls}
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-5 h-5" />
               </Button>
             </div>
           )}
@@ -158,39 +158,39 @@ export default function UserCard({
             <Button
               variant="ghost"
               size="icon"
-              className="w-full h-7 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
+              className="w-full h-9 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
               onClick={() => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
               }}
             >
-              <Navigation className="w-4 h-4" />
+              <Navigation className="w-5 h-5" />
             </Button>
           )}
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-          <p className={`font-bold text-lg ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
+          <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-2`}>{userName?.split(' ')[0]}</p>
 
-          <div className="flex items-center justify-between">
-            <p className={`text-xs font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
           {isReserved ? (
-            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
-                <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 {formatPlate(carPlate)}
               </span>
             </div>
           ) : (
-            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
-                <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 XXXX XXX
               </span>
             </div>
@@ -200,17 +200,17 @@ export default function UserCard({
 
       {/* Información de ubicación */}
       {showLocationInfo && (
-        <div className="space-y-1 pt-1 border-t border-gray-700">
+        <div className="space-y-2 pt-2 border-t border-gray-700">
           {address && (
-            <div className="flex items-start gap-1 text-gray-400 text-[11px]">
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span className="line-clamp-1">{address}</span>
+            <div className="flex items-start gap-2 text-gray-400 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span className="line-clamp-2">{address}</span>
             </div>
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-1 text-gray-500 text-[10px]">
-              <Clock className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
+              <Clock className="w-4 h-4" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
@@ -220,7 +220,7 @@ export default function UserCard({
           
           {/* Botones de acción dentro de la tarjeta */}
           {actionButtons && (
-            <div className="mt-3">
+            <div className="mt-4">
               {actionButtons}
             </div>
           )}
