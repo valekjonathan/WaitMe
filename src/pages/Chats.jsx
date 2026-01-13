@@ -334,9 +334,9 @@ export default function Chats() {
                           {alert?.available_in_minutes !== undefined && (
             <div className="flex items-center gap-1 text-gray-500 text-[10px]">
               <Clock className="w-3.5 h-3.5" />
-              <span>Se va en {availableInMinutes} min</span>
+              <span>Se va en {alert.available_in_minutes} min</span>
               <span className="text-purple-400">
-                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
               </span>
             </div>
                           )}
