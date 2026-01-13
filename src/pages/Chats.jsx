@@ -378,28 +378,26 @@ export default function Chats() {
                         </div>
 
                         {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0">
+                        <div className="flex-1 flex flex-col gap-1.5 min-w-0 justify-start">
                           {/* Nombre */}
-                          <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <p className={`font-bold text-base truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </p>
 
                           {/* Marca y modelo */}
                           {alert && (
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm text-gray-400">
-                                {alert.car_brand} {alert.car_model}
-                              </p>
-                            </div>
+                            <p className="text-xs text-gray-400">
+                              {alert.car_brand} {alert.car_model}
+                            </p>
                           )}
 
                           {/* Matrícula */}
                           {alert && (
-                            <div className="bg-white rounded-md flex items-center overflow-hidden border border-gray-300 h-6">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[8px] font-bold text-white">E</span>
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border border-gray-300 h-5 w-full">
+                              <div className="bg-blue-600 h-full w-4 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[7px] font-bold text-white">E</span>
                               </div>
-                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
+                              <span className="flex-1 text-center font-mono font-bold text-[10px] tracking-wider text-black">
                                 {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
                               </span>
                             </div>
