@@ -324,19 +324,25 @@ export default function Chats() {
                             </div>
                           </Link>
 
-                          {/* Dirección debajo de foto */}
+                          {/* Dirección debajo de foto - ocupa toda la línea */}
                           {alert?.address && (
-                            <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                            <div className="flex items-center gap-1.5 text-gray-500 text-xs -mx-2 px-2 w-[calc(100%+16px)]">
                               <MapPin className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate w-[72px]">{alert.address}</span>
+                              <span className="truncate flex-1">{alert.address}</span>
                             </div>
                           )}
 
-                          {/* Tiempo restante */}
+                          {/* Tiempo restante - ocupa toda la línea */}
                           {alert?.available_in_minutes !== undefined && (
-                            <p className="text-xs text-gray-400">
-                              Se va en {alert.available_in_minutes} min
-                            </p>
+                            <div className="flex items-center gap-1.5 text-xs -mx-2 px-2 w-[calc(100%+16px)] justify-between">
+                              <div className="flex items-center gap-1.5 text-gray-400">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                <span>Se va en {alert.available_in_minutes} min</span>
+                              </div>
+                              <span className="text-purple-400 font-medium">
+                                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                              </span>
+                            </div>
                           )}
 
                           {/* Botones debajo */}
