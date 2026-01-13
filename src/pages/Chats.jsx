@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -39,8 +39,8 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3 mt-5">
-      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
+    <div className="h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-2">
+      <span className="text-purple-400 text-xs font-mono font-bold">{timeLeft}</span>
     </div>);
 
 }
@@ -277,96 +277,148 @@ export default function Chats() {
 
                   <div
                   className={`
-                      bg-gray-900 rounded-2xl p-4 transition-all
+                      bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 transition-all
                       ${hasUnread ?
                   'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
                   'border-2 border-gray-800'}
                     `
                   }>
 
-                    <div className="flex items-start gap-3">
-                      {/* Avatar + botones (teléfono + chat) + contador */}
-                      <div className="flex flex-col gap-2 flex-shrink-0">
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
-                            {otherUser.photo ?
-                          <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                    <div className="flex gap-3 px-2">
+                      {/* Foto a la izquierda */}
+                      <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                        <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500">
+                          {otherUser.photo ? (
+                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
 
-                          <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                          }
+                      {/* Info a la derecha */}
+                      <div className="flex-1 flex flex-col justify-between pr-2">
+                        {/* Nombre */}
+                        <p className={`font-bold text-lg ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{otherUserName}</p>
+                        
+                        {/* Marca y Modelo con icono */}
+                        {alert && (
+                          <div className="flex items-center justify-between">
+                            <p className={`text-xs font-medium ${hasUnread ? 'text-white' : 'text-gray-400'}`}>
+                              {alert.car_brand} {alert.car_model}
+                            </p>
+                            {(() => {
+                              const carColors = {
+                                'blanco': '#FFFFFF',
+                                'negro': '#1a1a1a',
+                                'rojo': '#ef4444',
+                                'azul': '#3b82f6',
+                                'amarillo': '#facc15',
+                                'gris': '#6b7280'
+                              };
+                              const color = carColors[alert.car_color] || '#6b7280';
+                              
+                              if (alert.vehicle_type === 'van') {
+                                return (
+                                  <svg viewBox="0 0 48 30" className="w-8 h-5" fill="none">
+                                    <path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="24" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="34" cy="24" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              } else if (alert.vehicle_type === 'suv') {
+                                return (
+                                  <svg viewBox="0 0 48 30" className="w-8 h-5" fill="none">
+                                    <path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="24" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="36" cy="24" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              } else {
+                                return (
+                                  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+                                    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              }
+                            })()}
                           </div>
-                        </Link>
+                        )}
+                        
+                        {/* Matrícula */}
+                        {alert && (
+                          <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                            <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                              <span className="text-[8px] font-bold text-white">E</span>
+                            </div>
+                            <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
+                              {(() => {
+                                const plate = alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
+                                return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
+                              })()}
+                            </span>
+                          </div>
+                        )}
 
-                        {/* Botones de teléfono + mensaje */}
-                        <div className="flex gap-1">
+                        {/* Último mensaje */}
+                        <p className={`text-xs truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          {conv.last_message_text || 'Sin mensajes'}
+                        </p>
+
+                        {/* Botones de acción */}
+                        <div className="flex items-center gap-1.5 mt-1">
                           <Button
-                          variant="ghost"
-                          size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
-
-
-
-
-
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (otherUser.allowCalls && otherUser.phone) {
-                              window.location.href = `tel:${otherUser.phone}`;
-                            }
-                          }}
-                          disabled={!otherUser.allowCalls || !otherUser.phone}
-                          title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-
+                            className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
+                            }}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                          >
                             <Phone className="w-4 h-4" />
                           </Button>
-
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <Button
-                            variant="ghost"
-                            size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9">
-
-
-                              <MessageCircle className="w-4 h-4" />
-                            </Button>
-                          </Link>
+                          <Button
+                            className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          
+                          {/* Contador de cuenta atrás */}
+                          {alert && (
+                            <div className="flex-1">
+                              <CountdownTimer
+                                availableInMinutes={alert.available_in_minutes}
+                                createdDate={alert.created_date}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2">
-                        <Link
-                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        className="flex-1 min-w-0">
-
-                          {/* Fila superior: nombre + pill */}
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
-                              {otherUserName}
-                            </span>
-                            
-                            {alert &&
-                          <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
-                                <span className="text-purple-400 text-xs font-medium">
-                                  {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
-                                </span>
-                              </div>
-                          }
-                          </div>
-                          
-                          {/* Fila inferior: último mensaje */}
-                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {conv.last_message_text || 'Sin mensajes'}
-                          </p>
-                        </Link>
-
-                        {/* Contador de cuenta atrás */}
-                        {alert &&
-                      <CountdownTimer
-                        availableInMinutes={alert.available_in_minutes}
-                        createdDate={alert.created_date} />
-
-                      }
-                      </div>
                     </div>
+
+                    {/* Dirección y tiempo debajo */}
+                    {alert && (
+                      <div className="mt-3 px-2 space-y-1">
+                        <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{alert.address || 'Ubicación marcada'}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <Clock className="w-3 h-3 flex-shrink-0" />
+                          <span>Se va en {alert.available_in_minutes} min • Te espera hasta las {format(new Date(new Date(alert.created_date).getTime() + alert.available_in_minutes * 60000), 'HH:mm')}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>);
 
