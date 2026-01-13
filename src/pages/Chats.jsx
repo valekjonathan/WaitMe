@@ -342,8 +342,8 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-                          <div className="flex gap-1 w-full">
-                            <div className="flex gap-1 w-[92px]">
+                          <div className="flex w-full items-center gap-1">
+                            <div className="flex gap-1 w-[92px] shrink-0">
                               <Button
                               variant="ghost"
                               size="icon"
@@ -369,15 +369,15 @@ export default function Chats() {
                               </Link>
                             </div>
 
-                            {alert?.available_in_minutes !== undefined && (
-                              <Button
-                              variant="ghost"
-                              size="icon"
-                              className="flex-7 bg-gray-500 hover:bg-gray-500 text-purple-400 rounded-lg h-8"
-                              title="Tiempo restante">
+                            {alert?.available_in_minutes !== undefined &&
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="flex-7 bg-gray-500 hover:bg-gray-500 text-purple-400 rounded-lg h-8"
+                            title="Tiempo restante">
                                 <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
                               </Button>
-                            )}
+                          }
                           </div>
                         </div>
 
@@ -390,17 +390,17 @@ export default function Chats() {
 
                           {/* Marca y modelo */}
                           {alert &&
-                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                        <div className="flex items-center justify-between -mt-2.5 mb-1.5">
                              <p className="text-sm text-gray-400">
                                {alert.car_brand} {alert.car_model}
                              </p>
                              <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
                            </div>
-                          }
+                        }
 
                           {/* Matrícula */}
                           {alert &&
-                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                        <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
                               <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[8px] font-bold text-white">E</span>
                               </div>
@@ -408,7 +408,7 @@ export default function Chats() {
                                 {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
                               </span>
                             </div>
-                          }
+                        }
                           </div>
                           </div>
 
