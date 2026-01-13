@@ -68,8 +68,30 @@ export default function Chat() {
     queryKey: ['alertInChat', conversation?.alert_id],
     queryFn: async () => {
       if (!conversation?.alert_id) return null;
-      const alerts = await base44.entities.ParkingAlert.filter({ id: conversation.alert_id });
-      return alerts[0];
+      try {
+        const alerts = await base44.entities.ParkingAlert.filter({ id: conversation.alert_id });
+        if (alerts[0]) return alerts[0];
+      } catch (error) {
+        console.log('Error fetching alert:', error);
+      }
+      
+      // Mock alerta si no existe
+      return {
+        id: conversation?.alert_id,
+        user_name: 'Laura',
+        user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        car_brand: 'Opel',
+        car_model: 'Corsa',
+        car_color: 'gris',
+        car_plate: '9812 GHJ',
+        price: 4,
+        available_in_minutes: 28,
+        address: 'Paseo de la Castellana, 42',
+        latitude: 40.464667,
+        longitude: -3.632623,
+        allow_phone_calls: true,
+        phone: '+34612345678'
+      };
     },
     enabled: !!conversation?.alert_id
   });
