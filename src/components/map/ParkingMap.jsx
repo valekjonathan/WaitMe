@@ -82,86 +82,36 @@ function createUserLocationIcon() {
     html: `
       <style>
         @keyframes pulse-purple {
-          0%, 100% { 
-            opacity: 1; 
-            transform: translateX(-50%) scale(1); 
-            box-shadow: 0 0 20px rgba(168, 85, 247, 1), 0 0 40px rgba(168, 85, 247, 0.6);
-          }
-          50% { 
-            opacity: 0.8; 
-            transform: translateX(-50%) scale(1.15); 
-            box-shadow: 0 0 30px rgba(168, 85, 247, 1), 0 0 60px rgba(168, 85, 247, 0.8);
-          }
-        }
-        @keyframes wave-purple {
-          0% {
-            transform: translateX(-50%) scale(1);
-            opacity: 0.8;
-          }
-          50% {
-            transform: translateX(-50%) scale(1.8);
-            opacity: 0.3;
-          }
-          100% {
-            transform: translateX(-50%) scale(2.5);
-            opacity: 0;
-          }
+          0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
       </style>
-      <div style="position: relative; width: 60px; height: 60px;">
-        <!-- Ondas expansivas -->
-        <div style="
-          position: absolute;
-          bottom: 30px;
-          left: 50%;
-          width: 18px;
-          height: 18px;
-          background: rgba(168, 85, 247, 0.3);
-          border: 2px solid rgba(168, 85, 247, 0.5);
-          border-radius: 50%;
-          animation: wave-purple 2s ease-out infinite;
-        "></div>
-        <div style="
-          position: absolute;
-          bottom: 30px;
-          left: 50%;
-          width: 18px;
-          height: 18px;
-          background: rgba(168, 85, 247, 0.3);
-          border: 2px solid rgba(168, 85, 247, 0.5);
-          border-radius: 50%;
-          animation: wave-purple 2s ease-out infinite 0.6s;
-        "></div>
-        
-        <!-- Palito -->
+      <div style="position: relative; width: 40px; height: 60px;">
         <div style="
           position: absolute;
           bottom: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 3px;
+          width: 2px;
           height: 35px;
-          background: linear-gradient(to top, #a855f7, #c084fc);
-          box-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
+          background: #a855f7;
         "></div>
-        
-        <!-- Bolita brillante -->
         <div style="
           position: absolute;
           bottom: 30px;
           left: 50%;
           transform: translateX(-50%);
-          width: 20px;
-          height: 20px;
-          background: radial-gradient(circle, #ffffff 0%, #e9d5ff 30%, #a855f7 70%);
-          border: 3px solid rgba(255, 255, 255, 0.9);
+          width: 18px;
+          height: 18px;
+          background: #a855f7;
           border-radius: 50%;
-          animation: pulse-purple 1.2s ease-in-out infinite;
+          box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+          animation: pulse-purple 1.5s ease-in-out infinite;
         "></div>
       </div>
     `,
-    iconSize: [60, 60],
-    iconAnchor: [30, 60]
+    iconSize: [40, 60],
+    iconAnchor: [20, 60]
   });
 }
 
