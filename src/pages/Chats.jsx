@@ -284,9 +284,8 @@ export default function Chats() {
                 }>
 
                     <div className="flex items-start gap-3 flex-col w-full">
-                      {/* Header: Info del usuario + distancia + precio */}
+                      {/* Header: distancia + precio */}
                       <div className="flex items-center justify-between gap-2 w-full">
-                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {distanceText && (
                             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
@@ -301,76 +300,98 @@ export default function Chats() {
                         </div>
                       </div>
 
-                      {/* Avatar + botones (teléfono + chat) + contador */}
-                      <div className="flex gap-2 w-full">
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center flex-shrink-0">
-                            {otherUser.photo ?
-                          <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                      {/* Foto + Info derecha */}
+                      <div className="flex gap-3 w-full">
+                        {/* Foto + botones debajo */}
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                            <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                              {otherUser.photo ?
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                              }
+                            </div>
+                          </Link>
 
-                          <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                          }
-                          </div>
-                        </Link>
-
-                        {/* Botones de teléfono + mensaje + mapas */}
-                        <div className="flex flex-col gap-1 flex-1">
+                          {/* Botones debajo de foto */}
                           <div className="flex gap-1">
                             <Button
-                            variant="ghost"
-                            size="icon" className="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9"
-
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (otherUser.allowCalls && otherUser.phone) {
-                                window.location.href = `tel:${otherUser.phone}`;
-                              }
-                            }}
-                            disabled={!otherUser.allowCalls || !otherUser.phone}
-                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-
+                              variant="ghost"
+                              size="icon"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (otherUser.allowCalls && otherUser.phone) {
+                                  window.location.href = `tel:${otherUser.phone}`;
+                                }
+                              }}
+                              disabled={!otherUser.allowCalls || !otherUser.phone}
+                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
                               <Phone className="w-4 h-4" />
                             </Button>
 
                             <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
                               <Button
-                              variant="ghost"
-                              size="icon" className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9">
+                                variant="ghost"
+                                size="icon"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
                           </div>
-                          <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-9 text-xs font-semibold" onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert?.latitude},${alert?.longitude}`, '_blank')}>
-                            Ver ruta
-                          </Button>
+                        </div>
+
+                        {/* Info derecha */}
+                        <div className="flex-1 flex flex-col gap-1 min-w-0">
+                          {/* Nombre */}
+                          <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                            {otherUserName}
+                          </p>
+
+                          {/* Marca y modelo + icono */}
+                          {alert && (
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-gray-400">
+                                {alert.car_brand} {alert.car_model}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Matrícula */}
+                          {alert && (
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border border-gray-300 h-6">
+                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[8px] font-bold text-white">E</span>
+                              </div>
+                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
+                                {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Dirección */}
+                          {alert?.address && (
+                            <p className="text-xs text-gray-500 truncate mt-1">
+                              {alert.address}
+                            </p>
+                          )}
+
+                          {/* Tiempo restante */}
+                          {alert?.available_in_minutes !== undefined && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Se va en {alert.available_in_minutes} min
+                            </p>
+                          )}
                         </div>
                       </div>
 
-                      {/* Info */}
-                      <div className="flex-1 min-w-0 flex flex-col gap-2">
-                        <Link
-                        to={createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        className="flex-1 min-w-0">
-
-                          {/* Fila superior: nombre */}
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
-                              {otherUserName}
-                            </span>
-                          </div>
-                          
-                          {/* Fila inferior: último mensaje */}
+                      {/* Último mensaje */}
+                      <div className="flex-1 min-w-0 w-full">
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
                             {conv.last_message_text || 'Sin mensajes'}
                           </p>
                         </Link>
-
-                        {/* Contador de cuenta atrás */}
-                        {alert &&
-                        <CountdownTimer
-                          availableInMinutes={alert.available_in_minutes}
-                          createdDate={alert.created_date} />
-                        }
                       </div>
                     </div>
                 </div>
