@@ -308,37 +308,34 @@ export default function Chats() {
 
                     {/* Contenido principal */}
                     <div className="p-4">
-                      <div className="flex gap-4">
-                        {/* Columna izquierda: Foto con botones debajo */}
+                      <div className="flex gap-3">
+                        {/* Columna izquierda: Foto con botones */}
                         <div className="flex-shrink-0">
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden bg-gray-800 border-4 border-purple-500">
+                            <div className="w-[110px] h-[110px] rounded-2xl overflow-hidden bg-gray-800 border-4 border-purple-500">
                               {otherUser.photo ? (
                                 <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-5xl font-bold text-purple-400">{otherUser.initial}</span>
+                                  <span className="text-4xl font-bold text-purple-400">{otherUser.initial}</span>
                                 </div>
                               )}
                             </div>
                           </Link>
 
                           {/* Botones debajo de la foto */}
-                          <div className="flex gap-2 mt-3">
+                          <div className="flex gap-2 mt-2">
                             <Button
-                              className="bg-green-600 hover:bg-green-700 text-white h-12 w-12 rounded-xl flex items-center justify-center p-0 shadow-lg"
+                              className="bg-green-600 hover:bg-green-700 text-white h-10 w-10 rounded-lg flex items-center justify-center p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (otherUser.allowCalls && otherUser.phone) {
-                                  window.location.href = `tel:${otherUser.phone}`;
-                                }
+                                window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
                               }}
-                              disabled={!otherUser.allowCalls || !otherUser.phone}
                             >
-                              <MessageCircle className="w-6 h-6" />
+                              <MessageCircle className="w-5 h-5" />
                             </Button>
                             <Button
-                              className="bg-white hover:bg-gray-100 text-green-600 h-12 w-12 rounded-xl flex items-center justify-center p-0 shadow-lg"
+                              className="bg-white hover:bg-gray-100 text-green-600 h-10 w-10 rounded-lg flex items-center justify-center p-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (otherUser.allowCalls && otherUser.phone) {
@@ -347,25 +344,25 @@ export default function Chats() {
                               }}
                               disabled={!otherUser.allowCalls || !otherUser.phone}
                             >
-                              <Phone className="w-6 h-6" />
+                              <Phone className="w-5 h-5" />
                             </Button>
                           </div>
                         </div>
 
                         {/* Columna derecha: Info */}
-                        <div className="flex-1 flex flex-col gap-3">
+                        <div className="flex-1 flex flex-col gap-2">
                           {/* Nombre */}
-                          <h3 className={`font-bold text-2xl ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <h3 className={`font-bold text-xl ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </h3>
                           
                           {/* Marca y Modelo con icono de coche */}
                           {alert && (
                             <div className="flex items-center justify-between">
-                              <p className={`text-base ${hasUnread ? 'text-white' : 'text-gray-400'}`}>
+                              <p className={`text-sm ${hasUnread ? 'text-white' : 'text-gray-400'}`}>
                                 {alert.car_brand} {alert.car_model}
                               </p>
-                              <svg viewBox="0 0 48 24" className="w-10 h-6" fill="none">
+                              <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
                                 <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="#3b82f6" stroke="white" strokeWidth="1.5" />
                                 <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
                                 <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
@@ -375,11 +372,11 @@ export default function Chats() {
                           
                           {/* Matrícula */}
                           {alert && (
-                            <div className="bg-white rounded-lg flex items-center overflow-hidden border-2 border-gray-400 h-10">
-                              <div className="bg-blue-600 h-full w-8 flex items-center justify-center">
-                                <span className="text-xs font-bold text-white">E</span>
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-9">
+                              <div className="bg-blue-600 h-full w-7 flex items-center justify-center">
+                                <span className="text-[10px] font-bold text-white">E</span>
                               </div>
-                              <span className="flex-1 text-center font-mono font-bold text-lg tracking-wider text-black">
+                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
                                 {(() => {
                                   const plate = alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
                                   return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
@@ -391,35 +388,35 @@ export default function Chats() {
                       </div>
 
                       {/* Separador */}
-                      <div className="my-4 border-t-2 border-gray-700"></div>
+                      <div className="my-3 border-t border-gray-700"></div>
 
                       {/* Información de ubicación y tiempo */}
                       {alert && (
-                        <div className="space-y-3">
-                          <div className={`flex items-center gap-3 text-base ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <MapPin className="w-5 h-5 flex-shrink-0" />
+                        <div className="space-y-2">
+                          <div className={`flex items-center gap-2 text-sm ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            <MapPin className="w-4 h-4 flex-shrink-0" />
                             <span className="truncate">{alert.address || 'Ubicación marcada'}</span>
                           </div>
-                          <div className={`flex items-center gap-3 text-base ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <Clock className="w-5 h-5 flex-shrink-0" />
+                          <div className={`flex items-center gap-2 text-sm ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            <Clock className="w-4 h-4 flex-shrink-0" />
                             <span>Se va en {alert.available_in_minutes} min • Te espera hasta las {format(new Date(new Date(alert.created_date).getTime() + alert.available_in_minutes * 60000), 'HH:mm')}</span>
                           </div>
                         </div>
                       )}
 
-                      {/* Botón de cuenta atrás o WaitMe */}
-                      <div className="mt-4 flex gap-2">
+                      {/* Botones inferiores */}
+                      <div className="mt-3 flex gap-2">
                         <Button
-                          className="bg-green-600 hover:bg-green-700 text-white h-14 w-14 rounded-xl flex items-center justify-center p-0 shadow-lg flex-shrink-0"
+                          className="bg-green-600 hover:bg-green-700 text-white h-12 w-12 rounded-xl flex items-center justify-center p-0 flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
                           }}
                         >
-                          <MessageCircle className="w-7 h-7" />
+                          <MessageCircle className="w-6 h-6" />
                         </Button>
                         <Button
-                          className="bg-white hover:bg-gray-100 text-green-600 h-14 w-14 rounded-xl flex items-center justify-center p-0 shadow-lg flex-shrink-0"
+                          className="bg-white hover:bg-gray-100 text-green-600 h-12 w-12 rounded-xl flex items-center justify-center p-0 flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (otherUser.allowCalls && otherUser.phone) {
@@ -428,10 +425,10 @@ export default function Chats() {
                           }}
                           disabled={!otherUser.allowCalls || !otherUser.phone}
                         >
-                          <Phone className="w-7 h-7" />
+                          <Phone className="w-6 h-6" />
                         </Button>
                         
-                        {/* Contador de tiempo que ocupa el resto del espacio */}
+                        {/* Contador de tiempo */}
                         {alert && (
                           <div className="flex-1">
                             <CountdownTimer
@@ -444,7 +441,7 @@ export default function Chats() {
 
                       {/* Último mensaje */}
                       {conv.last_message_text && (
-                        <div className={`text-sm mt-3 p-3 rounded-lg ${hasUnread ? 'bg-purple-500/20 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                        <div className={`text-xs mt-3 p-2 rounded-lg ${hasUnread ? 'bg-purple-500/20 text-white' : 'bg-gray-800 text-gray-400'}`}>
                           <p className="truncate">{conv.last_message_text}</p>
                         </div>
                       )}
