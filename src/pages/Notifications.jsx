@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Bell, Check, X, Clock, MapPin, Settings, MessageCircle, Phone, Navigation } from 'lucide-react';
+import { ArrowLeft, Bell, Check, X, Clock, MapPin, Settings, MessageCircle, Phone, Navigation, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -278,35 +278,48 @@ export default function Notifications() {
                         address={notif.alert?.address}
                         availableInMinutes={notif.alert?.available_in_minutes}
                         price={notif.alert?.price}
-                        showLocationInfo={notif.type === 'reservation_request'}
-                        showContactButtons={notif.type === 'reservation_request' && notif.status === 'pending'}
-                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`)}
-                        onCall={() => notif.alert?.phone && (window.location.href = `tel:${notif.alert.phone}`)}
+                        showLocationInfo={notif.type === 'reservation_request' && notif.status === 'pending'}
+                        latitude={notif.alert?.latitude}
+                        longitude={notif.alert?.longitude}
+                        userLocation={null}
                         allowPhoneCalls={notif.alert?.allow_phone_calls}
                         muted={notif.type !== 'reservation_request' || notif.status !== 'pending'}
                         actionButtons={notif.type === 'reservation_request' && notif.status === 'pending' ? (
                           <div className="flex gap-2">
                             <Button
-                              size="sm"
-                              className="flex-1 bg-green-600 hover:bg-green-700 border-2 border-green-500 h-7 px-2 text-xs"
+                              size="icon"
+                              className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
+                              }}
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className={`border-gray-700 h-8 w-[42px] ${notif.alert?.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                notif.alert?.phone && notif.alert?.allow_phone_calls && (window.location.href = `tel:${notif.alert.phone}`);
+                              }}
+                              disabled={!notif.alert?.allow_phone_calls}
+                            >
+                              {notif.alert?.allow_phone_calls ? (
+                                <Phone className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <PhoneOff className="w-4 h-4 text-gray-600" />
+                              )}
+                            </Button>
+                            <Button
+                              className="bg-purple-600 hover:bg-purple-700 text-white rounded-lg h-8 px-4 flex items-center justify-center gap-2 text-xs font-semibold flex-1"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedNotification(notif);
                               }}
                             >
-                              <Check className="w-3 h-3 mr-1" />
-                              Aceptar
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1 bg-red-600 hover:bg-red-700 border-2 border-red-500 h-7 px-2 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                rejectMutation.mutate(notif);
-                              }}
-                            >
-                              <X className="w-3 h-3 mr-1" />
-                              Rechazar
+                              WaitMe!
                             </Button>
                           </div>
                         ) : null}
