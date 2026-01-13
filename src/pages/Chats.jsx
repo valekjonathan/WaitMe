@@ -77,7 +77,55 @@ export default function Chats() {
     queryFn: async () => {
       // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list();
-      return allConversations.sort((a, b) =>
+      
+      // Datos mock para demostración
+      const mockConversations = [
+        {
+          id: 'mock1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'user2',
+          participant2_name: 'Laura',
+          participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          alert_id: 'alert1',
+          last_message_text: 'Genial, aguanto.',
+          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0
+        },
+        {
+          id: 'mock2',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'user3',
+          participant2_name: 'Marta',
+          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          alert_id: 'alert2',
+          last_message_text: 'Vale, llego en 10 minutos',
+          last_message_at: new Date(Date.now() - 5 * 60000).toISOString(),
+          unread_count_p1: 1,
+          unread_count_p2: 0
+        },
+        {
+          id: 'mock3',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'user4',
+          participant2_name: 'Carlos',
+          participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          alert_id: 'alert3',
+          last_message_text: 'Perfecto, ya estoy ahí',
+          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0
+        }
+      ];
+
+      const combined = [...mockConversations, ...allConversations];
+      return combined.sort((a, b) =>
       new Date(b.last_message_at || b.updated_date || b.created_date) -
       new Date(a.last_message_at || a.updated_date || a.created_date)
       );
