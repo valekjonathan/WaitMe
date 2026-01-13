@@ -343,7 +343,7 @@ export default function Chats() {
 
                           {/* Botones debajo */}
                           <div className="flex gap-2 w-full">
-                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="w-[92px]">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -355,7 +355,7 @@ export default function Chats() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                              className="w-[92px] bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (otherUser.allowCalls && otherUser.phone) {
@@ -370,7 +370,7 @@ export default function Chats() {
                             {alert?.available_in_minutes !== undefined && (
                               <Button
                                 variant="ghost"
-                                className="flex-1.5 bg-gray-700 hover:bg-gray-600 text-purple-400 rounded-lg h-8 font-bold"
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-purple-400 rounded-lg h-8 font-bold"
                                 title="Tiempo restante">
                                 <Clock className="w-4 h-4 mr-1" />
                                 <span className="text-xs font-mono">{alert.available_in_minutes}min</span>
