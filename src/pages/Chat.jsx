@@ -503,7 +503,7 @@ export default function Chat() {
       </main>
 
       {/* Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
+      <div className="fixed bottom-24 left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             value={newMessage}
@@ -523,6 +523,8 @@ export default function Chat() {
           </Button>
         </form>
       </div>
+
+      <BottomNav />
     </div>
   );
 }
