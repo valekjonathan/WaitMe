@@ -15,7 +15,7 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
-import AddressSearchBox from '@/components/AddressSearchBox';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 export default function Home() {
