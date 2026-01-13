@@ -351,6 +351,7 @@ export default function Chats() {
               <MessageCircle className="w-4 h-4" />
             </Button>
             
+            {alert && (
             <Button
             variant="outline"
             size="icon"
@@ -361,9 +362,10 @@ export default function Chats() {
               {alert.allow_phone_calls ?
             <Phone className="w-4 h-4 text-green-400" /> :
 
-            <PhoneOff className="w-4 h-4 text-gray-600" />
+            <Phone className="w-4 h-4 text-gray-600" />
             }
             </Button>
+            )}
 
             <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 flex-1"
 
