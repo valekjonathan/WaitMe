@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BottomNav from '@/components/BottomNav';
 
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
