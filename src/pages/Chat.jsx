@@ -376,12 +376,8 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3 overflow-y-auto max-h-screen">
-        <Link to={createPageUrl('Chats')} className="mb-3">
-          <Button variant="ghost" size="icon" className="text-white">
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-        </Link>
+              <Header showBackButton={true} backTo="Chats" />
+              <div className="fixed top-16 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3 overflow-y-auto max-h-screen">{/* Alert Card */}
 
         {/* User Card */}
         {alert && (
