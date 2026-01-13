@@ -354,23 +354,11 @@ export default function Chats() {
                         to={createPageUrl(`Chat?conversationId=${conv.id}`)}
                         className="flex-1 min-w-0">
 
-                          {/* Fila superior: nombre + distancia + precio */}
-                          <div className="flex items-center justify-between gap-2 mb-1 w-full">
-                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'} truncate`}>
+                          {/* Fila superior: nombre */}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`font-medium ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                               {otherUserName}
                             </span>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {distanceText && (
-                                <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                                  <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
-                                </div>
-                              )}
-                              {alert && (
-                                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                                  <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
-                                </div>
-                              )}
-                            </div>
                             </div>
                           
                           {/* Fila inferior: último mensaje */}
