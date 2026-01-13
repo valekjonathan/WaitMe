@@ -16,7 +16,6 @@ import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import AddressAutocomplete from '@/components/AddressAutocomplete';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
