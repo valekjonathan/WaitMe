@@ -501,9 +501,7 @@ export default function Chat() {
             </Button>
           </form>
         </div>
-        {isTyping && (
-          <div className="text-xs text-purple-400 mt-2">escribiendo...</div>
-        )}
+
       </div>
 
       <BottomNav />
