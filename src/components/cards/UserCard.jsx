@@ -171,7 +171,7 @@ export default function UserCard({
         <div className="flex-1 flex flex-col justify-between">
           <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-1.5`}>{userName?.split(' ')[0]}</p>
 
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between -mb-2.5">
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
