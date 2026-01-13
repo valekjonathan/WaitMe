@@ -269,6 +269,10 @@ export default function Chat() {
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
+    if (!conversation || !user?.id) {
+      console.error('Conversation o user no disponibles');
+      return;
+    }
     sendMessageMutation.mutate(newMessage);
   };
 
