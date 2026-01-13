@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import ParkingMap from '@/components/map/ParkingMap';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import { motion } from 'framer-motion';
+import 'leaflet/dist/leaflet.css';
 
 export default function SellerLocationTracker({ alertId, userLocation }) {
   const [alert, setAlert] = useState(null);
@@ -60,6 +62,46 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
     return null;
   }
 
+  // Crear icono de ubicación del usuario estilo Uber
+  const createUserLocationIcon = () => {
+    return L.divIcon({
+      className: 'user-location-marker',
+      html: `
+        <style>
+          @keyframes pulse-purple {
+            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+          }
+        </style>
+        <div style="position: relative; width: 40px; height: 60px;">
+          <div style="
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 35px;
+            background: #a855f7;
+          "></div>
+          <div style="
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 18px;
+            height: 18px;
+            background: #a855f7;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+            animation: pulse-purple 1.5s ease-in-out infinite;
+          "></div>
+        </div>
+      `,
+      iconSize: [40, 60],
+      iconAnchor: [20, 60]
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -76,14 +118,60 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
       </div>
 
       <div className="h-48 rounded-xl overflow-hidden border-2 border-white/30">
-        <ParkingMap
-          alerts={[alert]}
-          userLocation={userLocation}
-          buyerLocations={buyerLocations}
-          showRoute={false}
+        <MapContainer
+          center={userLocation || [alert.latitude, alert.longitude]}
+          zoom={16}
+          style={{ height: '100%', width: '100%' }}
+          className="rounded-xl"
           zoomControl={false}
-          className="h-full"
-        />
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          />
+          
+          {/* Marcador de ubicación del usuario con palito y bolita brillante */}
+          {userLocation && (
+            <Marker 
+              position={userLocation}
+              icon={createUserLocationIcon()}
+            >
+              <Popup>Tu ubicación</Popup>
+            </Marker>
+          )}
+
+          {/* Marcadores de compradores en camino */}
+          {buyerLocations.map((loc) => (
+            <Marker 
+              key={loc.id}
+              position={[loc.latitude, loc.longitude]} 
+              icon={L.divIcon({
+                className: 'custom-buyer-icon',
+                html: `
+                  <div style="
+                    width: 40px; 
+                    height: 40px; 
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2L2 19h20L12 2z"/>
+                    </svg>
+                  </div>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+              })}
+            >
+              <Popup>Usuario en camino</Popup>
+            </Marker>
+          ))}
+        </MapContainer>
       </div>
     </motion.div>
   );
