@@ -235,34 +235,42 @@ export default function Chat() {
   // Enviar mensaje
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText) => {
+      if (!conversation || !user?.id) {
+        throw new Error('Conversation o user no disponibles');
+      }
+
       const otherUserId = conversation.participant1_id === user?.id 
         ? conversation.participant2_id 
         : conversation.participant1_id;
       
-      await base44.entities.ChatMessage.create({
+      const newMsg = {
         conversation_id: conversationId,
         alert_id: conversation.alert_id,
         sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
         sender_photo: user?.photo_url,
         receiver_id: otherUserId,
         message: messageText,
         message_type: 'user',
         read: false
-      });
+      };
 
-      // Actualizar última actividad de conversación
+      await base44.entities.ChatMessage.create(newMsg);
+
       const isP1 = conversation.participant1_id === user?.id;
-      await base44.entities.Conversation.update(conversationId, {
+      await base44.entities.Conversation.update(conversation.id, {
         last_message_text: messageText,
         last_message_at: new Date().toISOString(),
         [isP1 ? 'unread_count_p2' : 'unread_count_p1']: (isP1 ? conversation.unread_count_p2 : conversation.unread_count_p1) + 1
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatMessages'] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       setNewMessage('');
+      queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (error) => {
+      console.error('Error enviando mensaje:', error);
     }
   });
 
