@@ -342,7 +342,7 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-                          <div className="flex gap-1 w-[92px]">
+                          <div className="flex gap-1 w-full">
                             <Button
                             variant="ghost"
                             size="icon"
@@ -366,6 +366,16 @@ export default function Chats() {
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
+
+                            {alert?.available_in_minutes !== undefined && (
+                              <Button
+                              variant="ghost"
+                              size="icon"
+                              className="bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8 px-2"
+                              title="Tiempo restante">
+                                <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
+                              </Button>
+                            )}
                           </div>
                         </div>
 
