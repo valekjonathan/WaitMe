@@ -13,33 +13,29 @@ import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 
 // Componente contador de cuenta atrás
-function CountdownTimer({ availableInMinutes, createdDate }) {
+function CountdownTimer({ availableInMinutes }) {
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
     const updateTimer = () => {
-      const created = new Date(createdDate);
-      const targetTime = new Date(created.getTime() + availableInMinutes * 60000);
-      const now = new Date();
-      const diff = targetTime - now;
+      const totalSeconds = availableInMinutes * 60;
+      const now = Math.floor(Date.now() / 1000);
+      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
+      const elapsed = now - startTime;
+      const remaining = Math.max(0, totalSeconds - elapsed);
 
-      if (diff <= 0) {
-        setTimeLeft('0:00');
-        return;
-      }
-
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor(diff % 60000 / 1000);
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
       setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [availableInMinutes, createdDate]);
+  }, [availableInMinutes]);
 
   return (
-    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3 mt-5">
+    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
     </div>);
 
