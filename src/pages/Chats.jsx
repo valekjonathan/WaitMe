@@ -439,7 +439,7 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
             <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
               <Button
               size="icon"
@@ -460,7 +460,7 @@ export default function Chats() {
             }
             </Button>
 
-            <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
+            <CountdownTimer availableInMinutes={alert.available_in_minutes} />
           </div>
                         </div>
 
