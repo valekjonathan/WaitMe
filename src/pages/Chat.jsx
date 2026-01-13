@@ -36,8 +36,29 @@ export default function Chat() {
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: async () => {
-      const convs = await base44.entities.Conversation.filter({ id: conversationId });
-      return convs[0];
+      if (!conversationId) return null;
+      try {
+        const convs = await base44.entities.Conversation.filter({ id: conversationId });
+        if (convs[0]) return convs[0];
+      } catch (error) {
+        console.log('Error fetching conversation:', error);
+      }
+      
+      // Mock conversación si no existe
+      return {
+        id: conversationId,
+        participant1_id: user?.id || 'user1',
+        participant1_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+        participant1_photo: user?.photo_url,
+        participant2_id: 'user2',
+        participant2_name: 'Laura',
+        participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        alert_id: 'alert1',
+        last_message_text: 'Ya estoy aquí, veo tu coche. Voy a hacer la reserva 👍',
+        last_message_at: new Date().toISOString(),
+        unread_count_p1: 0,
+        unread_count_p2: 0
+      };
     },
     enabled: !!conversationId
   });
