@@ -372,13 +372,13 @@ export default function Chats() {
                         {/* Info derecha */}
                         <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px]">
                           {/* Nombre */}
-                          <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <p className="font-bold text-xl text-white mb-1.5">
                             {otherUserName}
                           </p>
 
                           {/* Marca y modelo */}
                           {alert &&
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between -mt-2.5 mb-1.5">
                               <p className="text-sm text-gray-400">
                                 {alert.car_brand} {alert.car_model}
                               </p>
