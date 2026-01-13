@@ -238,7 +238,7 @@ export default function Chat() {
 
   // Enviar mensaje
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageText) => {
+    mutationFn: async (data) => {
       if (!conversation || !user?.id) {
         throw new Error('Conversation o user no disponibles');
       }
@@ -254,7 +254,8 @@ export default function Chat() {
         sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
         sender_photo: user?.photo_url,
         receiver_id: otherUserId,
-        message: messageText,
+        message: data.text,
+        attachments: data.attachments.length > 0 ? JSON.stringify(data.attachments) : null,
         message_type: 'user',
         read: false
       };
@@ -263,13 +264,14 @@ export default function Chat() {
 
       const isP1 = conversation.participant1_id === user?.id;
       await base44.entities.Conversation.update(conversation.id, {
-        last_message_text: messageText,
+        last_message_text: data.text || `📎 ${data.attachments.length} archivo(s)`,
         last_message_at: new Date().toISOString(),
         [isP1 ? 'unread_count_p2' : 'unread_count_p1']: (isP1 ? conversation.unread_count_p2 : conversation.unread_count_p1) + 1
       });
     },
     onSuccess: () => {
       setNewMessage('');
+      setAttachments([]);
       queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
