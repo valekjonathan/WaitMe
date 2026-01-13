@@ -278,7 +278,7 @@ export default function Chat() {
     }
   };
 
-  if (!conversation || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-gray-500">Cargando...</div>
