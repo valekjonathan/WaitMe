@@ -39,9 +39,7 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3 mt-5">
-      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>
+    <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
   );
 }
 
