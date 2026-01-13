@@ -315,9 +315,10 @@ export default function Chats() {
 
                         {/* Botones de teléfono + mensaje + mapas */}
                         <div className="flex flex-col gap-1 flex-1">
-                          <Button
-                          variant="ghost"
-                          size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
+                          <div className="flex gap-1">
+                            <Button
+                            variant="ghost"
+                            size="icon" className="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9"
 
 
 
