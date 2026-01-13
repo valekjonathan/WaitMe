@@ -398,7 +398,7 @@ export default function Chats() {
                           )}
 
                           {/* Línea separadora */}
-                          <div className="border-t border-gray-700 w-screen -ml-4 -mr-4"></div>
+                          <div className="border-t border-gray-700 w-screen -ml-[66px] -mr-4"></div>
                           </div>
                           </div>
 
