@@ -342,18 +342,17 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-                          <div className="flex gap-1 w-full">
-                            <div className="flex gap-1 w-[92px]">
-                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
-                                <Button
+                          <div className="flex gap-2 w-full">
+                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                              <Button
                                 variant="ghost"
                                 size="icon"
                                 className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </Link>
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </Link>
 
-                              <Button
+                            <Button
                               variant="ghost"
                               size="icon"
                               className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
@@ -365,17 +364,16 @@ export default function Chats() {
                               }}
                               disabled={!otherUser.allowCalls || !otherUser.phone}
                               title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-                                <Phone className="w-4 h-4" />
-                              </Button>
-                            </div>
+                              <Phone className="w-4 h-4" />
+                            </Button>
 
                             {alert?.available_in_minutes !== undefined && (
                               <Button
-                              variant="ghost"
-                              size="icon"
-                              className="flex-7 bg-gray-500 hover:bg-gray-500 text-purple-400 rounded-lg h-8"
-                              title="Tiempo restante">
-                                <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
+                                variant="ghost"
+                                className="flex-1.5 bg-gray-700 hover:bg-gray-600 text-purple-400 rounded-lg h-8 font-bold"
+                                title="Tiempo restante">
+                                <Clock className="w-4 h-4 mr-1" />
+                                <span className="text-xs font-mono">{alert.available_in_minutes}min</span>
                               </Button>
                             )}
                           </div>
