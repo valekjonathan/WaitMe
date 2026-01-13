@@ -242,10 +242,7 @@ export default function Chat() {
     }
   }, [messages, user?.id, conversation, queryClient]);
 
-  // Scroll al último mensaje
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+
 
   // Enviar mensaje
   const sendMessageMutation = useMutation({
