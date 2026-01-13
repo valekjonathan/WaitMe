@@ -376,11 +376,10 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-              <Header showBackButton={true} backTo="Chats" />
+      <Header showBackButton={true} backTo="Chats" />
 
-
-        {/* Messages */}
-      <main className="flex-1 pt-20 pb-20 px-4 overflow-y-auto">
+      {/* Messages */}
+      <main className="flex-1 pb-20 px-4 overflow-y-auto">
         <AnimatePresence>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === user?.id;
