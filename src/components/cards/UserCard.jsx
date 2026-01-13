@@ -123,34 +123,34 @@ export default function UserCard({
       {/* Tarjeta de usuario */}
       <div className="flex gap-3 mb-2 flex-1">
         <div className="flex flex-col gap-2">
-          <div className={`w-[100px] h-[88px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
+          <div className={`w-[110px] h-[110px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ? (
               <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
+              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
                 👤
               </div>
             )}
           </div>
 
           {showContactButtons && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-1 h-9 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+                className="flex-1 h-11 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
                 onClick={onChat}
               >
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="w-6 h-6" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className={`flex-1 h-9 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+                className={`flex-1 h-11 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
                 onClick={onCall}
                 disabled={!allowPhoneCalls}
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-6 h-6" />
               </Button>
             </div>
           )}
@@ -158,39 +158,39 @@ export default function UserCard({
             <Button
               variant="ghost"
               size="icon"
-              className="w-full h-9 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
+              className="w-full h-11 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
               onClick={() => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
               }}
             >
-              <Navigation className="w-5 h-5" />
+              <Navigation className="w-6 h-6" />
             </Button>
           )}
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-          <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-2`}>{userName?.split(' ')[0]}</p>
+          <p className={`font-bold text-2xl ${muted ? 'text-gray-600' : 'text-white'} mb-3`}>{userName?.split(' ')[0]}</p>
 
-          <div className="flex items-center justify-between mb-2">
-            <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className={`text-base font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
           {isReserved ? (
-            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-10`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-7 flex items-center justify-center`}>
+                <span className={`text-[10px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-lg tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 {formatPlate(carPlate)}
               </span>
             </div>
           ) : (
-            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+            <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-10`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-7 flex items-center justify-center`}>
+                <span className={`text-[10px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-lg tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 XXXX XXX
               </span>
             </div>
@@ -200,16 +200,16 @@ export default function UserCard({
 
       {/* Información de ubicación */}
       {showLocationInfo && (
-        <div className="space-y-2 pt-2 border-t border-gray-700">
+        <div className="space-y-2.5 pt-3 border-t border-gray-700">
           {address && (
-            <div className="flex items-start gap-2 text-gray-400 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 text-gray-400 text-sm">
+              <MapPin className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <span className="line-clamp-2">{address}</span>
             </div>
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
+            <div className="flex items-center gap-2 text-gray-500 text-xs">
               <Clock className="w-4 h-4" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
