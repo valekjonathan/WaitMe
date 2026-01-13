@@ -334,9 +334,9 @@ export default function Chats() {
                           {alert?.available_in_minutes !== undefined && (
             <div className="flex items-center gap-1 text-gray-500 text-[10px]">
               <Clock className="w-3.5 h-3.5" />
-              <span>Se va en {alert.available_in_minutes} min</span>
+              <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
-                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
               </span>
             </div>
                           )}
@@ -387,14 +387,14 @@ export default function Chats() {
 
                           {/* Matrícula */}
                           {alert && (
-                            <div className="bg-white rounded-md flex items-center overflow-hidden border border-gray-300 h-6">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[8px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
-                                {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
-                              </span>
-                            </div>
+            <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+              </div>
+              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+                XXXX XXX
+              </span>
+            </div>
                           )}
                         </div>
                       </div>
