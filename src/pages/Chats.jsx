@@ -344,11 +344,7 @@ export default function Chats() {
                             </span>
                             
                             {alert &&
-                          <div className="flex-shrink-0 bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5">
-                                <span className="text-purple-400 text-xs font-medium">
-                                  {alert.price}€ · {alert.available_in_minutes}min{distanceText ? ` · ${distanceText}` : ''}
-                                </span>
-                              </div>
+
                           }
                           </div>
                           
