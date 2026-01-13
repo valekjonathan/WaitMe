@@ -280,12 +280,13 @@ export default function Chat() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && attachments.length === 0) return;
     if (!conversation || !user?.id) {
       console.error('Conversation o user no disponibles');
       return;
     }
-    sendMessageMutation.mutate(newMessage);
+    sendMessageMutation.mutate({ text: newMessage, attachments });
+    setAttachments([]);
   };
 
   const handleKeyPress = (e) => {
