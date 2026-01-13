@@ -58,9 +58,97 @@ export default function Chat() {
     queryKey: ['chatMessages', conversationId],
     queryFn: async () => {
       const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId });
+      
+      // Si no hay mensajes, crear conversación simulada
+      if (msgs.length === 0 && conversation) {
+        const mockMessages = [
+          {
+            id: 'mock1',
+            conversation_id: conversationId,
+            sender_id: conversation.participant2_id,
+            sender_name: conversation.participant2_name,
+            message: `¡Hola! Vi tu anuncio de búsqueda de parking`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 5 * 60000).toISOString()
+          },
+          {
+            id: 'mock2',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.full_name?.split(' ')[0],
+            message: `¡Hola! Sí, necesito un parking por aquí urgentemente`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 4 * 60000).toISOString()
+          },
+          {
+            id: 'mock3',
+            conversation_id: conversationId,
+            sender_id: conversation.participant2_id,
+            sender_name: conversation.participant2_name,
+            message: `Perfecto, tengo uno disponible en Paseo de la Castellana. Son 4€ y me voy en 28 minutos`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 3.5 * 60000).toISOString()
+          },
+          {
+            id: 'mock4',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.full_name?.split(' ')[0],
+            message: `Genial, ¿cuál es exactamente la dirección?`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 3 * 60000).toISOString()
+          },
+          {
+            id: 'mock5',
+            conversation_id: conversationId,
+            sender_id: conversation.participant2_id,
+            sender_name: conversation.participant2_name,
+            message: `Paseo de la Castellana, 42, zona azul. Mi coche es un Opel Corsa gris, matrícula 9812 GHJ`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 2.5 * 60000).toISOString()
+          },
+          {
+            id: 'mock6',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.full_name?.split(' ')[0],
+            message: `Perfecto, estoy a 250 metros. Llego en 3 minutos`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 2 * 60000).toISOString()
+          },
+          {
+            id: 'mock7',
+            conversation_id: conversationId,
+            sender_id: conversation.participant2_id,
+            sender_name: conversation.participant2_name,
+            message: `Vale, aguanto aquí. Avísame cuando llegues`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 1.5 * 60000).toISOString()
+          },
+          {
+            id: 'mock8',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.full_name?.split(' ')[0],
+            message: `Ya estoy aquí, veo tu coche. Voy a hacer la reserva 👍`,
+            read: false,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 30000).toISOString()
+          }
+        ];
+        return mockMessages;
+      }
+      
       return msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
     },
-    enabled: !!conversationId,
+    enabled: !!conversationId && !!conversation,
     refetchInterval: 3000
   });
 
