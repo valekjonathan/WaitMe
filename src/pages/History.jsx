@@ -158,9 +158,9 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-16 pb-20 px-4">
-        <Tabs defaultValue="alerts" className="w-full mt-0.5">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-1.5">
+      <main className="pt-14 pb-20 px-4">
+        <Tabs defaultValue="alerts" className="w-full mt-0">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-1">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -169,18 +169,18 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="space-y-3 max-h-[calc(100vh-170px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-sm mb-2 text-center font-bold">Estás aparcado en:</p>
+          <TabsContent value="alerts" className="space-y-2 max-h-[calc(100vh-155px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-1.5 text-center font-bold">Estás aparcado en:</p>
             
             {/* Barra de búsqueda */}
-            <div className="relative mb-3">
+            <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Buscar dirección..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-9 text-sm"
+                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-8 text-sm"
               />
             </div>
             {isLoading ? (
@@ -203,7 +203,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50 relative"
+                  className="bg-gray-900 rounded-xl p-2.5 border-2 border-purple-500/50 relative"
                 >
                   {alert.status === 'reserved' ? (
                     <>
@@ -315,7 +315,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-3 border-2 border-gray-700 opacity-60 relative"
+                  className="bg-gray-900/50 rounded-xl p-2.5 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
@@ -387,18 +387,18 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-3 max-h-[calc(100vh-170px)] overflow-y-scroll pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-sm mb-2 text-center font-bold">Reservaste a:</p>
+          <TabsContent value="reservations" className="space-y-2 max-h-[calc(100vh-155px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-1.5 text-center font-bold">Reservaste a:</p>
             
             {/* Barra de búsqueda */}
-            <div className="relative mb-3">
+            <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 type="text"
                 placeholder="Buscar dirección..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-9 text-sm"
+                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-8 text-sm"
               />
             </div>
             {isLoading ? (
@@ -421,7 +421,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50 relative"
+                  className="bg-gray-900 rounded-xl p-2.5 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
@@ -500,7 +500,7 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-3 border-2 border-gray-700 opacity-60 relative"
+                  className="bg-gray-900/50 rounded-xl p-2.5 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
