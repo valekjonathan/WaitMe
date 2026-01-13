@@ -15,8 +15,6 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
-import AddressSearchBox from '@/components/AddressSearchBox';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -339,7 +337,7 @@ export default function Home() {
             className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
             style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
 
-              <div className="h-[48%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
@@ -376,15 +374,16 @@ export default function Home() {
 
               {/* Barra de búsqueda */}
               <div className="px-4 py-2 flex-shrink-0">
-                <AddressAutocomplete
-                  value={searchAddress}
-                  onChange={setSearchAddress}
-                  onPlaceSelect={(address, location) => {
-                    setSearchAddress(address);
-                    setUserLocation([location.lat, location.lng]);
-                  }}
-                  placeholder="Buscar dirección..."
-                />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    value={searchAddress}
+                    onChange={(e) => setSearchAddress(e.target.value)}
+                    className="w-full bg-gray-900 border-gray-700 text-white pl-10 rounded-xl h-11"
+                  />
+                </div>
               </div>
 
               <div className="flex-1 px-4 pb-2 min-h-0 overflow-hidden">

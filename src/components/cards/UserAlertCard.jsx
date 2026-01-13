@@ -44,28 +44,28 @@ export default function UserAlertCard({
           <div className="flex gap-2">
             <Button
               size="icon"
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-8"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
               onClick={() => onChat(alert)}
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-5 h-5" />
             </Button>
             
             <Button
               variant="outline"
               size="icon"
-              className={`border-gray-700 h-8 w-8 ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+              className={`border-gray-700 h-9 w-9 ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
               onClick={() => alert.allow_phone_calls && onCall(alert)}
               disabled={!alert.allow_phone_calls}
             >
               {alert.allow_phone_calls ? (
-                <Phone className="w-4 h-4 text-green-400" />
+                <Phone className="w-5 h-5 text-green-400" />
               ) : (
-                <PhoneOff className="w-4 h-4 text-gray-600" />
+                <PhoneOff className="w-5 h-5 text-gray-600" />
               )}
             </Button>
 
             <Button
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8 text-sm"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9"
               onClick={() => onBuyAlert(alert)}
               disabled={isLoading}
             >
