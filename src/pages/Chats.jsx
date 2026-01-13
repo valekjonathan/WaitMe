@@ -439,29 +439,38 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-        <div className="flex gap-2 items-center">
-            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-              <Button
-              size="icon"
-              className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-            </Link>
+                          <div className="flex gap-2 items-center">
+                            {/* Chat Button */}
+                            <div>
+                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                                <Button
+                                size="icon"
+                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </div>
 
-            <Button
-            variant="outline"
-            size="icon"
-            className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-            onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-            disabled={!alert.allow_phone_calls}>
-              {alert.allow_phone_calls ?
-            <Phone className="w-4 h-4 text-green-400" /> :
-            <Phone className="w-4 h-4 text-gray-600" />
-            }
-            </Button>
+                            {/* Phone Button */}
+                            <div>
+                              <Button
+                              variant="outline"
+                              size="icon"
+                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                              disabled={!alert.allow_phone_calls}>
+                                {alert.allow_phone_calls ?
+                              <Phone className="w-4 h-4 text-green-400" /> :
+                              <Phone className="w-4 h-4 text-gray-600" />
+                              }
+                              </Button>
+                            </div>
 
-            <CountdownTimer availableInMinutes={alert.available_in_minutes} />
-          </div>
+                            {/* Countdown Timer */}
+                            <div>
+                              <CountdownTimer availableInMinutes={alert.available_in_minutes} />
+                            </div>
+                          </div>
                         </div>
 
                         {/* Info derecha */}
