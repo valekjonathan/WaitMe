@@ -200,8 +200,18 @@ export default function Chat() {
           read: false,
           message_type: 'user',
           created_date: new Date(Date.now() - 30000).toISOString()
+        },
+        {
+          id: 'mock9',
+          conversation_id: conversationId,
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+          message: `hola`,
+          read: false,
+          message_type: 'user',
+          created_date: new Date(Date.now() - 5000).toISOString()
         }
-      ];
+        ];
       
       return mockMessages;
     },
