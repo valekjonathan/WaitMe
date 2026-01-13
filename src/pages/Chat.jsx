@@ -216,7 +216,20 @@ export default function Chat() {
               </div>
 
               <div className="flex-1 flex flex-col justify-between">
-                <p className="font-bold text-xl text-white mb-1.5">{otherUserName}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-bold text-xl text-white">{otherUserName}</p>
+                  <div className="flex items-center gap-1">
+                    {distance && (
+                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 flex-shrink-0">
+                        <Navigation className="w-3 h-3 text-purple-400" />
+                        <span className="text-white font-bold text-xs">{distance}</span>
+                      </div>
+                    )}
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 flex-shrink-0">
+                      <span className="text-purple-400 font-bold text-xs">{Math.round(alert.price)}€</span>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="flex items-center justify-between -mt-2.5 mb-1.5">
                   <p className="text-sm font-medium text-white">{alert.car_brand} {alert.car_model}</p>
