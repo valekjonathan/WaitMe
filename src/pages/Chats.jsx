@@ -373,7 +373,7 @@ export default function Chats() {
                               <Button
                               variant="ghost"
                               size="icon"
-                              className="flex-1 w-full bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8"
+                              className="flex-7 bg-gray-500 hover:bg-gray-500 text-purple-400 rounded-lg h-8"
                               title="Tiempo restante">
                                 <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
                               </Button>
@@ -416,7 +416,6 @@ export default function Chats() {
 
                       {/* Último mensaje */}
                       <div className="flex-1 min-w-0 w-full">
-                        <p className="text-[13px] text-purple-400 font-medium mb-1">Ultimo mensaje:</p>
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
                             {conv.last_message_text || 'Sin mensajes'}
