@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock, Car } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -342,7 +342,7 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-                          <div className="flex gap-1 w-full">
+                          <div className="flex gap-1 w-[92px]">
                             <Button
                             variant="ghost"
                             size="icon"
@@ -366,21 +366,11 @@ export default function Chats() {
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
-
-                            {alert?.available_in_minutes !== undefined && (
-                              <Button
-                              variant="ghost"
-                              size="icon"
-                              className="bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8 px-2"
-                              title="Tiempo restante">
-                                <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
-                              </Button>
-                            )}
                           </div>
                         </div>
 
                         {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px] -mt-1">
+                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px]">
                           {/* Nombre */}
                           <p className="font-bold text-xl text-white mb-1.5">
                             {otherUserName}
@@ -388,13 +378,12 @@ export default function Chats() {
 
                           {/* Marca y modelo */}
                           {alert &&
-                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                             <p className="text-sm text-gray-400">
-                               {alert.car_brand} {alert.car_model}
-                             </p>
-                             <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                           </div>
-                          }
+                        <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                              <p className="text-sm text-gray-400">
+                                {alert.car_brand} {alert.car_model}
+                              </p>
+                            </div>
+                        }
 
                           {/* Matrícula */}
                           {alert &&
