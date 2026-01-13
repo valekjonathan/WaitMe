@@ -105,7 +105,13 @@ export default function UserCard({
       {/* Header con precio y distancia */}
       {showLocationInfo && price && (
         <div className="flex justify-between items-center mb-1.5">
-          <p className="text-[13px] text-purple-400">Info del usuario:</p>
+          <div className="flex items-center gap-1.5">
+            <div className="relative w-5 h-7">
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-purple-500"></div>
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-purple-500 rounded-full shadow-lg" style={{boxShadow: '0 0 8px rgba(168, 85, 247, 0.8)'}}></div>
+            </div>
+            <p className="text-[13px] text-purple-400">Info del usuario:</p>
+          </div>
           <div className="flex items-center gap-1.5">
             {distance && (
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
