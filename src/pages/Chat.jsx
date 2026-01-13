@@ -502,7 +502,7 @@ export default function Chat() {
           </form>
         </div>
         {isTyping && (
-          <div className="text-xs text-purple-400 mt-2">escribiendo...</div>
+
         )}
       </div>
 
