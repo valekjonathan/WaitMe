@@ -370,13 +370,7 @@ export default function Chats() {
                             </div>
 
                             {alert?.available_in_minutes !== undefined && (
-                              <Button
-                              variant="ghost"
-                              size="icon"
-                              className="flex-7 bg-gray-500 hover:bg-gray-500 text-purple-400 rounded-lg h-8"
-                              title="Tiempo restante">
-                                <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
-                              </Button>
+                              <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
                             )}
                           </div>
                         </div>
