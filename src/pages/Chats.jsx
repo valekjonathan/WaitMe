@@ -341,10 +341,7 @@ export default function Chats() {
                               {otherUserName}
                             </span>
                             
-                            {alert &&
-
-                          }
-                          </div>
+                            </div>
                           
                           {/* Fila inferior: último mensaje */}
                           <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
