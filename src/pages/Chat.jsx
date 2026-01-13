@@ -480,7 +480,7 @@ export default function Chat() {
             </div>
           </div>
         )}
-      </header>
+        </div>
 
       {/* Messages */}
       <main className="flex-1 pt-80 pb-20 px-4 overflow-y-auto">
