@@ -284,7 +284,24 @@ export default function Chats() {
                     `
                   }>
 
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 flex-col w-full">
+                      {/* Header: Info del usuario + distancia + precio */}
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
+                            </div>
+                          )}
+                          {alert && (
+                            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
                       {/* Avatar + botones (teléfono + chat) + contador */}
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
