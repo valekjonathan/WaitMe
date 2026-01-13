@@ -454,11 +454,15 @@ export default function Chats() {
                             {/* Phone Button */}
                             <div>
                               <Button
+                              variant="outline"
                               size="icon"
-                              className={`h-8 w-[42px] rounded-lg ${alert.allow_phone_calls ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-700 hover:bg-gray-700 text-gray-400 cursor-not-allowed'}`}
+                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
                               onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                               disabled={!alert.allow_phone_calls}>
-                                <Phone className="w-4 h-4" />
+                                {alert.allow_phone_calls ?
+                              <Phone className="w-4 h-4 text-green-400" /> :
+                              <Phone className="w-4 h-4 text-gray-600" />
+                              }
                               </Button>
                             </div>
 
