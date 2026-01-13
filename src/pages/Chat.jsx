@@ -231,7 +231,7 @@ export default function Chat() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                <div className="flex items-center justify-between mb-1.5">
                   <p className="text-sm font-medium text-white">{alert.car_brand} {alert.car_model}</p>
                 </div>
 
