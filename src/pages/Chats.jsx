@@ -346,7 +346,7 @@ export default function Chats() {
                             <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
                               <Button
                                 size="icon"
-                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-2">
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
@@ -354,7 +354,7 @@ export default function Chats() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className={`border-gray-700 h-2 w-[42px] ${alert && alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              className={`border-gray-700 h-8 w-[42px] ${alert && alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
                               onClick={() => {
                                 if (alert?.allow_phone_calls && otherUser.phone) {
                                   window.location.href = `tel:${otherUser.phone}`;
