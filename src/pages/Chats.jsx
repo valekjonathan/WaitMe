@@ -120,19 +120,28 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda
+  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
   const filteredConversations = React.useMemo(() => {
-    if (!searchQuery) return conversations;
+    let filtered = conversations;
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = conversations.filter((conv) => {
+        const otherUserName = conv.participant1_id === user?.id ?
+        conv.participant2_name :
+        conv.participant1_name;
+        const lastMessage = conv.last_message_text || '';
 
-    const query = searchQuery.toLowerCase();
-    return conversations.filter((conv) => {
-      const otherUserName = conv.participant1_id === user?.id ?
-      conv.participant2_name :
-      conv.participant1_name;
-      const lastMessage = conv.last_message_text || '';
+        return otherUserName?.toLowerCase().includes(query) ||
+        lastMessage.toLowerCase().includes(query);
+      });
+    }
 
-      return otherUserName?.toLowerCase().includes(query) ||
-      lastMessage.toLowerCase().includes(query);
+    // Ordenar sin leer primero
+    return filtered.sort((a, b) => {
+      const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
+      const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
+      return bUnread - aUnread;
     });
   }, [conversations, searchQuery, user?.id]);
 
