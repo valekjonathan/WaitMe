@@ -106,15 +106,15 @@ export default function UserCard({
       {showLocationInfo && price && (
         <div className="flex justify-between items-center mb-1.5">
           <p className="text-[10px] text-purple-400">Información del usuario:</p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {distance && (
-              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1.5">
-                <Navigation className="w-3.5 h-3.5 text-purple-400" />
-                <span className="text-white font-bold text-sm">{distance}</span>
+              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                <Navigation className="w-3 h-3 text-purple-400" />
+                <span className="text-white font-bold text-xs">{distance}</span>
               </div>
             )}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{Math.round(price)}€</span>
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+              <span className="text-purple-400 font-bold text-xs">{Math.round(price)}€</span>
             </div>
           </div>
         </div>

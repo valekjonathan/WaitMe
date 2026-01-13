@@ -158,9 +158,9 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-14 pb-20 px-4">
-        <Tabs defaultValue="alerts" className="w-full mt-0">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-1">
+      <main className="pt-[60px] pb-20 px-4">
+        <Tabs defaultValue="alerts" className="w-full">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-0.5">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -169,8 +169,8 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="alerts" className="space-y-2 max-h-[calc(100vh-155px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-xs mb-1.5 text-center font-bold">Estás aparcado en:</p>
+          <TabsContent value="alerts" className="space-y-2 max-h-[calc(100vh-140px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-1 text-center font-bold">Estás aparcado en:</p>
             
             {/* Barra de búsqueda */}
             <div className="relative mb-2">
@@ -387,8 +387,8 @@ export default function History() {
         )}
           </TabsContent>
 
-          <TabsContent value="reservations" className="space-y-2 max-h-[calc(100vh-155px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
-            <p className="text-white text-xs mb-1.5 text-center font-bold">Reservaste a:</p>
+          <TabsContent value="reservations" className="space-y-2 max-h-[calc(100vh-140px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
+            <p className="text-white text-xs mb-1 text-center font-bold">Reservaste a:</p>
             
             {/* Barra de búsqueda */}
             <div className="relative mb-2">
