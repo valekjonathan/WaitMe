@@ -179,14 +179,31 @@ export default function Chat() {
             </div>
           </div>
 
-          {/* Ver alerta button */}
-          {alert && (
-            <Link to={createPageUrl(`Home?mode=search`)}>
-              <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-xs">
-                Ver alerta
-              </Button>
-            </Link>
-          )}
+          {/* Botones de llamada y mensaje */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
+              onClick={() => {
+                if (alert?.allow_phone_calls && alert?.phone) {
+                  window.location.href = `tel:${alert.phone}`;
+                }
+              }}
+              disabled={!alert?.allow_phone_calls || !alert?.phone}
+              title={alert?.allow_phone_calls && alert?.phone ? 'Llamar' : 'No autorizado'}
+            >
+              <Phone className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </header>
 
