@@ -247,10 +247,10 @@ export default function Chats() {
 
             // Resolver datos del otro usuario desde usersMap
             const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+            const otherUserName = otherUserData?.display_name || otherUserData?.full_name || (isP1 ? conv.participant2_name : conv.participant1_name);
             const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+            const otherUserPhone = otherUserData?.phone || '';
+            const allowCalls = otherUserData?.allow_phone_calls === true;
 
             // Construir objeto otherUser
             const otherUser = {
