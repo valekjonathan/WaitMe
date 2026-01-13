@@ -396,8 +396,11 @@ export default function Chats() {
                               </span>
                             </div>
                           )}
-                        </div>
-                      </div>
+
+                          {/* Línea separadora */}
+                          <div className="border-t border-gray-700 w-screen -ml-4 -mr-4"></div>
+                          </div>
+                          </div>
 
                       {/* Último mensaje */}
                       <div className="flex-1 min-w-0 w-full">
