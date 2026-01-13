@@ -304,7 +304,7 @@ export default function Chats() {
                       {/* Avatar + botones (teléfono + chat) + contador */}
                       <div className="flex gap-2 w-full">
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                          <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center flex-shrink-0">
                             {otherUser.photo ?
                           <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
 
