@@ -387,7 +387,7 @@ export default function Chats() {
 
                           {/* Matrícula */}
                           {alert &&
-                        <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
                               <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[8px] font-bold text-white">E</span>
                               </div>
@@ -395,12 +395,12 @@ export default function Chats() {
                                 {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
                               </span>
                             </div>
-                        }
+                          }
+                          </div>
+                          </div>
 
                           {/* Línea separadora */}
-                          <div className="border-t border-gray-700 w-screen -ml-[66px] -mr-4"></div>
-                          </div>
-                          </div>
+                          <div className="border-t border-gray-700 -mx-4 mt-2"></div>
 
                       {/* Último mensaje */}
                       <div className="flex-1 min-w-0 w-full">
