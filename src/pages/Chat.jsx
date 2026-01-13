@@ -151,64 +151,152 @@ export default function Chat() {
   const otherUserName = isP1 ? conversation.participant2_name : conversation.participant1_name;
   const otherUserPhoto = isP1 ? conversation.participant2_photo : conversation.participant1_photo;
 
+  // Calcular distancia
+  const calculateDistance = () => {
+    if (!user?.user_location || !alert?.latitude || !alert?.longitude) return null;
+    
+    const userLat = user.user_location?.latitude;
+    const userLon = user.user_location?.longitude;
+    
+    if (!userLat || !userLon) return null;
+
+    const R = 6371;
+    const dLat = (alert.latitude - userLat) * Math.PI / 180;
+    const dLon = (alert.longitude - userLon) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(userLat * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceKm = R * c;
+    
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
+  };
+
+  const distance = calculateDistance();
+
+  const formatPlate = (plate) => {
+    if (!plate) return 'XXXX XXX';
+    const cleaned = plate.replace(/\s/g, '').toUpperCase();
+    if (cleaned.length >= 4) {
+      return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
+    }
+    return cleaned;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link to={createPageUrl('Chats')}>
-            <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-          </Link>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3 overflow-y-auto max-h-screen">
+        <Link to={createPageUrl('Chats')} className="mb-3">
+          <Button variant="ghost" size="icon" className="text-white">
+            <ArrowLeft className="w-6 h-6" />
+          </Button>
+        </Link>
 
-          {/* User info */}
-          <div className="flex items-center gap-3">
-            {otherUserPhoto ? (
-              <img src={otherUserPhoto} className="w-10 h-10 rounded-full object-cover" alt="" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-500" />
+        {/* User Card */}
+        {alert && (
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col">
+            {/* Header con distancia y precio */}
+            <div className="flex justify-between items-center mb-1.5">
+              <p className="text-[13px] text-purple-400">Info del usuario:</p>
+              <div className="flex items-center gap-1.5">
+                {distance && (
+                  <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                    <Navigation className="w-3 h-3 text-purple-400" />
+                    <span className="text-white font-bold text-xs">{distance}</span>
+                  </div>
+                )}
+                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                  <span className="text-purple-400 font-bold text-xs">{Math.round(alert.price)}€</span>
+                </div>
               </div>
-            )}
-            <div>
-              <p className="font-medium text-sm">{otherUserName}</p>
-              {alert && (
-                <p className="text-xs text-gray-400">{alert.price}€ • {alert.available_in_minutes} min</p>
+            </div>
+
+            {/* User info and car */}
+            <div className="flex gap-2.5 mb-1.5">
+              <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
+                {otherUserPhoto ? (
+                  <img src={otherUserPhoto} className="w-full h-full object-cover" alt={otherUserName} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
+                )}
+              </div>
+
+              <div className="flex-1 flex flex-col justify-between">
+                <p className="font-bold text-xl text-white mb-1.5">{otherUserName}</p>
+
+                <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                  <p className="text-sm font-medium text-white">{alert.car_brand} {alert.car_model}</p>
+                </div>
+
+                {/* Placa */}
+                <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                  <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                    <span className="text-[9px] font-bold text-white">E</span>
+                  </div>
+                  <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+                    {formatPlate(alert.car_plate)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Address and time info */}
+            <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+              {alert.address && (
+                <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span className="line-clamp-1">{alert.address}</span>
+                </div>
               )}
+              
+              {alert.available_in_minutes !== undefined && (
+                <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Se va en {alert.available_in_minutes} min</span>
+                  <span className="text-purple-400">
+                    • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                  </span>
+                </div>
+              )}
+
+              {/* Botones de acción */}
+              <div className="flex gap-2 mt-4">
+                <Button
+                  size="icon"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                  onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                  disabled={!alert.allow_phone_calls}
+                >
+                  {alert.allow_phone_calls ?
+                    <Phone className="w-4 h-4 text-green-400" /> :
+                    <Phone className="w-4 h-4 text-gray-600" />
+                  }
+                </Button>
+
+                <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 flex-1">
+                  WaitMe!
+                </Button>
+              </div>
             </div>
           </div>
-
-          {/* Botones de llamada y mensaje */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
-              onClick={() => {
-                if (alert?.allow_phone_calls && alert?.phone) {
-                  window.location.href = `tel:${alert.phone}`;
-                }
-              }}
-              disabled={!alert?.allow_phone_calls || !alert?.phone}
-              title={alert?.allow_phone_calls && alert?.phone ? 'Llamar' : 'No autorizado'}
-            >
-              <Phone className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9"
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        )}
       </header>
 
       {/* Messages */}
-      <main className="flex-1 pt-20 pb-20 px-4 overflow-y-auto">
+      <main className="flex-1 pt-96 pb-20 px-4 overflow-y-auto">
         <AnimatePresence>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === user?.id;
