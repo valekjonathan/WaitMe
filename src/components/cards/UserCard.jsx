@@ -101,11 +101,11 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'}`}>
+    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'}`}>
       {/* Header con precio y distancia */}
       {showLocationInfo && price && (
-        <div className="flex justify-between items-center mb-2">
-          <p className="text-xs text-purple-400">Información del usuario:</p>
+        <div className="flex justify-between items-center mb-1.5">
+          <p className="text-[10px] text-purple-400">Información del usuario:</p>
           <div className="flex items-center gap-2">
             {distance && (
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1.5">
@@ -121,9 +121,9 @@ export default function UserCard({
       )}
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-3 mb-2">
-        <div className="flex flex-col gap-2">
-          <div className={`w-[92px] h-20 rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
+      <div className="flex gap-2.5 mb-1.5">
+        <div className="flex flex-col gap-1.5">
+          <div className={`w-[85px] h-[72px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ? (
               <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
             ) : (
@@ -200,17 +200,17 @@ export default function UserCard({
 
       {/* Información de ubicación */}
       {showLocationInfo && (
-        <div className="space-y-2 pt-2 border-t border-gray-700">
+        <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
           {address && (
-            <div className="flex items-start gap-2 text-gray-400 text-sm">
-              <MapPin className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <span>{address}</span>
             </div>
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-2 text-gray-500 text-xs">
-              <Clock className="w-5 h-5" />
+            <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
+              <Clock className="w-4 h-4" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
