@@ -41,8 +41,8 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   return (
     <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3 mt-5">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
+    </div>
+  );
 }
 
 export default function Chats() {
@@ -123,7 +123,7 @@ export default function Chats() {
   // Filtrar conversaciones por búsqueda y ordenar sin leer primero
   const filteredConversations = React.useMemo(() => {
     let filtered = conversations;
-
+    
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = conversations.filter((conv) => {
@@ -296,16 +296,16 @@ export default function Chats() {
                       <div className="flex items-center justify-between gap-2 w-full">
                         <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          {distanceText &&
-                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
                               <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
                             </div>
-                        }
-                          {alert &&
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                          )}
+                          {alert && (
+                            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
                               <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
                             </div>
-                        }
+                          )}
                         </div>
                       </div>
 
@@ -316,53 +316,53 @@ export default function Chats() {
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                             <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
                               {otherUser.photo ?
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
-                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                            }
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                              }
                             </div>
                           </Link>
 
                           {/* Dirección debajo de foto - ocupa toda la línea */}
-                          {alert?.address &&
-                        <div className="flex items-center gap-1.5 text-gray-500 text-xs w-full">
+                          {alert?.address && (
+                            <div className="flex items-center gap-1.5 text-gray-500 text-xs w-full">
                               <MapPin className="w-3 h-3 flex-shrink-0" />
                               <span className="truncate flex-1">{alert.address}</span>
                             </div>
-                        }
+                          )}
 
                           {/* Tiempo restante - ocupa toda la línea */}
-                          {alert?.available_in_minutes !== undefined &&
-                        <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+                          {alert?.available_in_minutes !== undefined && (
+            <div className="flex items-center gap-1 text-gray-500 text-[10px]">
               <Clock className="w-3.5 h-3.5" />
               <span>Se va en {alert.available_in_minutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
               </span>
             </div>
-                        }
+                          )}
 
                           {/* Botones debajo */}
                           <div className="flex gap-1 w-[92px]">
                             <Button
-                            variant="ghost"
-                            size="icon"
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[45px]"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (otherUser.allowCalls && otherUser.phone) {
-                                window.location.href = `tel:${otherUser.phone}`;
-                              }
-                            }}
-                            disabled={!otherUser.allowCalls || !otherUser.phone}
-                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
+                              variant="ghost"
+                              size="icon"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[45px]"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (otherUser.allowCalls && otherUser.phone) {
+                                  window.location.href = `tel:${otherUser.phone}`;
+                                }
+                              }}
+                              disabled={!otherUser.allowCalls || !otherUser.phone}
+                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
                               <Phone className="w-4 h-4" />
                             </Button>
 
                             <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
                               <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 max-w-[45px]">
+                                variant="ghost"
+                                size="icon"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 max-w-[45px]">
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
@@ -372,22 +372,22 @@ export default function Chats() {
                         {/* Info derecha */}
                         <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px]">
                           {/* Nombre */}
-                          <p className="font-bold text-xl text-white mb-1.5">
+                          <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </p>
 
                           {/* Marca y modelo */}
-                          {alert &&
-                        <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                          {alert && (
+                            <div className="flex items-center gap-2">
                               <p className="text-sm text-gray-400">
                                 {alert.car_brand} {alert.car_model}
                               </p>
                             </div>
-                        }
+                          )}
 
                           {/* Matrícula */}
-                          {alert &&
-                        <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                          {alert && (
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border border-gray-300 h-6">
                               <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
                                 <span className="text-[8px] font-bold text-white">E</span>
                               </div>
@@ -395,10 +395,10 @@ export default function Chats() {
                                 {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
                               </span>
                             </div>
-                        }
+                          )}
 
                           {/* Línea separadora */}
-                          <div className="border-t border-gray-700 w-screen -ml-[66px] -mr-4"></div>
+                          <div className="border-t border-gray-700 w-screen -ml-4 -mr-4"></div>
                           </div>
                           </div>
 
@@ -412,11 +412,11 @@ export default function Chats() {
                       </div>
                     </div>
                 </div>
-              </motion.div>);
-
-          })}
+              </motion.div>
+                      );
+                      })}
                       </div>
-        }
+                      }
                       </main>
 
       <BottomNav />
