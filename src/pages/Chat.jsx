@@ -295,6 +295,32 @@ export default function Chat() {
     }
   };
 
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('El archivo es demasiado grande (máx. 10MB)');
+        continue;
+      }
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setAttachments(prev => [...prev, { name: file.name, type: file.type, url: file_url }]);
+      } catch (error) {
+        console.error('Error subiendo archivo:', error);
+      }
+    }
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTyping = () => {
+    setIsTyping(true);
+    clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 2000);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
