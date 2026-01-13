@@ -389,7 +389,7 @@ export default function Chat() {
       <Header showBackButton={true} backTo="Chats" />
 
       {/* Messages */}
-      <main className="flex-1 mt-20 pb-20 px-4 overflow-y-auto flex flex-col justify-center items-center">
+      <main className="flex-1 pt-24 pb-32 px-4 overflow-y-auto">
         <AnimatePresence>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === user?.id;
