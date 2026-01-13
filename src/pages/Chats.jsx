@@ -342,11 +342,11 @@ export default function Chats() {
                           )}
 
                           {/* Botones debajo */}
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 w-[92px]">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[45px]"
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (otherUser.allowCalls && otherUser.phone) {
