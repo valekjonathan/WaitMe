@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -34,6 +35,7 @@ const carColorMap = {
 export default function History() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -169,6 +171,18 @@ export default function History() {
 
           <TabsContent value="alerts" className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-scroll pr-1 pb-32" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             <p className="text-white text-sm mb-3 text-center font-bold">Estás aparcado en:</p>
+            
+            {/* Barra de búsqueda */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Buscar dirección..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-900 border-gray-700 text-white pl-10 rounded-xl h-11"
+              />
+            </div>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -375,6 +389,18 @@ export default function History() {
 
           <TabsContent value="reservations" className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-scroll pr-1 pb-32" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             <p className="text-white text-sm mb-3 text-center font-bold">Reservaste a:</p>
+            
+            {/* Barra de búsqueda */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Buscar dirección..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-gray-900 border-gray-700 text-white pl-10 rounded-xl h-11"
+              />
+            </div>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
