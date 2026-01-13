@@ -39,7 +39,9 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
+    <div className="h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3 mt-5">
+      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
+    </div>
   );
 }
 
@@ -118,30 +120,19 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda (sin leer primero)
+  // Filtrar conversaciones por búsqueda
   const filteredConversations = React.useMemo(() => {
-    let filtered = conversations;
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
-        const lastMessage = conv.last_message_text || '';
+    if (!searchQuery) return conversations;
 
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
-      });
-    }
+    const query = searchQuery.toLowerCase();
+    return conversations.filter((conv) => {
+      const otherUserName = conv.participant1_id === user?.id ?
+      conv.participant2_name :
+      conv.participant1_name;
+      const lastMessage = conv.last_message_text || '';
 
-    // Ordenar sin leer primero
-    return filtered.sort((a, b) => {
-      const isAP1 = a.participant1_id === user?.id;
-      const isBP1 = b.participant1_id === user?.id;
-      const unreadA = isAP1 ? a.unread_count_p1 : a.unread_count_p2;
-      const unreadB = isBP1 ? b.unread_count_p1 : b.unread_count_p2;
-      return (unreadB || 0) - (unreadA || 0);
+      return otherUserName?.toLowerCase().includes(query) ||
+      lastMessage.toLowerCase().includes(query);
     });
   }, [conversations, searchQuery, user?.id]);
 
@@ -322,25 +313,19 @@ export default function Chats() {
                             </div>
                           </Link>
 
-                          {/* Dirección debajo de foto - ocupa toda la línea */}
+                          {/* Dirección debajo de foto */}
                           {alert?.address && (
-                            <div className="flex items-center gap-1.5 text-gray-500 text-xs -mx-2 px-2 w-[calc(100%+16px)]">
+                            <div className="flex items-center gap-1.5 text-gray-500 text-xs">
                               <MapPin className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate flex-1">{alert.address}</span>
+                              <span className="truncate w-[72px]">{alert.address}</span>
                             </div>
                           )}
 
-                          {/* Tiempo restante - ocupa toda la línea */}
+                          {/* Tiempo restante */}
                           {alert?.available_in_minutes !== undefined && (
-                            <div className="flex items-center gap-1.5 text-xs -mx-2 px-2 w-[calc(100%+16px)] justify-between">
-                              <div className="flex items-center gap-1.5 text-gray-400">
-                                <Clock className="w-3 h-3 flex-shrink-0" />
-                                <span>Se va en {alert.available_in_minutes} min</span>
-                              </div>
-                              <span className="text-purple-400 font-medium">
-                                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
-                              </span>
-                            </div>
+                            <p className="text-xs text-gray-400">
+                              Se va en {alert.available_in_minutes} min
+                            </p>
                           )}
 
                           {/* Botones debajo */}
@@ -368,12 +353,6 @@ export default function Chats() {
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </Link>
-
-                            {alert?.available_in_minutes !== undefined && (
-                              <div className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg h-8 border-2 border-gray-700 flex items-center justify-center px-2">
-                                <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
-                              </div>
-                            )}
                           </div>
                         </div>
 
