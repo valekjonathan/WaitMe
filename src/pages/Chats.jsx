@@ -334,18 +334,20 @@ export default function Chats() {
                           title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
 
                             <Phone className="w-4 h-4" />
-                          </Button>
-
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <Button
-                            variant="ghost"
-                            size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9 w-9">
-
-
-                              <MessageCircle className="w-4 h-4" />
                             </Button>
-                          </Link>
-                        </div>
+
+                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                              <Button
+                              variant="ghost"
+                              size="icon" className="w-full inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-600 hover:bg-green-700 text-white rounded-lg h-9">
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                            </div>
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-9 text-xs font-semibold" onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert?.latitude},${alert?.longitude}`, '_blank')}>
+                            Ver ruta
+                            </Button>
+                            </div>
                       </div>
 
                       {/* Info */}
