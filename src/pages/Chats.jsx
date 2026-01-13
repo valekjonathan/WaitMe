@@ -379,9 +379,12 @@ export default function Chats() {
                           {/* Marca y modelo */}
                           {alert &&
                         <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                              <p className="text-sm text-gray-400">
-                                {alert.car_brand} {alert.car_model}
-                              </p>
+                              <div className="flex items-center gap-1.5">
+                                <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <p className="text-sm text-gray-400">
+                                  {alert.car_brand} {alert.car_model}
+                                </p>
+                              </div>
                             </div>
                         }
 
