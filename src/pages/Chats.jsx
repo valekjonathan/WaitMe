@@ -354,7 +354,7 @@ export default function Chats() {
                             <Button
                               variant="outline"
                               size="icon"
-                              className={`border-gray-700 h-8 w-[42px] ${alert && alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              className={`border-gray-700 h-2 w-[42px] ${alert && alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
                               onClick={() => {
                                 if (alert?.allow_phone_calls && otherUser.phone) {
                                   window.location.href = `tel:${otherUser.phone}`;
