@@ -391,26 +391,61 @@ export default function Chats() {
                       </div>
 
                       {/* Separador */}
-                      <div className="my-3 border-t border-gray-700"></div>
+                      <div className="my-4 border-t-2 border-gray-700"></div>
 
-                      {/* Información adicional */}
+                      {/* Información de ubicación y tiempo */}
                       {alert && (
-                        <div className="space-y-2">
-                          <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <div className="space-y-3">
+                          <div className={`flex items-center gap-3 text-base ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            <MapPin className="w-5 h-5 flex-shrink-0" />
                             <span className="truncate">{alert.address || 'Ubicación marcada'}</span>
                           </div>
-                          <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <Clock className="w-3 h-3 flex-shrink-0" />
+                          <div className={`flex items-center gap-3 text-base ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            <Clock className="w-5 h-5 flex-shrink-0" />
                             <span>Se va en {alert.available_in_minutes} min • Te espera hasta las {format(new Date(new Date(alert.created_date).getTime() + alert.available_in_minutes * 60000), 'HH:mm')}</span>
                           </div>
-                          
-                          {/* Último mensaje */}
-                          {conv.last_message_text && (
-                            <div className={`text-xs mt-2 p-2 rounded-lg ${hasUnread ? 'bg-purple-500/20 text-white' : 'bg-gray-800 text-gray-400'}`}>
-                              <p className="truncate">{conv.last_message_text}</p>
-                            </div>
-                          )}
+                        </div>
+                      )}
+
+                      {/* Botón de cuenta atrás o WaitMe */}
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          className="bg-green-600 hover:bg-green-700 text-white h-14 w-14 rounded-xl flex items-center justify-center p-0 shadow-lg flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                          }}
+                        >
+                          <MessageCircle className="w-7 h-7" />
+                        </Button>
+                        <Button
+                          className="bg-white hover:bg-gray-100 text-green-600 h-14 w-14 rounded-xl flex items-center justify-center p-0 shadow-lg flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (otherUser.allowCalls && otherUser.phone) {
+                              window.location.href = `tel:${otherUser.phone}`;
+                            }
+                          }}
+                          disabled={!otherUser.allowCalls || !otherUser.phone}
+                        >
+                          <Phone className="w-7 h-7" />
+                        </Button>
+                        
+                        {/* Contador de tiempo que ocupa el resto del espacio */}
+                        {alert && (
+                          <div className="flex-1">
+                            <CountdownTimer
+                              availableInMinutes={alert.available_in_minutes}
+                              createdDate={alert.created_date}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Último mensaje */}
+                      {conv.last_message_text && (
+                        <div className={`text-sm mt-3 p-3 rounded-lg ${hasUnread ? 'bg-purple-500/20 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                          <p className="truncate">{conv.last_message_text}</p>
                         </div>
                       )}
                     </div>
