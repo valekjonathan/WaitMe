@@ -369,8 +369,8 @@ export default function Chats() {
                           </div>
                         </div>
 
-                        {/* Info derecha - movido 50px a la izquierda con -ml-12 */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-12">
+                        {/* Info derecha */}
+                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[100px]">
                           {/* Nombre */}
                           <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
