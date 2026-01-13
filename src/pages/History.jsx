@@ -229,7 +229,7 @@ export default function History() {
                       </div>
 
                       {alert.reserved_by_name && (
-                        <div className="mb-2">
+                        <div className="mb-1">
                             <UserCard
                               userName={alert.reserved_by_name}
                               userPhoto={null}
@@ -253,17 +253,15 @@ export default function History() {
                           </div>
                       )}
 
-                      <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                      <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                         <MapPin className="w-4 h-4 flex-shrink-0" />
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Clock className="w-3 h-3" />
-                          <span>Te vas en {alert.available_in_minutes} min</span>
-                        </div>
-                        <span className="text-purple-400">Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Clock className="w-3 h-3 text-gray-500" />
+                        <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
+                        <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   ) : (
@@ -291,15 +289,15 @@ export default function History() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                      <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                         <MapPin className="w-4 h-4 flex-shrink-0" />
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs ml-0.5">
+                      <div className="flex items-center gap-1 text-xs">
                         <Clock className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
-                        <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                        <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                     </>
                   )}
@@ -351,7 +349,7 @@ export default function History() {
                   </div>
 
                   {isSeller && tx.buyer_name && (
-                    <div className="mb-2">
+                    <div className="mb-1">
                       <UserCard
                         userName={tx.buyer_name}
                         userPhoto={null}
@@ -371,14 +369,14 @@ export default function History() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span>{tx.address || 'Ubicación'}</span>
                   </div>
 
                   <div className="flex items-center gap-1 text-xs">
                     <Clock className="w-3 h-3 text-gray-500" />
-                    <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
+                    <span className="text-gray-500">Completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -456,7 +454,7 @@ export default function History() {
                     </div>
                   </div>
 
-                  <div className="mb-2">
+                  <div className="mb-1">
                     <UserCard
                       userName={alert.user_name}
                       userPhoto={alert.user_photo}
@@ -479,15 +477,15 @@ export default function History() {
                     />
                   </div>
 
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span>{alert.address || 'Ubicación marcada'}</span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-xs ml-0.5">
+                  <div className="flex items-center gap-1 text-xs">
                     <Clock className="w-3 h-3 text-gray-500" />
                     <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
-                    <span className="text-purple-400">Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                    <span className="text-purple-400">Hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
@@ -526,7 +524,7 @@ export default function History() {
                     </div>
                   </div>
 
-                  <div className="mb-2">
+                  <div className="mb-1">
                     <UserCard
                       userName={tx.seller_name}
                       userPhoto={null}
@@ -545,9 +543,14 @@ export default function History() {
                     />
                   </div>
                   
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span>{tx.address || 'Ubicación'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-xs">
+                    <Clock className="w-3 h-3 text-gray-500" />
+                    <span className="text-gray-500">Completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                   </div>
                 </motion.div>
               );
