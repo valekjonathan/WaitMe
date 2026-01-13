@@ -190,19 +190,16 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3">
-        <Link to={createPageUrl('Chats')}>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 px-4 py-3 overflow-y-auto max-h-screen">
+        <Link to={createPageUrl('Chats')} className="mb-3">
           <Button variant="ghost" size="icon" className="text-white">
             <ArrowLeft className="w-6 h-6" />
           </Button>
         </Link>
-      </header>
 
-      {/* Messages */}
-      <main className="flex-1 pt-20 pb-20 px-4 overflow-y-auto">
         {/* User Card */}
         {alert && (
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col mb-4">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col">
             {/* Header con distancia y precio */}
             <div className="flex justify-between items-center mb-1.5">
               <p className="text-[13px] text-purple-400">Info del usuario:</p>
@@ -296,6 +293,10 @@ export default function Chat() {
             </div>
           </div>
         )}
+      </header>
+
+      {/* Messages */}
+      <main className="flex-1 pt-96 pb-20 px-4 overflow-y-auto">
         <AnimatePresence>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === user?.id;
