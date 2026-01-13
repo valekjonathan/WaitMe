@@ -272,6 +272,7 @@ export default function Chat() {
                 <Button
                   size="icon"
                   className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                  disabled
                 >
                   <MessageCircle className="w-4 h-4" />
                 </Button>
