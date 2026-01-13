@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock, Car, PhoneOff } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -342,40 +342,37 @@ export default function Chats() {
                         }
 
                           {/* Botones debajo */}
-                          <div className="flex gap-2">
-                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
-                              <Button
-                                size="icon"
-                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
-                                <MessageCircle className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                            
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className={`border-gray-700 h-8 w-[42px] ${alert && alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-                              onClick={() => {
-                                if (alert?.allow_phone_calls && otherUser.phone) {
-                                  window.location.href = `tel:${otherUser.phone}`;
-                                }
-                              }}
-                              disabled={!alert?.allow_phone_calls}>
-                              {alert?.allow_phone_calls ?
-                                <Phone className="w-4 h-4 text-green-400" /> :
-                                <PhoneOff className="w-4 h-4 text-gray-600" />
-                              }
-                            </Button>
+        <div className="flex gap-2">
+            <Button
+            size="icon"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+            onClick={() => onChat(alert)}>
 
-                            {alert?.available_in_minutes !== undefined && (
-                              <Button
-                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-purple-400 rounded-lg h-8 font-bold"
-                                title="Tiempo restante">
-                                <Clock className="w-4 h-4 mr-1" />
-                                <span className="text-xs font-mono">{alert.available_in_minutes}min</span>
-                              </Button>
-                            )}
-                          </div>
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+            
+            <Button
+            variant="outline"
+            size="icon"
+            className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+            onClick={() => alert.allow_phone_calls && onCall(alert)}
+            disabled={!alert.allow_phone_calls}>
+
+              {alert.allow_phone_calls ?
+            <Phone className="w-4 h-4 text-green-400" /> :
+
+            <PhoneOff className="w-4 h-4 text-gray-600" />
+            }
+            </Button>
+
+            <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 flex-1"
+
+          onClick={() => onBuyAlert(alert)}
+          disabled={isLoading}>
+
+              {isLoading ? 'Procesando...' : 'WaitMe!'}
+            </Button>
+          </div>
                         </div>
 
                         {/* Info derecha */}
