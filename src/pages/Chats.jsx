@@ -284,8 +284,9 @@ export default function Chats() {
                 }>
 
                     <div className="flex items-start gap-3 flex-col w-full">
-                      {/* Header: distancia + precio */}
+                      {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex items-center justify-between gap-2 w-full">
+                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           {distanceText && (
                             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
@@ -302,7 +303,7 @@ export default function Chats() {
 
                       {/* Foto + Info derecha */}
                       <div className="flex gap-3 w-full">
-                        {/* Foto + botones debajo */}
+                        {/* Foto + botones + info debajo */}
                         <div className="flex flex-col gap-2 flex-shrink-0">
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                             <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
@@ -313,7 +314,21 @@ export default function Chats() {
                             </div>
                           </Link>
 
-                          {/* Botones debajo de foto */}
+                          {/* Dirección debajo de foto */}
+                          {alert?.address && (
+                            <p className="text-xs text-gray-500 truncate w-[92px]">
+                              {alert.address}
+                            </p>
+                          )}
+
+                          {/* Tiempo restante */}
+                          {alert?.available_in_minutes !== undefined && (
+                            <p className="text-xs text-gray-400">
+                              Se va en {alert.available_in_minutes} min
+                            </p>
+                          )}
+
+                          {/* Botones debajo */}
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
@@ -348,7 +363,7 @@ export default function Chats() {
                             {otherUserName}
                           </p>
 
-                          {/* Marca y modelo + icono */}
+                          {/* Marca y modelo */}
                           {alert && (
                             <div className="flex items-center gap-2">
                               <p className="text-sm text-gray-400">
@@ -367,20 +382,6 @@ export default function Chats() {
                                 {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
                               </span>
                             </div>
-                          )}
-
-                          {/* Dirección */}
-                          {alert?.address && (
-                            <p className="text-xs text-gray-500 truncate mt-1">
-                              {alert.address}
-                            </p>
-                          )}
-
-                          {/* Tiempo restante */}
-                          {alert?.available_in_minutes !== undefined && (
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              Se va en {alert.available_in_minutes} min
-                            </p>
                           )}
                         </div>
                       </div>
