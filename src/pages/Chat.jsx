@@ -440,8 +440,8 @@ export default function Chat() {
       </header>
 
       {/* Messages */}
-      <main className="flex-1 pt-96 pb-20 px-4 overflow-y-auto">
-        <div className="mb-8 mt-6 p-4 bg-purple-600/20 border border-purple-500 rounded-lg">
+      <main className="flex-1 pt-80 pb-20 px-4 overflow-y-auto">
+        <div className="mb-4 mt-2 p-4 bg-purple-600/20 border border-purple-500 rounded-lg">
           <p className="text-base text-purple-300 font-bold">Ultimos mensajes:</p>
         </div>
         <AnimatePresence>
