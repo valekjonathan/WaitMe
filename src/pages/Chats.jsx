@@ -372,10 +372,8 @@ export default function Chats() {
                             </Link>
 
                             {alert?.available_in_minutes !== undefined && (
-                              <div className="flex-1 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8 border-2 border-gray-700 flex items-center justify-center">
-                                <span className="text-purple-400 text-sm font-mono font-bold">
-                                  <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
-                                </span>
+                              <div className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg h-8 border-2 border-gray-700 flex items-center justify-center px-2">
+                                <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
                               </div>
                             )}
                           </div>
