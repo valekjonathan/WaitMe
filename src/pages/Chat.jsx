@@ -476,7 +476,7 @@ export default function Chat() {
               className="hidden"
               accept="image/*,.pdf,.doc,.docx"
             />
-            <Button
+
               type="button"
               size="icon"
               variant="ghost"
