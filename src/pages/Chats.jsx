@@ -375,13 +375,13 @@ export default function Chats() {
                       }
                       </div>
                     </div>
-                  </div>
-                </motion.div>);
-
-          })}
-          </div>
-        }
-      </main>
+                    </div>
+                    </motion.div>
+                    );
+                    })}
+                    </div>
+                    }
+                    </main>
 
       <BottomNav />
     </div>);
