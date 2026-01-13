@@ -372,7 +372,7 @@ export default function Chats() {
                                 variant="ghost"
                                 className="flex-1.5 bg-gray-700 hover:bg-gray-600 text-purple-400 rounded-lg h-8 font-bold"
                                 title="Tiempo restante">
-                                <Clock className="w-6 h-6 mr-6" />
+                                <Clock className="w-10 h-10 mr-10" />
                                 <span className="text-xs font-mono">{alert.available_in_minutes}min</span>
                               </Button>
                             )}
