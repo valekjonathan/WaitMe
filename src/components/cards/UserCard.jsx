@@ -177,7 +177,7 @@ export default function UserCard({
           </div>
 
           {isReserved ? (
-            <div className={`-mt-[5px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+            <div className={`-mt-[8px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
               <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
                 <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
@@ -186,7 +186,7 @@ export default function UserCard({
               </span>
             </div>
           ) : (
-            <div className={`-mt-[5px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+            <div className={`-mt-[8px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
               <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
                 <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
