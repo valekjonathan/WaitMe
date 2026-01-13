@@ -286,9 +286,9 @@ export default function Chat() {
     );
   }
 
-  const isP1 = conversation.participant1_id === user?.id;
-  const otherUserName = isP1 ? conversation.participant2_name : conversation.participant1_name;
-  const otherUserPhoto = isP1 ? conversation.participant2_photo : conversation.participant1_photo;
+  const isP1 = conversation?.participant1_id === user?.id;
+  const otherUserName = isP1 ? conversation?.participant2_name : conversation?.participant1_name;
+  const otherUserPhoto = isP1 ? conversation?.participant2_photo : conversation?.participant1_photo;
 
   // Calcular distancia
   const calculateDistance = () => {
