@@ -416,6 +416,7 @@ export default function Chats() {
 
                       {/* Último mensaje */}
                       <div className="flex-1 min-w-0 w-full">
+                        <p className="text-xs text-purple-400 font-medium mb-1">Ultimos mensajes:</p>
                         <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                           <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
                             {conv.last_message_text || 'Sin mensajes'}
