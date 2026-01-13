@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
