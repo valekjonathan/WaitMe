@@ -464,9 +464,7 @@ export default function Chats() {
             }
             </Button>
 
-            <Button className="bg-purple-600 text-white px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors hover:bg-purple-700 h-8 flex-1" disabled={isLoading}>
-              {isLoading ? 'Procesando...' : 'WaitMe!'}
-            </Button>
+            <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
           </div>
                         </div>
 
