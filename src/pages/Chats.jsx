@@ -311,20 +311,76 @@ export default function Chats() {
 
                       {/* Foto + Info derecha */}
                       <div className="flex gap-3 w-full">
-                        {/* Foto */}
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <div className="w-[80px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center flex-shrink-0">
-                            {otherUser.photo ?
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
-                            <span className="text-2xl font-bold text-purple-400">{otherUser.initial}</span>
-                            }
+                        {/* Foto + botones + info debajo */}
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                            <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                              {otherUser.photo ?
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                              }
+                            </div>
+                          </Link>
+
+                          {/* Dirección debajo de foto - ocupa toda la línea */}
+                          {alert?.address && (
+                            <div className="flex items-center gap-1.5 text-gray-500 text-xs -mx-2 px-2 w-[calc(100%+16px)]">
+                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate flex-1">{alert.address}</span>
+                            </div>
+                          )}
+
+                          {/* Tiempo restante - ocupa toda la línea */}
+                          {alert?.available_in_minutes !== undefined && (
+                            <div className="flex items-center gap-1.5 text-xs -mx-2 px-2 w-[calc(100%+16px)] justify-between">
+                              <div className="flex items-center gap-1.5 text-gray-400">
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                <span>Se va en {alert.available_in_minutes} min</span>
+                              </div>
+                              <span className="text-purple-400 font-medium">
+                                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Botones debajo */}
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (otherUser.allowCalls && otherUser.phone) {
+                                  window.location.href = `tel:${otherUser.phone}`;
+                                }
+                              }}
+                              disabled={!otherUser.allowCalls || !otherUser.phone}
+                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
+                              <Phone className="w-4 h-4" />
+                            </Button>
+
+                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </Link>
+
+                            {alert?.available_in_minutes !== undefined && (
+                              <div className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg h-8 border-2 border-gray-700 flex items-center justify-center px-2">
+                                <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
+                              </div>
+                            )}
                           </div>
-                        </Link>
+                        </div>
 
                         {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-0 min-w-0">
+                        <div className="flex-1 flex flex-col gap-1.5 min-w-0 justify-start">
                           {/* Nombre */}
-                          <p className={`font-bold text-sm truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <p className={`font-bold text-base truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
                           </p>
 
@@ -346,51 +402,7 @@ export default function Chats() {
                               </span>
                             </div>
                           )}
-
-                          {/* Separador horizontal */}
-                          <div className="h-px bg-gray-700 my-1 -mx-3 w-[calc(100%+24px)]"></div>
                         </div>
-                      </div>
-
-                      {/* Dirección */}
-                      {alert?.address && (
-                        <div className="flex items-center gap-1.5 text-gray-500 text-xs px-1">
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{alert.address}</span>
-                        </div>
-                      )}
-
-                      {/* Botones debajo */}
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (otherUser.allowCalls && otherUser.phone) {
-                              window.location.href = `tel:${otherUser.phone}`;
-                            }
-                          }}
-                          disabled={!otherUser.allowCalls || !otherUser.phone}
-                          title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-                          <Phone className="w-4 h-4" />
-                        </Button>
-
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                        </Link>
-
-                        {alert?.available_in_minutes !== undefined && (
-                          <div className="flex-1 bg-gray-800 hover:bg-gray-700 rounded-lg h-8 border-2 border-gray-700 flex items-center justify-center px-2">
-                            <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
-                          </div>
-                        )}
                       </div>
 
                       {/* Último mensaje */}
