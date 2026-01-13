@@ -18,8 +18,12 @@ export default function Chat() {
   
   const [user, setUser] = useState(null);
   const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     const fetchUser = async () => {
