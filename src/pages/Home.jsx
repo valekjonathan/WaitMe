@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, MessageCircle, MapPin, Car, X, ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { Settings, MessageCircle, MapPin, Car, X, ArrowLeft, SlidersHorizontal, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '@/components/Logo';
@@ -38,6 +39,7 @@ export default function Home() {
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
   const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchAddress, setSearchAddress] = useState('');
   const [filters, setFilters] = useState({
     maxPrice: 7,
     maxMinutes: 25,
@@ -335,7 +337,7 @@ export default function Home() {
             className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
             style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
 
-              <div className="h-[48%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={setSelectedAlert}
@@ -369,7 +371,22 @@ export default function Home() {
                 }
                 </AnimatePresence>
               </div>
-              <div className="flex-1 px-4 pt-2 min-h-0">
+
+              {/* Barra de búsqueda */}
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    value={searchAddress}
+                    onChange={(e) => setSearchAddress(e.target.value)}
+                    className="w-full bg-gray-900 border-gray-700 text-white pl-10 rounded-xl h-11"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 px-4 pb-2 min-h-0 overflow-hidden">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
