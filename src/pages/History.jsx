@@ -380,25 +380,44 @@ export default function History() {
                   </div>
 
                   {isSeller && tx.buyer_name && (
-                    <div className="mb-1.5 h-[220px]">
-                      <UserCard
-                        userName={tx.buyer_name}
-                        userPhoto={null}
-                        carBrand="Sin"
-                        carModel="datos"
-                        carColor="gris"
-                        carPlate=""
-                        vehicleType="car"
-                        address={tx.address}
-                        showLocationInfo={false}
-                        showContactButtons={true}
-                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}
-                        onCall={() => {}}
-                        allowPhoneCalls={false}
-                        muted={true}
-                      />
-                    </div>
-                  )}
+                     <div className="mb-1.5 h-[220px]">
+                       <UserCard
+                         userName={tx.buyer_name}
+                         userPhoto={null}
+                         carBrand="Sin"
+                         carModel="datos"
+                         carColor="gris"
+                         carPlate=""
+                         vehicleType="car"
+                         address={tx.address}
+                         price={tx.amount}
+                         showLocationInfo={true}
+                         latitude={null}
+                         longitude={null}
+                         allowPhoneCalls={false}
+                         muted={true}
+                         actionButtons={
+                           <div className="flex gap-2">
+                             <Button
+                               size="icon"
+                               className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                               onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}
+                             >
+                               <MessageCircle className="w-4 h-4" />
+                             </Button>
+                             <Button
+                               variant="outline"
+                               size="icon"
+                               className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                               disabled
+                             >
+                               <PhoneOff className="w-4 h-4 text-gray-600" />
+                             </Button>
+                           </div>
+                         }
+                       />
+                     </div>
+                   )}
 
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -585,23 +604,42 @@ export default function History() {
                   </div>
 
                   <div className="mb-1.5 h-[220px]">
-                    <UserCard
-                      userName={tx.seller_name}
-                      userPhoto={null}
-                      carBrand="Sin"
-                      carModel="datos"
-                      carColor="gris"
-                      carPlate=""
-                      vehicleType="car"
-                      address={tx.address}
-                      showLocationInfo={false}
-                      showContactButtons={true}
-                      onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}
-                      onCall={() => {}}
-                      allowPhoneCalls={false}
-                      muted={true}
-                    />
-                  </div>
+                     <UserCard
+                       userName={tx.seller_name}
+                       userPhoto={null}
+                       carBrand="Sin"
+                       carModel="datos"
+                       carColor="gris"
+                       carPlate=""
+                       vehicleType="car"
+                       address={tx.address}
+                       price={tx.amount}
+                       showLocationInfo={true}
+                       latitude={null}
+                       longitude={null}
+                       allowPhoneCalls={false}
+                       muted={true}
+                       actionButtons={
+                         <div className="flex gap-2">
+                           <Button
+                             size="icon"
+                             className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                             onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}
+                           >
+                             <MessageCircle className="w-4 h-4" />
+                           </Button>
+                           <Button
+                             variant="outline"
+                             size="icon"
+                             className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                             disabled
+                           >
+                             <PhoneOff className="w-4 h-4 text-gray-600" />
+                           </Button>
+                         </div>
+                       }
+                     />
+                   </div>
                   
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
