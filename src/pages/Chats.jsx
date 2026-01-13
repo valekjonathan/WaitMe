@@ -39,7 +39,7 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-2 w-full">
+    <div className="h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-2">
       <span className="text-purple-400 text-xs font-mono font-bold">{timeLeft}</span>
     </div>);
 
@@ -120,33 +120,19 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda y ordenar por no leídos primero
+  // Filtrar conversaciones por búsqueda
   const filteredConversations = React.useMemo(() => {
-    let filtered = conversations;
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
-        const lastMessage = conv.last_message_text || '';
+    if (!searchQuery) return conversations;
 
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
-      });
-    }
+    const query = searchQuery.toLowerCase();
+    return conversations.filter((conv) => {
+      const otherUserName = conv.participant1_id === user?.id ?
+      conv.participant2_name :
+      conv.participant1_name;
+      const lastMessage = conv.last_message_text || '';
 
-    // Ordenar: no leídos primero
-    return filtered.sort((a, b) => {
-      const isP1_a = a.participant1_id === user?.id;
-      const unreadA = isP1_a ? a.unread_count_p1 : a.unread_count_p2;
-      const isP1_b = b.participant1_id === user?.id;
-      const unreadB = isP1_b ? b.unread_count_p1 : b.unread_count_p2;
-      
-      if (unreadB > 0 && unreadA === 0) return 1;
-      if (unreadA > 0 && unreadB === 0) return -1;
-      return 0;
+      return otherUserName?.toLowerCase().includes(query) ||
+      lastMessage.toLowerCase().includes(query);
     });
   }, [conversations, searchQuery, user?.id]);
 
@@ -291,127 +277,148 @@ export default function Chats() {
 
                   <div
                   className={`
-                      bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden transition-all
+                      bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 transition-all
                       ${hasUnread ?
                   'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
                   'border-2 border-gray-800'}
                     `
                   }>
-                    {/* Encabezado con "Información del usuario:" */}
-                    <div className="bg-purple-600/20 border-b border-purple-500/30 px-4 py-2">
-                      <p className="text-purple-400 text-xs font-medium flex items-center gap-2">
-                        <MapPin className="w-3 h-3" />
-                        {distanceText && <span>{distanceText}</span>}
-                        {alert && <span className="text-purple-300">• {alert.price}€</span>}
-                      </p>
-                    </div>
 
-                    {/* Contenido principal */}
-                    <div className="p-4">
-                      <div className="flex gap-3">
-                        {/* Columna izquierda: Foto */}
-                        <div className="flex-shrink-0" style={{ width: '92px' }}>
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <div className="w-[92px] h-20 rounded-lg overflow-hidden bg-gray-800 border-2 border-purple-500">
-                              {otherUser.photo ? (
-                                <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                                </div>
-                              )}
+                    <div className="flex gap-3 px-2">
+                      {/* Foto a la izquierda */}
+                      <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                        <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500">
+                          {otherUser.photo ? (
+                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
+                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
                             </div>
-                          </Link>
-
-                          {/* Botones debajo de la foto - mismo ancho que foto */}
-                          <div className="flex gap-1 mt-2 w-[92px]">
-                            <Button
-                              className="bg-green-600 hover:bg-green-700 text-white h-9 flex-1 rounded-lg flex items-center justify-center p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (otherUser.allowCalls && otherUser.phone) {
-                                  window.location.href = `tel:${otherUser.phone}`;
-                                }
-                              }}
-                              disabled={!otherUser.allowCalls || !otherUser.phone}
-                            >
-                              <Phone className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              className="bg-white hover:bg-gray-100 text-green-600 h-9 flex-1 rounded-lg flex items-center justify-center p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
-                              }}
-                            >
-                              <MessageCircle className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          )}
                         </div>
+                      </Link>
 
-                        {/* Columna derecha: Info */}
-                        <div className="flex-1 flex flex-col gap-2">
-                          {/* Nombre */}
-                          <h3 className={`font-bold text-base ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
-                            {otherUserName}
-                          </h3>
-                          
-                          {/* Marca y Modelo */}
-                          {alert && (
-                            <p className={`text-sm ${hasUnread ? 'text-white' : 'text-gray-400'}`}>
+                      {/* Info a la derecha */}
+                      <div className="flex-1 flex flex-col justify-between pr-2">
+                        {/* Nombre */}
+                        <p className={`font-bold text-lg ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{otherUserName}</p>
+                        
+                        {/* Marca y Modelo con icono */}
+                        {alert && (
+                          <div className="flex items-center justify-between">
+                            <p className={`text-xs font-medium ${hasUnread ? 'text-white' : 'text-gray-400'}`}>
                               {alert.car_brand} {alert.car_model}
                             </p>
-                          )}
-                          
-                          {/* Matrícula */}
-                          {alert && (
-                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-                              <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-                                <span className="text-[10px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
-                                {(() => {
-                                  const plate = alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
-                                  return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
-                                })()}
-                              </span>
+                            {(() => {
+                              const carColors = {
+                                'blanco': '#FFFFFF',
+                                'negro': '#1a1a1a',
+                                'rojo': '#ef4444',
+                                'azul': '#3b82f6',
+                                'amarillo': '#facc15',
+                                'gris': '#6b7280'
+                              };
+                              const color = carColors[alert.car_color] || '#6b7280';
+                              
+                              if (alert.vehicle_type === 'van') {
+                                return (
+                                  <svg viewBox="0 0 48 30" className="w-8 h-5" fill="none">
+                                    <path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="24" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="34" cy="24" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              } else if (alert.vehicle_type === 'suv') {
+                                return (
+                                  <svg viewBox="0 0 48 30" className="w-8 h-5" fill="none">
+                                    <path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="24" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="36" cy="24" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              } else {
+                                return (
+                                  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+                                    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+                                    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                                  </svg>
+                                );
+                              }
+                            })()}
+                          </div>
+                        )}
+                        
+                        {/* Matrícula */}
+                        {alert && (
+                          <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                            <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                              <span className="text-[8px] font-bold text-white">E</span>
                             </div>
-                          )}
+                            <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
+                              {(() => {
+                                const plate = alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
+                                return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
+                              })()}
+                            </span>
+                          </div>
+                        )}
 
-                          {/* Contador de cuenta atrás - mismo ancho que info */}
+                        {/* Último mensaje */}
+                        <p className={`text-xs truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          {conv.last_message_text || 'Sin mensajes'}
+                        </p>
+
+                        {/* Botones de acción */}
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <Button
+                            className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
+                            }}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                          >
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          
+                          {/* Contador de cuenta atrás */}
                           {alert && (
-                            <CountdownTimer
-                              availableInMinutes={alert.available_in_minutes}
-                              createdDate={alert.created_date}
-                            />
+                            <div className="flex-1">
+                              <CountdownTimer
+                                availableInMinutes={alert.available_in_minutes}
+                                createdDate={alert.created_date}
+                              />
+                            </div>
                           )}
                         </div>
                       </div>
-
-                      {/* Separador */}
-                      <div className="my-3 border-t border-gray-700"></div>
-
-                      {/* Información adicional */}
-                      {alert && (
-                        <div className="space-y-2">
-                          <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{alert.address || 'Ubicación marcada'}</span>
-                          </div>
-                          <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            <Clock className="w-3 h-3 flex-shrink-0" />
-                            <span>Se va en {alert.available_in_minutes} min • Te espera hasta las {format(new Date(new Date(alert.created_date).getTime() + alert.available_in_minutes * 60000), 'HH:mm')}</span>
-                          </div>
-                          
-                          {/* Último mensaje */}
-                          {conv.last_message_text && (
-                            <div className={`text-xs mt-2 p-2 rounded-lg ${hasUnread ? 'bg-purple-500/20 text-white' : 'bg-gray-800 text-gray-400'}`}>
-                              <p className="truncate">{conv.last_message_text}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
+
+                    {/* Dirección y tiempo debajo */}
+                    {alert && (
+                      <div className="mt-3 px-2 space-y-1">
+                        <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{alert.address || 'Ubicación marcada'}</span>
+                        </div>
+                        <div className={`flex items-center gap-2 text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                          <Clock className="w-3 h-3 flex-shrink-0" />
+                          <span>Se va en {alert.available_in_minutes} min • Te espera hasta las {format(new Date(new Date(alert.created_date).getTime() + alert.available_in_minutes * 60000), 'HH:mm')}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>);
 
