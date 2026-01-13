@@ -149,7 +149,60 @@ export default function Chats() {
   // Obtener alertas para mostrar info
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats'],
-    queryFn: () => base44.entities.ParkingAlert.list(),
+    queryFn: async () => {
+      const realAlerts = await base44.entities.ParkingAlert.list();
+      
+      // Datos mock de alertas
+      const mockAlerts = [
+        {
+          id: 'alert1',
+          user_name: 'Laura',
+          user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          car_brand: 'Opel',
+          car_model: 'Corsa',
+          car_plate: '9812 GHJ',
+          price: 4,
+          available_in_minutes: 28,
+          address: 'Paseo de la Castellana, 42',
+          latitude: 40.464667,
+          longitude: -3.632623,
+          allow_phone_calls: true,
+          phone: '+34612345678'
+        },
+        {
+          id: 'alert2',
+          user_name: 'Marta',
+          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          car_brand: 'Seat',
+          car_model: 'Ibiza',
+          car_plate: '1234 ABC',
+          price: 3,
+          available_in_minutes: 15,
+          address: 'Calle Mayor, 18',
+          latitude: 40.416775,
+          longitude: -3.703790,
+          allow_phone_calls: false,
+          phone: null
+        },
+        {
+          id: 'alert3',
+          user_name: 'Carlos',
+          user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          car_brand: 'Toyota',
+          car_model: 'Yaris',
+          car_plate: '5678 DEF',
+          price: 5,
+          available_in_minutes: 45,
+          address: 'Avenida del Paseo, 25',
+          latitude: 40.456775,
+          longitude: -3.688790,
+          allow_phone_calls: true,
+          phone: '+34698765432'
+        }
+      ];
+      
+      return [...mockAlerts, ...realAlerts];
+    },
     enabled: !!user?.id
   });
 
