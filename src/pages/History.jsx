@@ -229,7 +229,7 @@ export default function History() {
                       </div>
 
                       {alert.reserved_by_name && (
-                        <div className="mb-2 h-[260px]">
+                        <div className="mb-2 h-[340px]">
                             <UserCard
                               userName={alert.reserved_by_name}
                               userPhoto={null}
@@ -351,7 +351,7 @@ export default function History() {
                   </div>
 
                   {isSeller && tx.buyer_name && (
-                    <div className="mb-2 h-[260px]">
+                    <div className="mb-2 h-[340px]">
                       <UserCard
                         userName={tx.buyer_name}
                         userPhoto={null}
@@ -456,7 +456,7 @@ export default function History() {
                     </div>
                   </div>
 
-                  <div className="mb-2 h-[260px]">
+                  <div className="mb-2 h-[340px]">
                     <UserCard
                       userName={alert.user_name}
                       userPhoto={alert.user_photo}
@@ -526,7 +526,7 @@ export default function History() {
                     </div>
                   </div>
 
-                  <div className="mb-2 h-[260px]">
+                  <div className="mb-2 h-[340px]">
                     <UserCard
                       userName={tx.seller_name}
                       userPhoto={null}
