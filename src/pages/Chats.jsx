@@ -370,7 +370,7 @@ export default function Chats() {
                         </div>
 
                         {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[100px]">
+                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[170px]">
                           {/* Nombre */}
                           <p className={`font-bold text-lg truncate ${hasUnread ? 'text-white' : 'text-gray-300'}`}>
                             {otherUserName}
