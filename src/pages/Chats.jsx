@@ -39,7 +39,7 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
   }, [availableInMinutes, createdDate]);
 
   return (
-    <div className="h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-2">
+    <div className="h-7 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-2 w-full">
       <span className="text-purple-400 text-xs font-mono font-bold">{timeLeft}</span>
     </div>);
 
@@ -120,19 +120,33 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda
+  // Filtrar conversaciones por búsqueda y ordenar por no leídos primero
   const filteredConversations = React.useMemo(() => {
-    if (!searchQuery) return conversations;
+    let filtered = conversations;
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = conversations.filter((conv) => {
+        const otherUserName = conv.participant1_id === user?.id ?
+        conv.participant2_name :
+        conv.participant1_name;
+        const lastMessage = conv.last_message_text || '';
 
-    const query = searchQuery.toLowerCase();
-    return conversations.filter((conv) => {
-      const otherUserName = conv.participant1_id === user?.id ?
-      conv.participant2_name :
-      conv.participant1_name;
-      const lastMessage = conv.last_message_text || '';
+        return otherUserName?.toLowerCase().includes(query) ||
+        lastMessage.toLowerCase().includes(query);
+      });
+    }
 
-      return otherUserName?.toLowerCase().includes(query) ||
-      lastMessage.toLowerCase().includes(query);
+    // Ordenar: no leídos primero
+    return filtered.sort((a, b) => {
+      const isP1_a = a.participant1_id === user?.id;
+      const unreadA = isP1_a ? a.unread_count_p1 : a.unread_count_p2;
+      const isP1_b = b.participant1_id === user?.id;
+      const unreadB = isP1_b ? b.unread_count_p1 : b.unread_count_p2;
+      
+      if (unreadB > 0 && unreadA === 0) return 1;
+      if (unreadA > 0 && unreadB === 0) return -1;
+      return 0;
     });
   }, [conversations, searchQuery, user?.id]);
 
@@ -285,18 +299,45 @@ export default function Chats() {
                   }>
 
                     <div className="flex gap-3 px-2">
-                      {/* Foto a la izquierda */}
-                      <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                        <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500">
-                          {otherUser.photo ? (
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">
-                              <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                            </div>
-                          )}
+                      {/* Columna izquierda: Foto + Botones */}
+                      <div className="flex flex-col gap-2 flex-shrink-0">
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 border-2 border-purple-500">
+                            {otherUser.photo ? (
+                              <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+
+                        {/* Botones debajo de la foto */}
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            className="bg-green-600 hover:bg-green-700 text-white h-9 w-9 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (otherUser.allowCalls && otherUser.phone) {
+                                window.location.href = `tel:${otherUser.phone}`;
+                              }
+                            }}
+                            disabled={!otherUser.allowCalls || !otherUser.phone}
+                          >
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            className="bg-white hover:bg-gray-100 text-green-600 h-9 w-9 rounded-lg flex items-center justify-center p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
+                            }}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
                         </div>
-                      </Link>
+                      </div>
 
                       {/* Info a la derecha */}
                       <div className="flex-1 flex flex-col justify-between pr-2">
@@ -369,40 +410,13 @@ export default function Chats() {
                           {conv.last_message_text || 'Sin mensajes'}
                         </p>
 
-                        {/* Botones de acción */}
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <Button
-                            className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (otherUser.allowCalls && otherUser.phone) {
-                                window.location.href = `tel:${otherUser.phone}`;
-                              }
-                            }}
-                            disabled={!otherUser.allowCalls || !otherUser.phone}
-                          >
-                            <Phone className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`);
-                            }}
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </Button>
-                          
-                          {/* Contador de cuenta atrás */}
-                          {alert && (
-                            <div className="flex-1">
-                              <CountdownTimer
-                                availableInMinutes={alert.available_in_minutes}
-                                createdDate={alert.created_date}
-                              />
-                            </div>
-                          )}
-                        </div>
+                        {/* Contador de cuenta atrás estirado */}
+                        {alert && (
+                          <CountdownTimer
+                            availableInMinutes={alert.available_in_minutes}
+                            createdDate={alert.created_date}
+                          />
+                        )}
                       </div>
                     </div>
 
