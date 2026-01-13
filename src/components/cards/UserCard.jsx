@@ -200,17 +200,17 @@ export default function UserCard({
 
       {/* Información de ubicación */}
       {showLocationInfo && (
-        <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+        <div className="space-y-1 pt-1 border-t border-gray-700">
           {address && (
-            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{address}</span>
+            <div className="flex items-start gap-1 text-gray-400 text-[11px]">
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span className="line-clamp-1">{address}</span>
             </div>
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+              <Clock className="w-3.5 h-3.5" />
               <span>Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
