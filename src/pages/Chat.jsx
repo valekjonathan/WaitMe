@@ -380,8 +380,7 @@ export default function Chat() {
 
 
         {/* Messages */}
-      <main className="flex-1 pt-96 pb-20 px-4 overflow-y-auto">
-
+      <main className="flex-1 pt-20 pb-20 px-4 overflow-y-auto">
         <AnimatePresence>
           {messages.map((msg, index) => {
             const isMine = msg.sender_id === user?.id;
