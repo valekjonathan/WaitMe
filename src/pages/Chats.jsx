@@ -343,35 +343,37 @@ export default function Chats() {
 
                           {/* Botones debajo */}
                           <div className="flex gap-1 w-full">
-                            <Button
-                            variant="ghost"
-                            size="icon"
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[45px]"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (otherUser.allowCalls && otherUser.phone) {
-                                window.location.href = `tel:${otherUser.phone}`;
-                              }
-                            }}
-                            disabled={!otherUser.allowCalls || !otherUser.phone}
-                            title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
-                              <Phone className="w-4 h-4" />
-                            </Button>
-
-                            <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                            <div className="flex gap-1 w-[92px]">
                               <Button
                               variant="ghost"
                               size="icon"
-                              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 max-w-[45px]">
-                                <MessageCircle className="w-4 h-4" />
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-lg h-8"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (otherUser.allowCalls && otherUser.phone) {
+                                  window.location.href = `tel:${otherUser.phone}`;
+                                }
+                              }}
+                              disabled={!otherUser.allowCalls || !otherUser.phone}
+                              title={otherUser.allowCalls && otherUser.phone ? 'Llamar' : 'No autorizado'}>
+                                <Phone className="w-4 h-4" />
                               </Button>
-                            </Link>
+
+                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)} className="flex-1">
+                                <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg h-8">
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </div>
 
                             {alert?.available_in_minutes !== undefined && (
                               <Button
                               variant="ghost"
                               size="icon"
-                              className="bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8 px-2"
+                              className="flex-1 bg-gray-800 hover:bg-gray-700 text-purple-400 rounded-lg h-8"
                               title="Tiempo restante">
                                 <span className="text-xs font-mono font-bold">{alert.available_in_minutes}min</span>
                               </Button>
