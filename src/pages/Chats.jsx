@@ -332,11 +332,13 @@ export default function Chats() {
 
                           {/* Tiempo restante - ocupa toda la línea */}
                           {alert?.available_in_minutes !== undefined && (
-                            <div className="flex items-center gap-1.5 text-xs w-full">
-                              <Clock className="w-3 h-3 flex-shrink-0 text-gray-400" />
-                              <span className="truncate flex-1 text-gray-400">Se va en {alert.available_in_minutes} min</span>
-                              <span className="text-purple-400 whitespace-nowrap">Debes esperar...</span>
-                            </div>
+            <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Se va en {availableInMinutes} min</span>
+              <span className="text-purple-400">
+                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+              </span>
+            </div>
                           )}
 
                           {/* Botones debajo */}
