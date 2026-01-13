@@ -387,135 +387,19 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header */}
       <Header showBackButton={true} backTo="Chats" />
-
-      {/* Messages */}
-      <main className="flex-1 pt-24 pb-32 px-4 overflow-y-auto">
-        <AnimatePresence>
-          {messages.map((msg, index) => {
-            const isMine = msg.sender_id === user?.id;
-            const isSystem = msg.message_type === 'system';
-            const showTimestamp = index === 0 || 
-              (new Date(msg.created_date).getTime() - new Date(messages[index - 1].created_date).getTime() > 300000);
-
-            return (
-              <div key={msg.id}>
-                {showTimestamp && (
-                  <div className="text-center text-xs text-gray-500 my-4">
-                    {format(new Date(msg.created_date), "d 'de' MMMM, HH:mm", { locale: es })}
-                  </div>
-                )}
-
-                {isSystem ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex justify-center my-4"
-                  >
-                    <div className="bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-400 max-w-xs text-center">
-                      {msg.message}
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, x: isMine ? 20 : -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={`flex mb-3 ${isMine ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[75%] ${isMine ? 'order-2' : 'order-1'}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-2 ${
-                          isMine
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-800 text-white'
-                        }`}
-                      >
-                        <p className="text-sm break-words">{msg.message}</p>
-                        {msg.attachments && JSON.parse(msg.attachments).map((att, idx) => (
-                          <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs underline hover:opacity-80">
-                            {att.type.includes('image') ? (
-                              <img src={att.url} alt={att.name} className="max-w-[150px] rounded" />
-                            ) : (
-                              <div className="flex items-center gap-1">
-                                <FileText className="w-3 h-3" />
-                                {att.name}
-                              </div>
-                            )}
-                          </a>
-                        ))}
-                      </div>
-                      <div className={`flex items-center gap-1 mt-1 text-xs ${isMine ? 'justify-end text-purple-400' : 'text-gray-500 justify-start'}`}>
-                        <span>{format(new Date(msg.created_date), 'HH:mm')}</span>
-                        {isMine && (
-                          <span className="font-bold">{msg.read ? '✓✓' : '✓'}</span>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            );
-          })}
-        </AnimatePresence>
-        <div ref={messagesEndRef} />
-      </main>
-
-      {/* Input */}
-      <div className="fixed bottom-24 left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
-        <div>
-          {attachments.length > 0 && (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {attachments.map((att, idx) => (
-                <div key={idx} className="bg-gray-800 rounded-lg px-3 py-2 text-xs flex items-center gap-2 border border-purple-500/30">
-                  {att.type.includes('image') ? <Image className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                  <span className="truncate max-w-[100px]">{att.name}</span>
-                  <button onClick={() => removeAttachment(idx)} className="text-gray-400 hover:text-white">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <form onSubmit={handleSendMessage} className="flex gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              multiple
-              className="hidden"
-              accept="image/*,.pdf,.doc,.docx"
-            />
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="text-purple-400 hover:text-purple-300 flex-shrink-0"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip className="w-5 h-5" />
-            </Button>
-            <Input
-              value={newMessage}
-              onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
-              onKeyPress={handleKeyPress}
-              placeholder="Escribe un mensaje..."
-              className="flex-1 bg-gray-900 border-gray-800 text-white"
-              disabled={sendMessageMutation.isPending}
-            />
-            <Button
-              type="submit"
-              size="icon"
-              className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
-              disabled={(!newMessage.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </form>
-        </div>
-
-      </div>
-
+      <ChatMessages messages={messages} user={user} />
+      <ChatInput
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        onSendMessage={handleSendMessage}
+        onFileSelect={handleFileSelect}
+        isPending={sendMessageMutation.isPending}
+        handleTyping={handleTyping}
+        handleKeyPress={handleKeyPress}
+      />
       <BottomNav />
     </div>
   );
