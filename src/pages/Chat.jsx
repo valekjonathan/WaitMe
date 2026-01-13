@@ -327,9 +327,7 @@ export default function Chat() {
     }
   };
 
-  const removeAttachment = (index) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
-  };
+
 
   const handleTyping = () => {
     setIsTyping(true);
