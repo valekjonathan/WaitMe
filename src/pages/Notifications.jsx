@@ -11,7 +11,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
-import { MapPin } from 'lucide-react';
 
 export default function Notifications() {
   const [user, setUser] = useState(null);
