@@ -16,8 +16,9 @@ import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 
 // Componente de cuenta regresiva
-function CountdownTimer({ availableInMinutes, createdDate }) {
+function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) {
   const [timeLeft, setTimeLeft] = React.useState('');
+  const [expired, setExpired] = React.useState(false);
 
   React.useEffect(() => {
     const updateTimer = () => {
@@ -28,12 +29,17 @@ function CountdownTimer({ availableInMinutes, createdDate }) {
       const minutes = Math.floor(remaining / 60);
       const seconds = remaining % 60;
       setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+
+      if (remaining === 0 && !expired) {
+        setExpired(true);
+        onExpire(alertId);
+      }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [availableInMinutes, createdDate]);
+  }, [availableInMinutes, createdDate, alertId, onExpire, expired]);
 
   return (
     <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
@@ -134,6 +140,12 @@ export default function History() {
     }
   });
 
+  // Auto-cancelar cuando expire
+  const handleExpire = React.useCallback(async (alertId) => {
+    await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  }, [queryClient]);
+
   const getStatusBadge = (status) => {
     const styles = {
       active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -226,7 +238,7 @@ export default function History() {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
                           {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -285,11 +297,11 @@ export default function History() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
+                      <div className="flex items-center justify-between mb-2 relative">
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 text-center flex justify-center">
                           Activa
                         </Badge>
-                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
                           {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -319,7 +331,12 @@ export default function History() {
                         <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                       
-                      <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
+                      <CountdownTimer 
+                        availableInMinutes={alert.available_in_minutes} 
+                        createdDate={alert.created_date}
+                        alertId={alert.id}
+                        onExpire={handleExpire}
+                      />
                     </>
                   )}
                 </motion.div>
@@ -336,11 +353,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2 relative">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
                       {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -481,11 +498,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2 relative">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 text-center flex justify-center">
                       Activa
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
                       {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -560,11 +577,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2 relative">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
                       {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
