@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft, Star, MessageCircle, Phone, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/BottomNav';
+import UserCard from '@/components/cards/UserCard';
 
 export default function Ratings() {
   const [user, setUser] = useState(null);
@@ -170,42 +171,92 @@ export default function Ratings() {
           <div className="space-y-3">
             {(ratings.length > 0 || true) ? (
               (ratings.length > 0 ? ratings : [
-                { id: '1', rating: 4, comment: 'Muy amable y puntual. Excelente transacción, recomendado.', created_date: new Date(Date.now() - 2*24*60*60*1000).toISOString() },
-                { id: '2', rating: 4, comment: 'Perfecto, el lugar estaba exactamente donde dijo. Volvería a usar.', created_date: new Date(Date.now() - 5*24*60*60*1000).toISOString() },
-                { id: '3', rating: 3, comment: 'Bien, aunque llegué 5 minutos tarde de lo previsto.', created_date: new Date(Date.now() - 8*24*60*60*1000).toISOString() },
-                { id: '4', rating: 4, comment: 'Comunicación clara y rápida. Muy profesional.', created_date: new Date(Date.now() - 12*24*60*60*1000).toISOString() },
-                { id: '5', rating: 4, comment: 'Usuario responsable. Coche en perfecto estado. 10/10', created_date: new Date(Date.now() - 15*24*60*60*1000).toISOString() }
+                { 
+                  id: '1', 
+                  rating: 4, 
+                  comment: 'Muy amable y puntual. Excelente transacción, recomendado.', 
+                  created_date: new Date(Date.now() - 2*24*60*60*1000).toISOString(),
+                  rater_name: 'Carlos M.',
+                  rater_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos',
+                  rater_car_brand: 'BMW',
+                  rater_car_model: '320i',
+                  rater_car_color: 'azul',
+                  rater_car_plate: '1234ABC'
+                },
+                { 
+                  id: '2', 
+                  rating: 4, 
+                  comment: 'Perfecto, el lugar estaba exactamente donde dijo. Volvería a usar.', 
+                  created_date: new Date(Date.now() - 5*24*60*60*1000).toISOString(),
+                  rater_name: 'María L.',
+                  rater_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
+                  rater_car_brand: 'Audi',
+                  rater_car_model: 'A4',
+                  rater_car_color: 'negro',
+                  rater_car_plate: '5678DEF'
+                },
+                { 
+                  id: '3', 
+                  rating: 3, 
+                  comment: 'Bien, aunque llegué 5 minutos tarde de lo previsto.', 
+                  created_date: new Date(Date.now() - 8*24*60*60*1000).toISOString(),
+                  rater_name: 'Juan P.',
+                  rater_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Juan',
+                  rater_car_brand: 'Mercedes',
+                  rater_car_model: 'C63',
+                  rater_car_color: 'blanco',
+                  rater_car_plate: '9012GHI'
+                },
+                { 
+                  id: '4', 
+                  rating: 4, 
+                  comment: 'Comunicación clara y rápida. Muy profesional.', 
+                  created_date: new Date(Date.now() - 12*24*60*60*1000).toISOString(),
+                  rater_name: 'Ana G.',
+                  rater_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ana',
+                  rater_car_brand: 'Volkswagen',
+                  rater_car_model: 'Golf',
+                  rater_car_color: 'rojo',
+                  rater_car_plate: '3456JKL'
+                },
+                { 
+                  id: '5', 
+                  rating: 4, 
+                  comment: 'Usuario responsable. Coche en perfecto estado. 10/10', 
+                  created_date: new Date(Date.now() - 15*24*60*60*1000).toISOString(),
+                  rater_name: 'Pedro R.',
+                  rater_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Pedro',
+                  rater_car_brand: 'Peugeot',
+                  rater_car_model: '308',
+                  rater_car_color: 'gris',
+                  rater_car_plate: '7890MNO'
+                }
               ]).map((r, idx) => (
                 <motion.div
                   key={r.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="bg-gray-900 rounded-xl p-4 border border-gray-700">
-                  
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-white font-medium text-sm">Usuario</p>
-                    <div className="flex gap-0.5">
-                      {[...Array(4)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < r.rating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {r.comment && (
-                    <p className="text-gray-400 text-xs leading-relaxed">{r.comment}</p>
-                  )}
-
-                  <p className="text-gray-600 text-xs mt-2">
-                    {new Date(r.created_date).toLocaleDateString('es-ES')}
-                  </p>
+                  className="h-80">
+                  <UserCard
+                    userName={r.rater_name}
+                    userPhoto={r.rater_photo}
+                    carBrand={r.rater_car_brand}
+                    carModel={r.rater_car_model}
+                    carColor={r.rater_car_color}
+                    carPlate={r.rater_car_plate}
+                    userRating={r.rating}
+                    showLocationInfo={false}
+                    actionButtons={
+                      <div className="space-y-2">
+                        <p className="text-gray-400 text-xs font-medium mb-2">Comentario:</p>
+                        <p className="text-gray-300 text-xs leading-relaxed italic">{r.comment}</p>
+                        <p className="text-gray-600 text-[10px] mt-2">
+                          {new Date(r.created_date).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                    }
+                  />
                 </motion.div>
               ))
             ) : (
