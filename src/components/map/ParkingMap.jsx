@@ -411,16 +411,16 @@ export default function ParkingMap({
         }
         
         {/* Alertas */}
-        {alerts.map((alert) =>
-        <Marker
-          key={alert.id}
-          position={[alert.latitude, alert.longitude]}
-          icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
-          eventHandlers={{
-            click: () => onAlertClick && onAlertClick(alert)
-          }}>
-          </Marker>
-        )}
+         {allAlerts.map((alert) =>
+         <Marker
+           key={alert.id}
+           position={[alert.latitude, alert.longitude]}
+           icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
+           eventHandlers={{
+             click: () => onAlertClick && onAlertClick(alert)
+           }}>
+           </Marker>
+         )}
       </MapContainer>
 
 
