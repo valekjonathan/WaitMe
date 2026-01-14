@@ -246,9 +246,11 @@ export default function Home() {
             </Link>
           </div>
 
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
-            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-          </h1>
+          <Link to={createPageUrl('Home')}>
+            <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+            </h1>
+          </Link>
 
           <div className="flex items-center gap-1 ml-auto">
             <Link to={createPageUrl('Settings')}>
