@@ -191,30 +191,47 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
+  // Filtrar conversaciones por búsqueda, pestañas y ordenar
   const filteredConversations = React.useMemo(() => {
+    if (!user?.id) return [];
+    
+    const isP1 = (conv) => conv.participant1_id === user?.id;
     let filtered = conversations;
 
+    // Filtrar por pestaña
+    if (activeTab === 'important') {
+      filtered = filtered.filter(conv => isP1(conv) ? conv.important_for_p1 : conv.important_for_p2);
+    } else if (activeTab === 'archived') {
+      filtered = filtered.filter(conv => isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2);
+    } else {
+      // "all" - excluir archivadas
+      filtered = filtered.filter(conv => !(isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2));
+    }
+
+    // Búsqueda por nombre o mensaje
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
+      filtered = filtered.filter((conv) => {
+        const otherUserName = isP1(conv) ? conv.participant2_name : conv.participant1_name;
         const lastMessage = conv.last_message_text || '';
-
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
+        return otherUserName?.toLowerCase().includes(query) || lastMessage.toLowerCase().includes(query);
       });
     }
 
-    // Ordenar sin leer primero
+    // Ordenar: importantes primero, luego sin leer, luego por fecha
     return filtered.sort((a, b) => {
-      const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
-      const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
-      return bUnread - aUnread;
+      const aImportant = isP1(a) ? a.important_for_p1 : a.important_for_p2;
+      const bImportant = isP1(b) ? b.important_for_p1 : b.important_for_p2;
+      if (aImportant !== bImportant) return bImportant ? 1 : -1;
+
+      const aUnread = (isP1(a) ? a.unread_count_p1 : a.unread_count_p2) || 0;
+      const bUnread = (isP1(b) ? b.unread_count_p1 : b.unread_count_p2) || 0;
+      if (aUnread !== bUnread) return bUnread - aUnread;
+
+      return new Date(b.last_message_at || b.updated_date || b.created_date) - 
+             new Date(a.last_message_at || a.updated_date || a.created_date);
     });
-  }, [conversations, searchQuery, user?.id]);
+  }, [conversations, searchQuery, user?.id, activeTab]);
 
   // Función para calcular minutos desde el último mensaje
   const getMinutesSince = (timestamp) => {
