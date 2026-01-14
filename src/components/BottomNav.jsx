@@ -51,7 +51,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
-      <div className="flex items-center justify-between max-w-md mx-auto">
+      <div className="flex items-center max-w-md mx-auto">
         <Link to={createPageUrl('History')} className="flex-1">
           <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
             <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
@@ -67,6 +67,8 @@ export default function BottomNav() {
           </Button>
         </Link>
 
+        <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
+
         <a href={createPageUrl('Home')} className="flex-1">
           <Button 
             variant="ghost" 
@@ -79,6 +81,8 @@ export default function BottomNav() {
           </Button>
         </a>
 
+        <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
+
         <Link to={createPageUrl('Notifications')} className="flex-1">
           <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
             <Bell className="w-8 h-8" />
@@ -90,6 +94,8 @@ export default function BottomNav() {
             )}
           </Button>
         </Link>
+
+        <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
 
         <Link to={createPageUrl('Profile')} className="flex-1">
           <Button variant="ghost" className="w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
