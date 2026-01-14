@@ -14,6 +14,7 @@ import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
+import RatingDialog from '@/components/RatingDialog';
 
 // Componente de cuenta regresiva
 function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) {
@@ -69,6 +70,7 @@ export default function History() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [ratingDialog, setRatingDialog] = useState({ open: false, alertId: null, transactionId: null, ratedId: null, ratedEmail: null, userName: null, role: null });
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -145,6 +147,26 @@ export default function History() {
     await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }, [queryClient]);
+
+  // Crear valoración
+  const createRatingMutation = useMutation({
+    mutationFn: async ({ alertId, transactionId, ratedId, ratedEmail, rating, comment, role }) => {
+      await base44.entities.Rating.create({
+        alert_id: alertId,
+        transaction_id: transactionId,
+        rater_id: user?.id,
+        rater_email: user?.email,
+        rated_id: ratedId,
+        rated_email: ratedEmail,
+        rating,
+        comment,
+        role
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myTransactions'] });
+    }
+  });
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -420,32 +442,42 @@ export default function History() {
                           </div>
                           
                           <div className="mt-4">
-                            <div className="flex gap-2">
-                              <div>
-                                <Button
-                                  size="icon"
-                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
-                                  onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email}`)}>
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              
-                              <div>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
-                                  disabled>
-                                  <PhoneOff className="w-4 h-4 text-gray-600" />
-                                </Button>
-                              </div>
+                           <div className="flex gap-2">
+                             <div>
+                               <Button
+                                 size="icon"
+                                 className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                                 onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email}`)}>
+                                 <MessageCircle className="w-4 h-4" />
+                               </Button>
+                             </div>
 
-                              <div className="flex-1">
-                                <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                  <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
-                                </div>
-                              </div>
-                            </div>
+                             <div>
+                               <Button
+                                 variant="outline"
+                                 size="icon"
+                                 className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                 disabled>
+                                 <PhoneOff className="w-4 h-4 text-gray-600" />
+                               </Button>
+                             </div>
+
+                             <div className="flex-1">
+                               <Button
+                                 className="w-full h-8 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold"
+                                 onClick={() => setRatingDialog({
+                                   open: true,
+                                   alertId: alert.id,
+                                   transactionId: null,
+                                   ratedId: alert.reserved_by_email,
+                                   ratedEmail: alert.reserved_by_email,
+                                   userName: alert.reserved_by_name,
+                                   role: 'buyer'
+                                 })}>
+                                 Valorar
+                               </Button>
+                             </div>
+                           </div>
                           </div>
                         </div>
                       </div>
@@ -569,9 +601,19 @@ export default function History() {
                               </div>
 
                               <div className="flex-1">
-                                <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                  <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
-                                </div>
+                                <Button
+                                  className="w-full h-8 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold"
+                                  onClick={() => setRatingDialog({
+                                    open: true,
+                                    alertId: tx.alert_id,
+                                    transactionId: tx.id,
+                                    ratedId: tx.buyer_id,
+                                    ratedEmail: tx.buyer_id,
+                                    userName: tx.buyer_name,
+                                    role: 'buyer'
+                                  })}>
+                                  Valorar
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -783,9 +825,19 @@ export default function History() {
                             </div>
 
                             <div className="flex-1">
-                              <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
-                              </div>
+                              <Button
+                                className="w-full h-8 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold"
+                                onClick={() => setRatingDialog({
+                                  open: true,
+                                  alertId: tx.alert_id,
+                                  transactionId: tx.id,
+                                  ratedId: tx.seller_id,
+                                  ratedEmail: tx.seller_id,
+                                  userName: tx.seller_name,
+                                  role: 'seller'
+                                })}>
+                                Valorar
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -814,6 +866,22 @@ export default function History() {
           />
         ))
       }
+
+      {/* Dialog de valoración */}
+      <RatingDialog
+        open={ratingDialog.open}
+        onClose={() => setRatingDialog({ ...ratingDialog, open: false })}
+        onSubmit={(data) => createRatingMutation.mutate({
+          ...data,
+          alertId: ratingDialog.alertId,
+          transactionId: ratingDialog.transactionId,
+          ratedId: ratingDialog.ratedId,
+          ratedEmail: ratingDialog.ratedEmail,
+          role: ratingDialog.role
+        })}
+        userName={ratingDialog.userName}
+        userRole={ratingDialog.role}
+      />
     </div>
   );
 }
