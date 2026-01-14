@@ -233,12 +233,37 @@ export default function Chats() {
     });
   }, [conversations, searchQuery, user?.id, activeTab]);
 
-  // Función para calcular minutos desde el último mensaje
-  const getMinutesSince = (timestamp) => {
-    if (!timestamp) return 1;
-    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
-    return Math.max(1, minutes);
-  };
+  // Mutations para actualizar conversaciones
+  const toggleImportantMutation = useMutation({
+    mutationFn: async ({ convId, isImportant }) => {
+      const isP1 = conversations.find(c => c.id === convId)?.participant1_id === user?.id;
+      const field = isP1 ? 'important_for_p1' : 'important_for_p2';
+      await base44.entities.Conversation.update(convId, { [field]: !isImportant });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  });
+
+  const toggleArchiveMutation = useMutation({
+    mutationFn: async (convId) => {
+      const conv = conversations.find(c => c.id === convId);
+      const isP1 = conv?.participant1_id === user?.id;
+      const field = isP1 ? 'archived_by_p1' : 'archived_by_p2';
+      await base44.entities.Conversation.update(convId, { [field]: true });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  });
+
+  // Contador de conversaciones por pestaña
+  const conversationCounts = React.useMemo(() => {
+    if (!user?.id) return { all: 0, important: 0, archived: 0 };
+    const isP1 = (conv) => conv.participant1_id === user?.id;
+    
+    return {
+      all: conversations.filter(conv => !(isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2)).length,
+      important: conversations.filter(conv => isP1(conv) ? conv.important_for_p1 : conv.important_for_p2).length,
+      archived: conversations.filter(conv => isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2).length
+    };
+  }, [conversations, user?.id]);
 
 
 
