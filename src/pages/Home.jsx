@@ -14,6 +14,7 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
+import NotificationPermission from '@/components/NotificationPermission';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -223,6 +224,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
+      <NotificationPermission user={user} />
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
