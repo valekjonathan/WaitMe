@@ -32,7 +32,7 @@ export default function BottomNav() {
       return alerts;
     },
     enabled: !!user?.email,
-    refetchInterval: 5000
+    refetchInterval: 20000
   });
 
   // Obtener notificaciones no leídas
@@ -46,7 +46,7 @@ export default function BottomNav() {
       return notifs;
     },
     enabled: !!user?.email,
-    refetchInterval: 3000
+    refetchInterval: 20000
   });
 
   return (
