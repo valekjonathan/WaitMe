@@ -406,6 +406,9 @@ export default function Chats() {
                         </div>
                       </div>
 
+                      {/* Separador horizontal */}
+                      <div className="w-full h-px bg-gray-700" />
+
                       {/* Foto + Info derecha */}
                       <div className="flex gap-3 w-full">
                         {/* Foto + botones + info debajo */}
@@ -504,7 +507,8 @@ export default function Chats() {
                           </div>
                           </div>
 
-
+                      {/* Separador horizontal */}
+                      <div className="w-full h-px bg-gray-700" />
 
                       {/* Último mensaje */}
                       <div className="flex-1 min-w-0 w-full">
