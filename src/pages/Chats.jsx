@@ -2,23 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, Settings, Search, X, Archive, Star } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, Navigation, MapPin, Clock, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion } from 'framer-motion';
+import { formatDistanceToNow, format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
-import ConversationItem from '@/components/chat/ConversationItem';
 
+// Componente contador de cuenta atrás
+function CountdownTimer({ availableInMinutes }) {
+  const [timeLeft, setTimeLeft] = useState('');
 
+  useEffect(() => {
+    const updateTimer = () => {
+      const totalSeconds = availableInMinutes * 60;
+      const now = Math.floor(Date.now() / 1000);
+      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
+      const elapsed = now - startTime;
+      const remaining = Math.max(0, totalSeconds - elapsed);
+
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [availableInMinutes]);
+
+  return (
+    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
+    </div>);
+
+}
 
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -191,79 +217,37 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda, pestañas y ordenar
+  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
   const filteredConversations = React.useMemo(() => {
-    if (!user?.id) return [];
-    
-    const isP1 = (conv) => conv.participant1_id === user?.id;
     let filtered = conversations;
 
-    // Filtrar por pestaña
-    if (activeTab === 'important') {
-      filtered = filtered.filter(conv => isP1(conv) ? conv.important_for_p1 : conv.important_for_p2);
-    } else if (activeTab === 'archived') {
-      filtered = filtered.filter(conv => isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2);
-    } else {
-      // "all" - excluir archivadas
-      filtered = filtered.filter(conv => !(isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2));
-    }
-
-    // Búsqueda por nombre o mensaje
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((conv) => {
-        const otherUserName = isP1(conv) ? conv.participant2_name : conv.participant1_name;
+      filtered = conversations.filter((conv) => {
+        const otherUserName = conv.participant1_id === user?.id ?
+        conv.participant2_name :
+        conv.participant1_name;
         const lastMessage = conv.last_message_text || '';
-        return otherUserName?.toLowerCase().includes(query) || lastMessage.toLowerCase().includes(query);
+
+        return otherUserName?.toLowerCase().includes(query) ||
+        lastMessage.toLowerCase().includes(query);
       });
     }
 
-    // Ordenar: importantes primero, luego sin leer, luego por fecha
+    // Ordenar sin leer primero
     return filtered.sort((a, b) => {
-      const aImportant = isP1(a) ? a.important_for_p1 : a.important_for_p2;
-      const bImportant = isP1(b) ? b.important_for_p1 : b.important_for_p2;
-      if (aImportant !== bImportant) return bImportant ? 1 : -1;
-
-      const aUnread = (isP1(a) ? a.unread_count_p1 : a.unread_count_p2) || 0;
-      const bUnread = (isP1(b) ? b.unread_count_p1 : b.unread_count_p2) || 0;
-      if (aUnread !== bUnread) return bUnread - aUnread;
-
-      return new Date(b.last_message_at || b.updated_date || b.created_date) - 
-             new Date(a.last_message_at || a.updated_date || a.created_date);
+      const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
+      const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
+      return bUnread - aUnread;
     });
-  }, [conversations, searchQuery, user?.id, activeTab]);
+  }, [conversations, searchQuery, user?.id]);
 
-  // Mutations para actualizar conversaciones
-  const toggleImportantMutation = useMutation({
-    mutationFn: async ({ convId, isImportant }) => {
-      const isP1 = conversations.find(c => c.id === convId)?.participant1_id === user?.id;
-      const field = isP1 ? 'important_for_p1' : 'important_for_p2';
-      await base44.entities.Conversation.update(convId, { [field]: !isImportant });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] })
-  });
-
-  const toggleArchiveMutation = useMutation({
-    mutationFn: async (convId) => {
-      const conv = conversations.find(c => c.id === convId);
-      const isP1 = conv?.participant1_id === user?.id;
-      const field = isP1 ? 'archived_by_p1' : 'archived_by_p2';
-      await base44.entities.Conversation.update(convId, { [field]: true });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] })
-  });
-
-  // Contador de conversaciones por pestaña
-  const conversationCounts = React.useMemo(() => {
-    if (!user?.id) return { all: 0, important: 0, archived: 0 };
-    const isP1 = (conv) => conv.participant1_id === user?.id;
-    
-    return {
-      all: conversations.filter(conv => !(isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2)).length,
-      important: conversations.filter(conv => isP1(conv) ? conv.important_for_p1 : conv.important_for_p2).length,
-      archived: conversations.filter(conv => isP1(conv) ? conv.archived_by_p1 : conv.archived_by_p2).length
-    };
-  }, [conversations, user?.id]);
+  // Función para calcular minutos desde el último mensaje
+  const getMinutesSince = (timestamp) => {
+    if (!timestamp) return 1;
+    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
+    return Math.max(1, minutes);
+  };
 
 
 
@@ -310,120 +294,234 @@ export default function Chats() {
       </header>
 
       <main className="pt-[60px] pb-24">
-        {/* Buscador */}
+        {/* Buscador justo debajo del header */}
         <div className="px-4 pt-2 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por nombre o mensaje..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-              >
+              placeholder="Buscar conversaciones..."
+              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white" />
+
+            {searchQuery &&
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7">
+
                 <X className="w-4 h-4" />
               </Button>
-            )}
+            }
           </div>
         </div>
 
-        {/* Pestañas de filtrado */}
-        <div className="px-4 pb-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-900">
-              <TabsTrigger value="all" className="data-[state=active]:bg-purple-600">
-                Todas {conversationCounts.all > 0 && `(${conversationCounts.all})`}
-              </TabsTrigger>
-              <TabsTrigger value="important" className="data-[state=active]:bg-purple-600">
-                <Star className="w-4 h-4 mr-1" />
-                {conversationCounts.important > 0 && conversationCounts.important}
-              </TabsTrigger>
-              <TabsTrigger value="archived" className="data-[state=active]:bg-purple-600">
-                <Archive className="w-4 h-4 mr-1" />
-                {conversationCounts.archived > 0 && conversationCounts.archived}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-12 text-gray-500">
+        {isLoading ?
+        <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
-          </div>
-        ) : filteredConversations.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
+          </div> :
+        filteredConversations.length === 0 ?
+        <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-lg mb-2">
-              {searchQuery ? 'No se encontraron conversaciones' : 
-               activeTab === 'important' ? 'Sin conversaciones importantes' :
-               activeTab === 'archived' ? 'Sin conversaciones archivadas' :
-               'Sin conversaciones'}
+              {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
             </p>
             <p className="text-sm">
-              {searchQuery ? 'Intenta con otra búsqueda' : 
-               activeTab === 'important' ? 'Marca conversaciones como importantes desde el menú' :
-               activeTab === 'archived' ? 'Las conversaciones archivadas aparecerán aquí' :
-               'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
+              {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
             </p>
-          </div>
-        ) : (
-          <div className="px-4 space-y-3">
+          </div> :
+
+        <div className="px-4 space-y-3">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
-              const isP1 = conv.participant1_id === user?.id;
-              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-              const alert = alertsMap.get(conv.alert_id);
+            const isP1 = conv.participant1_id === user?.id;
+            const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
+            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+            const alert = alertsMap.get(conv.alert_id);
 
-              const otherUserData = usersMap.get(otherUserId);
-              const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-              const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+            // Borde encendido SOLO si tiene mensajes no leídos
+            const hasUnread = unreadCount > 0;
 
-              const otherUser = {
-                name: otherUserName,
-                photo: otherUserPhoto,
-                initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-              };
+            // Resolver datos del otro usuario desde usersMap
+            const otherUserData = usersMap.get(otherUserId);
+            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
+            const allowCalls = otherUserData?.allow_phone_calls ?? false;
 
-              const calculateDistance = () => {
-                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
-                const R = 6371;
-                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                const distanceKm = R * c;
-                const meters = Math.round(distanceKm * 1000);
-                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-              };
-              const distanceText = calculateDistance();
+            // Construir objeto otherUser
+            const otherUser = {
+              name: otherUserName,
+              photo: otherUserPhoto,
+              phone: otherUserPhone,
+              allowCalls: allowCalls,
+              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
+            };
 
-              const isImportant = isP1 ? conv.important_for_p1 : conv.important_for_p2;
+            // Calcular distancia (metros o km)
+            const calculateDistance = () => {
+              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+              const R = 6371;
+              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+              const distanceKm = R * c;
+              const meters = Math.round(distanceKm * 1000);
+              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+            };
+            const distanceText = calculateDistance();
 
-              return (
-                <ConversationItem
-                  key={conv.id}
-                  conv={conv}
-                  user={user}
-                  alert={alert}
-                  otherUser={otherUser}
-                  unreadCount={unreadCount}
-                  distanceText={distanceText}
-                  index={index}
-                  onToggleImportant={() => toggleImportantMutation.mutate({ convId: conv.id, isImportant })}
-                  onToggleArchive={() => toggleArchiveMutation.mutate(conv.id)}
-                />
-              );
-            })}
-          </div>
-        )}
+            return (
+              <motion.div
+                key={conv.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}>
+
+                <div className={`bg-gray-900 rounded-2xl p-4 transition-all
+                  ${hasUnread ?
+                'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
+                'border-2 border-gray-800'}
+                `
+                }>
+
+                    <div className="flex items-start gap-3 flex-col w-full">
+                      {/* Header: "Info del usuario:" + distancia + precio */}
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {distanceText &&
+                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
+                            </div>
+                        }
+                          {alert &&
+                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
+                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
+                            </div>
+                        }
+                        </div>
+                      </div>
+
+                      {/* Foto + Info derecha */}
+                      <div className="flex gap-3 w-full">
+                        {/* Foto + botones + info debajo */}
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                            <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
+                              {otherUser.photo ?
+                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
+                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
+                            }
+                            </div>
+                          </Link>
+
+                          {/* Dirección debajo de foto - ocupa toda la línea */}
+                          {alert?.address &&
+                        <div className="flex items-center gap-1.5 text-gray-500 text-xs w-full">
+                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate flex-1">{alert.address}</span>
+                            </div>
+                        }
+
+                          {/* Tiempo restante - ocupa toda la línea */}
+                          {alert?.available_in_minutes !== undefined &&
+                        <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Se va en {alert.available_in_minutes} min</span>
+              <span className="text-purple-400">
+                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+              </span>
+            </div>
+                        }
+
+                          {/* Botones debajo */}
+                          <div className="flex gap-2 items-center">
+                            {/* Chat Button */}
+                            <div>
+                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                                <Button
+                                size="icon"
+                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                            </div>
+
+                            {/* Phone Button */}
+                            <div>
+                              <Button
+                              variant="outline"
+                              size="icon"
+                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                              disabled={!alert.allow_phone_calls}>
+                                {alert.allow_phone_calls ?
+                              <Phone className="w-4 h-4 text-green-400" /> :
+                              <Phone className="w-4 h-4 text-gray-600" />
+                              }
+                              </Button>
+                            </div>
+
+                            {/* Countdown Timer */}
+                            <div className="flex-1">
+                              <CountdownTimer availableInMinutes={alert.available_in_minutes} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Info derecha */}
+                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px] -mt-1">
+                          {/* Nombre */}
+                          <p className="font-bold text-xl text-white mb-1.5">
+                            {otherUserName}
+                          </p>
+
+                          {/* Marca y modelo */}
+                          {alert &&
+                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                             <p className="text-sm text-gray-400">
+                               {alert.car_brand} {alert.car_model}
+                             </p>
+                             <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                           </div>
+                          }
+
+                          {/* Matrícula */}
+                          {alert &&
+                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[8px] font-bold text-white">E</span>
+                              </div>
+                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
+                                {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
+                              </span>
+                            </div>
+                          }
+                          </div>
+                          </div>
+
+
+
+                      {/* Último mensaje */}
+                      <div className="flex-1 min-w-0 w-full">
+                        <p className="text-xs text-purple-400 font-medium mb-1">Ultimos mensajes:</p>
+                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                            {conv.last_message_text || 'Sin mensajes'}
+                          </p>
+                        </Link>
+                      </div>
+                    </div>
+                </div>
+              </motion.div>);
+
+          })}
+                      </div>
+        }
                       </main>
 
       <BottomNav />
