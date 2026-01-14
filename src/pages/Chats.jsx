@@ -451,21 +451,24 @@ export default function Chats() {
                               </Link>
                             </div>
 
-                            {/* Gray Button with 20% */}
+                            {/* Phone Button */}
                             <div>
                               <Button
                               variant="outline"
                               size="icon"
-                              className="border-gray-700 h-8 w-[42px] bg-gray-800 hover:bg-gray-700">
-                                <span className="text-xs font-bold text-gray-400">20%</span>
+                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                              onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                              disabled={!alert.allow_phone_calls}>
+                                {alert.allow_phone_calls ?
+                              <Phone className="w-4 h-4 text-green-400" /> :
+                              <Phone className="w-4 h-4 text-gray-600" />
+                              }
                               </Button>
                             </div>
 
-                            {/* WaitMe Button */}
+                            {/* Countdown Timer */}
                             <div className="flex-1">
-                              <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 w-full">
-                                WaitMe!
-                              </Button>
+                              <CountdownTimer availableInMinutes={alert.available_in_minutes} />
                             </div>
                           </div>
                         </div>
