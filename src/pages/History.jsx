@@ -303,13 +303,13 @@ export default function History() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
+                  className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-red-500/50 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -331,7 +331,9 @@ export default function History() {
                       <Button
                         size="icon"
                         className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                        disabled
+                        onClick={() => {
+                          // Funcionalidad de eliminar/ocultar transacción finalizada
+                        }}
                       >
                         <X className="w-4 h-4" strokeWidth={3} />
                       </Button>
