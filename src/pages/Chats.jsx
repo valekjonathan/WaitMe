@@ -381,143 +381,116 @@ export default function Chats() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}>
 
-                <div className={`bg-gray-900 rounded-2xl p-4 transition-all
+                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all
                   ${hasUnread ?
                 'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
-                'border-2 border-gray-800'}
-                `
-                }>
+                'border-2 border-purple-500'}
+                `}>
 
-                    <div className="flex items-start gap-3 flex-col w-full">
+                    <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {distanceText &&
-                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <p className="text-[13px] text-purple-400">Info del usuario:</p>
+                        <div className="flex items-center gap-1.5">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                              <Navigation className="w-3 h-3 text-purple-400" />
+                              <span className="text-white font-bold text-xs">{distanceText}</span>
                             </div>
-                        }
-                          {alert &&
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
-                            </div>
-                        }
+                          )}
+                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+                            <span className="text-purple-400 font-bold text-xs">{Math.round(alert.price)}€</span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Separador horizontal */}
-                      <div className="w-full h-px bg-gray-700" />
-
-                      {/* Foto + Info derecha */}
-                      <div className="flex gap-3 w-full">
-                        {/* Foto + botones + info debajo */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
+                      {/* Tarjeta de usuario */}
+                      <div className="flex gap-2.5 mb-1.5 flex-1">
+                        <div className="flex flex-col gap-1.5">
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
-                              {otherUser.photo ?
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
-                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                            }
+                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
+                              {otherUser.photo ? (
+                                <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
+                                  👤
+                                </div>
+                              )}
                             </div>
                           </Link>
+                        </div>
 
-                          {/* Dirección debajo de foto - ocupa toda la línea */}
-                          {alert?.address &&
-                        <div className="flex items-center gap-1.5 text-gray-500 text-xs w-full">
-                              <MapPin className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate flex-1">{alert.address}</span>
+                        <div className="flex-1 flex flex-col justify-between">
+                          <p className="font-bold text-xl text-white mb-1.5">{otherUserName?.split(' ')[0]}</p>
+
+                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                            <p className="text-sm font-medium text-white">{alert.car_brand} {alert.car_model}</p>
+                            <Car className="w-5 h-5" style={{ color: '#6b7280' }} />
+                          </div>
+
+                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                            <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-white">E</span>
                             </div>
-                        }
+                            <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+                              {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-                          {/* Tiempo restante - ocupa toda la línea */}
-                          {alert?.available_in_minutes !== undefined &&
-                        <div className="flex items-center gap-1 text-gray-500 text-[10px]">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Se va en {alert.available_in_minutes} min</span>
-              <span className="text-purple-400">
-                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
-              </span>
-            </div>
-                        }
-
-                          {/* Botones debajo */}
-                          <div className="flex gap-2 items-center">
-                            {/* Chat Button */}
+                      {/* Información de ubicación */}
+                      <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+                        {alert?.address && (
+                          <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+                            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{alert.address}</span>
+                          </div>
+                        )}
+                        
+                        {alert?.available_in_minutes !== undefined && (
+                          <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>Se va en {alert.available_in_minutes} min</span>
+                            <span className="text-purple-400">
+                              • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Botones de acción */}
+                        <div className="mt-4">
+                          <div className="flex gap-2">
                             <div>
                               <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                                 <Button
-                                size="icon"
-                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
+                                  size="icon"
+                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
                               </Link>
                             </div>
-
-                            {/* Phone Button */}
+                            
                             <div>
                               <Button
-                              variant="outline"
-                              size="icon"
-                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-                              onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                              disabled={!alert.allow_phone_calls}>
-                                {alert.allow_phone_calls ?
-                              <Phone className="w-4 h-4 text-green-400" /> :
-                              <Phone className="w-4 h-4 text-gray-600" />
-                              }
+                                variant="outline"
+                                size="icon"
+                                className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
+                                onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                                disabled={!alert.allow_phone_calls}>
+                                {alert.allow_phone_calls ? (
+                                  <Phone className="w-4 h-4 text-green-400" />
+                                ) : (
+                                  <PhoneOff className="w-4 h-4 text-gray-600" />
+                                )}
                               </Button>
                             </div>
 
-                            {/* Countdown Timer */}
                             <div className="flex-1">
                               <CountdownTimer availableInMinutes={alert.available_in_minutes} />
                             </div>
                           </div>
                         </div>
-
-                        {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px] -mt-1">
-                          {/* Nombre */}
-                          <p className="font-bold text-xl text-white mb-1.5">
-                            {otherUserName}
-                          </p>
-
-                          {/* Marca y modelo */}
-                          {alert &&
-                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                             <p className="text-sm text-gray-400">
-                               {alert.car_brand} {alert.car_model}
-                             </p>
-                             <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                           </div>
-                          }
-
-                          {/* Matrícula */}
-                          {alert &&
-                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[8px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
-                                {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
-                              </span>
-                            </div>
-                          }
-                          </div>
-                          </div>
-
-                      {/* Separador horizontal */}
-                      <div className="w-full h-px bg-gray-700" />
-
-                      {/* Último mensaje */}
-                      <div className="flex-1 min-w-0 w-full">
-                        <p className="text-xs text-purple-400 font-medium mb-1">Ultimos mensajes:</p>
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {conv.last_message_text || 'Sin mensajes'}
-                          </p>
-                        </Link>
                       </div>
                     </div>
                 </div>
