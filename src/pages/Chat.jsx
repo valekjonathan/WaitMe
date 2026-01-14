@@ -376,21 +376,8 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <Header showBackButton={true} backTo="Chats" />
+    <div className="min-h-screen bg-black text-white">
       <ChatMessages messages={messages} user={user} />
-      <ChatInput
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        onSendMessage={handleSendMessage}
-        onFileSelect={handleFileSelect}
-        isPending={sendMessageMutation.isPending}
-        handleTyping={handleTyping}
-        handleKeyPress={handleKeyPress}
-      />
-      <BottomNav />
     </div>
   );
 }
