@@ -17,6 +17,8 @@ export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
