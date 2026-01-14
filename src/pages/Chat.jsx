@@ -10,7 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import ChatMessages from '@/components/chat/ChatMessages';
+import ChatInput from '@/components/chat/ChatInput';
 
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -376,8 +379,21 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <Header showBackButton={true} backTo="Chats" />
       <ChatMessages messages={messages} user={user} />
+      <ChatInput
+        newMessage={newMessage}
+        setNewMessage={setNewMessage}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        onSendMessage={handleSendMessage}
+        onFileSelect={handleFileSelect}
+        isPending={sendMessageMutation.isPending}
+        handleTyping={handleTyping}
+        handleKeyPress={handleKeyPress}
+      />
+      <BottomNav />
     </div>
   );
 }
