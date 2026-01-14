@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { MessageCircle, Phone, MapPin, Clock, Car, Star, Archive, MoreVertical } from 'lucide-react';
+import { MessageCircle, MapPin, Clock, Car, Star, Archive, MoreVertical, Scissors, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -14,33 +13,24 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-function CountdownTimer({ availableInMinutes }) {
-  const [timeLeft, setTimeLeft] = React.useState('');
+const carColorMap = {
+  'blanco': '#FFFFFF',
+  'negro': '#1a1a1a',
+  'rojo': '#ef4444',
+  'azul': '#3b82f6',
+  'amarillo': '#facc15',
+  'gris': '#6b7280'
+};
 
-  React.useEffect(() => {
-    const updateTimer = () => {
-      const totalSeconds = availableInMinutes * 60;
-      const now = Math.floor(Date.now() / 1000);
-      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
-      const elapsed = now - startTime;
-      const remaining = Math.max(0, totalSeconds - elapsed);
-
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
-      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [availableInMinutes]);
-
+const VehicleIcon = ({ color, type = 'car' }) => {
   return (
-    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
   );
-}
+};
 
 export default function ConversationItem({ 
   conv, 
