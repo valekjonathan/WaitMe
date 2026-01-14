@@ -1,4 +1,3 @@
-import History from './pages/History';
 import Home from './pages/Home';
 import Navigate from './pages/Navigate';
 import NotificationSettings from './pages/NotificationSettings';
@@ -7,10 +6,10 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Chat from './pages/Chat';
 import Chats from './pages/Chats';
+import History from './pages/History';
 
 
 export const PAGES = {
-    "History": History,
     "Home": Home,
     "Navigate": Navigate,
     "NotificationSettings": NotificationSettings,
@@ -19,6 +18,7 @@ export const PAGES = {
     "Settings": Settings,
     "Chat": Chat,
     "Chats": Chats,
+    "History": History,
 }
 
 export const pagesConfig = {

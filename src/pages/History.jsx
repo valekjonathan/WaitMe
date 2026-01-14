@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle, Search } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle, Search, Phone, PhoneOff, Navigation, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -351,23 +351,77 @@ export default function History() {
                   </div>
 
                   {isSeller && tx.buyer_name && (
-                    <div className="mb-1.5 h-[220px]">
-                      <UserCard
-                        userName={tx.buyer_name}
-                        userPhoto={null}
-                        carBrand="Sin"
-                        carModel="datos"
-                        carColor="gris"
-                        carPlate=""
-                        vehicleType="car"
-                        address={tx.address}
-                        showLocationInfo={false}
-                        showContactButtons={true}
-                        onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}
-                        onCall={() => {}}
-                        allowPhoneCalls={false}
-                        muted={true}
-                      />
+                    <div className="mb-1.5">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-700 flex flex-col">
+                        {/* Tarjeta de usuario */}
+                        <div className="flex gap-2.5 mb-1.5 flex-1">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
+                              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
+                                👤
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 flex flex-col justify-between">
+                            <p className="font-bold text-xl text-gray-600 mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
+
+                            <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                              <p className="text-sm font-medium text-gray-600">Sin datos</p>
+                              <Car className="w-5 h-5 text-gray-500" />
+                            </div>
+
+                            <div className="-mt-[7px] bg-gray-700 rounded-md flex items-center overflow-hidden border-2 border-gray-600 h-8">
+                              <div className="bg-gray-600 h-full w-6 flex items-center justify-center">
+                                <span className="text-[9px] font-bold text-gray-500">E</span>
+                              </div>
+                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-gray-600">
+                                XXXX XXX
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Información de ubicación */}
+                        <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+                          {tx.address && (
+                            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                              <span className="line-clamp-1">{tx.address}</span>
+                            </div>
+                          )}
+                          
+                          {/* Botones de acción */}
+                          <div className="mt-4">
+                            <div className="flex gap-2">
+                              <div>
+                                <Button
+                                  size="icon"
+                                  className="bg-gray-700/50 hover:bg-gray-700/50 text-gray-500 rounded-lg h-8 w-[42px] cursor-not-allowed"
+                                  disabled>
+                                  <MessageCircle className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              
+                              <div>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                  disabled>
+                                  <PhoneOff className="w-4 h-4 text-gray-600" />
+                                </Button>
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+                                  <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -526,23 +580,77 @@ export default function History() {
                     </div>
                   </div>
 
-                  <div className="mb-1.5 h-[220px]">
-                    <UserCard
-                      userName={tx.seller_name}
-                      userPhoto={null}
-                      carBrand="Sin"
-                      carModel="datos"
-                      carColor="gris"
-                      carPlate=""
-                      vehicleType="car"
-                      address={tx.address}
-                      showLocationInfo={false}
-                      showContactButtons={true}
-                      onChat={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}
-                      onCall={() => {}}
-                      allowPhoneCalls={false}
-                      muted={true}
-                    />
+                  <div className="mb-1.5">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-700 flex flex-col">
+                      {/* Tarjeta de usuario */}
+                      <div className="flex gap-2.5 mb-1.5 flex-1">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
+                            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
+                              👤
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 flex flex-col justify-between">
+                          <p className="font-bold text-xl text-gray-600 mb-1.5">{tx.seller_name?.split(' ')[0]}</p>
+
+                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                            <p className="text-sm font-medium text-gray-600">Sin datos</p>
+                            <Car className="w-5 h-5 text-gray-500" />
+                          </div>
+
+                          <div className="-mt-[7px] bg-gray-700 rounded-md flex items-center overflow-hidden border-2 border-gray-600 h-8">
+                            <div className="bg-gray-600 h-full w-6 flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-gray-500">E</span>
+                            </div>
+                            <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-gray-600">
+                              XXXX XXX
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Información de ubicación */}
+                      <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+                        {tx.address && (
+                          <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+                            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{tx.address}</span>
+                          </div>
+                        )}
+                        
+                        {/* Botones de acción */}
+                        <div className="mt-4">
+                          <div className="flex gap-2">
+                            <div>
+                              <Button
+                                size="icon"
+                                className="bg-gray-700/50 hover:bg-gray-700/50 text-gray-500 rounded-lg h-8 w-[42px] cursor-not-allowed"
+                                disabled>
+                                <MessageCircle className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            
+                            <div>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                disabled>
+                                <PhoneOff className="w-4 h-4 text-gray-600" />
+                              </Button>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+                                <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
