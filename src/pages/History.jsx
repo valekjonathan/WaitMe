@@ -15,6 +15,33 @@ import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 
+// Componente de cuenta regresiva
+function CountdownTimer({ availableInMinutes, createdDate }) {
+  const [timeLeft, setTimeLeft] = React.useState('');
+
+  React.useEffect(() => {
+    const updateTimer = () => {
+      const targetTime = new Date(createdDate).getTime() + availableInMinutes * 60000;
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((targetTime - now) / 1000));
+
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [availableInMinutes, createdDate]);
+
+  return (
+    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
+      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
+    </div>
+  );
+}
+
 const CarIconTiny = ({ color }) => (
   <svg viewBox="0 0 48 24" className="w-5 h-3 inline-block" fill="none">
     <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
@@ -81,10 +108,12 @@ export default function History() {
 
   // Separar por: Mis alertas creadas vs Mis reservas
   const myActiveAlerts = myAlerts.filter(a => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved'));
+  const myCompletedAlerts = myAlerts.filter(a => a.user_id === user?.id && a.status === 'completed');
   const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
   
   const myAlertsItems = [
     ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
+    ...myCompletedAlerts.map(a => ({ type: 'completed', data: a, date: a.created_date, isActive: false })),
     ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -197,8 +226,8 @@ export default function History() {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                          {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                          {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
@@ -257,11 +286,11 @@ export default function History() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
                           Activa
                         </Badge>
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                          {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                          {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
@@ -284,11 +313,13 @@ export default function History() {
                         <span>{alert.address || 'Ubicación marcada'}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs ml-0.5">
+                      <div className="flex items-center gap-1 text-xs ml-0.5 mb-2">
                         <Clock className="w-3 h-3 text-gray-500" />
                         <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
                         <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
+                      
+                      <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
                     </>
                   )}
                 </motion.div>
@@ -451,11 +482,11 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Activa
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                      {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">

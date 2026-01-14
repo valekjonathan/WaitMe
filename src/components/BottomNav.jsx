@@ -50,10 +50,10 @@ export default function BottomNav() {
   });
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
-      <div className="flex items-center max-w-md mx-auto">
-        <Link to={createPageUrl('History')} className="flex-1">
-          <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-2 py-3 safe-area-pb z-50">
+      <div className="flex items-center max-w-md mx-auto gap-0">
+        <Link to={createPageUrl('History')} className="flex-1 min-w-0">
+          <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg px-1">
             <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
@@ -69,10 +69,10 @@ export default function BottomNav() {
 
         <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
 
-        <a href={createPageUrl('Home')} className="flex-1">
+        <a href={createPageUrl('Home')} className="flex-1 min-w-0">
           <Button 
             variant="ghost" 
-            className="w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg"
+            className="w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg px-1"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -83,8 +83,8 @@ export default function BottomNav() {
 
         <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
 
-        <Link to={createPageUrl('Notifications')} className="flex-1">
-          <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
+        <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
+          <Button variant="ghost" className="relative w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg px-1">
             <Bell className="w-8 h-8" />
             <span className="text-[10px] font-bold">Notificaciones</span>
             {unreadNotifications.length > 0 && (
@@ -97,8 +97,8 @@ export default function BottomNav() {
 
         <div className="w-[1px] h-12 bg-gray-700 flex-shrink-0"></div>
 
-        <Link to={createPageUrl('Profile')} className="flex-1">
-          <Button variant="ghost" className="w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg">
+        <Link to={createPageUrl('Profile')} className="flex-1 min-w-0">
+          <Button variant="ghost" className="w-full flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 rounded-lg px-1">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
