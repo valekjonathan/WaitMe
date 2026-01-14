@@ -175,7 +175,7 @@ export default function History() {
             {/* Barra de búsqueda */}
             <div className="relative mb-1.5">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-
+              <Input
                 type="text"
                 placeholder="Buscar dirección..."
                 value={searchQuery}
