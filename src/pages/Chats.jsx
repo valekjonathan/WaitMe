@@ -310,27 +310,46 @@ export default function Chats() {
       </header>
 
       <main className="pt-[60px] pb-24">
-        {/* Buscador justo debajo del header */}
+        {/* Buscador */}
         <div className="px-4 pt-2 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar conversaciones..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white" />
-
-            {searchQuery &&
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7">
-
+              placeholder="Buscar por nombre o mensaje..."
+              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+              >
                 <X className="w-4 h-4" />
               </Button>
-            }
+            )}
           </div>
+        </div>
+
+        {/* Pestañas de filtrado */}
+        <div className="px-4 pb-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-900">
+              <TabsTrigger value="all" className="data-[state=active]:bg-purple-600">
+                Todas {conversationCounts.all > 0 && `(${conversationCounts.all})`}
+              </TabsTrigger>
+              <TabsTrigger value="important" className="data-[state=active]:bg-purple-600">
+                <Star className="w-4 h-4 mr-1" />
+                {conversationCounts.important > 0 && conversationCounts.important}
+              </TabsTrigger>
+              <TabsTrigger value="archived" className="data-[state=active]:bg-purple-600">
+                <Archive className="w-4 h-4 mr-1" />
+                {conversationCounts.archived > 0 && conversationCounts.archived}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {isLoading ?
