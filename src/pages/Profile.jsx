@@ -139,10 +139,16 @@ export default function Profile() {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-            </div>
-            <h1 className="text-lg font-semibold">Mi Perfil</h1>
+            <Link to={createPageUrl('Settings')}>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+              </div>
+            </Link>
+            <Link to={createPageUrl('Home')}>
+              <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+                <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+              </h1>
+            </Link>
           </div>
           <div className="flex items-center gap-1">
             <Link to={createPageUrl('Settings')}>
