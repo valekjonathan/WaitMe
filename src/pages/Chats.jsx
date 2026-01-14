@@ -11,34 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BottomNav from '@/components/BottomNav';
 import ConversationItem from '@/components/chat/ConversationItem';
 
-// Componente contador de cuenta atrás
-function CountdownTimer({ availableInMinutes }) {
-  const [timeLeft, setTimeLeft] = useState('');
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const totalSeconds = availableInMinutes * 60;
-      const now = Math.floor(Date.now() / 1000);
-      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
-      const elapsed = now - startTime;
-      const remaining = Math.max(0, totalSeconds - elapsed);
-
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
-      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [availableInMinutes]);
-
-  return (
-    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
-}
 
 export default function Chats() {
   const [user, setUser] = useState(null);
