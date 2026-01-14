@@ -171,18 +171,6 @@ export default function History() {
 
           <TabsContent value="alerts" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             <p className="text-white text-[11px] mb-1 text-center font-bold">Estás aparcado en:</p>
-            
-            {/* Barra de búsqueda */}
-            <div className="relative mb-1.5">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Buscar dirección..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-8 text-sm"
-              />
-            </div>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -318,7 +306,7 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-red-500/50 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
                     <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -326,23 +314,23 @@ export default function History() {
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {isSeller ? (
-                        <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                          <TrendingUp className="w-4 h-4 text-gray-600" />
-                          <span className="font-bold text-gray-600 text-sm">
+                        <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                          <span className="font-bold text-green-400 text-sm">
                             {tx.seller_earnings?.toFixed(2)}€
                           </span>
                         </div>
                       ) : (
-                        <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                          <TrendingDown className="w-4 h-4 text-gray-600" />
-                          <span className="font-bold text-gray-600 text-sm">
+                        <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                          <TrendingDown className="w-4 h-4 text-red-400" />
+                          <span className="font-bold text-red-400 text-sm">
                             -{tx.amount?.toFixed(2)}€
                           </span>
                         </div>
                       )}
                       <Button
                         size="icon"
-                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
                         disabled
                       >
                         <X className="w-4 h-4" strokeWidth={3} />
@@ -391,6 +379,11 @@ export default function History() {
                             </div>
                           )}
                           
+                          <div className="flex items-center gap-1 text-xs">
+                            <Clock className="w-3 h-3 text-gray-500" />
+                            <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
+                          </div>
+                          
                           {/* Botones de acción */}
                           <div className="mt-4">
                             <div className="flex gap-2">
@@ -424,16 +417,6 @@ export default function History() {
                       </div>
                     </div>
                   )}
-
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{tx.address || 'Ubicación'}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-xs">
-                    <Clock className="w-3 h-3 text-gray-500" />
-                    <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
-                  </div>
                 </motion.div>
               );
             }
@@ -443,18 +426,6 @@ export default function History() {
 
           <TabsContent value="reservations" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             <p className="text-white text-[11px] mb-1 text-center font-bold">Reservaste a:</p>
-            
-            {/* Barra de búsqueda */}
-            <div className="relative mb-1.5">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Buscar dirección..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border-gray-700 text-white pl-9 rounded-xl h-8 text-sm"
-              />
-            </div>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -557,22 +528,22 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gray-700/20 text-gray-600 border border-gray-600/30 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-red-500/50 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
                     <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="bg-gray-700/20 border border-gray-600/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                        <TrendingDown className="w-4 h-4 text-gray-600" />
-                        <span className="font-bold text-gray-600 text-sm">
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                        <span className="font-bold text-red-400 text-sm">
                           -{tx.amount?.toFixed(2)}€
                         </span>
                       </div>
                       <Button
                         size="icon"
-                        className="bg-gray-700/50 text-gray-600 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-600 cursor-not-allowed"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
                         disabled
                       >
                         <X className="w-4 h-4" strokeWidth={3} />
@@ -620,6 +591,11 @@ export default function History() {
                           </div>
                         )}
                         
+                        <div className="flex items-center gap-1 text-xs">
+                          <Clock className="w-3 h-3 text-gray-500" />
+                          <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
+                        </div>
+                        
                         {/* Botones de acción */}
                         <div className="mt-4">
                           <div className="flex gap-2">
@@ -651,11 +627,6 @@ export default function History() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span>{tx.address || 'Ubicación'}</span>
                   </div>
                 </motion.div>
               );
