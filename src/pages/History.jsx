@@ -340,11 +340,11 @@ export default function History() {
 
                   {isSeller && tx.buyer_name && (
                     <div className="mb-1.5">
-                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-700 flex flex-col">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col">
                         {/* Tarjeta de usuario */}
                         <div className="flex gap-2.5 mb-1.5 flex-1">
                           <div className="flex flex-col gap-1.5">
-                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
+                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
                               <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
                                 👤
                               </div>
@@ -352,18 +352,18 @@ export default function History() {
                           </div>
 
                           <div className="flex-1 flex flex-col justify-between">
-                            <p className="font-bold text-xl text-gray-600 mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
+                            <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
 
                             <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                              <p className="text-sm font-medium text-gray-600">Sin datos</p>
-                              <Car className="w-5 h-5 text-gray-500" />
+                              <p className="text-sm font-medium text-white">Sin datos</p>
+                              <Car className="w-5 h-5 text-gray-400" />
                             </div>
 
-                            <div className="-mt-[7px] bg-gray-700 rounded-md flex items-center overflow-hidden border-2 border-gray-600 h-8">
-                              <div className="bg-gray-600 h-full w-6 flex items-center justify-center">
-                                <span className="text-[9px] font-bold text-gray-500">E</span>
+                            <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                              <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                                <span className="text-[9px] font-bold text-white">E</span>
                               </div>
-                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-gray-600">
+                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
                                 XXXX XXX
                               </span>
                             </div>
@@ -390,8 +390,8 @@ export default function History() {
                               <div>
                                 <Button
                                   size="icon"
-                                  className="bg-gray-700/50 hover:bg-gray-700/50 text-gray-500 rounded-lg h-8 w-[42px] cursor-not-allowed"
-                                  disabled>
+                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                                  onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}>
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
                               </div>
@@ -528,10 +528,10 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-red-500/50 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
                       Finalizada
                     </Badge>
-                    <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                       {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -544,7 +544,9 @@ export default function History() {
                       <Button
                         size="icon"
                         className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                        disabled
+                        onClick={() => {
+                          // Funcionalidad de eliminar/ocultar transacción finalizada
+                        }}
                       >
                         <X className="w-4 h-4" strokeWidth={3} />
                       </Button>
@@ -552,11 +554,11 @@ export default function History() {
                   </div>
 
                   <div className="mb-1.5">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-700 flex flex-col">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col">
                       {/* Tarjeta de usuario */}
                       <div className="flex gap-2.5 mb-1.5 flex-1">
                         <div className="flex flex-col gap-1.5">
-                          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
+                          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
                             <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
                               👤
                             </div>
@@ -564,18 +566,18 @@ export default function History() {
                         </div>
 
                         <div className="flex-1 flex flex-col justify-between">
-                          <p className="font-bold text-xl text-gray-600 mb-1.5">{tx.seller_name?.split(' ')[0]}</p>
+                          <p className="font-bold text-xl text-white mb-1.5">{tx.seller_name?.split(' ')[0]}</p>
 
                           <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                            <p className="text-sm font-medium text-gray-600">Sin datos</p>
-                            <Car className="w-5 h-5 text-gray-500" />
+                            <p className="text-sm font-medium text-white">Sin datos</p>
+                            <Car className="w-5 h-5 text-gray-400" />
                           </div>
 
-                          <div className="-mt-[7px] bg-gray-700 rounded-md flex items-center overflow-hidden border-2 border-gray-600 h-8">
-                            <div className="bg-gray-600 h-full w-6 flex items-center justify-center">
-                              <span className="text-[9px] font-bold text-gray-500">E</span>
+                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                            <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-white">E</span>
                             </div>
-                            <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-gray-600">
+                            <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
                               XXXX XXX
                             </span>
                           </div>
@@ -602,8 +604,8 @@ export default function History() {
                             <div>
                               <Button
                                 size="icon"
-                                className="bg-gray-700/50 hover:bg-gray-700/50 text-gray-500 rounded-lg h-8 w-[42px] cursor-not-allowed"
-                                disabled>
+                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                                onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}>
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                             </div>
