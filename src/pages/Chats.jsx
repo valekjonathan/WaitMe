@@ -352,211 +352,78 @@ export default function Chats() {
           </Tabs>
         </div>
 
-        {isLoading ?
-        <div className="text-center py-12 text-gray-500">
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">
             Cargando conversaciones...
-          </div> :
-        filteredConversations.length === 0 ?
-        <div className="text-center py-20 text-gray-500">
+          </div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-lg mb-2">
-              {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
+              {searchQuery ? 'No se encontraron conversaciones' : 
+               activeTab === 'important' ? 'Sin conversaciones importantes' :
+               activeTab === 'archived' ? 'Sin conversaciones archivadas' :
+               'Sin conversaciones'}
             </p>
             <p className="text-sm">
-              {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
+              {searchQuery ? 'Intenta con otra búsqueda' : 
+               activeTab === 'important' ? 'Marca conversaciones como importantes desde el menú' :
+               activeTab === 'archived' ? 'Las conversaciones archivadas aparecerán aquí' :
+               'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
             </p>
-          </div> :
-
-        <div className="px-4 space-y-3">
+          </div>
+        ) : (
+          <div className="px-4 space-y-3">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
-            const isP1 = conv.participant1_id === user?.id;
-            const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const alert = alertsMap.get(conv.alert_id);
+              const isP1 = conv.participant1_id === user?.id;
+              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
+              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+              const alert = alertsMap.get(conv.alert_id);
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
+              const otherUserData = usersMap.get(otherUserId);
+              const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+              const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
 
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+              const otherUser = {
+                name: otherUserName,
+                photo: otherUserPhoto,
+                initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
+              };
 
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
+              const calculateDistance = () => {
+                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+                const R = 6371;
+                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceKm = R * c;
+                const meters = Math.round(distanceKm * 1000);
+                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              };
+              const distanceText = calculateDistance();
 
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-            };
-            const distanceText = calculateDistance();
+              const isImportant = isP1 ? conv.important_for_p1 : conv.important_for_p2;
 
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
-                <div className={`bg-gray-900 rounded-2xl p-4 transition-all
-                  ${hasUnread ?
-                'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
-                'border-2 border-gray-800'}
-                `
-                }>
-
-                    <div className="flex items-start gap-3 flex-col w-full">
-                      {/* Header: "Info del usuario:" + distancia + precio */}
-                      <div className="flex items-center justify-between gap-2 w-full">
-                        <p className="text-[13px] text-purple-400 font-medium">Info del usuario:</p>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {distanceText &&
-                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{distanceText}</span>
-                            </div>
-                        }
-                          {alert &&
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-1.5 py-0.5 flex items-center gap-0.5">
-                              <span className="text-purple-400 font-bold text-xs whitespace-nowrap">{Math.round(alert.price)}€</span>
-                            </div>
-                        }
-                        </div>
-                      </div>
-
-                      {/* Foto + Info derecha */}
-                      <div className="flex gap-3 w-full">
-                        {/* Foto + botones + info debajo */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
-                          <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                            <div className="w-[92px] h-20 rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center">
-                              {otherUser.photo ?
-                            <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} /> :
-                            <span className="text-3xl font-bold text-purple-400">{otherUser.initial}</span>
-                            }
-                            </div>
-                          </Link>
-
-                          {/* Dirección debajo de foto - ocupa toda la línea */}
-                          {alert?.address &&
-                        <div className="flex items-center gap-1.5 text-gray-500 text-xs w-full">
-                              <MapPin className="w-3 h-3 flex-shrink-0" />
-                              <span className="truncate flex-1">{alert.address}</span>
-                            </div>
-                        }
-
-                          {/* Tiempo restante - ocupa toda la línea */}
-                          {alert?.available_in_minutes !== undefined &&
-                        <div className="flex items-center gap-1 text-gray-500 text-[10px]">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Se va en {alert.available_in_minutes} min</span>
-              <span className="text-purple-400">
-                • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
-              </span>
-            </div>
-                        }
-
-                          {/* Botones debajo */}
-                          <div className="flex gap-2 items-center">
-                            {/* Chat Button */}
-                            <div>
-                              <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                                <Button
-                                size="icon"
-                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </Link>
-                            </div>
-
-                            {/* Phone Button */}
-                            <div>
-                              <Button
-                              variant="outline"
-                              size="icon"
-                              className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-                              onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                              disabled={!alert.allow_phone_calls}>
-                                {alert.allow_phone_calls ?
-                              <Phone className="w-4 h-4 text-green-400" /> :
-                              <Phone className="w-4 h-4 text-gray-600" />
-                              }
-                              </Button>
-                            </div>
-
-                            {/* Countdown Timer */}
-                            <div className="flex-1">
-                              <CountdownTimer availableInMinutes={alert.available_in_minutes} />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Info derecha */}
-                        <div className="flex-1 flex flex-col gap-1 min-w-0 -ml-[140px] -mt-1">
-                          {/* Nombre */}
-                          <p className="font-bold text-xl text-white mb-1.5">
-                            {otherUserName}
-                          </p>
-
-                          {/* Marca y modelo */}
-                          {alert &&
-                          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                             <p className="text-sm text-gray-400">
-                               {alert.car_brand} {alert.car_model}
-                             </p>
-                             <Car className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                           </div>
-                          }
-
-                          {/* Matrícula */}
-                          {alert &&
-                          <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center flex-shrink-0">
-                                <span className="text-[8px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
-                                {alert.car_plate ? alert.car_plate.replace(/\s/g, '').toUpperCase().slice(0, 4) + ' ' + alert.car_plate.replace(/\s/g, '').toUpperCase().slice(4) : 'XXXX XXX'}
-                              </span>
-                            </div>
-                          }
-                          </div>
-                          </div>
-
-
-
-                      {/* Último mensaje */}
-                      <div className="flex-1 min-w-0 w-full">
-                        <p className="text-xs text-purple-400 font-medium mb-1">Ultimos mensajes:</p>
-                        <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                          <p className={`text-sm truncate ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
-                            {conv.last_message_text || 'Sin mensajes'}
-                          </p>
-                        </Link>
-                      </div>
-                    </div>
-                </div>
-              </motion.div>);
-
-          })}
-                      </div>
-        }
+              return (
+                <ConversationItem
+                  key={conv.id}
+                  conv={conv}
+                  user={user}
+                  alert={alert}
+                  otherUser={otherUser}
+                  unreadCount={unreadCount}
+                  distanceText={distanceText}
+                  index={index}
+                  onToggleImportant={() => toggleImportantMutation.mutate({ convId: conv.id, isImportant })}
+                  onToggleArchive={() => toggleArchiveMutation.mutate(conv.id)}
+                />
+              );
+            })}
+          </div>
+        )}
                       </main>
 
       <BottomNav />
