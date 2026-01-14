@@ -238,11 +238,11 @@ export default function Profile() {
                 <div>
 <div className="flex items-center gap-2">
   <p className="text-xl font-bold text-white">
-    {formData.name || "JONATHAN"}
+    {formData.display_name || "JONATHAN"}
   </p>
 
   <span className="text-yellow-400 text-sm leading-none">
-    {"★".repeat(Math.max(0, Math.min(5, Number(calificacion) || 0)))}
+    {"★".repeat(Math.max(0, Math.min(5, Math.round(averageRating))))}
   </span>
 </div>
                   <RatingBadge rating={averageRating} count={ratings.length} />
