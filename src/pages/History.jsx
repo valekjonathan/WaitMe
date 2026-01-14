@@ -324,7 +324,7 @@ export default function History() {
                   )}
                 </motion.div>
               );
-            } else {
+            } else if (item.type === 'transaction') {
               const tx = item.data;
               const isSeller = tx.seller_id === user?.id;
               
@@ -337,11 +337,11 @@ export default function History() {
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       {isSeller ? (
@@ -549,7 +549,7 @@ export default function History() {
                   </div>
                 </motion.div>
               );
-            } else {
+            } else if (item.type === 'transaction') {
               const tx = item.data;
               
               return (
@@ -561,11 +561,11 @@ export default function History() {
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                      {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
+                      {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
