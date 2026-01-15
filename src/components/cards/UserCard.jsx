@@ -119,7 +119,7 @@ export default function UserCard({
                 <span className="text-white font-bold text-xs">{distance}</span>
               </div>
           }
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 -ml-0.5">
               <span className="text-purple-400 font-bold text-xs">{Math.round(price)}€</span>
             </div>
           </div>
@@ -210,9 +210,9 @@ export default function UserCard({
       <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
 
           {address &&
-        <div className="flex items-start gap-1.5 text-gray-400 text-[11px]">
-              <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span className="line-clamp-1 font-medium">{address}</span>
+        <div className="flex items-start gap-1.5 text-white text-[11px] mb-1">
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="line-clamp-1 font-medium">Aparcado en {address}</span>
             </div>
         }
 
