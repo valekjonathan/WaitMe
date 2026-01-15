@@ -693,8 +693,8 @@ export default function History() {
               );
             }
             })
-            }
-            </>
+               }
+             </>
             )}
             </TabsContent>
             </Tabs>
