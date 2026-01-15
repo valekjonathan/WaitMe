@@ -6,8 +6,8 @@ import Navigate from './pages/Navigate';
 import NotificationSettings from './pages/NotificationSettings';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
-import Ratings from './pages/Ratings';
 import Settings from './pages/Settings';
+import Ratings from './pages/Ratings';
 
 
 export const PAGES = {
@@ -19,8 +19,8 @@ export const PAGES = {
     "NotificationSettings": NotificationSettings,
     "Notifications": Notifications,
     "Profile": Profile,
-    "Ratings": Ratings,
     "Settings": Settings,
+    "Ratings": Ratings,
 }
 
 export const pagesConfig = {
