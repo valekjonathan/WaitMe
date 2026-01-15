@@ -80,13 +80,60 @@ export default function History() {
   });
 
   // Separar por: Mis alertas creadas vs Mis reservas
-  const myActiveAlerts = myAlerts.filter(a => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved'));
-  const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
-  
-  const myAlertsItems = [
-    ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
-    ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+   const myActiveAlerts = myAlerts.filter(a => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved'));
+   const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
+
+   // Transacciones finalizadas ficticias
+   const mockTransactions = [
+     {
+       id: 'mock-tx-1',
+       seller_id: user?.id,
+       seller_name: 'Tu',
+       buyer_id: 'buyer-1',
+       buyer_name: 'Marco Rossi',
+       amount: 5.00,
+       seller_earnings: 4.00,
+       platform_fee: 1.00,
+       status: 'completed',
+       address: 'Calle Gran Vía, 25',
+       alert_id: 'mock-alert-1',
+       created_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+     },
+     {
+       id: 'mock-tx-2',
+       seller_id: user?.id,
+       seller_name: 'Tu',
+       buyer_id: 'buyer-2',
+       buyer_name: 'Sofia Gómez',
+       amount: 3.50,
+       seller_earnings: 2.80,
+       platform_fee: 0.70,
+       status: 'completed',
+       address: 'Avenida Paseo del Prado, 15',
+       alert_id: 'mock-alert-2',
+       created_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+     },
+     {
+       id: 'mock-tx-3',
+       seller_id: user?.id,
+       seller_name: 'Tu',
+       buyer_id: 'buyer-3',
+       buyer_name: 'Diego López',
+       amount: 4.50,
+       seller_earnings: 3.60,
+       platform_fee: 0.90,
+       status: 'completed',
+       address: 'Plaza Mayor, 8',
+       alert_id: 'mock-alert-3',
+       created_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+     }
+   ];
+
+   const myAlertsItems = [
+     ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
+     ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false })),
+     ...mockTransactions.map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
+   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const myReservationsItems = [
     ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: true })),
