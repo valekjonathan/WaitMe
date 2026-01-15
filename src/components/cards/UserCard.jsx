@@ -124,7 +124,7 @@ export default function UserCard({
       }
 
       {/* Tarjeta de usuario */}
-      <div className="mb-0 flex gap-2.5">
+      <div className="mb-7 flex gap-2.5">
         <div className="flex flex-col gap-0">
           <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ?
