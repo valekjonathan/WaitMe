@@ -7,7 +7,6 @@ import NotificationSettings from './pages/NotificationSettings';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Ratings from './pages/Ratings';
 
 
 export const PAGES = {
@@ -20,7 +19,6 @@ export const PAGES = {
     "Notifications": Notifications,
     "Profile": Profile,
     "Settings": Settings,
-    "Ratings": Ratings,
 }
 
 export const pagesConfig = {
