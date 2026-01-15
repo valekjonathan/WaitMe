@@ -236,7 +236,7 @@ export default function History() {
                    </div>
                  )}
                  {myAlertsItems.map((item, index) => {
-            if (item.type === 'alert') {
+                 if (item.type === 'alert') {
               const alert = item.data;
               return (
                 <motion.div
@@ -497,7 +497,7 @@ export default function History() {
                   </div>
                 )}
                 {myReservationsItems.map((item, index) => {
-            if (item.type === 'alert') {
+                 if (item.type === 'alert') {
               const alert = item.data;
               return (
                 <motion.div
