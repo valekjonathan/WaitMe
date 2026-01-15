@@ -353,7 +353,7 @@ export default function Home() {
             className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col bg-black"
             style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
 
-              <div className="h-[52%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
                 onAlertClick={(alert) => setSelectedAlert(alert ? { ...alert } : null)}
