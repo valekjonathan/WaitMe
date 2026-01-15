@@ -174,29 +174,29 @@ export default function UserCard({
           }
         </div>
 
-        <div className="flex-1 flex flex-col justify-between">
+        <div className="flex-1 flex flex-col justify-between h-[85px]">
           <div>
             <div className="flex items-center justify-between gap-1.5">
-              <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
+              <p className={`font-bold text-lg leading-tight ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
               <div className="flex gap-0.5 ml-auto">
                 {[...Array(4)].map((_, i) =>
-                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                 )}
               </div>
             </div>
             <RatingBadge rating={userRating} count={userRatingCount} />
           </div>
 
-          <div className="flex items-center justify-between mb-1.5">
-            <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
+          <div className="flex items-center justify-between">
+            <p className={`text-xs font-medium leading-tight ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
           </div>
 
           <div className="flex items-center justify-between gap-2 w-full">
-            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7 flex-1">
+            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-6 flex-1">
               <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
                 <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-xs tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 {formatPlate(carPlate)}
               </span>
             </div>
