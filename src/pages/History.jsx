@@ -277,28 +277,7 @@ export default function History() {
             className="mb-3 space-y-2">
             
             {/* Resumen financiero */}
-            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-xl p-3 border border-purple-500">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-white font-semibold text-sm">Resumen financiero</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setShowSummary(false)}>
-                  <X className="w-4 h-4 text-white" />
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-2">
-                  <p className="text-green-400 text-xs mb-1">Total ganado</p>
-                  <p className="text-green-400 font-bold text-lg">{totalEarned.toFixed(2)}€</p>
-                </div>
-                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-2">
-                  <p className="text-red-400 text-xs mb-1">Total gastado</p>
-                  <p className="text-red-400 font-bold text-lg">{totalSpent.toFixed(2)}€</p>
-                </div>
-              </div>
-            </div>
+
 
             {/* Valoraciones */}
             <div className="bg-gray-900 rounded-xl p-3 border border-gray-800">
