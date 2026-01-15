@@ -490,7 +490,13 @@ export default function History() {
                 <p>No tienes reservas</p>
               </div>
             ) : (
-              myReservationsItems.map((item, index) => {
+              <>
+                {myReservationsItems.filter(i => i.type === 'alert').length > 0 && myReservationsItems.filter(i => i.type === 'transaction').length > 0 && (
+                  <div className="text-white text-center font-bold py-3 text-sm">
+                    Finalizadas:
+                  </div>
+                )}
+                {myReservationsItems.map((item, index) => {
             if (item.type === 'alert') {
               const alert = item.data;
               return (
@@ -657,7 +663,7 @@ export default function History() {
                             <div className="opacity-100">
                               <Button
                                 size="icon"
-                                className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                                className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
                                 onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`)}>
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
