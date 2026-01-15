@@ -692,12 +692,12 @@ export default function History() {
                 </motion.div>
               );
             }
-          })
-          }
-              </>
-          )}
-          </TabsContent>
-          </Tabs>
+            })
+            }
+            </>
+            )}
+            </TabsContent>
+            </Tabs>
       </main>
       
       <BottomNav />
