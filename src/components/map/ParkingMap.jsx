@@ -445,7 +445,7 @@ export default function ParkingMap({
            position={[alert.latitude, alert.longitude]}
            icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
            eventHandlers={{
-             click: () => onAlertClick && onAlertClick(JSON.parse(JSON.stringify(alert)))
+             click: () => onAlertClick && onAlertClick(alert)
            }}>
            </Marker>
          )}
