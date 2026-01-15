@@ -403,9 +403,9 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-16 bg-black">
+            className="h-screen pt-4 bg-black">
 
-                <div className="h-[32%] relative px-3">
+                <div className="h-[35%] relative px-3">
                   <ParkingMap
                 isSelecting={true}
                 selectedPosition={selectedPosition}
@@ -427,7 +427,7 @@ export default function Home() {
                 className="h-full" />
 
                 </div>
-                <h3 className="text-white font-semibold text-center py-1.5 text-sm">
+                <h3 className="text-white font-semibold text-center py-2 text-sm">
                   ¿ Dónde estas aparcado ?
                 </h3>
                 <div className="px-4">
