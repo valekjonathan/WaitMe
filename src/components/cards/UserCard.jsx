@@ -197,9 +197,7 @@ export default function UserCard({
                 {formatPlate(carPlate)}
               </span>
             </div>
-            <div className={`w-[60px] h-8 ${muted ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'} rounded-md border-2 flex items-center justify-center flex-shrink-0`}>
-              <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-            </div>
+            <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
         </div>
       </div>
