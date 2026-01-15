@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle, Search, Phone, PhoneOff, Navigation, Car, Star } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, CheckCircle, XCircle, Loader, X, Plus, Settings, MessageCircle, Search, Phone, PhoneOff, Navigation, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -71,8 +71,6 @@ export default function History() {
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingDialog, setRatingDialog] = useState({ open: false, alertId: null, transactionId: null, ratedId: null, ratedEmail: null, userName: null, role: null });
-  const [dateFilter, setDateFilter] = useState('all'); // all, month, year
-  const [showSummary, setShowSummary] = useState(true);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -116,66 +114,21 @@ export default function History() {
     enabled: !!user?.id
   });
 
-  // Obtener valoraciones del usuario
-  const { data: userRatings = [] } = useQuery({
-    queryKey: ['userRatings', user?.id],
-    queryFn: async () => {
-      const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
-      return ratings;
-    },
-    enabled: !!user?.id
-  });
-
-  // Calcular valoraciones por rol
-  const sellerRatings = userRatings.filter(r => r.role === 'seller');
-  const buyerRatings = userRatings.filter(r => r.role === 'buyer');
-  const avgSellerRating = sellerRatings.length > 0 
-    ? (sellerRatings.reduce((sum, r) => sum + r.rating, 0) / sellerRatings.length).toFixed(1)
-    : 0;
-  const avgBuyerRating = buyerRatings.length > 0
-    ? (buyerRatings.reduce((sum, r) => sum + r.rating, 0) / buyerRatings.length).toFixed(1)
-    : 0;
-
-  // Filtrar por fecha
-  const filterByDate = (items) => {
-    if (dateFilter === 'all') return items;
-    
-    const now = new Date();
-    return items.filter(item => {
-      const itemDate = new Date(item.date || item.created_date);
-      if (dateFilter === 'month') {
-        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-      } else if (dateFilter === 'year') {
-        return itemDate.getFullYear() === now.getFullYear();
-      }
-      return true;
-    });
-  };
-
-  // Calcular totales
-  const totalEarned = transactions
-    .filter(t => t.seller_id === user?.id && t.status === 'completed')
-    .reduce((sum, t) => sum + (t.seller_earnings || 0), 0);
-  
-  const totalSpent = transactions
-    .filter(t => t.buyer_id === user?.id && t.status === 'completed')
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
-
   // Separar por: Mis alertas creadas vs Mis reservas
   const myActiveAlerts = myAlerts.filter(a => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved'));
   const myCompletedAlerts = myAlerts.filter(a => a.user_id === user?.id && a.status === 'completed');
   const myReservations = myAlerts.filter(a => a.reserved_by_id === user?.id && a.status === 'reserved');
   
-  const myAlertsItems = filterByDate([
+  const myAlertsItems = [
     ...myActiveAlerts.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: a.status === 'active' })),
     ...myCompletedAlerts.map(a => ({ type: 'completed', data: a, date: a.created_date, isActive: false })),
     ...transactions.filter(t => t.seller_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
-  ]).sort((a, b) => new Date(b.date) - new Date(a.date));
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const myReservationsItems = filterByDate([
+  const myReservationsItems = [
     ...myReservations.map(a => ({ type: 'alert', data: a, date: a.created_date, isActive: true })),
     ...transactions.filter(t => t.buyer_id === user?.id).map(t => ({ type: 'transaction', data: t, date: t.created_date, isActive: false }))
-  ]).sort((a, b) => new Date(b.date) - new Date(a.date));
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const isLoading = loadingAlerts || loadingTransactions;
 
@@ -269,97 +222,6 @@ export default function History() {
       </header>
 
       <main className="pt-[56px] pb-20 px-4">
-        {/* Resumen financiero y valoraciones */}
-        {showSummary && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3 space-y-2">
-            
-            {/* Resumen financiero */}
-            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-xl p-3 border border-purple-500">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-white font-semibold text-sm">Resumen financiero</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setShowSummary(false)}>
-                  <X className="w-4 h-4 text-white" />
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-2">
-                  <p className="text-green-400 text-xs mb-1">Total ganado</p>
-                  <p className="text-green-400 font-bold text-lg">{totalEarned.toFixed(2)}€</p>
-                </div>
-                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-2">
-                  <p className="text-red-400 text-xs mb-1">Total gastado</p>
-                  <p className="text-red-400 font-bold text-lg">{totalSpent.toFixed(2)}€</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Valoraciones */}
-            <div className="bg-gray-900 rounded-xl p-3 border border-gray-800">
-              <h3 className="text-white font-semibold text-sm mb-2">Mis valoraciones</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-2">
-                  <p className="text-purple-400 text-xs mb-1">Como vendedor</p>
-                  <div className="flex items-center gap-1">
-                    <Star className={`w-4 h-4 ${avgSellerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
-                    <span className="text-white font-bold">{avgSellerRating}</span>
-                    <span className="text-gray-400 text-xs">({sellerRatings.length})</span>
-                  </div>
-                </div>
-                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-2">
-                  <p className="text-blue-400 text-xs mb-1">Como comprador</p>
-                  <div className="flex items-center gap-1">
-                    <Star className={`w-4 h-4 ${avgBuyerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
-                    <span className="text-white font-bold">{avgBuyerRating}</span>
-                    <span className="text-gray-400 text-xs">({buyerRatings.length})</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Filtros de fecha */}
-        <div className="flex gap-2 mb-3">
-          <Button
-            size="sm"
-            variant={dateFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('all')}
-            className={dateFilter === 'all' ? 'bg-purple-600' : 'border-gray-700'}>
-            Todo
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'month' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('month')}
-            className={dateFilter === 'month' ? 'bg-purple-600' : 'border-gray-700'}>
-            Este mes
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'year' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('year')}
-            className={dateFilter === 'year' ? 'bg-purple-600' : 'border-gray-700'}>
-            Este año
-          </Button>
-          {!showSummary && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowSummary(true)}
-              className="ml-auto border-purple-500 text-purple-400">
-              <Plus className="w-4 h-4 mr-1" />
-              Resumen
-            </Button>
-          )}
-        </div>
-
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-0">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
