@@ -473,9 +473,11 @@ export default function History() {
                 </motion.div>
               );
             }
-          })
-        )}
-          </TabsContent>
+            })
+                }
+              </>
+            )}
+            </TabsContent>
 
           <TabsContent value="reservations" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937'}}>
             <p className="text-white text-[11px] mb-1 text-center font-bold">Reservaste a:</p>
