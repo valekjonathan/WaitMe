@@ -3,7 +3,6 @@ import { MapPin, Clock, Navigation, MessageCircle, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import RatingBadge from '@/components/RatingBadge';
 
 const carColorMap = {
   'blanco': '#FFFFFF',
@@ -70,9 +69,7 @@ export default function UserCard({
   muted = false,
   isReserved = false,
   userLocation,
-  actionButtons,
-  userRating = null,
-  userRatingCount = 0
+  actionButtons
 }) {
   // Calcular distancia
   const calculateDistance = () => {
@@ -172,12 +169,9 @@ export default function UserCard({
         </div>
 
         <div className="flex-1 flex flex-col justify-between">
-          <div>
-            <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-0.5`}>{userName?.split(' ')[0]}</p>
-            <RatingBadge rating={userRating} count={userRatingCount} />
-          </div>
+          <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-1.5`}>{userName?.split(' ')[0]}</p>
 
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between -mt-2.5 mb-1.5">
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
             <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>

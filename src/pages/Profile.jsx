@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Camera, Car, Bell, Phone, Save, Settings, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import BottomNav from '@/components/BottomNav';
-import RatingBadge from '@/components/RatingBadge';
 
 const carColors = [
 { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -39,20 +37,6 @@ export default function Profile() {
     notifications_enabled: true,
     email_notifications: true
   });
-  // Obtener valoraciones del usuario
-  const { data: ratings = [] } = useQuery({
-    queryKey: ['userRatings', user?.id],
-    queryFn: async () => {
-      const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
-      return ratings;
-    },
-    enabled: !!user?.id
-  });
-
-  const averageRating = ratings.length > 0
-    ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1)
-    : 0;
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -218,10 +202,7 @@ export default function Profile() {
 
               {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
-                <div>
-                  <p className="text-xl font-bold text-white mb-1">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
-                  <RatingBadge rating={averageRating} count={ratings.length} />
-                </div>
+                <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
                 
                 <div className="flex items-center justify-between">
                   <div>
