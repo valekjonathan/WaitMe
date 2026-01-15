@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
+import { mockNotifications, mockAlerts } from '@/components/mockData';
 
 export default function Notifications() {
   const [user, setUser] = useState(null);
@@ -32,22 +33,32 @@ export default function Notifications() {
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: async () => {
-      const notifs = await base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date');
-      // Para las notificaciones aceptadas y solicitudes, obtener datos de la alerta
-      const notifsWithAlerts = await Promise.all(
-        notifs.map(async (notif) => {
-          if (notif.type === 'reservation_accepted' || notif.type === 'reservation_request') {
-            try {
-              const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
-              return { ...notif, alert: alerts[0] || null };
-            } catch (error) {
-              return { ...notif, alert: null };
+      try {
+        const notifs = await base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date');
+        // Para las notificaciones aceptadas y solicitudes, obtener datos de la alerta
+        const notifsWithAlerts = await Promise.all(
+          notifs.map(async (notif) => {
+            if (notif.type === 'reservation_accepted' || notif.type === 'reservation_request') {
+              try {
+                const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
+                return { ...notif, alert: alerts[0] || null };
+              } catch (error) {
+                return { ...notif, alert: null };
+              }
             }
-          }
-          return notif;
-        })
-      );
-      return notifsWithAlerts;
+            return notif;
+          })
+        );
+        return notifsWithAlerts.length > 0 ? notifsWithAlerts : mockNotifications.map(n => ({
+          ...n,
+          alert: mockAlerts.find(a => a.id === n.alert_id)
+        }));
+      } catch (error) {
+        return mockNotifications.map(n => ({
+          ...n,
+          alert: mockAlerts.find(a => a.id === n.alert_id)
+        }));
+      }
     },
     enabled: !!user?.email,
     refetchInterval: 5000
