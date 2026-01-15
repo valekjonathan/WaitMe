@@ -356,7 +356,7 @@ export default function Home() {
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
-                onAlertClick={(alert) => setSelectedAlert(alert ? { ...alert } : null)}
+                onAlertClick={(alert) => setSelectedAlert(alert ? {...alert} : null)}
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
@@ -389,14 +389,14 @@ export default function Home() {
               </div>
               
               {/* Buscador de direcciones */}
-              <div className="mt-8 px-4 py-2">
+              <div className="px-4 py-2">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                  type="text"
-                  placeholder="Buscar dirección..."
-                  className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
-
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
                 </div>
               </div>
 
