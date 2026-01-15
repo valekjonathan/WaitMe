@@ -124,7 +124,7 @@ export default function UserCard({
       }
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-2.5 mb-0 flex-1">
+      <div className="mb-16 flex gap-2.5 flex-1">
         <div className="flex flex-col gap-0">
           <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ?
@@ -204,7 +204,7 @@ export default function UserCard({
 
       {/* Información de ubicación */}
       {showLocationInfo &&
-      <div className="space-y-1 pt-1.5 border-t border-gray-700 -mt-5">
+      <div className="space-y-1 border-t border-gray-700 -mt-5">
           <div className="flex items-start gap-1.5 text-white text-[11px]">
             <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-purple-400" />
             <span className="line-clamp-1 font-medium">{address || 'Ubicación no disponible'}</span>
