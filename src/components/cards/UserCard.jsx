@@ -141,7 +141,7 @@ export default function UserCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-1 h-8 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+                className="flex-1 h-8 bg-purple-600/30 hover:bg-purple-600 text-purple-300 hover:text-white rounded-lg border-2 border-purple-500/50"
                 onClick={onChat}
               >
                 <MessageCircle className="w-4 h-4" />
@@ -188,14 +188,16 @@ export default function UserCard({
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
           </div>
 
-          <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-            <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-              <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+          <div className="flex items-center gap-2 -mt-[7px]">
+            <div className={`flex-1 ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+              </div>
+              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+                {formatPlate(carPlate)}
+              </span>
             </div>
-            <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-              {formatPlate(carPlate)}
-            </span>
-            <div className="flex-shrink-0 w-10 flex items-center justify-center">
+            <div className={`w-[60px] h-8 ${muted ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'} rounded-md border-2 flex items-center justify-center flex-shrink-0`}>
               <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
             </div>
           </div>
@@ -206,9 +208,9 @@ export default function UserCard({
       {showLocationInfo && (
         <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
           {address && (
-            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span className="line-clamp-1">{address}</span>
+            <div className="flex items-start gap-1.5 text-gray-300 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="line-clamp-1 font-medium">{address}</span>
             </div>
           )}
 
