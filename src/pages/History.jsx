@@ -693,9 +693,11 @@ export default function History() {
               );
             }
           })
-        )}
+          }
+              </>
+          )}
           </TabsContent>
-        </Tabs>
+          </Tabs>
       </main>
       
       <BottomNav />
