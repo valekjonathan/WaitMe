@@ -15,7 +15,6 @@ import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import NotificationPermission from '@/components/NotificationPermission';
-import { mockAlerts } from '@/components/mockData';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -89,14 +88,7 @@ export default function Home() {
   // Obtener alertas activas solo cuando estamos en modo search
   const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
-    queryFn: async () => {
-      try {
-        const alerts = await base44.entities.ParkingAlert.filter({ status: 'active' });
-        return alerts.length > 0 ? alerts : mockAlerts.filter(a => a.status === 'active' || a.status === 'reserved');
-      } catch (error) {
-        return mockAlerts.filter(a => a.status === 'active' || a.status === 'reserved');
-      }
-    },
+    queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
     refetchInterval: mode === 'search' ? 5000 : false,
     enabled: mode === 'search'
   });

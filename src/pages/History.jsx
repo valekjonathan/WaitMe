@@ -15,7 +15,6 @@ import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import RatingDialog from '@/components/RatingDialog';
-import { mockAlerts, mockTransactions, mockRatings } from '@/components/mockData';
 
 // Componente de cuenta regresiva
 function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) {
@@ -101,29 +100,18 @@ export default function History() {
   // Obtener todas las alertas y transacciones
   const { data: myAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['myAlerts', user?.id],
-    queryFn: async () => {
-      try {
-        const alerts = await base44.entities.ParkingAlert.filter({ user_id: user?.id });
-        return alerts.length > 0 ? alerts : mockAlerts;
-      } catch (error) {
-        return mockAlerts;
-      }
-    },
+    queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
     enabled: !!user?.id
   });
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.id],
     queryFn: async () => {
-      try {
-        const [asSeller, asBuyer] = await Promise.all([
-          base44.entities.Transaction.filter({ seller_id: user?.id }),
-          base44.entities.Transaction.filter({ buyer_id: user?.id })
-        ]);
-        return [...asSeller, ...asBuyer].length > 0 ? [...asSeller, ...asBuyer] : mockTransactions;
-      } catch (error) {
-        return mockTransactions;
-      }
+      const [asSeller, asBuyer] = await Promise.all([
+        base44.entities.Transaction.filter({ seller_id: user?.id }),
+        base44.entities.Transaction.filter({ buyer_id: user?.id })
+      ]);
+      return [...asSeller, ...asBuyer];
     },
     enabled: !!user?.id
   });
@@ -132,12 +120,8 @@ export default function History() {
   const { data: userRatings = [] } = useQuery({
     queryKey: ['userRatings', user?.id],
     queryFn: async () => {
-      try {
-        const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
-        return ratings.length > 0 ? ratings : mockRatings;
-      } catch (error) {
-        return mockRatings;
-      }
+      const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
+      return ratings;
     },
     enabled: !!user?.id
   });

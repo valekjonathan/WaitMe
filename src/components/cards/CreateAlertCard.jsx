@@ -13,7 +13,7 @@ export default function CreateAlertCard({
   isLoading = false
 }) {
   const [price, setPrice] = useState(3);
-  const [minutes, setMinutes] = useState(60);
+  const [minutes, setMinutes] = useState(10);
 
   const handleCreate = () => {
     onCreateAlert({ price, minutes });
