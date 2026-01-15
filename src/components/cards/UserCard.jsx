@@ -188,31 +188,17 @@ export default function UserCard({
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
           </div>
 
-          {isReserved ? (
-            <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
-              </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-                {formatPlate(carPlate)}
-              </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
+          <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+            <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+              <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
             </div>
-          ) : (
-            <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
-              </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-                XXXX XXX
-              </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
+            <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              {formatPlate(carPlate)}
+            </span>
+            <div className="flex-shrink-0 w-10 flex items-center justify-center">
+              <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
             </div>
-          )}
+          </div>
         </div>
       </div>
 

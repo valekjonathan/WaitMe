@@ -161,7 +161,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'Corolla',
       car_plate: '1234ABC',
       user_name: 'Diego R.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=diego&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/male/42.jpg',
       available_in_minutes: 15,
       vehicle_type: 'car'
     },
@@ -175,7 +175,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'Ibiza',
       car_plate: '5678DEF',
       user_name: 'Laura V.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=laura&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/female/32.jpg',
       available_in_minutes: 20,
       vehicle_type: 'car'
     },
@@ -189,7 +189,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'Megane',
       car_plate: '9012GHI',
       user_name: 'Miguel Á.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=miguel&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/male/67.jpg',
       available_in_minutes: 10,
       vehicle_type: 'suv'
     },
@@ -203,7 +203,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'A3',
       car_plate: '3456JKL',
       user_name: 'Sofia M.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sofia&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/female/55.jpg',
       available_in_minutes: 25,
       vehicle_type: 'car'
     },
@@ -217,7 +217,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: '308',
       car_plate: '7890MNO',
       user_name: 'Roberto L.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=roberto&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/male/28.jpg',
       available_in_minutes: 18,
       vehicle_type: 'car'
     },
@@ -231,7 +231,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'Golf',
       car_plate: '2468PQR',
       user_name: 'Patricia N.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=patricia&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/female/48.jpg',
       available_in_minutes: 22,
       vehicle_type: 'van'
     },
@@ -245,7 +245,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: 'Civic',
       car_plate: '1357SUV',
       user_name: 'Andrea T.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=andrea&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/female/19.jpg',
       available_in_minutes: 12,
       vehicle_type: 'car'
     },
@@ -259,7 +259,7 @@ const generateMockAlerts = (userLocation) => {
       car_model: '500',
       car_plate: '2468FIA',
       user_name: 'Marco V.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marco&backgroundColor=random',
+      user_photo: 'https://xsgames.co/randomusers/assets/avatars/male/74.jpg',
       available_in_minutes: 16,
       vehicle_type: 'car'
     }

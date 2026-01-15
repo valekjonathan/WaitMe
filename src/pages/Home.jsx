@@ -249,7 +249,7 @@ export default function Home() {
           </div>
 
           <Link to={createPageUrl('Home')}>
-            <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+            <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity pr-[5px]">
               <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
             </h1>
           </Link>

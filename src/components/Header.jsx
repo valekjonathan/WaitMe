@@ -55,7 +55,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
             </div>
           </Link>
           <Link to={createPageUrl('Home')}>
-            <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
+            <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity pr-[5px]">
               <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
             </h1>
           </Link>
