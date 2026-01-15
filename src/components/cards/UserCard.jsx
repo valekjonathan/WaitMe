@@ -91,7 +91,10 @@ export default function UserCard({
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distanceKm = R * c;
 
-    return `${Math.round(distanceKm * 1000)}m`;
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)}m`;
+    }
+    return `${distanceKm.toFixed(1)}km`;
   };
 
   const distance = calculateDistance();
@@ -124,7 +127,7 @@ export default function UserCard({
       }
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-2.5 mb-0 flex-1">
+      <div className="flex gap-2.5 mb-1.5 flex-1">
         <div className="flex flex-col gap-1.5">
           <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ?
