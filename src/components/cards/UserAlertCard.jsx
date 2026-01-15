@@ -24,7 +24,7 @@ export default function UserAlertCard({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="space-y-4">
       <UserCard
         userName={alert.user_name}
         userPhoto={alert.user_photo}

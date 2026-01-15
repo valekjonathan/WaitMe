@@ -386,7 +386,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 pb-4 min-h-0 overflow-y-auto">
+              <div className="flex-1 px-4 min-h-0 overflow-y-auto">
                 <UserAlertCard
                 alert={selectedAlert}
                 isEmpty={!selectedAlert}
