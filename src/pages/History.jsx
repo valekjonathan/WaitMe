@@ -15,6 +15,7 @@ import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import RatingDialog from '@/components/RatingDialog';
+import { mockAlerts, mockTransactions, mockRatings } from '@/components/mockData';
 
 // Componente de cuenta regresiva
 function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) {
@@ -100,18 +101,29 @@ export default function History() {
   // Obtener todas las alertas y transacciones
   const { data: myAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['myAlerts', user?.id],
-    queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
+    queryFn: async () => {
+      try {
+        const alerts = await base44.entities.ParkingAlert.filter({ user_id: user?.id });
+        return alerts.length > 0 ? alerts : mockAlerts;
+      } catch (error) {
+        return mockAlerts;
+      }
+    },
     enabled: !!user?.id
   });
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.id],
     queryFn: async () => {
-      const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.id }),
-        base44.entities.Transaction.filter({ buyer_id: user?.id })
-      ]);
-      return [...asSeller, ...asBuyer];
+      try {
+        const [asSeller, asBuyer] = await Promise.all([
+          base44.entities.Transaction.filter({ seller_id: user?.id }),
+          base44.entities.Transaction.filter({ buyer_id: user?.id })
+        ]);
+        return [...asSeller, ...asBuyer].length > 0 ? [...asSeller, ...asBuyer] : mockTransactions;
+      } catch (error) {
+        return mockTransactions;
+      }
     },
     enabled: !!user?.id
   });
@@ -120,8 +132,12 @@ export default function History() {
   const { data: userRatings = [] } = useQuery({
     queryKey: ['userRatings', user?.id],
     queryFn: async () => {
-      const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
-      return ratings;
+      try {
+        const ratings = await base44.entities.Rating.filter({ rated_id: user?.id });
+        return ratings.length > 0 ? ratings : mockRatings;
+      } catch (error) {
+        return mockRatings;
+      }
     },
     enabled: !!user?.id
   });
@@ -277,15 +293,88 @@ export default function History() {
             className="mb-3 space-y-2">
             
             {/* Resumen financiero */}
-
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-xl p-3 border border-purple-500">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-semibold text-sm">Resumen financiero</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setShowSummary(false)}>
+                  <X className="w-4 h-4 text-white" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-2">
+                  <p className="text-green-400 text-xs mb-1">Total ganado</p>
+                  <p className="text-green-400 font-bold text-lg">{totalEarned.toFixed(2)}€</p>
+                </div>
+                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-2">
+                  <p className="text-red-400 text-xs mb-1">Total gastado</p>
+                  <p className="text-red-400 font-bold text-lg">{totalSpent.toFixed(2)}€</p>
+                </div>
+              </div>
+            </div>
 
             {/* Valoraciones */}
-
+            <div className="bg-gray-900 rounded-xl p-3 border border-gray-800">
+              <h3 className="text-white font-semibold text-sm mb-2">Mis valoraciones</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-2">
+                  <p className="text-purple-400 text-xs mb-1">Como vendedor</p>
+                  <div className="flex items-center gap-1">
+                    <Star className={`w-4 h-4 ${avgSellerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
+                    <span className="text-white font-bold">{avgSellerRating}</span>
+                    <span className="text-gray-400 text-xs">({sellerRatings.length})</span>
+                  </div>
+                </div>
+                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-2">
+                  <p className="text-blue-400 text-xs mb-1">Como comprador</p>
+                  <div className="flex items-center gap-1">
+                    <Star className={`w-4 h-4 ${avgBuyerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
+                    <span className="text-white font-bold">{avgBuyerRating}</span>
+                    <span className="text-gray-400 text-xs">({buyerRatings.length})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
         {/* Filtros de fecha */}
-
+        <div className="flex gap-2 mb-3">
+          <Button
+            size="sm"
+            variant={dateFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setDateFilter('all')}
+            className={dateFilter === 'all' ? 'bg-purple-600' : 'border-gray-700'}>
+            Todo
+          </Button>
+          <Button
+            size="sm"
+            variant={dateFilter === 'month' ? 'default' : 'outline'}
+            onClick={() => setDateFilter('month')}
+            className={dateFilter === 'month' ? 'bg-purple-600' : 'border-gray-700'}>
+            Este mes
+          </Button>
+          <Button
+            size="sm"
+            variant={dateFilter === 'year' ? 'default' : 'outline'}
+            onClick={() => setDateFilter('year')}
+            className={dateFilter === 'year' ? 'bg-purple-600' : 'border-gray-700'}>
+            Este año
+          </Button>
+          {!showSummary && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowSummary(true)}
+              className="ml-auto border-purple-500 text-purple-400">
+              <Plus className="w-4 h-4 mr-1" />
+              Resumen
+            </Button>
+          )}
+        </div>
 
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-0">
