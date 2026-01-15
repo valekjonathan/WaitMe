@@ -310,7 +310,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, userLocation]);
 
   return (
-    <div className="m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- m mt mt- relative h-[36vh] mt-1">
+    <div className={`relative w-full h-full ${className}`}>
       <style>{`
         .leaflet-top.leaflet-left {
           top: 10px !important;
