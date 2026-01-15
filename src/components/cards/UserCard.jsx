@@ -136,26 +136,6 @@ export default function UserCard({
             }
           </div>
 
-          {/* Información de ubicación */}
-          {showLocationInfo &&
-          <div className="space-y-1 border-t border-gray-700 -mt-5 text-[11px]">
-              <div className="flex items-start gap-1.5 text-white">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-purple-400" />
-                <span className="line-clamp-1 font-medium">{address || 'Ubicación no disponible'}</span>
-              </div>
-
-              {availableInMinutes !== undefined &&
-            <div className="flex items-center gap-1 text-gray-400 text-[10px]">
-                  <Clock className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Se va en {availableInMinutes} min</span>
-                  <span className="text-purple-400">
-                    • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
-                  </span>
-                </div>
-            }
-            </div>
-          }
-
           {showContactButtons &&
           <div className="flex gap-1">
               <Button
@@ -222,11 +202,31 @@ export default function UserCard({
         </div>
       </div>
 
-      {/* Botones de acción dentro de la tarjeta */}
-      {actionButtons && showLocationInfo &&
-      <div className="mt-4">
-            {actionButtons}
+      {/* Información de ubicación */}
+      {showLocationInfo &&
+      <div className="space-y-1 border-t border-gray-700 -mt-5">
+          <div className="flex items-start gap-1.5 text-white text-[11px]">
+            <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-purple-400" />
+            <span className="line-clamp-1 font-medium">{address || 'Ubicación no disponible'}</span>
           </div>
+
+          {availableInMinutes !== undefined &&
+        <div className="flex items-center gap-1 text-gray-400 text-[10px]">
+              <Clock className="w-3.5 h-3.5 text-purple-400" />
+              <span>Se va en {availableInMinutes} min</span>
+              <span className="text-purple-400">
+                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+              </span>
+            </div>
+        }
+          
+          {/* Botones de acción dentro de la tarjeta */}
+          {actionButtons &&
+        <div className="mt-4">
+              {actionButtons}
+            </div>
+        }
+        </div>
       }
     </div>);
 
