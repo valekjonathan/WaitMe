@@ -280,27 +280,7 @@ export default function History() {
 
 
             {/* Valoraciones */}
-            <div className="bg-gray-900 rounded-xl p-3 border border-gray-800">
-              <h3 className="text-white font-semibold text-sm mb-2">Mis valoraciones</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-purple-500/20 border border-purple-500/30 rounded-lg p-2">
-                  <p className="text-purple-400 text-xs mb-1">Como vendedor</p>
-                  <div className="flex items-center gap-1">
-                    <Star className={`w-4 h-4 ${avgSellerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
-                    <span className="text-white font-bold">{avgSellerRating}</span>
-                    <span className="text-gray-400 text-xs">({sellerRatings.length})</span>
-                  </div>
-                </div>
-                <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-2">
-                  <p className="text-blue-400 text-xs mb-1">Como comprador</p>
-                  <div className="flex items-center gap-1">
-                    <Star className={`w-4 h-4 ${avgBuyerRating > 0 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} />
-                    <span className="text-white font-bold">{avgBuyerRating}</span>
-                    <span className="text-gray-400 text-xs">({buyerRatings.length})</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </motion.div>
         )}
 
