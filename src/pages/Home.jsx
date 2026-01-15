@@ -342,7 +342,7 @@ export default function Home() {
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                 alerts={alerts}
-                onAlertClick={setSelectedAlert}
+                onAlertClick={(alert) => setSelectedAlert(alert ? {...alert} : null)}
                 userLocation={userLocation}
                 selectedAlert={selectedAlert}
                 showRoute={!!selectedAlert}
