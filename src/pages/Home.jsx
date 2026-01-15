@@ -246,11 +246,9 @@ export default function Home() {
             </Link>
           </div>
 
-          <Link to={createPageUrl('Home')}>
-            <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-            </h1>
-          </Link>
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
+            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+          </h1>
 
           <div className="flex items-center gap-1 ml-auto">
             <Link to={createPageUrl('Settings')}>
@@ -273,7 +271,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="fixed inset-0 top-0 bottom-0">
+      <main className="fixed inset-0 top-[60px] bottom-[88px]">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
@@ -284,16 +282,16 @@ export default function Home() {
 
 
               {/* Mapa de fondo apagado */}
-              <div className="fixed inset-0 top-0 bottom-0 opacity-20 pointer-events-none">
+              <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
-                className="h-full w-full"
+                className="h-full"
                 zoomControl={false} />
               </div>
 
               {/* Overlay morado apagado */}
-              <div className="fixed inset-0 top-0 bottom-0 bg-purple-900/40 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
                 <img
@@ -334,7 +332,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col bg-black"
+            className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
             style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
 
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
@@ -403,7 +401,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-screen pt-4 bg-black">
+            className="h-screen pt-4">
 
                 <div className="h-[35%] relative px-3">
                   <ParkingMap
