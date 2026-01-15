@@ -14,7 +14,7 @@ const carColorMap = {
   'gris': '#6b7280'
 };
 
-const VehicleIcon = ({ color, type = 'car' }) => {
+const VehicleIcon = ({ color, type = 'car', size = 'w-8 h-5' }) => {
   if (type === 'van') {
     return (
       <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
@@ -41,7 +41,7 @@ const VehicleIcon = ({ color, type = 'car' }) => {
   }
 
   return (
-    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+    <svg viewBox="0 0 48 24" className={size} fill="none">
         <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
@@ -191,7 +191,7 @@ export default function UserCard({
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 -mt-[7px]">
             <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
               <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
                 <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
