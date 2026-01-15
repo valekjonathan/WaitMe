@@ -16,9 +16,8 @@ import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 
 // Componente de cuenta regresiva
-function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) {
+function CountdownTimer({ availableInMinutes, createdDate }) {
   const [timeLeft, setTimeLeft] = React.useState('');
-  const [expired, setExpired] = React.useState(false);
 
   React.useEffect(() => {
     const updateTimer = () => {
@@ -29,17 +28,12 @@ function CountdownTimer({ availableInMinutes, createdDate, alertId, onExpire }) 
       const minutes = Math.floor(remaining / 60);
       const seconds = remaining % 60;
       setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-
-      if (remaining === 0 && !expired) {
-        setExpired(true);
-        onExpire(alertId);
-      }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [availableInMinutes, createdDate, alertId, onExpire, expired]);
+  }, [availableInMinutes, createdDate]);
 
   return (
     <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center">
@@ -140,12 +134,6 @@ export default function History() {
     }
   });
 
-  // Auto-cancelar cuando expire
-  const handleExpire = React.useCallback(async (alertId) => {
-    await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
-    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-  }, [queryClient]);
-
   const getStatusBadge = (status) => {
     const styles = {
       active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -238,7 +226,7 @@ export default function History() {
                     <>
                       <div className="flex items-center justify-between mb-2">
                         {getStatusBadge(alert.status)}
-                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
                           {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -297,11 +285,11 @@ export default function History() {
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center justify-between mb-2 relative">
-                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 text-center flex justify-center">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
                           Activa
                         </Badge>
-                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
+                        <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
                           {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
@@ -331,125 +319,8 @@ export default function History() {
                         <span className="text-purple-400">Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                       </div>
                       
-                      <CountdownTimer 
-                        availableInMinutes={alert.available_in_minutes} 
-                        createdDate={alert.created_date}
-                        alertId={alert.id}
-                        onExpire={handleExpire}
-                      />
+                      <CountdownTimer availableInMinutes={alert.available_in_minutes} createdDate={alert.created_date} />
                     </>
-                  )}
-                </motion.div>
-              );
-            } else if (item.type === 'completed') {
-              const alert = item.data;
-              const hasTransaction = !!alert.reserved_by_name;
-              return (
-                <motion.div
-                  key={`completed-${alert.id}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative ${!hasTransaction ? 'opacity-40' : ''}`}
-                >
-                  <div className="flex items-center justify-between mb-2 relative">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 text-center flex justify-center">
-                      Finalizada
-                    </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
-                      {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
-                    </span>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className={`rounded-lg px-2 py-1 flex items-center gap-1 h-7 ${hasTransaction ? 'bg-green-500/20 border border-green-500/30' : 'bg-gray-700/20 border border-gray-700/30'}`}>
-                        <TrendingUp className={`w-4 h-4 ${hasTransaction ? 'text-green-400' : 'text-gray-500'}`} />
-                        <span className={`font-bold text-sm ${hasTransaction ? 'text-green-400' : 'text-gray-500'}`}>
-                          {(alert.price * 0.8).toFixed(2)}€
-                        </span>
-                      </div>
-                      <Button
-                        size="icon"
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                      >
-                        <X className="w-4 h-4" strokeWidth={3} />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {hasTransaction && alert.reserved_by_name && (
-                    <div className="mb-1.5">
-                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col">
-                        <div className="flex gap-2.5 mb-1.5 flex-1">
-                          <div className="flex flex-col gap-1.5">
-                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500 bg-gray-800 flex-shrink-0">
-                              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
-                                👤
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex-1 flex flex-col justify-between">
-                            <p className="font-bold text-xl text-white mb-1.5">{alert.reserved_by_name?.split(' ')[0]}</p>
-
-                            <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                              <p className="text-sm font-medium text-white">Sin datos</p>
-                              <Car className="w-5 h-5 text-gray-400" />
-                            </div>
-
-                            <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-                              <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-                                <span className="text-[9px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
-                                {alert.reserved_by_plate || 'XXXX XXX'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
-                          {alert.address && (
-                            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                              <span className="line-clamp-1">{alert.address}</span>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center gap-1 text-xs">
-                            <Clock className="w-3 h-3 text-gray-500" />
-                            <span className="text-gray-500">Transacción completada · {format(new Date(alert.created_date), 'HH:mm', { locale: es })}</span>
-                          </div>
-                          
-                          <div className="mt-4">
-                            <div className="flex gap-2">
-                              <div>
-                                <Button
-                                  size="icon"
-                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
-                                  onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email}`)}>
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              
-                              <div>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
-                                  disabled>
-                                  <PhoneOff className="w-4 h-4 text-gray-600" />
-                                </Button>
-                              </div>
-
-                              <div className="flex-1">
-                                <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                  <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   )}
                 </motion.div>
               );
@@ -465,11 +336,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
-                  <div className="flex items-center justify-between mb-2 relative">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
                       {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -610,11 +481,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                 >
-                  <div className="flex items-center justify-between mb-2 relative">
-                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Activa
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
                       {format(new Date(alert.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -689,11 +560,11 @@ export default function History() {
                   transition={{ delay: index * 0.05 }}
                   className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                 >
-                  <div className="flex items-center justify-between mb-2 relative">
-                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 text-center flex justify-center">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center flex justify-center">
                       Finalizada
                     </Badge>
-                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2" style={{ textTransform: 'capitalize' }}>
+                    <span className="text-white text-xs absolute left-1/2 -translate-x-1/2">
                       {format(new Date(tx.created_date), "d MMMM HH:mm", { locale: es })}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
