@@ -153,8 +153,8 @@ const generateMockAlerts = (userLocation) => {
   return [
     {
       id: 'mock-1',
-      latitude: baseLocation[0] + 0.0008,
-      longitude: baseLocation[1] + 0.0008,
+      latitude: baseLocation[0] + 0.003,
+      longitude: baseLocation[1] + 0.004,
       price: 2.50,
       car_color: 'negro',
       car_brand: 'Toyota',
@@ -167,8 +167,8 @@ const generateMockAlerts = (userLocation) => {
     },
     {
       id: 'mock-2',
-      latitude: baseLocation[0] - 0.0006,
-      longitude: baseLocation[1] + 0.001,
+      latitude: baseLocation[0] - 0.002,
+      longitude: baseLocation[1] + 0.005,
       price: 3.00,
       car_color: 'rojo',
       car_brand: 'Seat',
@@ -181,8 +181,8 @@ const generateMockAlerts = (userLocation) => {
     },
     {
       id: 'mock-3',
-      latitude: baseLocation[0] + 0.001,
-      longitude: baseLocation[1] - 0.0008,
+      latitude: baseLocation[0] + 0.005,
+      longitude: baseLocation[1] - 0.003,
       price: 2.00,
       car_color: 'azul',
       car_brand: 'Renault',
@@ -195,8 +195,8 @@ const generateMockAlerts = (userLocation) => {
     },
     {
       id: 'mock-4',
-      latitude: baseLocation[0] - 0.001,
-      longitude: baseLocation[1] - 0.0006,
+      latitude: baseLocation[0] - 0.004,
+      longitude: baseLocation[1] - 0.002,
       price: 3.50,
       car_color: 'blanco',
       car_brand: 'Audi',
@@ -209,8 +209,8 @@ const generateMockAlerts = (userLocation) => {
     },
     {
       id: 'mock-5',
-      latitude: baseLocation[0] + 0.003,
-      longitude: baseLocation[1] - 0.001,
+      latitude: baseLocation[0] + 0.002,
+      longitude: baseLocation[1] - 0.005,
       price: 1.75,
       car_color: 'gris',
       car_brand: 'Peugeot',
@@ -223,8 +223,8 @@ const generateMockAlerts = (userLocation) => {
     },
     {
       id: 'mock-6',
-      latitude: baseLocation[0] - 0.0008,
-      longitude: baseLocation[1] + 0.0009,
+      latitude: baseLocation[0] - 0.003,
+      longitude: baseLocation[1] + 0.003,
       price: 2.75,
       car_color: 'verde',
       car_brand: 'Volkswagen',
@@ -234,34 +234,6 @@ const generateMockAlerts = (userLocation) => {
       user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=patricia&backgroundColor=random',
       available_in_minutes: 22,
       vehicle_type: 'van'
-    },
-    {
-      id: 'mock-7',
-      latitude: baseLocation[0] + 0.0004,
-      longitude: baseLocation[1] - 0.0009,
-      price: 2.25,
-      car_color: 'amarillo',
-      car_brand: 'Honda',
-      car_model: 'Civic',
-      car_plate: '1357SUV',
-      user_name: 'Andrea T.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=andrea&backgroundColor=random',
-      available_in_minutes: 12,
-      vehicle_type: 'car'
-    },
-    {
-      id: 'mock-8',
-      latitude: baseLocation[0] - 0.0009,
-      longitude: baseLocation[1] - 0.0007,
-      price: 2.90,
-      car_color: 'azul',
-      car_brand: 'Fiat',
-      car_model: '500',
-      car_plate: '2468FIA',
-      user_name: 'Marco V.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marco&backgroundColor=random',
-      available_in_minutes: 16,
-      vehicle_type: 'car'
     }
   ];
 };

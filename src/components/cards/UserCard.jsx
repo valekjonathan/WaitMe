@@ -173,9 +173,9 @@ export default function UserCard({
 
         <div className="flex-1 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5">
               <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
-              <div className="flex gap-0.5 ml-auto">
+              <div className="flex gap-0.5">
                 {[...Array(4)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 ))}
@@ -225,7 +225,7 @@ export default function UserCard({
               <span className="line-clamp-1">{address}</span>
             </div>
           )}
-
+          
           {availableInMinutes !== undefined && (
             <div className="flex items-center gap-1 text-gray-500 text-[10px]">
               <Clock className="w-3.5 h-3.5" />
