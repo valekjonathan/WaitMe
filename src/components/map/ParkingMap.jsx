@@ -148,96 +148,6 @@ function FlyToLocation({ position }) {
   return null;
 }
 
-const generateMockAlerts = (userLocation) => {
-  const baseLocation = userLocation || [40.4168, -3.7038];
-  return [
-    {
-      id: 'mock-1',
-      latitude: baseLocation[0] + 0.003,
-      longitude: baseLocation[1] + 0.004,
-      price: 2.50,
-      car_color: 'negro',
-      car_brand: 'Toyota',
-      car_model: 'Corolla',
-      car_plate: '1234ABC',
-      user_name: 'Diego R.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=diego&backgroundColor=random',
-      available_in_minutes: 15,
-      vehicle_type: 'car'
-    },
-    {
-      id: 'mock-2',
-      latitude: baseLocation[0] - 0.002,
-      longitude: baseLocation[1] + 0.005,
-      price: 3.00,
-      car_color: 'rojo',
-      car_brand: 'Seat',
-      car_model: 'Ibiza',
-      car_plate: '5678DEF',
-      user_name: 'Laura V.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=laura&backgroundColor=random',
-      available_in_minutes: 20,
-      vehicle_type: 'car'
-    },
-    {
-      id: 'mock-3',
-      latitude: baseLocation[0] + 0.005,
-      longitude: baseLocation[1] - 0.003,
-      price: 2.00,
-      car_color: 'azul',
-      car_brand: 'Renault',
-      car_model: 'Megane',
-      car_plate: '9012GHI',
-      user_name: 'Miguel Á.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=miguel&backgroundColor=random',
-      available_in_minutes: 10,
-      vehicle_type: 'suv'
-    },
-    {
-      id: 'mock-4',
-      latitude: baseLocation[0] - 0.004,
-      longitude: baseLocation[1] - 0.002,
-      price: 3.50,
-      car_color: 'blanco',
-      car_brand: 'Audi',
-      car_model: 'A3',
-      car_plate: '3456JKL',
-      user_name: 'Sofia M.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sofia&backgroundColor=random',
-      available_in_minutes: 25,
-      vehicle_type: 'car'
-    },
-    {
-      id: 'mock-5',
-      latitude: baseLocation[0] + 0.002,
-      longitude: baseLocation[1] - 0.005,
-      price: 1.75,
-      car_color: 'gris',
-      car_brand: 'Peugeot',
-      car_model: '308',
-      car_plate: '7890MNO',
-      user_name: 'Roberto L.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=roberto&backgroundColor=random',
-      available_in_minutes: 18,
-      vehicle_type: 'car'
-    },
-    {
-      id: 'mock-6',
-      latitude: baseLocation[0] - 0.003,
-      longitude: baseLocation[1] + 0.003,
-      price: 2.75,
-      car_color: 'verde',
-      car_brand: 'Volkswagen',
-      car_model: 'Golf',
-      car_plate: '2468PQR',
-      user_name: 'Patricia N.',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=patricia&backgroundColor=random',
-      available_in_minutes: 22,
-      vehicle_type: 'van'
-    }
-  ];
-};
-
 export default function ParkingMap({
   alerts = [],
   onAlertClick,
@@ -254,9 +164,6 @@ export default function ParkingMap({
   const defaultCenter = userLocation || [40.4168, -3.7038];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
-  
-  // Combinar alertas reales con mock alerts si no hay alertas
-  const allAlerts = alerts.length > 0 ? alerts : generateMockAlerts(userLocation);
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
@@ -411,16 +318,16 @@ export default function ParkingMap({
         }
         
         {/* Alertas */}
-         {allAlerts.map((alert) =>
-         <Marker
-           key={alert.id}
-           position={[alert.latitude, alert.longitude]}
-           icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
-           eventHandlers={{
-             click: () => onAlertClick && onAlertClick(alert)
-           }}>
-           </Marker>
-         )}
+        {alerts.map((alert) =>
+        <Marker
+          key={alert.id}
+          position={[alert.latitude, alert.longitude]}
+          icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
+          eventHandlers={{
+            click: () => onAlertClick && onAlertClick(alert)
+          }}>
+          </Marker>
+        )}
       </MapContainer>
 
 
