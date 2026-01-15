@@ -197,9 +197,14 @@ export default function UserCard({
                 {formatPlate(carPlate)}
               </span>
             </div>
-            <div className={`w-[60px] h-8 ${muted ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'} rounded-md border-2 flex items-center justify-center flex-shrink-0`}>
-              <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-            </div>
+      <svg viewBox="0 0 48 24" className={size} fill="none">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="14" cy="18" r="2" fill="#666" />
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="2" fill="#666" />
+      </svg>
           </div>
         </div>
       </div>
