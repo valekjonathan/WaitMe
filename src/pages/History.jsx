@@ -388,32 +388,30 @@ export default function History() {
                   </div>
 
                   {isSeller && tx.buyer_name && (
-                    <div className="mb-1.5 opacity-30">
-                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500/30 flex flex-col">
+                    <div className="mb-1.5 opacity-60">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 flex flex-col">
                         {/* Tarjeta de usuario */}
                         <div className="flex gap-2.5 mb-1.5 flex-1">
                           <div className="flex flex-col gap-1.5">
                             <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
-                              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
-                                👤
-                              </div>
+                              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt={tx.buyer_name} className="w-full h-full object-cover" />
                             </div>
                           </div>
 
                           <div className="flex-1 flex flex-col justify-between">
-                            <p className="font-bold text-xl text-gray-500 mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
+                            <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
 
                             <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                              <p className="text-sm font-medium text-gray-500">Sin datos</p>
-                              <Car className="w-5 h-5 text-gray-600" />
+                              <p className="text-sm font-medium text-white">BMW Serie 3</p>
+                              <Car className="w-5 h-5 text-gray-400" />
                             </div>
 
-                            <div className="-mt-[7px] bg-gray-700 rounded-md flex items-center overflow-hidden border-2 border-gray-600 h-8">
-                              <div className="bg-gray-600 h-full w-6 flex items-center justify-center">
-                                <span className="text-[9px] font-bold text-gray-500">E</span>
+                            <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                              <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                                <span className="text-[9px] font-bold text-white">E</span>
                               </div>
-                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-gray-600">
-                                XXXX XXX
+                              <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+                                2847 BNM
                               </span>
                             </div>
                           </div>
@@ -422,15 +420,15 @@ export default function History() {
                         {/* Información de ubicación */}
                         <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
                           {tx.address && (
-                            <div className="flex items-start gap-1.5 text-gray-600 text-xs">
+                            <div className="flex items-start gap-1.5 text-gray-400 text-xs">
                               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
                               <span className="line-clamp-1">{tx.address}</span>
                             </div>
                           )}
 
                           <div className="flex items-center gap-1 text-xs">
-                            <Clock className="w-3 h-3 text-gray-600" />
-                            <span className="text-gray-600">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
+                            <Clock className="w-3 h-3 text-gray-500" />
+                            <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                           </div>
 
                           {/* Botones de acción */}
@@ -457,7 +455,7 @@ export default function History() {
 
                               <div className="flex-1">
                                 <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                  <span className="text-gray-600 text-sm font-mono font-bold">--:--</span>
+                                  <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
                                 </div>
                               </div>
                             </div>
