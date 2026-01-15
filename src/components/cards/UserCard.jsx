@@ -141,19 +141,19 @@ export default function UserCard({
               <Button
               variant="ghost"
               size="icon"
-              className="flex-1 h-6 bg-purple-600/30 hover:bg-purple-600 text-purple-300 hover:text-white rounded-lg border-2 border-purple-500/50"
+              className="flex-1 h-8 bg-purple-600/30 hover:bg-purple-600 text-purple-300 hover:text-white rounded-lg border-2 border-purple-500/50"
               onClick={onChat}>
 
-                <MessageCircle className="w-3.5 h-3.5" />
+                <MessageCircle className="w-4 h-4" />
               </Button>
               <Button
               variant="ghost"
               size="icon"
-              className={`flex-1 h-6 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+              className={`flex-1 h-8 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
               onClick={onCall}
               disabled={!allowPhoneCalls}>
 
-                <Phone className="w-3.5 h-3.5" />
+                <Phone className="w-4 h-4" />
               </Button>
             </div>
           }
@@ -161,12 +161,12 @@ export default function UserCard({
           <Button
             variant="ghost"
             size="icon"
-            className="w-full h-6 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
+            className="w-full h-8 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
             onClick={() => {
               window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
             }}>
 
-              <Navigation className="w-3.5 h-3.5" />
+              <Navigation className="w-4 h-4" />
             </Button>
           }
         </div>
