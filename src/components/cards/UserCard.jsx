@@ -104,7 +104,7 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl pt-2.5 px-2.5 pb-0 border-2 border-purple-500 flex flex-col h-full">
+    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'} flex flex-col h-full`}>
       {/* Header con precio y distancia */}
       {showLocationInfo && price &&
       <div className="flex justify-between items-center mb-1.5">
@@ -124,7 +124,7 @@ export default function UserCard({
       }
 
       {/* Tarjeta de usuario */}
-      <div className="mb-7 flex gap-2.5">
+      <div className="mb-16 flex gap-2.5 flex-1">
         <div className="flex flex-col gap-0">
           <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ?
@@ -205,7 +205,7 @@ export default function UserCard({
       {/* Información de ubicación */}
       {showLocationInfo &&
       <div className="space-y-1 border-t border-gray-700 -mt-5">
-          <div className="text-[11px] my-1 flex items-start gap-1.5">
+          <div className="flex items-start gap-1.5 text-white text-[11px]">
             <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-purple-400" />
             <span className="line-clamp-1 font-medium">{address || 'Ubicación no disponible'}</span>
           </div>
