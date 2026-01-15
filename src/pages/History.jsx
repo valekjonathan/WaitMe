@@ -326,39 +326,7 @@ export default function History() {
         )}
 
         {/* Filtros de fecha */}
-        <div className="flex gap-2 mb-3">
-          <Button
-            size="sm"
-            variant={dateFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('all')}
-            className={dateFilter === 'all' ? 'bg-purple-600' : 'border-gray-700'}>
-            Todo
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'month' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('month')}
-            className={dateFilter === 'month' ? 'bg-purple-600' : 'border-gray-700'}>
-            Este mes
-          </Button>
-          <Button
-            size="sm"
-            variant={dateFilter === 'year' ? 'default' : 'outline'}
-            onClick={() => setDateFilter('year')}
-            className={dateFilter === 'year' ? 'bg-purple-600' : 'border-gray-700'}>
-            Este año
-          </Button>
-          {!showSummary && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowSummary(true)}
-              className="ml-auto border-purple-500 text-purple-400">
-              <Plus className="w-4 h-4 mr-1" />
-              Resumen
-            </Button>
-          )}
-        </div>
+
 
         <Tabs defaultValue="alerts" className="w-full">
           <TabsList className="w-full bg-gray-900 border border-gray-800 mb-0">
