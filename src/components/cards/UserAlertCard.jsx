@@ -69,7 +69,7 @@ export default function UserAlertCard({
 
           {/* WaitMe Button */}
           <div className="flex-1">
-            <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 w-[calc(100%-5px)]"
+            <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 w-[calc(100%-8px)]"
 
           onClick={() => onBuyAlert(alert)}
           disabled={isLoading}>
