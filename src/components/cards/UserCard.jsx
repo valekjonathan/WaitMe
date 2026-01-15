@@ -104,7 +104,7 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'} flex flex-col h-full`}>
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col h-full mb-9">
       {/* Header con precio y distancia */}
       {showLocationInfo && price &&
       <div className="flex justify-between items-center mb-1.5">
@@ -213,7 +213,7 @@ export default function UserCard({
           {availableInMinutes !== undefined &&
         <div className="flex items-center gap-1 text-gray-400 text-[10px]">
               <Clock className="w-3.5 h-3.5 text-purple-400" />
-              <span>Se va en {availableInMinutes} min</span>
+              <span className="pl-1">Se va en {availableInMinutes} min</span>
               <span className="text-purple-400">
                 • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
               </span>
