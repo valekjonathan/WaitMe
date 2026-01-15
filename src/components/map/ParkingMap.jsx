@@ -310,7 +310,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, userLocation]);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} min-h-[560px]`}>
       <style>{`
         .leaflet-top.leaflet-left {
           top: 10px !important;
