@@ -191,8 +191,8 @@ export default function UserCard({
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+          <div className="flex items-center justify-between gap-2 w-full">
+            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7 flex-1">
               <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
                 <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
@@ -208,9 +208,10 @@ export default function UserCard({
       {/* Información de ubicación */}
       {showLocationInfo &&
       <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+
           {address &&
-        <div className="flex items-start gap-1.5 text-gray-300 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+        <div className="flex items-start gap-1.5 text-gray-400 text-[11px]">
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
               <span className="line-clamp-1 font-medium">{address}</span>
             </div>
         }
