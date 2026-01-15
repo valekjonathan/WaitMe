@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Navigation, MessageCircle, Phone, Star } from 'lucide-react';
+import { MapPin, Clock, Navigation, MessageCircle, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -173,19 +173,13 @@ export default function UserCard({
 
         <div className="flex-1 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-1.5">
-              <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
-              <div className="flex gap-0.5">
-                {[...Array(4)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-            </div>
+            <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'} mb-0.5`}>{userName?.split(' ')[0]}</p>
             <RatingBadge rating={userRating} count={userRatingCount} />
           </div>
 
           <div className="flex items-center justify-between mb-1.5">
             <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
+            <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
           </div>
 
           {isReserved ? (
@@ -196,9 +190,6 @@ export default function UserCard({
               <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 {formatPlate(carPlate)}
               </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
             </div>
           ) : (
             <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
@@ -208,9 +199,6 @@ export default function UserCard({
               <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 XXXX XXX
               </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
             </div>
           )}
         </div>
