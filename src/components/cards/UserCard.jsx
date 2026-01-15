@@ -14,7 +14,7 @@ const carColorMap = {
   'gris': '#6b7280'
 };
 
-const VehicleIcon = ({ color, type = 'car' }) => {
+const VehicleIcon = ({ color, type = 'car', size = 'w-8 h-5' }) => {
   if (type === 'van') {
     return (
       <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
