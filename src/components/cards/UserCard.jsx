@@ -124,97 +124,86 @@ export default function UserCard({
       )}
 
       {/* Tarjeta de usuario */}
-      <div className="flex gap-2.5 mb-1.5 flex-1">
-        <div className="flex flex-col gap-1.5">
-          <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
+      <div className="flex gap-4">
+        <div className="relative">
+          <div className={`w-24 h-28 rounded-xl overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800`}>
             {userPhoto ? (
-              <img src={userPhoto} className="w-full h-full object-cover" alt={userName} />
+              <img src={userPhoto} alt="Perfil" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
+              <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
                 👤
               </div>
             )}
           </div>
+        </div>
 
-          {showContactButtons && (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="flex-1 h-8 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
-                onClick={onChat}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`flex-1 h-8 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
-                onClick={onCall}
-                disabled={!allowPhoneCalls}
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
+        <div className="pl-0 flex-1 flex flex-col justify-between">
+          <div className="flex items-center gap-2 mb-auto">
+            <p className={`text-xl font-bold ${muted ? 'text-gray-600' : 'text-white'}`}>
+              {userName?.split(' ')[0] || "Usuario"}
+            </p>
+            <button className="flex gap-0.5 hover:opacity-80 transition-opacity ml-auto">
+              {[...Array(4)].map((_, i) => (
+                <span key={i} className="text-yellow-400 text-lg leading-none">★</span>
+              ))}
+            </button>
+          </div>
+          <RatingBadge rating={userRating} count={userRatingCount} />
+
+          <div className="flex flex-col gap-0.5 mt-auto pt-2">
+            <p className={`font-medium text-xs ${muted ? 'text-gray-600' : 'text-white'}`}>
+              {carBrand || 'Sin'} {carModel || 'coche'}
+            </p>
+            <div className="flex items-center gap-2">
+              <div className={`${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
+                <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
+                  <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+                </div>
+                <span className={`px-2 font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+                  {carPlate && isReserved ? 
+                    `${carPlate.slice(0, 4)} ${carPlate.slice(4)}`.trim() : 
+                    '0000 XXX'}
+                </span>
+              </div>
+              <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
             </div>
-          )}
-          {showContactButtons && latitude && longitude && (
+          </div>
+        </div>
+      </div>
+
+      {showContactButtons && (
+        <div className="flex gap-2 mt-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="flex-1 h-9 bg-gray-800 hover:bg-purple-600 text-purple-400 hover:text-white rounded-lg border-2 border-gray-700"
+            onClick={onChat}
+          >
+            <MessageCircle className="w-5 h-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`flex-1 h-9 rounded-lg border-2 border-gray-700 ${allowPhoneCalls ? 'bg-gray-800 hover:bg-green-600 text-green-400 hover:text-white' : 'bg-gray-800/50 text-gray-600'}`}
+            onClick={onCall}
+            disabled={!allowPhoneCalls}
+          >
+            <Phone className="w-5 h-5" />
+          </Button>
+          {latitude && longitude && (
             <Button
               variant="ghost"
               size="icon"
-              className="w-full h-8 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
+              className="flex-1 h-9 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
               onClick={() => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
               }}
             >
-              <Navigation className="w-4 h-4" />
+              <Navigation className="w-5 h-5" />
             </Button>
           )}
         </div>
-
-        <div className="flex-1 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between gap-1.5">
-              <p className={`font-bold text-xl ${muted ? 'text-gray-600' : 'text-white'}`}>{userName?.split(' ')[0]}</p>
-              <div className="flex gap-0.5 ml-auto">
-                {[...Array(4)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-            </div>
-            <RatingBadge rating={userRating} count={userRatingCount} />
-          </div>
-
-          <div className="flex items-center justify-between mb-1.5">
-            <p className={`text-sm font-medium ${muted ? 'text-gray-600' : 'text-white'}`}>{carBrand} {carModel}</p>
-          </div>
-
-          {isReserved ? (
-            <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
-              </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-                {formatPlate(carPlate)}
-              </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
-            </div>
-          ) : (
-            <div className={`-mt-[7px] ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
-                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
-              </div>
-              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
-                XXXX XXX
-              </span>
-              <div className="flex-shrink-0 w-10 flex items-center justify-center">
-                <VehicleIcon color={carColorMap[carColor] || '#6b7280'} type={vehicleType} />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Información de ubicación */}
       {showLocationInfo && (
