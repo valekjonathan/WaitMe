@@ -421,7 +421,7 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="h-screen pt-16 bg-black">
 
-                <div className="h-[32%] relative px-3">
+                <div className="h-[60%] relative px-3">
                   <ParkingMap
                 isSelecting={true}
                 selectedPosition={selectedPosition}
