@@ -386,10 +386,24 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 min-h-0 overflow-y-auto">
+              <div className="flex-1 px-4 min-h-0 overflow-y-auto flex flex-col">
                 <UserAlertCard
-                alert={selectedAlert}
-                isEmpty={!selectedAlert}
+                alert={selectedAlert || {
+                  user_name: 'Sofia',
+                  user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
+                  car_brand: 'Audi',
+                  car_model: 'A3',
+                  car_color: 'blanco',
+                  car_plate: '3456 JKL',
+                  vehicle_type: 'car',
+                  address: 'Calle de Alcalá, 45',
+                  available_in_minutes: 12,
+                  price: 3,
+                  latitude: 40.4168,
+                  longitude: -3.7038,
+                  allow_phone_calls: true
+                }}
+                isEmpty={false}
                 onBuyAlert={handleBuyAlert}
                 onChat={handleChat}
                 onCall={handleCall}
