@@ -2,20 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import {
-  ArrowLeft,
-  User,
-  Coins,
-  Bell,
-  Shield,
-  LogOut,
-  ChevronRight,
-  CreditCard,
-  HelpCircle,
-  Star,
-  MessageCircle,
-  Settings as SettingsIcon } from
-'lucide-react';
+import { 
+        ArrowLeft, 
+        User, 
+        Coins, 
+        Bell, 
+        Shield, 
+        LogOut, 
+        ChevronRight,
+        CreditCard,
+        HelpCircle,
+        Star,
+        MessageCircle,
+        Settings as SettingsIcon
+      } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -67,8 +67,8 @@ export default function Settings() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>);
-
+      </div>
+    );
   }
 
   return (
@@ -109,19 +109,19 @@ export default function Settings() {
       <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }} className="my-2 space-y-3">
-
-
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
           {/* Perfil resumen */}
           <Link to={createPageUrl('Profile')}>
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
-              {user?.photo_url ?
-              <img src={user.photo_url} className="w-14 h-14 rounded-full object-cover" alt="" /> :
-
-              <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
+              {user?.photo_url ? (
+                <img src={user.photo_url} className="w-14 h-14 rounded-full object-cover" alt="" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
                   <User className="w-7 h-7 text-gray-500" />
                 </div>
-              }
+              )}
               <div className="flex-1">
                 <p className="font-semibold">{user?.display_name || user?.full_name?.split(' ')[0]}</p>
                 <p className="text-sm text-gray-400">{user?.email}</p>
@@ -178,8 +178,8 @@ export default function Settings() {
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300">
-
+            className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+          >
             <LogOut className="w-5 h-5 mr-2" />
             Cerrar sesión
           </Button>
@@ -193,6 +193,6 @@ export default function Settings() {
       </main>
       
       <BottomNav />
-    </div>);
-
+    </div>
+  );
 }
