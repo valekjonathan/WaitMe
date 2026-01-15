@@ -189,11 +189,11 @@ export default function UserCard({
           </div>
 
           <div className="flex items-center gap-2 -mt-[7px]">
-            <div className={`flex-1 ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-7`}>
-              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-5 flex items-center justify-center`}>
-                <span className={`text-[8px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
+            <div className={`flex-1 ${muted ? 'bg-gray-700' : 'bg-white'} rounded-md flex items-center overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-gray-400'} h-8`}>
+              <div className={`${muted ? 'bg-gray-600' : 'bg-blue-600'} h-full w-6 flex items-center justify-center`}>
+                <span className={`text-[9px] font-bold ${muted ? 'text-gray-500' : 'text-white'}`}>E</span>
               </div>
-              <span className={`flex-1 text-center font-mono font-bold text-sm tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
+              <span className={`flex-1 text-center font-mono font-bold text-base tracking-wider ${muted ? 'text-gray-600' : 'text-black'}`}>
                 {formatPlate(carPlate)}
               </span>
             </div>
