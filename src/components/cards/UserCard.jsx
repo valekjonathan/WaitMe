@@ -104,7 +104,7 @@ export default function UserCard({
     return cleaned;
   };
   return (
-    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-purple-500 flex flex-col h-full mb-8">
+    <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 ${muted ? 'border-gray-700' : 'border-purple-500'} flex flex-col h-full`}>
       {/* Header con precio y distancia */}
       {showLocationInfo && price &&
       <div className="flex justify-between items-center mb-1.5">
@@ -124,7 +124,7 @@ export default function UserCard({
       }
 
       {/* Tarjeta de usuario */}
-      <div className="mb-7 flex gap-2.5">
+      <div className="mb-16 flex gap-2.5 flex-1">
         <div className="flex flex-col gap-0">
           <div className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 ${muted ? 'border-gray-600' : 'border-purple-500'} bg-gray-800 flex-shrink-0`}>
             {userPhoto ?
