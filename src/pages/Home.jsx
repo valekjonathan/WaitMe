@@ -271,7 +271,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="fixed inset-0 top-[60px] bottom-[88px]">
+      <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
