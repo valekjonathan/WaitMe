@@ -251,11 +251,6 @@ export default function Home() {
           </h1>
 
           <div className="flex items-center gap-1 ml-auto">
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
             <Link to={createPageUrl('Chats')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <MessageCircle className="w-5 h-5" />
@@ -266,12 +261,17 @@ export default function Home() {
                 }
               </Button>
             </Link>
+            <Link to={createPageUrl('Settings')}>
+              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+                <Settings className="w-5 h-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="fixed inset-0 top-[60px] bottom-[88px]">
+      <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
