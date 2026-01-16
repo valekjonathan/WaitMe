@@ -97,10 +97,10 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700"></div>
 
-        <Link to={createPageUrl('profile')} className="flex-1 flex justify-center">
+        <Link to={createPageUrl('Chats')} className="flex-1 flex justify-center">
           <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
           <MessageCircle className="w-8 h-8" />
-            <span className="text-[10px] font-bold">perfil</span>
+            <span className="text-[10px] font-bold">Chats</span>
           </Button>
         </Link>
       </div>
