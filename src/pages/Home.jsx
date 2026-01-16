@@ -300,7 +300,7 @@ export default function Home() {
                 className="w-48 h-48 mb-0 object-contain" />
 
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                  Aparca donde te <span className="text-purple-500">aviseen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
