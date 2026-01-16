@@ -97,9 +97,9 @@ export default function Settings() {
                 <SettingsIcon className="w-5 h-5" />
               </Button>
             </Link>
-            <Link to={createPageUrl('Chats')} className="relative">
+            <Link to={createPageUrl('Profile')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <MessageCircle className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </Button>
             </Link>
           </div>
