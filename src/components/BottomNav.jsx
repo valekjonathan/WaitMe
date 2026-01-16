@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
+import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
   const [user, setUser] = useState(null);
@@ -97,12 +97,10 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700"></div>
 
-        <Link to={createPageUrl('Profile')} className="flex-1 flex justify-center">
+        <Link to={createPageUrl('profile')} className="flex-1 flex justify-center">
           <Button variant="ghost" className="flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span className="text-[10px] font-bold">Perfil</span>
+          <MessageCircle className="w-8 h-8" />
+            <span className="text-[10px] font-bold">perfil</span>
           </Button>
         </Link>
       </div>
