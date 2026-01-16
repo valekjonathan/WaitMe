@@ -37,7 +37,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 relative">
-      <div className="grid grid-cols-[48px_1fr_auto] items-center px-4 py-3">
+      <div className="relative flex items-center px-4 py-3">
         {showBackButton ? (
           <Link to={createPageUrl(backTo)}>
             <Button variant="ghost" size="icon" className="text-white">
