@@ -286,7 +286,7 @@ export default function Home() {
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
-                className="h-full"
+                className="habsolute inset-0 w-full h-full"
                 zoomControl={false} />
               </div>
 
