@@ -77,6 +77,6 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
           </Link>
         </div>
       </div>
-    </header>
+    </header> 
   );
 }
