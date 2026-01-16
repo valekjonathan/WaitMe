@@ -233,7 +233,7 @@ export default function Home() {
               size="icon"
               onClick={() => {
                 setMode(null);
-                setSelectedAlert(null);
+                setSelectedAlert(null); 
               }}
               className="text-white">
                 <ArrowLeft className="w-6 h-6" />
