@@ -36,7 +36,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
     });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 relative">
       <div className="grid grid-cols-[48px_1fr_auto] items-center px-4 py-3">
         {showBackButton ? (
           <Link to={createPageUrl(backTo)}>
@@ -47,7 +47,6 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
         ) : (
           <div className="w-10" /> 
         )}
-        
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
           <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
             <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
