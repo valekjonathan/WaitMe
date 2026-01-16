@@ -41,7 +41,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
         {showBackButton ? (
           <Link to={createPageUrl(backTo)}>
             <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-6  h-6" />
             </Button>
           </Link>
         ) : (
