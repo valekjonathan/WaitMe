@@ -37,7 +37,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="grid grid-cols-[48px_1fr_auto] items-center px-4 py-3">
         {showBackButton ? (
           <Link to={createPageUrl(backTo)}>
             <Button variant="ghost" size="icon" className="text-white">
@@ -48,7 +48,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
           <div className="w-10" />
         )}
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
             <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
           </div>
@@ -59,7 +59,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
           </Link>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-end gap-1">
           <Link to={createPageUrl('Settings')}>
             <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
               <Settings className="w-5 h-5" />
