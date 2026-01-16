@@ -277,8 +277,8 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }} className="fixed inset-0 w-full h-full z-0">
-
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute inset-0 flex flex-col items-center justify-center px-6 overflow-hidden">
 
 
               {/* Mapa de fondo apagado */}
@@ -375,10 +375,10 @@ export default function Home() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                  type="text"
-                  placeholder="Buscar dirección..."
-                  className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
-
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
                 </div>
               </div>
 
