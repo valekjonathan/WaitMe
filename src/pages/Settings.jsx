@@ -99,7 +99,7 @@ export default function Settings() {
             </Link>
             <Link to={createPageUrl('Profile')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <User className="w-5 h-5" />
+                <UserIcon className="w-5 h-5" />
               </Button>
             </Link>
           </div>
