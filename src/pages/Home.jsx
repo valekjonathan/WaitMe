@@ -271,7 +271,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="fixed inset-0">
+      <main className="fixed inset-0 top-[60px] bottom-[88px]">
         <AnimatePresence mode="wait">
           {!mode &&
           <motion.div
@@ -282,11 +282,11 @@ export default function Home() {
 
 
               {/* Mapa de fondo apagado */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none">
+              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
-                className="w-full h-full"
+                className="absolute inset-0 w-full h-full"
                 zoomControl={false} />
               </div>
 
@@ -300,7 +300,7 @@ export default function Home() {
                 className="w-48 h-48 mb-0 object-contain" />
 
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">aviseen<span className="text-purple-500">!</span></span>
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
