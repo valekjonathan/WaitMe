@@ -48,7 +48,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
           <div className="w-10" /> 
         )}
         
-        <div className="flex items-center justify-center gap-2">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
           <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
             <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
           </div>
