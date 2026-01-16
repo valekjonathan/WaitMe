@@ -278,7 +278,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute inset-0 flex flex-col items-center justify-center px-6 overflow-hidden">
+            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
 
 
               {/* Mapa de fondo apagado */}
@@ -293,7 +293,7 @@ export default function Home() {
               {/* Overlay morado apagado */}
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10">
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
                 <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                 alt="WaitMe!"
@@ -304,7 +304,7 @@ export default function Home() {
                 </h1>
               </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10">
+              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                 onClick={() => setMode('search')}
                 className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
