@@ -282,7 +282,7 @@ export default function Home() {
 
 
               {/* Mapa de fondo apagado */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none">
+              <div className="absolute inset-0 bg-red-500/30">
                 <ParkingMap
                 alerts={alerts}
                 userLocation={userLocation}
