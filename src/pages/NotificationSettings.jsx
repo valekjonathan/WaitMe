@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone, Settings as SettingsIcon, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone, Settings as SettingsIcon, MessageCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
