@@ -45,7 +45,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
             </Button>
           </Link>
         ) : (
-          <div className="w-10" />
+          <div className="w-10" /> 
         )}
         
         <div className="flex items-center justify-center gap-2">
