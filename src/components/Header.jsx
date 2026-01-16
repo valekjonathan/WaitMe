@@ -60,6 +60,11 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
         </div>
 
         <div className="flex items-center gap-1">
+          <Link to={createPageUrl('Settings')}>
+            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
+              <Settings className="w-5 h-5" />
+            </Button>
+          </Link>
           <Link to={createPageUrl('Chats')} className="relative">
             <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
               <MessageCircle className="w-5 h-5" />
@@ -69,11 +74,6 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
                 {totalUnread > 9 ? '9+' : totalUnread}
               </span>
             )}
-          </Link>
-          <Link to={createPageUrl('Settings')}>
-            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-              <Settings className="w-5 h-5" />
-            </Button>
           </Link>
         </div>
       </div>
