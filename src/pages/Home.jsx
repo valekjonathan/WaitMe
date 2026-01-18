@@ -31,6 +31,7 @@ export default function Home() {
     };
     checkReset();
   }, [window.location.search]);
+
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -80,13 +81,9 @@ export default function Home() {
 
   // Filtrar alertas según criterios
   const alerts = rawAlerts.filter((alert) => {
-    // Filtro de precio
     if (alert.price > filters.maxPrice) return false;
-
-    // Filtro de disponibilidad
     if (alert.available_in_minutes > filters.maxMinutes) return false;
 
-    // Filtro de distancia
     if (userLocation) {
       const distance = calculateDistance(
         userLocation[0], userLocation[1],
@@ -100,13 +97,13 @@ export default function Home() {
 
   // Calcular distancia en km
   function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radio de la Tierra en km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -146,7 +143,6 @@ export default function Home() {
   // Comprar alerta - ahora crea notificación
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
-      // Crear notificación para el vendedor
       await base44.entities.Notification.create({
         type: 'reservation_request',
         recipient_id: alert.user_id,
@@ -176,16 +172,16 @@ export default function Home() {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
           setSelectedPosition({ lat: latitude, lng: longitude });
-          // Obtener dirección aproximada
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`).
-          then((res) => res.json()).
-          then((data) => {
-            if (data.address) {
-              const road = data.address.road || data.address.street || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          });
+
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.address) {
+                const road = data.address.road || data.address.street || '';
+                const number = data.address.house_number || '';
+                setAddress(number ? `${road}, ${number}` : road);
+              }
+            });
         },
         (error) => console.log('Error obteniendo ubicación:', error)
       );
@@ -199,7 +195,6 @@ export default function Home() {
   // Centrar en ubicación cuando se entra en modo search
   useEffect(() => {
     if (mode === 'search' && userLocation) {
-      // Dar tiempo para que el mapa se renderice
       setTimeout(() => {
         getCurrentLocation();
       }, 300);
@@ -223,47 +218,58 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            {mode &&
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setMode(null);
-                setSelectedAlert(null); 
-              }}
-              className="text-white">
+          {/* IZQUIERDA: botón atrás + dinero centrado en la mitad izquierda */}
+          <div className="flex items-center w-1/2">
+            {mode && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setMode(null);
+                  setSelectedAlert(null);
+                }}
+                className="text-white"
+              >
                 <ArrowLeft className="w-6 h-6" />
               </Button>
-            }
-            <Link to={createPageUrl('Settings')}>
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-              </div> 
-            </Link>
+            )}
+
+            <div className="flex-1 flex justify-center">
+              <Link to={createPageUrl('Settings')}>
+                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                  <span className="text-purple-400 font-bold text-sm">
+                    {(user?.credits || 0).toFixed(2)}€
+                  </span>
+                </div>
+              </Link>
+            </div>
           </div>
 
+          {/* TÍTULO centrado */}
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
           </h1>
 
-          <div className="flex items-center gap-1 ml-auto">
+          {/* DERECHA: iconos alineados a la derecha */}
+          <div className="flex items-center gap-1 w-1/2 justify-end">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <Settings className="w-5 h-5" />
               </Button>
             </Link>
+
             <Link to={createPageUrl('Profile')} className="relative">
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <User className="w-5 h-5" />
-                {unreadCount > 0 &&
-                <span className="absolute -top-1 right-[-32px] bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 right-[-32px] bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
-                }
+                )}
               </Button>
             </Link>
           </div>
@@ -273,21 +279,21 @@ export default function Home() {
       {/* Main Content */}
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {!mode &&
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
-
-
+          {!mode && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
+            >
               {/* Mapa de fondo apagado */}
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
-                alerts={alerts}
-                userLocation={userLocation}
-                className="absolute inset-0 w-full h-full"
-                zoomControl={false} />
+                  alerts={alerts}
+                  userLocation={userLocation}
+                  className="absolute inset-0 w-full h-full"
+                  zoomControl={false}
+                />
               </div>
 
               {/* Overlay morado apagado */}
@@ -295,9 +301,10 @@ export default function Home() {
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
                 <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
-                alt="WaitMe!"
-                className="w-48 h-48 mb-0 object-contain" />
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                  alt="WaitMe!"
+                  className="w-48 h-48 mb-0 object-contain"
+                />
 
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
@@ -306,9 +313,9 @@ export default function Home() {
 
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
-                onClick={() => setMode('search')}
-                className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
-
+                  onClick={() => setMode('search')}
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
                   <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -317,59 +324,59 @@ export default function Home() {
                 </Button>
 
                 <Button
-                onClick={() => setMode('create')}
-                className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4">
-
+                  onClick={() => setMode('create')}
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
                   <Car className="w-14 h-14" strokeWidth={2.5} />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
-              </motion.div>
-          }
+            </motion.div>
+          )}
 
-          {mode === 'search' &&
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-            style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
-
+          {mode === 'search' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+            >
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
-                alerts={alerts}
-                onAlertClick={setSelectedAlert}
-                userLocation={userLocation}
-                selectedAlert={selectedAlert}
-                showRoute={!!selectedAlert}
-                zoomControl={true}
-                className="h-full" />
-
+                  alerts={alerts}
+                  onAlertClick={setSelectedAlert}
+                  userLocation={userLocation}
+                  selectedAlert={selectedAlert}
+                  showRoute={!!selectedAlert}
+                  zoomControl={true}
+                  className="h-full"
+                />
 
                 {/* Botón de filtros */}
-                {!showFilters &&
-              <Button
-                onClick={() => setShowFilters(true)}
-                className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                size="icon">
-
+                {!showFilters && (
+                  <Button
+                    onClick={() => setShowFilters(true)}
+                    className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    size="icon"
+                  >
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
-              }
+                )}
 
                 {/* Panel de filtros */}
                 <AnimatePresence>
-                  {showFilters &&
-                <MapFilters
-                  filters={filters}
-                  onFilterChange={setFilters}
-                  onClose={() => setShowFilters(false)}
-                  alertsCount={alerts.length} />
-
-                }
+                  {showFilters && (
+                    <MapFilters
+                      filters={filters}
+                      onFilterChange={setFilters}
+                      onClose={() => setShowFilters(false)}
+                      alertsCount={alerts.length}
+                    />
+                  )}
                 </AnimatePresence>
               </div>
-              
+
               {/* Buscador de direcciones */}
               <div className="px-4 py-2">
                 <div className="relative">
@@ -384,61 +391,62 @@ export default function Home() {
 
               <div className="flex-1 px-4 min-h-0 overflow-y-auto">
                 <UserAlertCard
-                alert={selectedAlert}
-                isEmpty={!selectedAlert}
-                onBuyAlert={handleBuyAlert}
-                onChat={handleChat}
-                onCall={handleCall}
-                isLoading={buyAlertMutation.isPending}
-                userLocation={userLocation} />
-
+                  alert={selectedAlert}
+                  isEmpty={!selectedAlert}
+                  onBuyAlert={handleBuyAlert}
+                  onChat={handleChat}
+                  onCall={handleCall}
+                  isLoading={buyAlertMutation.isPending}
+                  userLocation={userLocation}
+                />
               </div>
             </motion.div>
-          }
+          )}
 
-          {mode === 'create' &&
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-screen pt-4">
+          {mode === 'create' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-screen pt-4"
+            >
+              <div className="h-[35%] relative px-3">
+                <ParkingMap
+                  isSelecting={true}
+                  selectedPosition={selectedPosition}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data.address) {
+                          const road = data.address.road || data.address.street || '';
+                          const number = data.address.house_number || '';
+                          setAddress(number ? `${road}, ${number}` : road);
+                        }
+                      });
+                  }}
+                  userLocation={userLocation}
+                  zoomControl={true}
+                  className="h-full"
+                />
+              </div>
 
-                <div className="h-[35%] relative px-3">
-                  <ParkingMap
-                isSelecting={true}
-                selectedPosition={selectedPosition}
-                setSelectedPosition={(pos) => {
-                  setSelectedPosition(pos);
-                  // Obtener dirección
-                  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`).
-                  then((res) => res.json()).
-                  then((data) => {
-                    if (data.address) {
-                      const road = data.address.road || data.address.street || '';
-                      const number = data.address.house_number || '';
-                      setAddress(number ? `${road}, ${number}` : road);
-                    }
-                  });
-                }}
-                userLocation={userLocation}
-                zoomControl={true}
-                className="h-full" />
+              <h3 className="text-white font-semibold text-center py-2 text-sm">
+                ¿ Dónde estas aparcado ?
+              </h3>
 
-                </div>
-                <h3 className="text-white font-semibold text-center py-2 text-sm">
-                  ¿ Dónde estas aparcado ?
-                </h3>
-                <div className="px-4">
-                  <CreateAlertCard
-                address={address}
-                onAddressChange={setAddress}
-                onUseCurrentLocation={getCurrentLocation}
-                onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                isLoading={createAlertMutation.isPending} />
-
-                </div>
-              </motion.div>
-          }
+              <div className="px-4">
+                <CreateAlertCard
+                  address={address}
+                  onAddressChange={setAddress}
+                  onUseCurrentLocation={getCurrentLocation}
+                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                  isLoading={createAlertMutation.isPending}
+                />
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -454,7 +462,7 @@ export default function Home() {
               <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
             <p className="text-sm text-gray-400">
               <span className="text-white">{confirmDialog.alert?.car_brand} {confirmDialog.alert?.car_model}</span>
@@ -471,20 +479,20 @@ export default function Home() {
             <Button
               variant="outline"
               onClick={() => setConfirmDialog({ open: false, alert: null })}
-              className="flex-1 border-gray-700">
-
+              className="flex-1 border-gray-700"
+            >
               Cancelar
             </Button>
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending}>
-
+              disabled={buyAlertMutation.isPending}
+            >
               {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>);
-
+    </div>
+  );
 }
