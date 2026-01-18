@@ -1,3 +1,5 @@
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
