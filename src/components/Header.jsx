@@ -1,95 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Settings, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-export default function Header({ showBackButton = false, backTo = 'Home' }) {
+export default function Header({
+  title = 'WaitMe!',
+  showBackButton = false,
+  backTo = 'Home',
+}) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    let mounted = true;
+    (async () => {
       try {
         const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
+        if (mounted) setUser(currentUser);
+      } catch (e) {
+        // silencioso
       }
+    })();
+    return () => {
+      mounted = false;
     };
-    fetchUser();
   }, []);
 
-  const { data: totalUnread = 0 } = useQuery({
-    queryKey: ['conversationsMeta', user?.id],
-    queryFn: async () => {
-      const conversations = await base44.entities.Conversation.list();
-      return conversations.reduce((sum, conv) => {
-        const isP1 = conv.participant1_id === user?.id;
-        const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-        return sum + (unread || 0);
-      }, 0);
-    },
-    enabled: !!user?.id,
-    refetchInterval: 15000
-  });
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-      <div className="relative flex items-center justify-between px-4 py-3">
+    <header className="relative z-50 w-full h-14 px-4 flex items-center bg-black/60 backdrop-blur border-b border-white/10">
+      {/* Back (fuera del flujo para que NO empuje nada) */}
+      {showBackButton && (
+        <Link
+          to={createPageUrl(backTo)}
+          className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/5"
+          aria-label="Volver"
+        >
+          <ArrowLeft className="w-5 h-5 text-white/90" />
+        </Link>
+      )}
 
-        {/* IZQUIERDA (1/2) */}
-        <div className="flex items-center w-1/2">
-          {showBackButton ? (
-            <Link to={createPageUrl(backTo)}>
-              <Button variant="ghost" size="icon" className="text-white">
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            </Link>
-          ) : (
-            <div className="w-10" />
-          )}
-
-          {/* DINERO centrado EN LA MITAD IZQUIERDA */}
-          <div className="flex-1 flex justify-center">
-            <Link to={createPageUrl('Settings')}>
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                <span className="text-purple-400 font-bold text-sm">
-                  {(user?.credits || 0).toFixed(2)}€
-                </span>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* CENTRO (siempre WaitMe!) */}
-        <Link to={createPageUrl('Home')}>
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-          </h1>
+      {/* Centro: dinero + titulo (SIEMPRE igual en todas las pantallas) */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3">
+        <Link
+          to={createPageUrl('Settings')}
+          className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors"
+          aria-label="Créditos"
+        >
+          <span className="text-purple-400 font-bold text-sm">
+            {(user?.credits || 0).toFixed(2)}€
+          </span>
         </Link>
 
-        {/* DERECHA (1/2) */}
-        <div className="flex items-center justify-end gap-1 w-1/2">
-          <Link to={createPageUrl('Settings')}>
-            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-              <Settings className="w-5 h-5" />
-            </Button>
-          </Link>
-
-          <Link to={createPageUrl('Profile')} className="relative">
-            <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-              <User className="w-5 h-5" />
-            </Button>
-
-            {totalUnread > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
-                {totalUnread > 9 ? '9+' : totalUnread}
-              </span>
-            )}
-          </Link>
+        <div className="text-white font-semibold text-base whitespace-nowrap">
+          {title}
         </div>
+      </div>
+
+      {/* Derecha (fuera del flujo) */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <Link
+          to={createPageUrl('Settings')}
+          className="p-2 rounded-full hover:bg-white/5"
+          aria-label="Ajustes"
+        >
+          <Settings className="w-5 h-5 text-white/80" />
+        </Link>
+
+        <Link
+          to={createPageUrl('Profile')}
+          className="p-2 rounded-full hover:bg-white/5"
+          aria-label="Perfil"
+        >
+          <User className="w-5 h-5 text-white/80" />
+        </Link>
       </div>
     </header>
   );
