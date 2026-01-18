@@ -242,7 +242,7 @@ export default function Home() {
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
                 <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-              </div>
+              </div> 
             </Link>
           </div>
 
