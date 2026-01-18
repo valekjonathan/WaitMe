@@ -71,7 +71,7 @@ export default function Home() {
   });
 
   // Obtener alertas activas solo cuando estamos en modo search
-  const { data: rawAlerts = [] } = useQuery({
+  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
     refetchInterval: mode === 'search' ? 5000 : false,
@@ -214,21 +214,22 @@ export default function Home() {
     }
   };
 
-  // Header: title fijo en Home, back sólo cuando hay mode
-  const headerTitle = 'WaitMe!';
-
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
 
       <Header
-        title={headerTitle}
+        title="WaitMe!"
+        unreadCount={unreadCount}
         showBackButton={!!mode}
-        backTo="Home"
+        onBack={() => {
+          setMode(null);
+          setSelectedAlert(null);
+        }}
       />
 
-      {/* Main Content */}
-      <main className="fixed inset-0 top-[56px] bottom-[88px]">
+      {/* Main Content (VUELVE A TU LAYOUT ORIGINAL) */}
+      <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode && (
             <motion.div
@@ -290,8 +291,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex flex-col"
-              style={{ overflow: 'hidden' }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
@@ -304,7 +305,6 @@ export default function Home() {
                   className="h-full"
                 />
 
-                {/* Botón de filtros */}
                 {!showFilters && (
                   <Button
                     onClick={() => setShowFilters(true)}
@@ -315,7 +315,6 @@ export default function Home() {
                   </Button>
                 )}
 
-                {/* Panel de filtros */}
                 <AnimatePresence>
                   {showFilters && (
                     <MapFilters
@@ -328,7 +327,6 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              {/* Buscador de direcciones */}
               <div className="px-4 py-2">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -359,9 +357,9 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 overflow-y-auto"
+              className="h-screen pt-4"
             >
-              <div className="h-[35%] relative px-3 mt-4">
+              <div className="h-[35%] relative px-3">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -403,7 +401,6 @@ export default function Home() {
 
       <BottomNav />
 
-      {/* Confirm Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
