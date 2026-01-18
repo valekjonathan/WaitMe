@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Settings, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Header({ showBackButton = false, backTo = 'Home' }) {
@@ -33,49 +33,62 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
     },
     enabled: !!user?.id,
     refetchInterval: 15000
-    });
+  });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 relative">
-      <div className="relative flex items-center px-4 py-3">
-        {showBackButton ? (
-          <Link to={createPageUrl(backTo)}>
-            <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6  h-6" />
-            </Button>
-          </Link>
-        ) : (
-          <div className="w-10" /> 
-        )}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-            <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <div className="relative flex items-center justify-between px-4 py-3">
+        {/* IZQUIERDA: atrás + dinero centrado en la mitad izquierda */}
+        <div className="flex items-center w-1/2">
+          {showBackButton ? (
+            <Link to={createPageUrl(backTo)}>
+              <Button variant="ghost" size="icon" className="text-white">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+            </Link>
+          ) : (
+            <div className="w-10" />
+          )}
+
+          <div className="flex-1 flex justify-center">
+            <Link to={createPageUrl('Settings')}>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                <span className="text-purple-400 font-bold text-sm">
+                  {(user?.credits || 0).toFixed(2)}€
+                </span>
+              </div>
+            </Link>
           </div>
-          <Link to={createPageUrl('Home')}>
-            <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-              <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-            </h1>
-          </Link>
         </div>
 
-        <div className="flex items-center justify-end gap-1">
+        {/* TÍTULO centrado */}
+        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
+          <Link to={createPageUrl('Home')} className="cursor-pointer hover:opacity-80 transition-opacity">
+            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+          </Link>
+        </h1>
+
+        {/* DERECHA: iconos pegados a la derecha */}
+        <div className="flex items-center gap-1 w-1/2 justify-end">
           <Link to={createPageUrl('Settings')}>
             <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
               <Settings className="w-5 h-5" />
             </Button>
           </Link>
+
           <Link to={createPageUrl('Profile')} className="relative">
             <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
               <User className="w-5 h-5" />
             </Button>
+
             {totalUnread > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
-                {totalUnread > 9 ? '9+' : totalUnread} 
+                {totalUnread > 9 ? '9+' : totalUnread}
               </span>
             )}
           </Link>
         </div>
       </div>
-    </header> 
+    </header>
   );
 }
