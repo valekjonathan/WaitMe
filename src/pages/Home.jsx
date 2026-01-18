@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, MessageCircle, MapPin, Car, X, ArrowLeft, SlidersHorizontal, User } from 'lucide-react';
+import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import Logo from '@/components/Logo';
 import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
+import Header from '@/components/Header';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -72,7 +71,7 @@ export default function Home() {
   });
 
   // Obtener alertas activas solo cuando estamos en modo search
-  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
+  const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
     refetchInterval: mode === 'search' ? 5000 : false,
@@ -215,69 +214,21 @@ export default function Home() {
     }
   };
 
+  // Header: title fijo en Home, back sólo cuando hay mode
+  const headerTitle = 'WaitMe!';
+
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="relative flex items-center justify-between px-4 py-3">
-          {/* IZQUIERDA: botón atrás + dinero centrado en la mitad izquierda */}
-          <div className="flex items-center w-1/2">
-            {mode && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setMode(null);
-                  setSelectedAlert(null);
-                }}
-                className="text-white"
-              >
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            )}
-
-            <div className="flex-1 flex justify-center">
-              <Link to={createPageUrl('Settings')}>
-                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                  <span className="text-purple-400 font-bold text-sm">
-                    {(user?.credits || 0).toFixed(2)}€
-                  </span>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* TÍTULO centrado */}
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
-            <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-          </h1>
-
-          {/* DERECHA: iconos alineados a la derecha */}
-          <div className="flex items-center gap-1 w-1/2 justify-end">
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
-
-            <Link to={createPageUrl('Profile')} className="relative">
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <User className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 right-[-32px] bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header
+        title={headerTitle}
+        showBackButton={!!mode}
+        backTo="Home"
+      />
 
       {/* Main Content */}
-      <main className="fixed inset-0">
+      <main className="fixed inset-0 top-[56px] bottom-[88px]">
         <AnimatePresence mode="wait">
           {!mode && (
             <motion.div
@@ -339,8 +290,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+              className="absolute inset-0 flex flex-col"
+              style={{ overflow: 'hidden' }}
             >
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
@@ -408,9 +359,9 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-screen pt-4"
+              className="absolute inset-0 overflow-y-auto"
             >
-              <div className="h-[35%] relative px-3">
+              <div className="h-[35%] relative px-3 mt-4">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
