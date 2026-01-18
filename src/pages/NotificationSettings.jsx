@@ -6,6 +6,7 @@ import { ArrowLeft, Bell, CreditCard, MapPin, Megaphone, Settings as SettingsIco
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
+import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
 export default function NotificationSettings() {
@@ -71,38 +72,7 @@ export default function NotificationSettings() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link to={createPageUrl('Settings')}>
-            <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-            </div>
-            <Link to={createPageUrl('Home')}>
-              <h1 className="text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
-                <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-              </h1>
-            </Link>
-          </div>
-          <div className="flex items-center gap-1">
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <SettingsIcon className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to={createPageUrl('Profile')} className="relative">
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header title="Notificaciones" showBackButton={true} backTo="Settings" />
 
       {/* Main Content */}
       <main className="pt-20 pb-24 px-4 h-screen overflow-hidden">
