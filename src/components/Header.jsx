@@ -38,7 +38,8 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="relative flex items-center justify-between px-4 py-3">
-        {/* IZQUIERDA: atrás + dinero centrado en la mitad izquierda */}
+
+        {/* IZQUIERDA (1/2) */}
         <div className="flex items-center w-1/2">
           {showBackButton ? (
             <Link to={createPageUrl(backTo)}>
@@ -50,6 +51,7 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
             <div className="w-10" />
           )}
 
+          {/* DINERO centrado EN LA MITAD IZQUIERDA */}
           <div className="flex-1 flex justify-center">
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
@@ -61,15 +63,15 @@ export default function Header({ showBackButton = false, backTo = 'Home' }) {
           </div>
         </div>
 
-        {/* TÍTULO centrado */}
-        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
-          <Link to={createPageUrl('Home')} className="cursor-pointer hover:opacity-80 transition-opacity">
+        {/* CENTRO (siempre WaitMe!) */}
+        <Link to={createPageUrl('Home')}>
+          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold cursor-pointer hover:opacity-80 transition-opacity">
             <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-          </Link>
-        </h1>
+          </h1>
+        </Link>
 
-        {/* DERECHA: iconos pegados a la derecha */}
-        <div className="flex items-center gap-1 w-1/2 justify-end">
+        {/* DERECHA (1/2) */}
+        <div className="flex items-center justify-end gap-1 w-1/2">
           <Link to={createPageUrl('Settings')}>
             <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
               <Settings className="w-5 h-5" />
