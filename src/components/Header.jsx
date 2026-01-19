@@ -9,8 +9,7 @@ export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
   backTo = 'Home',
-  onBack,
-  unreadCount = 0
+  onBack
 }) {
   const [user, setUser] = useState(null);
   const location = useLocation();
@@ -20,9 +19,7 @@ export default function Header({
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-      } catch (e) {
-        // no auth
-      }
+      } catch (e) {}
     };
     fetchUser();
   }, []);
@@ -61,7 +58,7 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="relative flex items-center justify-between px-4 py-3">
-        {/* BOTÓN ATRÁS ABSOLUTO (no empuja nada) */}
+        {/* ATRÁS ABSOLUTO (no empuja el dinero) */}
         {showBackButton && (
           <div className="absolute left-2 top-1/2 -translate-y-1/2">
             {onBack ? (
@@ -74,7 +71,7 @@ export default function Header({
           </div>
         )}
 
-        {/* IZQUIERDA: dinero centrado en la mitad izquierda */}
+        {/* IZQUIERDA: dinero SIEMPRE centrado en la mitad izquierda */}
         <div className="flex items-center w-1/2">
           <div className="flex-1 flex justify-center">
             <Link to={createPageUrl('Settings')}>
@@ -87,7 +84,7 @@ export default function Header({
           </div>
         </div>
 
-        {/* TÍTULO: clicable -> Home (si ya estás en Home, recarga) */}
+        {/* TÍTULO: clic -> Home, si ya estás en Home recarga */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <Link
             to={homePath}
@@ -104,7 +101,7 @@ export default function Header({
           </Link>
         </div>
 
-        {/* DERECHA: iconos morados */}
+        {/* DERECHA: iconos morados (SIN badge en Perfil) */}
         <div className="flex items-center gap-1 w-1/2 justify-end">
           <Link to={createPageUrl('Settings')}>
             <Button
@@ -116,7 +113,7 @@ export default function Header({
             </Button>
           </Link>
 
-          <Link to={createPageUrl('Profile')} className="relative">
+          <Link to={createPageUrl('Profile')}>
             <Button
               variant="ghost"
               size="icon"
@@ -124,12 +121,6 @@ export default function Header({
             >
               <User className="w-5 h-5" />
             </Button>
-
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
           </Link>
         </div>
       </div>
