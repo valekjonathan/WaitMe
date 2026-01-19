@@ -141,7 +141,7 @@ export default function History() {
     (a, b) => new Date(b.created_date) - new Date(a.created_date)
   );
 
-  // Finalizadas de vendedor (primero las alertas que caducan/expiran, luego transacciones)
+  // Finalizadas de vendedor (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
@@ -201,9 +201,36 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
+  // Más robusto: si el backend guarda otra propiedad de expiración, la usamos.
+  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar (evita que "aparezca y desaparezca").
   const getWaitUntilTs = (alert) => {
     const createdTs = new Date(alert.created_date).getTime();
-    return createdTs + (alert.available_in_minutes || 0) * 60000;
+
+    const dateFields = [
+      alert.wait_until,
+      alert.waitUntil,
+      alert.expires_at,
+      alert.expiresAt,
+      alert.ends_at,
+      alert.endsAt,
+      alert.available_until,
+      alert.availableUntil
+    ].filter(Boolean);
+
+    for (const v of dateFields) {
+      const t = new Date(v).getTime();
+      if (!Number.isNaN(t) && t > 0) return t;
+    }
+
+    const mins =
+      Number(alert.available_in_minutes) ||
+      Number(alert.availableInMinutes) ||
+      Number(alert.duration_minutes) ||
+      Number(alert.durationMinutes);
+
+    if (Number.isFinite(mins) && mins > 0) return createdTs + mins * 60000;
+
+    return null;
   };
 
   const getStatusBadge = (status) => {
@@ -330,13 +357,17 @@ export default function History() {
                     {myActiveAlerts
                       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
                       .map((alert, index) => {
+                        const createdTs = new Date(alert.created_date).getTime();
                         const waitUntilTs = getWaitUntilTs(alert);
-                        const remainingMs = Math.max(0, waitUntilTs - nowTs);
-                        const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                        // Auto-finaliza al llegar a 0 (solo si estaba activa)
+                        const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
+                        const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
+
+                        // Auto-finaliza SOLO si hay expiración válida (evita que "aparezca y desaparezca")
                         if (
                           alert.status === 'active' &&
+                          hasExpiry &&
                           remainingMs <= 0 &&
                           !autoFinalizedRef.current.has(alert.id) &&
                           !expireAlertMutation.isPending
@@ -345,7 +376,8 @@ export default function History() {
                           expireAlertMutation.mutate(alert.id);
                         }
 
-                        const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
+                        const countdownText =
+                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -359,9 +391,12 @@ export default function History() {
                               <>
                                 <div className="flex items-center justify-between mb-2">
                                   {getStatusBadge(alert.status)}
-                                  <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+
+                                  {/* 1) FECHA EN BLANCO */}
+                                  <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(alert.created_date), 'd MMM, HH:mm', { locale: es })}
                                   </span>
+
                                   <div className="flex items-center gap-1 flex-shrink-0">
                                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                       <TrendingUp className="w-4 h-4 text-green-400" />
@@ -407,7 +442,6 @@ export default function History() {
                                   </div>
                                 )}
 
-                                {/* Iconos morados + mismo inicio + mismo tamaño */}
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                   <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
@@ -421,7 +455,6 @@ export default function History() {
                                   <span className="text-purple-400 leading-5">Debes esperar hasta las: {waitUntilLabel}</span>
                                 </div>
 
-                                {/* Contador también aquí (opcional, pero ya coincide) */}
                                 <div className="mt-2">
                                   <CountdownButton text={countdownText} />
                                 </div>
@@ -432,9 +465,12 @@ export default function History() {
                                   <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
                                     Activa
                                   </Badge>
-                                  <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+
+                                  {/* 1) FECHA EN BLANCO */}
+                                  <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(alert.created_date), 'd MMM, HH:mm', { locale: es })}
                                   </span>
+
                                   <div className="flex items-center gap-1 flex-shrink-0">
                                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                       <TrendingUp className="w-4 h-4 text-green-400" />
@@ -451,7 +487,6 @@ export default function History() {
                                   </div>
                                 </div>
 
-                                {/* Iconos morados + mismo inicio + mismo tamaño */}
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                   <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
@@ -459,13 +494,10 @@ export default function History() {
 
                                 <div className="flex items-start gap-1.5 text-xs">
                                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-500 leading-5">
-                                    Te vas en {alert.available_in_minutes} min ·{' '}
-                                  </span>
+                                  <span className="text-gray-500 leading-5">Te vas en {alert.available_in_minutes} min · </span>
                                   <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
                                 </div>
 
-                                {/* 1) Contador REAL hasta la hora “Debes esperar…” */}
                                 <div className="mt-2">
                                   <CountdownButton text={countdownText} />
                                 </div>
@@ -491,7 +523,6 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      // Finalizada por caducidad/cancelación (alerta)
                       if (item.type === 'alert') {
                         const a = item.data;
                         return (
@@ -537,7 +568,7 @@ export default function History() {
                         );
                       }
 
-                      // Finalizada por transacción (COMPLETADA en el “botón”)
+                      // Transacción finalizada (COMPLETADA)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -636,7 +667,6 @@ export default function History() {
                                   </div>
                                 </div>
 
-                                {/* botones encendidos (chat en verde) + 2) COMPLETADA */}
                                 <div className="mt-4">
                                   <div className="flex gap-2">
                                     <Button
@@ -703,8 +733,10 @@ export default function History() {
               myReservationsItems.map((item, index) => {
                 if (item.type === 'alert') {
                   const alert = item.data;
+                  const createdTs = new Date(alert.created_date).getTime();
                   const waitUntilTs = getWaitUntilTs(alert);
-                  const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+                  const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+                  const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
                   return (
                     <motion.div
