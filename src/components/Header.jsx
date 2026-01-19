@@ -19,7 +19,7 @@ export default function Header({
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (e) {
-        // sin sesión
+        // no auth
       }
     };
     fetchUser();
@@ -55,42 +55,40 @@ export default function Header({
     </Button>
   );
 
-  // ✅ Dinero EXACTO entre flecha (si existe) y título (siempre centrado).
-  // Flecha ~48px => mover el centro del dinero +24px cuando showBackButton=true.
-  const moneyPosClass = showBackButton ? 'left-[calc(25%+24px)]' : 'left-1/4';
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-      <div className="relative flex items-center justify-end px-4 py-3">
-        {/* IZQUIERDA: flecha fija */}
-        {showBackButton && (
-          <div className="absolute left-2 top-1/2 -translate-y-1/2">
-            {onBack ? (
+      <div className="relative flex items-center justify-between px-4 py-3">
+        {/* IZQUIERDA */}
+        <div className="flex items-center w-1/2">
+          {showBackButton && (
+            onBack ? (
               <BackButton />
             ) : (
               <Link to={createPageUrl(backTo)}>
                 <BackButton />
               </Link>
-            )}
-          </div>
-        )}
+            )
+          )}
 
-        {/* ✅ DINERO: entre flecha y título */}
-        <div className={`absolute ${moneyPosClass} top-1/2 -translate-x-1/2 -translate-y-1/2`}>
-          <Link to={createPageUrl('Settings')}>
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-              <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
-            </div>
-          </Link>
+          {/* ✅ DINERO: mismo sitio en todas, pero un pelín a la izquierda */}
+          <div className="flex-1 flex justify-center -translate-x-2">
+            <Link to={createPageUrl('Settings')}>
+              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                <span className="text-purple-400 font-bold text-sm">
+                  {(user?.credits || 0).toFixed(2)}€
+                </span>
+              </div>
+            </Link>
+          </div>
         </div>
 
-        {/* ✅ TÍTULO centrado + truncado */}
+        {/* ✅ TÍTULO centrado + truncado para que nunca choque */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[55%] px-2 text-center">
           {renderTitle()}
         </div>
 
         {/* DERECHA */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 w-1/2 justify-end">
           <Link to={createPageUrl('Settings')}>
             <Button
               variant="ghost"
@@ -101,6 +99,7 @@ export default function Header({
             </Button>
           </Link>
 
+          {/* ✅ SIN BADGE AQUÍ */}
           <Link to={createPageUrl('Profile')} className="relative">
             <Button
               variant="ghost"
