@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,18 @@ export default function Home() {
   const initialMode = urlParams.get('mode');
 
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
+
+  // Resetear mode cuando se navega a Home sin parámetros
+  useEffect(() => {
+    const checkReset = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('mode')) {
+        setMode(null);
+      }
+    };
+    checkReset();
+  }, [window.location.search]);
+
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -34,12 +46,6 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
-  // Resetear mode cuando se navega a Home sin parámetros
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
-
   // Obtener usuario actual
   useEffect(() => {
     const fetchUser = async () => {
@@ -53,7 +59,7 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  // Obtener mensajes no leídos (solo para el Header)
+  // Obtener mensajes no leídos
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
@@ -64,15 +70,31 @@ export default function Home() {
     refetchInterval: 5000
   });
 
-  // Obtener alertas activas reales (SIEMPRE), pero refrescar solo en modo search
-  const { data: rawAlerts = [] } = useQuery({
+  // Obtener alertas activas solo cuando estamos en modo search
+  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
     refetchInterval: mode === 'search' ? 5000 : false,
-    enabled: true
+    enabled: mode === 'search'
   });
 
-  // Distancia km
+  // Filtrar alertas según criterios
+  const alerts = rawAlerts.filter((alert) => {
+    if (alert.price > filters.maxPrice) return false;
+    if (alert.available_in_minutes > filters.maxMinutes) return false;
+
+    if (userLocation) {
+      const distance = calculateDistance(
+        userLocation[0], userLocation[1],
+        alert.latitude, alert.longitude
+      );
+      if (distance > filters.maxDistance) return false;
+    }
+
+    return true;
+  });
+
+  // Calcular distancia en km
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -84,125 +106,6 @@ export default function Home() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
-
-  // ===== DEMO: 5 coches alrededor (inventados) =====
-  const demoAlerts = useMemo(() => {
-    const fallback = [43.3619, -5.8494]; // Oviedo
-    const center = userLocation || fallback;
-    const lat = center[0];
-    const lng = center[1];
-
-    // offsets ~ 150m-400m aprox
-    const spots = [
-      { dLat: 0.0012, dLng: 0.0009 },
-      { dLat: -0.0010, dLng: 0.0014 },
-      { dLat: 0.0007, dLng: -0.0016 },
-      { dLat: -0.0014, dLng: -0.0008 },
-      { dLat: 0.0016, dLng: -0.0002 },
-    ];
-
-    const people = [
-      {
-        id: 'demo-1',
-        name: 'Laura',
-        gender: 'f',
-        car: { brand: 'Toyota', model: 'Yaris', color: 'blanco', plate: '5317 LJM', type: 'car' },
-        price: 3.00,
-        minutes: 9,
-        address: 'Calle Uría, 20',
-        phone: '600123111'
-      },
-      {
-        id: 'demo-2',
-        name: 'Carlos',
-        gender: 'm',
-        car: { brand: 'BMW', model: 'Serie 1', color: 'negro', plate: '2847 BNM', type: 'car' },
-        price: 4.50,
-        minutes: 12,
-        address: 'Plaza de la Escandalera, 3',
-        phone: '600123222'
-      },
-      {
-        id: 'demo-3',
-        name: 'Marta',
-        gender: 'f',
-        car: { brand: 'SEAT', model: 'Ibiza', color: 'rojo', plate: '9072 HKT', type: 'car' },
-        price: 2.80,
-        minutes: 6,
-        address: 'Calle San Francisco, 5',
-        phone: '600123333'
-      },
-      {
-        id: 'demo-4',
-        name: 'Diego',
-        gender: 'm',
-        car: { brand: 'Audi', model: 'A3', color: 'gris', plate: '1186 JRF', type: 'car' },
-        price: 5.00,
-        minutes: 15,
-        address: 'Calle Fruela, 10',
-        phone: '600123444'
-      },
-      {
-        id: 'demo-5',
-        name: 'Ana',
-        gender: 'f',
-        car: { brand: 'Volkswagen', model: 'Golf', color: 'azul', plate: '6629 MPS', type: 'car' },
-        price: 3.70,
-        minutes: 8,
-        address: 'Calle Pelayo, 12',
-        phone: '600123555'
-      }
-    ];
-
-    // Avatares generados (no fotos reales)
-    const avatar = (name, gender) =>
-      `https://api.dicebear.com/7.x/personas/svg?seed=${encodeURIComponent(name)}&backgroundColor=b6e3f4,c0aede,d1d4f9,f4b6c2&mouth=smile&hair=${gender === 'm' ? 'short' : 'long'}`;
-
-    return people.map((p, idx) => ({
-      id: p.id,
-      status: 'active',
-      user_id: `demo-user-${idx + 1}`,
-      user_email: `demo${idx + 1}@waitme.app`,
-      user_name: p.name,
-      user_photo: avatar(p.name, p.gender),
-      car_brand: p.car.brand,
-      car_model: p.car.model,
-      car_color: p.car.color,
-      car_plate: p.car.plate,
-      vehicle_type: p.car.type,
-      latitude: lat + spots[idx].dLat,
-      longitude: lng + spots[idx].dLng,
-      address: p.address,
-      price: p.price,
-      available_in_minutes: p.minutes,
-      allow_phone_calls: true,
-      phone: p.phone
-    }));
-  }, [userLocation]);
-
-  // Mezclar reales + demo y luego aplicar filtros
-  const combinedRawAlerts = useMemo(() => {
-    const map = new Map();
-    [...demoAlerts, ...rawAlerts].forEach((a) => map.set(a.id, a));
-    return Array.from(map.values());
-  }, [demoAlerts, rawAlerts]);
-
-  const alerts = useMemo(() => {
-    return combinedRawAlerts.filter((alert) => {
-      if (alert.price > filters.maxPrice) return false;
-      if (alert.available_in_minutes > filters.maxMinutes) return false;
-
-      if (userLocation) {
-        const distance = calculateDistance(
-          userLocation[0], userLocation[1],
-          alert.latitude, alert.longitude
-        );
-        if (distance > filters.maxDistance) return false;
-      }
-
-      return true;
-    });
-  }, [combinedRawAlerts, filters, userLocation]);
 
   // Crear alerta
   const createAlertMutation = useMutation({
@@ -236,7 +139,7 @@ export default function Home() {
     }
   });
 
-  // Comprar alerta - crea notificación
+  // Comprar alerta - ahora crea notificación
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       await base44.entities.Notification.create({
@@ -288,6 +191,15 @@ export default function Home() {
     getCurrentLocation();
   }, []);
 
+  // Centrar en ubicación cuando se entra en modo search
+  useEffect(() => {
+    if (mode === 'search' && userLocation) {
+      setTimeout(() => {
+        getCurrentLocation();
+      }, 300);
+    }
+  }, [mode]);
+
   const handleBuyAlert = (alert) => {
     setConfirmDialog({ open: true, alert });
   };
@@ -297,7 +209,9 @@ export default function Home() {
   };
 
   const handleCall = (alert) => {
-    if (alert.phone) window.location.href = `tel:${alert.phone}`;
+    if (alert.phone) {
+      window.location.href = `tel:${alert.phone}`;
+    }
   };
 
   return (
@@ -314,6 +228,7 @@ export default function Home() {
         }}
       />
 
+      {/* Main Content (VUELVE A TU LAYOUT ORIGINAL) */}
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode && (
@@ -323,8 +238,8 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              {/* Mapa de fondo + demo coches */}
-              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-15 pointer-events-none">
+              {/* Mapa de fondo apagado */}
+              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
                   alerts={alerts}
                   userLocation={userLocation}
@@ -333,8 +248,8 @@ export default function Home() {
                 />
               </div>
 
-              {/* Overlay morado */}
-              <div className="absolute inset-0 bg-purple-900/50 pointer-events-none"></div>
+              {/* Overlay morado apagado */}
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
                 <img

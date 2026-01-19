@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigation, Phone, MessageCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Navigation, Phone, MessageCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import { motion } from 'framer-motion';
-import Header from '@/components/Header';
 
 export default function Navigate() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -170,7 +170,18 @@ export default function Navigate() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <Header title="Navegación" showBackButton={true} backTo="Notifications" />
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link to={createPageUrl('Notifications')}>
+            <Button variant="ghost" size="icon" className="text-white">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          </Link>
+          <h1 className="text-lg font-semibold">Navegación</h1>
+          <div className="w-10"></div>
+        </div>
+      </header>
 
       {/* Mapa */}
       <div className="flex-1 pt-[60px]">

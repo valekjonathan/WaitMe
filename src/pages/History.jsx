@@ -23,12 +23,12 @@ const CarIconTiny = ({ color }) => (
 );
 
 const carColorMap = {
-  'blanco': '#FFFFFF',
-  'negro': '#1a1a1a',
-  'rojo': '#ef4444',
-  'azul': '#3b82f6',
-  'amarillo': '#facc15',
-  'gris': '#6b7280'
+  blanco: '#FFFFFF',
+  negro: '#1a1a1a',
+  rojo: '#ef4444',
+  azul: '#3b82f6',
+  amarillo: '#facc15',
+  gris: '#6b7280'
 };
 
 export default function History() {
@@ -175,10 +175,10 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header (MISMA ESTRUCTURA QUE HOME) */}
+      {/* Header (CLON de Home: dinero siempre en el mismo sitio) */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="relative flex items-center justify-between px-4 py-3">
-          {/* IZQUIERDA: back + dinero centrado en mitad izquierda */}
+          {/* IZQUIERDA: botón atrás + dinero centrado en la mitad izquierda */}
           <div className="flex items-center w-1/2">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-white">
@@ -197,18 +197,19 @@ export default function History() {
             </div>
           </div>
 
-          {/* TÍTULO centrado absoluto */}
+          {/* TÍTULO centrado */}
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
             Historial
           </h1>
 
-          {/* DERECHA: iconos alineados a la derecha */}
+          {/* DERECHA: iconos morados */}
           <div className="flex items-center gap-1 w-1/2 justify-end">
             <Link to={createPageUrl('Settings')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <Settings className="w-5 h-5" />
               </Button>
             </Link>
+
             <Link to={createPageUrl('Profile')}>
               <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
                 <User className="w-5 h-5" />
@@ -218,9 +219,9 @@ export default function History() {
         </div>
       </header>
 
-      <main className="pt-[64px] pb-20 px-4">
+      <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mt-2 mb-2">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mb-0">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -230,9 +231,7 @@ export default function History() {
           </TabsList>
 
           <TabsContent value="alerts" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937' }}>
-            <div className="flex justify-center pt-2">
-              <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 min-w-[110px] text-center">Activa</Badge>
-            </div>
+            <p className="text-white text-[11px] mb-1 text-center font-bold">Estás aparcado en:</p>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -245,272 +244,255 @@ export default function History() {
               </div>
             ) : (
               <>
-                {(() => {
-                  const activeAlerts = myAlertsItems.filter((item) => item.type === 'alert');
-                  const finalizedTxs = myAlertsItems.filter((item) => item.type === 'transaction');
+                {myAlertsItems.filter(i => i.type === 'alert').length > 0 && myAlertsItems.filter(i => i.type === 'transaction').length > 0 && (
+                  <div className="text-white text-center font-bold py-3 text-sm">
+                    Finalizadas:
+                  </div>
+                )}
 
-                  return (
-                    <>
-                      {activeAlerts.length === 0 ? (
-                        <div className="text-center py-6 text-gray-500">
-                          <p className="text-sm">No tienes una alerta activa</p>
-                        </div>
-                      ) : (
-                        activeAlerts.map((item, index) => {
-                          const alert = item.data;
-                          return (
-                            <motion.div
-                              key={`alert-${alert.id || index}`}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                              className="rounded-xl overflow-hidden border border-purple-500/30 shadow-lg"
+                {myAlertsItems.map((item, index) => {
+                  if (item.type === 'alert') {
+                    const alert = item.data;
+                    return (
+                      <motion.div
+                        key={`alert-${alert.id}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                      >
+                        {alert.status === 'reserved' ? (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              {getStatusBadge(alert.status)}
+                              <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                              </span>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                  <TrendingUp className="w-4 h-4 text-green-400" />
+                                  <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
+                                </div>
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => cancelAlertMutation.mutate(alert.id)}
+                                  disabled={cancelAlertMutation.isPending}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {alert.reserved_by_name && (
+                              <div className="mb-1.5 h-[220px]">
+                                <UserCard
+                                  userName={alert.reserved_by_name}
+                                  userPhoto={null}
+                                  carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                                  carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                                  carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                                  carPlate={alert.reserved_by_plate}
+                                  vehicleType={alert.reserved_by_vehicle_type}
+                                  address={alert.address}
+                                  availableInMinutes={alert.available_in_minutes}
+                                  price={alert.price}
+                                  showLocationInfo={false}
+                                  showContactButtons={true}
+                                  onChat={() => window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`)}
+                                  onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                                  latitude={alert.latitude}
+                                  longitude={alert.longitude}
+                                  allowPhoneCalls={alert.allow_phone_calls}
+                                  isReserved={true}
+                                />
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span>{alert.address || 'Ubicación marcada'}</span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <Clock className="w-3 h-3" />
+                                <span>Te vas en {alert.available_in_minutes} min</span>
+                              </div>
+                              <span className="text-purple-400">
+                                Debes esperar hasta las: {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                                Activa
+                              </Badge>
+                              <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                {format(new Date(alert.created_date), "d MMM, HH:mm", { locale: es })}
+                              </span>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                  <TrendingUp className="w-4 h-4 text-green-400" />
+                                  <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
+                                </div>
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => cancelAlertMutation.mutate(alert.id)}
+                                  disabled={cancelAlertMutation.isPending}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span>{alert.address || 'Ubicación marcada'}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1 text-xs ml-0.5">
+                              <Clock className="w-3 h-3 text-gray-500" />
+                              <span className="text-gray-500">Te vas en {alert.available_in_minutes} min ·</span>
+                              <span className="text-purple-400">
+                                Debes esperar hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </motion.div>
+                    );
+                  } else {
+                    const tx = item.data;
+                    const isSeller = tx.seller_id === user?.id;
+
+                    return (
+                      <motion.div
+                        key={`tx-${tx.id}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                      >
+                        <div className="flex items-center justify-between mb-2 opacity-100">
+                          <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
+                            Finalizada
+                          </Badge>
+                          <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                            {format(new Date(tx.created_date), "d MMM, HH:mm", { locale: es })}
+                          </span>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {isSeller ? (
+                              <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                <TrendingUp className="w-4 h-4 text-green-400" />
+                                <span className="font-bold text-green-400 text-sm">
+                                  {tx.seller_earnings?.toFixed(2)}€
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                <TrendingDown className="w-4 h-4 text-red-400" />
+                                <span className="font-bold text-red-400 text-sm">
+                                  -{tx.amount?.toFixed(2)}€
+                                </span>
+                              </div>
+                            )}
+                            <Button
+                              size="icon"
+                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                              onClick={() => {
+                                // Funcionalidad de eliminar/ocultar transacción finalizada
+                              }}
                             >
-                              <div className="bg-gradient-to-b from-gray-900 to-gray-950 p-3 relative">
-                                <div className="flex justify-between items-start mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Badge
-                                      className={
-                                        alert.status === 'reserved'
-                                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                      }
-                                    >
-                                      {alert.status === 'reserved' ? 'Reservada' : 'Activa'}
-                                    </Badge>
-                                    <span className="text-gray-400 text-xs">
-                                      {formatDistanceToNow(new Date(alert.created_date), { addSuffix: true, locale: es })}
+                              <X className="w-4 h-4" strokeWidth={3} />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {isSeller && tx.buyer_name && (
+                          <div className="mb-1.5 opacity-60">
+                            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 flex flex-col">
+                              <div className="flex gap-2.5 mb-1.5 flex-1">
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt={tx.buyer_name} className="w-full h-full object-cover" />
+                                  </div>
+                                </div>
+
+                                <div className="flex-1 flex flex-col justify-between">
+                                  <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
+
+                                  <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                                    <p className="text-sm font-medium text-white">BMW Serie 3</p>
+                                    <Car className="w-5 h-5 text-gray-400" />
+                                  </div>
+
+                                  <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                                    <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                                      <span className="text-[9px] font-bold text-white">E</span>
+                                    </div>
+                                    <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+                                      2847 BNM
                                     </span>
                                   </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
-                                      <TrendingUp className="w-3 h-3 mr-1" />
-                                      {alert.price.toFixed(2)}€
-                                    </Badge>
-
-                                    <button
-                                      onClick={() => handleCancelAlert(alert)}
-                                      className="bg-red-500/80 hover:bg-red-500 text-white p-1 rounded-md transition-colors"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
                                 </div>
+                              </div>
 
-                                <div className="flex gap-3">
-                                  <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-purple-500/30 flex-shrink-0">
-                                    <img
-                                      src={alert.car_photo || alert.seller_photo || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200'}
-                                      alt="Usuario"
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-
-                                  <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h3 className="text-white font-semibold">{alert.seller_name || 'Usuario'}</h3>
-                                        <p className="text-gray-400 text-xs">{alert.car_model || 'Vehículo'}</p>
-                                      </div>
-                                      <div className="flex items-center">
-                                        {[...Array(5)].map((_, i) => (
-                                          <Star
-                                            key={i}
-                                            className={`w-3 h-3 ${i < (alert.seller_rating || 4) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                                          />
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="flex justify-between items-center mt-2">
-                                      <div className="flex items-center gap-1">
-                                        <Badge className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2">
-                                          {alert.license_plate || 'XXX 0000'}
-                                        </Badge>
-                                      </div>
-
-                                      <div className="flex items-center gap-1 text-gray-400 text-xs">
-                                        <Clock className="w-3 h-3" />
-                                        {alert.wait_minutes || 10} min
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="mt-3 flex items-center gap-1 text-gray-400 text-xs">
-                                  <MapPin className="w-3 h-3" />
-                                  <span>{alert.location || 'Ubicación'}</span>
-                                </div>
-
-                                {alert.status === 'reserved' && (
-                                  <div className="mt-2 text-xs text-purple-300">
-                                    <span className="font-semibold">Reservada por:</span> {alert.buyer_name || 'Comprador'}
+                              <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
+                                {tx.address && (
+                                  <div className="flex items-start gap-1.5 text-gray-400 text-xs">
+                                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                    <span className="line-clamp-1">{tx.address}</span>
                                   </div>
                                 )}
 
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => navigate(createPageUrl('Chat', { id: alert.buyer_id || alert.id }))}
-                                  >
-                                    <MessageCircle className="w-4 h-4 mr-1" />
-                                    Chat
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => navigate(createPageUrl('Navigate', { lat: alert.lat, lng: alert.lng }))}
-                                  >
-                                    <Navigation className="w-4 h-4 mr-1" />
-                                    Ir
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => navigate(createPageUrl('Home'))}
-                                  >
-                                    <Car className="w-4 h-4 mr-1" />
-                                    Ver
-                                  </Button>
-                                </div>
-                              </div>
-                            </motion.div>
-                          );
-                        })
-                      )}
-
-                      <div className="flex justify-center pt-4 pb-1">
-                        <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 min-w-[130px] text-center">Finalizada</Badge>
-                      </div>
-
-                      {finalizedTxs.length === 0 ? (
-                        <div className="text-center py-6 text-gray-500">
-                          <p className="text-sm">No hay finalizadas</p>
-                        </div>
-                      ) : (
-                        finalizedTxs.map((item, index) => {
-                          const tx = item.data;
-                          const isSeller = tx.seller_id === user?.id;
-                          return (
-                            <motion.div
-                              key={`tx-${tx.id || index}`}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                              className="rounded-xl overflow-hidden border border-purple-500/30 shadow-lg"
-                            >
-                              <div className="bg-gradient-to-b from-gray-900 to-gray-950 p-3 relative">
-                                <div className="flex justify-between items-start mb-3">
-                                  <div className="flex items-center gap-2">
-                                    <Badge className="bg-red-500/20 text-red-400 border border-red-500/30">Finalizada</Badge>
-                                    <span className="text-gray-400 text-xs">
-                                      {format(new Date(tx.completed_date), 'd MMM, HH:mm', { locale: es })}
-                                    </span>
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <Badge className={isSeller ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}>
-                                      {isSeller ? (
-                                        <>
-                                          <TrendingUp className="w-3 h-3 mr-1" />
-                                          +{(tx.amount * 0.8).toFixed(2)}€
-                                        </>
-                                      ) : (
-                                        <>
-                                          <TrendingDown className="w-3 h-3 mr-1" />
-                                          -{tx.amount.toFixed(2)}€
-                                        </>
-                                      )}
-                                    </Badge>
-
-                                    <button
-                                      className="bg-red-500/80 hover:bg-red-500 text-white p-1 rounded-md transition-colors"
-                                      onClick={() => handleCancelTransaction(tx)}
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
+                                <div className="flex items-center gap-1 text-xs">
+                                  <Clock className="w-3 h-3 text-gray-500" />
+                                  <span className="text-gray-500">Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}</span>
                                 </div>
 
-                                <div className="flex gap-3">
-                                  <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-purple-500/30 flex-shrink-0">
-                                    <img
-                                      src={isSeller ? tx.buyer_photo : tx.seller_photo || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200'}
-                                      alt="Usuario"
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-
-                                  <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h3 className="text-white font-semibold">
-                                          {isSeller ? tx.buyer_name || 'Comprador' : tx.seller_name || 'Vendedor'}
-                                        </h3>
-                                        <p className="text-gray-400 text-xs">{tx.car_model || 'Vehículo'}</p>
-                                      </div>
+                                <div className="mt-4">
+                                  <div className="flex gap-2">
+                                    <div className="opacity-100">
+                                      <Button
+                                        size="icon"
+                                        className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+                                        onClick={() => window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`)}>
+                                        <MessageCircle className="w-4 h-4" />
+                                      </Button>
                                     </div>
 
-                                    <div className="flex justify-between items-center mt-2">
-                                      <div className="flex items-center gap-1">
-                                        <Badge className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2">
-                                          {tx.license_plate || 'XXX 0000'}
-                                        </Badge>
+                                    <div>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                        disabled>
+                                        <PhoneOff className="w-4 h-4 text-gray-600" />
+                                      </Button>
+                                    </div>
+
+                                    <div className="flex-1">
+                                      <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
+                                        <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
-
-                                <div className="mt-3 flex items-center gap-1 text-gray-400 text-xs">
-                                  <MapPin className="w-3 h-3" />
-                                  <span>{tx.location || 'Ubicación'}</span>
-                                </div>
-
-                                <div className="mt-3 flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => navigate(createPageUrl('Chat', { id: tx.chat_id || tx.id }))}
-                                  >
-                                    <MessageCircle className="w-4 h-4 mr-1" />
-                                    Chat
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => navigate(createPageUrl('Home'))}
-                                  >
-                                    <Car className="w-4 h-4 mr-1" />
-                                    Ver
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 border-purple-500/30 text-purple-300 hover:bg-purple-900/20"
-                                    onClick={() => setSelectedTx(tx)}
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-1" />
-                                    Detalles
-                                  </Button>
-                                </div>
                               </div>
-                            </motion.div>
-                          );
-                        })
-                      )}
-                    </>
-                  );
-                })()}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  }
+                })}
               </>
             )}
-</TabsContent>
+          </TabsContent>
 
           <TabsContent value="reservations" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937' }}>
             <p className="text-white text-[11px] mb-1 text-center font-bold">Reservaste a:</p>
@@ -531,6 +513,7 @@ export default function History() {
                     Finalizadas:
                   </div>
                 )}
+
                 {myReservationsItems.map((item, index) => {
                   if (item.type === 'alert') {
                     const alert = item.data;
@@ -606,7 +589,9 @@ export default function History() {
                         <div className="flex items-center gap-1 text-xs ml-0.5">
                           <Clock className="w-3 h-3 text-gray-500" />
                           <span className="text-gray-500">Se va en {alert.available_in_minutes} min ·</span>
-                          <span className="text-purple-400">Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
+                          <span className="text-purple-400">
+                            Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                          </span>
                         </div>
                       </motion.div>
                     );
@@ -638,7 +623,9 @@ export default function History() {
                             <Button
                               size="icon"
                               className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                              onClick={() => { }}
+                              onClick={() => {
+                                // Funcionalidad de eliminar/ocultar transacción finalizada
+                              }}
                             >
                               <X className="w-4 h-4" strokeWidth={3} />
                             </Button>
