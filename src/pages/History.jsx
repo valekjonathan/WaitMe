@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -32,6 +32,9 @@ export default function History() {
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
+
+  // Evita updates repetidos cuando el contador llega a 0
+  const autoFinalizedRef = useRef(new Set());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -76,6 +79,13 @@ export default function History() {
   // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
+  );
+
+  // Finalizadas tuyas como alertas (para que al llegar a 0 “pase” aquí)
+  const myFinalizedAlerts = myAlerts.filter(
+    (a) =>
+      a.user_id === user?.id &&
+      (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
   // Reservas (tuyas como comprador)
@@ -127,9 +137,25 @@ export default function History() {
     }
   ];
 
-  const myFinalizedAsSeller = [...transactions.filter((t) => t.seller_id === user?.id), ...mockTransactions].sort(
+  const myFinalizedAsSellerTx = [...transactions.filter((t) => t.seller_id === user?.id), ...mockTransactions].sort(
     (a, b) => new Date(b.created_date) - new Date(a.created_date)
   );
+
+  // Finalizadas de vendedor (primero las alertas que caducan/expiran, luego transacciones)
+  const myFinalizedAll = [
+    ...myFinalizedAlerts.map((a) => ({
+      type: 'alert',
+      id: `final-alert-${a.id}`,
+      created_date: a.created_date,
+      data: a
+    })),
+    ...myFinalizedAsSellerTx.map((t) => ({
+      type: 'transaction',
+      id: `final-tx-${t.id}`,
+      created_date: t.created_date,
+      data: t
+    }))
+  ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
 
   const myReservationsItems = [
     ...myReservations.map((a) => ({ type: 'alert', data: a, date: a.created_date })),
@@ -143,6 +169,16 @@ export default function History() {
   const cancelAlertMutation = useMutation({
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
+  });
+
+  const expireAlertMutation = useMutation({
+    mutationFn: async (alertId) => {
+      // “Se cancela sola” al llegar a 0 -> la marcamos como expirada
+      await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
@@ -165,6 +201,11 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
+  const getWaitUntilTs = (alert) => {
+    const createdTs = new Date(alert.created_date).getTime();
+    return createdTs + (alert.available_in_minutes || 0) * 60000;
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -180,8 +221,23 @@ export default function History() {
       cancelled: 'Cancelada',
       expired: 'Expirada'
     };
-    return <Badge className={`${styles[status]} border flex items-center justify-center text-center`}>{labels[status]}</Badge>;
+    return (
+      <Badge className={`${styles[status]} border flex items-center justify-center text-center`}>
+        {labels[status]}
+      </Badge>
+    );
   };
+
+  const CountdownButton = ({ text }) => (
+    <Button
+      type="button"
+      variant="outline"
+      disabled
+      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm"
+    >
+      {text}
+    </Button>
+  );
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -233,7 +289,6 @@ export default function History() {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* 1) Baja la línea (más margen arriba) y menos espacio abajo */}
           <TabsList className="w-full bg-gray-900 border border-gray-800 mt-4 mb-1">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
@@ -256,26 +311,41 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* BOTON VERDE RECTANGULAR: ACTIVAS */}
+                {/* ACTIVAS */}
                 <div className="flex justify-center pt-0">
                   <div className="bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center">
                     Activas
                   </div>
                 </div>
 
-                {/* LISTA ACTIVAS */}
+                {/* LISTA ACTIVAS o tarjeta vacía */}
                 {myActiveAlerts.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <p>No tienes alertas activas</p>
+                  <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
+                    <div className="h-[110px] flex items-center justify-center">
+                      <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa</p>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
                     {myActiveAlerts
                       .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
                       .map((alert, index) => {
-                        const createdTs = new Date(alert.created_date).getTime();
-                        const endsTs = createdTs + (alert.available_in_minutes || 0) * 60000;
-                        const remainingMs = Math.max(0, endsTs - nowTs);
+                        const waitUntilTs = getWaitUntilTs(alert);
+                        const remainingMs = Math.max(0, waitUntilTs - nowTs);
+                        const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+
+                        // Auto-finaliza al llegar a 0 (solo si estaba activa)
+                        if (
+                          alert.status === 'active' &&
+                          remainingMs <= 0 &&
+                          !autoFinalizedRef.current.has(alert.id) &&
+                          !expireAlertMutation.isPending
+                        ) {
+                          autoFinalizedRef.current.add(alert.id);
+                          expireAlertMutation.mutate(alert.id);
+                        }
+
+                        const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -325,9 +395,7 @@ export default function History() {
                                       showContactButtons={true}
                                       onChat={() =>
                                         (window.location.href = createPageUrl(
-                                          `Chat?alertId=${alert.id}&userId=${
-                                            alert.reserved_by_email || alert.reserved_by_id
-                                          }`
+                                          `Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`
                                         ))
                                       }
                                       onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
@@ -339,12 +407,10 @@ export default function History() {
                                   </div>
                                 )}
 
-                                {/* 3) Iconos morados + mismo inicio + mismo tamaño */}
+                                {/* Iconos morados + mismo inicio + mismo tamaño */}
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">
-                                    {alert.address || 'Ubicación marcada'}
-                                  </span>
+                                  <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
                                 </div>
 
                                 <div className="flex items-start justify-between text-xs">
@@ -352,18 +418,17 @@ export default function History() {
                                     <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                     <span className="text-gray-500 leading-5">Te vas en {alert.available_in_minutes} min</span>
                                   </div>
-                                  <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las:{' '}
-                                    {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', {
-                                      locale: es
-                                    })}
-                                  </span>
+                                  <span className="text-purple-400 leading-5">Debes esperar hasta las: {waitUntilLabel}</span>
+                                </div>
+
+                                {/* Contador también aquí (opcional, pero ya coincide) */}
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} />
                                 </div>
                               </>
                             ) : (
                               <>
                                 <div className="flex items-center justify-between mb-2">
-                                  {/* 2) Centrado dentro del “botón” */}
                                   <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
                                     Activa
                                   </Badge>
@@ -386,12 +451,10 @@ export default function History() {
                                   </div>
                                 </div>
 
-                                {/* 3) Iconos morados + mismo inicio + mismo tamaño */}
+                                {/* Iconos morados + mismo inicio + mismo tamaño */}
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">
-                                    {alert.address || 'Ubicación marcada'}
-                                  </span>
+                                  <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
                                 </div>
 
                                 <div className="flex items-start gap-1.5 text-xs">
@@ -399,26 +462,12 @@ export default function History() {
                                   <span className="text-gray-500 leading-5">
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
-                                  <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las{' '}
-                                    {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', {
-                                      locale: es
-                                    })}
-                                  </span>
+                                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
                                 </div>
 
-                                {/* 4) Botón contador (línea entera) justo debajo */}
+                                {/* 1) Contador REAL hasta la hora “Debes esperar…” */}
                                 <div className="mt-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled
-                                    className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm"
-                                  >
-                                    {remainingMs > 0
-                                      ? `Tiempo restante: ${formatRemaining(remainingMs)}`
-                                      : 'Alerta finalizada'}
-                                  </Button>
+                                  <CountdownButton text={countdownText} />
                                 </div>
                               </>
                             )}
@@ -428,33 +477,79 @@ export default function History() {
                   </div>
                 )}
 
-                {/* BOTON ROJO RECTANGULAR: FINALIZADAS */}
+                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div className="bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center">
                     Finalizadas
                   </div>
                 </div>
 
-                {/* LISTA FINALIZADAS */}
-                {myFinalizedAsSeller.length === 0 ? (
+                {myFinalizedAll.length === 0 ? (
                   <div className="text-center py-6 text-gray-500">
                     <p>No tienes alertas finalizadas</p>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    {myFinalizedAsSeller.map((tx, index) => {
+                    {myFinalizedAll.map((item, index) => {
+                      // Finalizada por caducidad/cancelación (alerta)
+                      if (item.type === 'alert') {
+                        const a = item.data;
+                        return (
+                          <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                          >
+                            <div className="flex items-center justify-between mb-2 opacity-100">
+                              <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
+                                Finalizada
+                              </Badge>
+
+                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                {format(new Date(a.created_date), 'd MMM, HH:mm', { locale: es })}
+                              </span>
+
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                  <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
+                                </div>
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => {}}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-start gap-1.5 text-xs mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                              <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
+                            </div>
+
+                            <div className="mt-2">
+                              <CountdownButton text="Alerta finalizada" />
+                            </div>
+                          </motion.div>
+                        );
+                      }
+
+                      // Finalizada por transacción (COMPLETADA en el “botón”)
+                      const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
                       return (
                         <motion.div
-                          key={`tx-${tx.id}`}
+                          key={item.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            {/* 2) Centrado */}
                             <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
                               Finalizada
                             </Badge>
@@ -491,7 +586,6 @@ export default function History() {
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
                               <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 flex flex-col">
-                                {/* contenido apagado */}
                                 <div className="opacity-60">
                                   <div className="flex gap-2.5 mb-1.5 flex-1">
                                     <div className="flex flex-col gap-1.5">
@@ -535,15 +629,14 @@ export default function History() {
                                       <div className="flex items-start gap-1.5 text-xs">
                                         <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                         <span className="text-gray-500 leading-5">
-                                          Transacción completada ·{' '}
-                                          {format(new Date(tx.created_date), 'HH:mm', { locale: es })}
+                                          Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}
                                         </span>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* botones encendidos (chat en verde) */}
+                                {/* botones encendidos (chat en verde) + 2) COMPLETADA */}
                                 <div className="mt-4">
                                   <div className="flex gap-2">
                                     <Button
@@ -568,8 +661,10 @@ export default function History() {
                                     </Button>
 
                                     <div className="flex-1">
-                                      <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-                                        <span className="text-gray-500 text-sm font-mono font-bold">--:--</span>
+                                      <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                                        <span className="text-purple-300 text-sm font-mono font-bold">
+                                          {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
+                                        </span>
                                       </div>
                                     </div>
                                   </div>
@@ -608,6 +703,8 @@ export default function History() {
               myReservationsItems.map((item, index) => {
                 if (item.type === 'alert') {
                   const alert = item.data;
+                  const waitUntilTs = getWaitUntilTs(alert);
+                  const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
 
                   return (
                     <motion.div
@@ -677,7 +774,6 @@ export default function History() {
                         />
                       </div>
 
-                      {/* 3) Iconos morados + mismo inicio + mismo tamaño */}
                       <div className="flex items-start gap-1.5 text-xs mb-2">
                         <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                         <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
@@ -686,12 +782,7 @@ export default function History() {
                       <div className="flex items-start gap-1.5 text-xs">
                         <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                         <span className="text-gray-500 leading-5">Se va en {alert.available_in_minutes} min ·</span>
-                        <span className="text-purple-400 leading-5">
-                          Te espera hasta las{' '}
-                          {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', {
-                            locale: es
-                          })}
-                        </span>
+                        <span className="text-purple-400 leading-5">Te espera hasta las {waitUntilLabel}</span>
                       </div>
                     </motion.div>
                   );
@@ -735,9 +826,7 @@ export default function History() {
                           <div className="flex gap-2.5 mb-1.5 flex-1">
                             <div className="flex flex-col gap-1.5">
                               <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
-                                <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
-                                  👤
-                                </div>
+                                <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
                               </div>
                             </div>
 
