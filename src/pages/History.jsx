@@ -279,7 +279,7 @@ export default function History() {
                                       {alert.status === 'reserved' ? 'Reservada' : 'Activa'}
                                     </Badge>
                                     <span className="text-gray-400 text-xs">
-                                      {formatDistanceToNow(new Date(alert.created_date), { addSuffix: true, locale: es })}
+                                      {alert.created_date ? formatDistanceToNow(new Date(alert.created_date), { addSuffix: true, locale: es }) : ''}
                                     </span>
                                   </div>
 
@@ -409,7 +409,7 @@ export default function History() {
                                   <div className="flex items-center gap-2">
                                     <Badge className="bg-red-500/20 text-red-400 border border-red-500/30">Finalizada</Badge>
                                     <span className="text-gray-400 text-xs">
-                                      {format(new Date(tx.completed_date), 'd MMM, HH:mm', { locale: es })}
+                                      {tx.completed_date ? format(new Date(tx.completed_date), 'd MMM, HH:mm', { locale: es }) : tx.created_date ? format(new Date(tx.created_date), 'd MMM, HH:mm', { locale: es }) : ''}
                                     </span>
                                   </div>
 

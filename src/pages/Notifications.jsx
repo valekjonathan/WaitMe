@@ -141,7 +141,9 @@ export default function Notifications() {
 
   const formatTime = (iso) => {
     try {
+      if (!iso) return '';
       const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
       const hh = String(d.getHours()).padStart(2, '0');
       const mm = String(d.getMinutes()).padStart(2, '0');
       return `${hh}:${mm}`;
