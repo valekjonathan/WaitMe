@@ -171,7 +171,7 @@ export default function History() {
       expired: 'Expirada'
     };
     return (
-      <Badge className={`${styles[status]} border`}>
+      <Badge className={`${styles[status]} border rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center text-center font-bold`}>
         {labels[status]}
       </Badge>
     );
@@ -203,7 +203,7 @@ export default function History() {
 
           {/* TÍTULO centrado absoluto */}
           <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
-            Historial
+            Alertas
           </h1>
 
           {/* DERECHA: iconos alineados a la derecha */}
@@ -224,7 +224,7 @@ export default function History() {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mt-2 mb-2">
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mt-4 mb-2">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
@@ -235,7 +235,7 @@ export default function History() {
 
           <TabsContent value="alerts" className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9333ea #1f2937' }}>
             <div className="flex justify-center mb-2">
-              <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center font-bold">
+              <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center font-bold">
                 Activa
               </Badge>
             </div>
@@ -326,7 +326,7 @@ export default function History() {
                       ) : (
                         <>
                           <div className="flex items-center justify-between mb-2">
-                            <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                            <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center font-bold">
                               Activa
                             </Badge>
                             <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -367,8 +367,10 @@ export default function History() {
                 {/* Finalizadas */}
                 {finalizedItems.length > 0 && (
                   <>
-                    <div className="text-white text-center font-bold py-3 text-sm">
-                      Finalizadas:
+                    <div className="flex justify-center py-3">
+                      <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 rounded-md px-2 py-1 min-w-[110px] h-7 flex items-center justify-center font-bold">
+                        Finalizadas
+                      </Badge>
                     </div>
                     {finalizedItems.map((item, index) => {
                       const tx = item.data;
@@ -383,7 +385,7 @@ export default function History() {
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
+                            <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center font-bold">
                               Finalizada
                             </Badge>
                             <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -514,8 +516,10 @@ export default function History() {
             ) : (
               <>
                 {myReservationsItems.filter(i => i.type === 'alert').length > 0 && myReservationsItems.filter(i => i.type === 'transaction').length > 0 && (
-                  <div className="text-white text-center font-bold py-3 text-sm">
-                    Finalizadas:
+                  <div className="flex justify-center py-3">
+                    <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 rounded-md px-2 py-1 min-w-[110px] h-7 flex items-center justify-center font-bold">
+                      Finalizadas
+                    </Badge>
                   </div>
                 )}
                 {myReservationsItems.map((item, index) => {
@@ -530,7 +534,7 @@ export default function History() {
                         className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 min-w-[85px] text-center">
+                          <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center font-bold">
                             Activa
                           </Badge>
                           <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -609,7 +613,7 @@ export default function History() {
                         className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 opacity-60 relative"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 px-2 py-1 min-w-[85px] text-center">
+                          <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 rounded-md px-2 py-1 min-w-[85px] h-7 flex items-center justify-center font-bold">
                             Finalizada
                           </Badge>
                           <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
