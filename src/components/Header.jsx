@@ -57,18 +57,21 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="relative flex items-center justify-between px-4 py-3">
-        {/* IZQUIERDA: atrás + dinero centrado en la mitad izquierda */}
-        <div className="flex items-center w-1/2">
-          {showBackButton && (
-            onBack ? (
+        {/* BOTÓN ATRÁS ABSOLUTO (no empuja el botón del dinero) */}
+        {showBackButton && (
+          <div className="absolute left-2 top-1/2 -translate-y-1/2">
+            {onBack ? (
               <BackButton />
             ) : (
               <Link to={createPageUrl(backTo)}>
                 <BackButton />
               </Link>
-            )
-          )}
+            )}
+          </div>
+        )}
 
+        {/* IZQUIERDA: dinero SIEMPRE centrado en la mitad izquierda */}
+        <div className="flex items-center w-1/2">
           <div className="flex-1 flex justify-center">
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
