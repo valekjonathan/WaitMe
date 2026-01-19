@@ -173,11 +173,11 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Avisos" showBackButton={true} backTo="Home" />
+      <Header title="Notificaciones" showBackButton={true} backTo="Home" />
 
       <main className="pt-16 pb-24">
         <div className="px-4 py-4">
-          <h2 className="text-xl font-bold mb-4 text-center">Avisos:</h2>
+          <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
 
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">Cargando...</div>
@@ -227,7 +227,7 @@ export default function Notifications() {
                           <div className="flex-1 flex flex-col justify-between pr-2">
                             {/* Nombre */}
                             <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
-                            
+
                             {/* Marca y Modelo con icono */}
                             <div className="flex items-center justify-between">
                               <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
@@ -250,7 +250,7 @@ export default function Notifications() {
                                 );
                               })()}
                             </div>
-                            
+
                             {/* Matrícula */}
                             <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
                               <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
@@ -404,7 +404,7 @@ export default function Notifications() {
               {selectedNotification?.sender_name} quiere pagar <span className="text-purple-400 font-bold">{selectedNotification?.amount}€</span> por tu plaza
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
             <p className="text-sm text-gray-400">
               <Clock className="inline w-4 h-4 mr-1" />
