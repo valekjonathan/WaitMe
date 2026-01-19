@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Settings, User } from 'lucide-react';
@@ -12,20 +12,18 @@ export default function Header({
   onBack
 }) {
   const [user, setUser] = useState(null);
-  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-      } catch (e) {}
+      } catch (e) {
+        // no auth
+      }
     };
     fetchUser();
   }, []);
-
-  const homePath = createPageUrl('Home');
-  const isOnHome = location.pathname === homePath || location.pathname === '/';
 
   const renderTitle = () => {
     const t = (title || '').trim();
@@ -34,14 +32,16 @@ export default function Header({
 
     if (isWaitMe) {
       return (
-        <h1 className="text-lg font-semibold">
-          <span className="text-white">Wait</span>
-          <span className="text-purple-500">Me!</span>
-        </h1>
+        <Link to={createPageUrl('Home')} className="cursor-pointer select-none">
+          <h1 className="text-lg font-semibold truncate">
+            <span className="text-white">Wait</span>
+            <span className="text-purple-500">Me!</span>
+          </h1>
+        </Link>
       );
     }
 
-    return <h1 className="text-lg font-semibold text-white">{title}</h1>;
+    return <h1 className="text-lg font-semibold text-white truncate">{title}</h1>;
   };
 
   const BackButton = () => (
@@ -58,22 +58,20 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="relative flex items-center justify-between px-4 py-3">
-        {/* ATRÁS ABSOLUTO (no empuja el dinero) */}
-        {showBackButton && (
-          <div className="absolute left-2 top-1/2 -translate-y-1/2">
-            {onBack ? (
+        {/* IZQUIERDA */}
+        <div className="flex items-center w-1/2">
+          {showBackButton && (
+            onBack ? (
               <BackButton />
             ) : (
               <Link to={createPageUrl(backTo)}>
                 <BackButton />
               </Link>
-            )}
-          </div>
-        )}
+            )
+          )}
 
-        {/* IZQUIERDA: dinero SIEMPRE centrado en la mitad izquierda */}
-        <div className="flex items-center w-1/2">
-          <div className="flex-1 flex justify-center">
+          {/* ✅ DINERO: mismo sitio en todas, pero un pelín a la izquierda */}
+          <div className="flex-1 flex justify-center -translate-x-2">
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
                 <span className="text-purple-400 font-bold text-sm">
@@ -84,24 +82,12 @@ export default function Header({
           </div>
         </div>
 
-        {/* TÍTULO: clic -> Home, si ya estás en Home recarga */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Link
-            to={homePath}
-            onClick={(e) => {
-              if (isOnHome) {
-                e.preventDefault();
-                window.location.reload();
-              }
-            }}
-            className="cursor-pointer select-none"
-            aria-label="Ir a Home"
-          >
-            {renderTitle()}
-          </Link>
+        {/* ✅ TÍTULO centrado + truncado para que nunca choque */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[55%] px-2 text-center">
+          {renderTitle()}
         </div>
 
-        {/* DERECHA: iconos morados (SIN badge en Perfil) */}
+        {/* DERECHA */}
         <div className="flex items-center gap-1 w-1/2 justify-end">
           <Link to={createPageUrl('Settings')}>
             <Button
@@ -113,7 +99,8 @@ export default function Header({
             </Button>
           </Link>
 
-          <Link to={createPageUrl('Profile')}>
+          {/* ✅ SIN BADGE AQUÍ */}
+          <Link to={createPageUrl('Profile')} className="relative">
             <Button
               variant="ghost"
               size="icon"
