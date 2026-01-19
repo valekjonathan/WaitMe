@@ -47,11 +47,17 @@ export default function BottomNav() {
     refetchInterval: 20000
   });
 
-  // Igualar tamaño visual: evitar salto de línea en "Notificaciones"
   const baseBtn =
     "w-full min-w-0 relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg overflow-hidden";
 
-  const labelCls = "w-full text-center text-[9px] font-bold whitespace-nowrap leading-none tracking-tight";
+  const labelCls =
+    "w-full text-center text-[9px] font-bold whitespace-nowrap leading-none tracking-tight";
+
+  const badgeCls =
+    "absolute top-0.5 left-1/2 -translate-x-1/2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+
+  const badgeRedCls =
+    "absolute top-0.5 left-1/2 -translate-x-1/2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
@@ -66,7 +72,7 @@ export default function BottomNav() {
             <span className={labelCls}>Alertas</span>
 
             {activeAlerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className={badgeCls}>
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
@@ -92,7 +98,7 @@ export default function BottomNav() {
             <span className={labelCls}>Notificaciones</span>
 
             {unreadNotifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className={badgeRedCls}>
                 {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
               </span>
             )}
