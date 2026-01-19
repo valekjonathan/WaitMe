@@ -63,9 +63,9 @@ export default function BottomNav() {
   const labelCls =
     'w-full text-center text-[9px] font-bold whitespace-nowrap leading-none tracking-tight';
 
-  // BADGE: misma altura, más a la derecha, y por encima
+  // ✅ MÁS ARRIBA + MÁS A LA DERECHA
   const badgeBase =
-    'absolute top-1 right-2 z-20 pointer-events-none rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border-2';
+    'absolute -top-1 right-1 z-20 pointer-events-none rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold border-2';
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
@@ -131,7 +131,6 @@ export default function BottomNav() {
               <MessageCircle className="w-8 h-8" />
               <span className={labelCls}>Chats</span>
             </Button>
-            {/* Si algún día quieres badge aquí, va con el mismo badgeBase */}
           </div>
         </Link>
 
