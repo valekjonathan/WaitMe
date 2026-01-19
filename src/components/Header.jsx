@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Settings, User } from 'lucide-react';
@@ -13,6 +13,7 @@ export default function Header({
   unreadCount = 0
 }) {
   const [user, setUser] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,6 +26,9 @@ export default function Header({
     };
     fetchUser();
   }, []);
+
+  const homePath = createPageUrl('Home');
+  const isOnHome = location.pathname === homePath || location.pathname === '/';
 
   const renderTitle = () => {
     const t = (title || '').trim();
@@ -57,7 +61,7 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="relative flex items-center justify-between px-4 py-3">
-        {/* BOTÓN ATRÁS ABSOLUTO (no empuja el botón del dinero) */}
+        {/* BOTÓN ATRÁS ABSOLUTO (no empuja nada) */}
         {showBackButton && (
           <div className="absolute left-2 top-1/2 -translate-y-1/2">
             {onBack ? (
@@ -70,7 +74,7 @@ export default function Header({
           </div>
         )}
 
-        {/* IZQUIERDA: dinero SIEMPRE centrado en la mitad izquierda */}
+        {/* IZQUIERDA: dinero centrado en la mitad izquierda */}
         <div className="flex items-center w-1/2">
           <div className="flex-1 flex justify-center">
             <Link to={createPageUrl('Settings')}>
@@ -83,9 +87,21 @@ export default function Header({
           </div>
         </div>
 
-        {/* TÍTULO centrado */}
+        {/* TÍTULO: clicable -> Home (si ya estás en Home, recarga) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          {renderTitle()}
+          <Link
+            to={homePath}
+            onClick={(e) => {
+              if (isOnHome) {
+                e.preventDefault();
+                window.location.reload();
+              }
+            }}
+            className="cursor-pointer select-none"
+            aria-label="Ir a Home"
+          >
+            {renderTitle()}
+          </Link>
         </div>
 
         {/* DERECHA: iconos morados */}
