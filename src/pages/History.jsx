@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Clock, MapPin, TrendingUp, TrendingDown, Loader, X, Settings, MessageCircle, PhoneOff, Car, User } from 'lucide-react';
+import { Clock, MapPin, TrendingUp, TrendingDown, Loader, X, MessageCircle, PhoneOff, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +10,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
+import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 
@@ -175,48 +175,7 @@ export default function History() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header (MISMA ESTRUCTURA QUE HOME) */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="relative flex items-center justify-between px-4 py-3">
-          {/* IZQUIERDA: back + dinero centrado en mitad izquierda */}
-          <div className="flex items-center w-1/2">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-white">
-                <ArrowLeft className="w-6 h-6" />
-              </Button>
-            </Link>
-
-            <div className="flex-1 flex justify-center">
-              <Link to={createPageUrl('Settings')}>
-                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                  <span className="text-purple-400 font-bold text-sm">
-                    {(user?.credits || 0).toFixed(2)}€
-                  </span>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* TÍTULO centrado absoluto */}
-          <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-semibold">
-            Historial
-          </h1>
-
-          {/* DERECHA: iconos alineados a la derecha */}
-          <div className="flex items-center gap-1 w-1/2 justify-end">
-            <Link to={createPageUrl('Settings')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to={createPageUrl('Profile')}>
-              <Button variant="ghost" size="icon" className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20">
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header title="Historial" showBackButton={true} backTo="Home" />
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
