@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,7 +20,6 @@ export default function Home() {
 
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
-  // Resetear mode cuando se navega a Home sin parámetros
   useEffect(() => {
     const checkReset = () => {
       const params = new URLSearchParams(window.location.search);
@@ -46,6 +45,119 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
+  // DEMO: alertas inventadas cerca de tu ubicación
+  const demoAlerts = useMemo(() => {
+    const [lat, lng] = userLocation || [40.4168, -3.7038];
+
+    const photo = (n) => `https://i.pravatar.cc/150?img=${n}`; // placeholder
+    const add = (dLat, dLng) => [lat + dLat, lng + dLng];
+
+    const list = [
+      {
+        id: 'demo_1',
+        user_id: 'demo_user_1',
+        user_email: 'laura@demo.com',
+        user_name: 'Laura',
+        user_photo: photo(47),
+        car_brand: 'Opel',
+        car_model: 'Corsa',
+        car_color: 'gris',
+        car_plate: '9812 GHJ',
+        vehicle_type: 'car',
+        price: 4,
+        available_in_minutes: 12,
+        address: 'Calle Uría, 20',
+        allow_phone_calls: true,
+        phone: '+34611111111',
+        status: 'active',
+        latitude: add(0.0016, 0.0012)[0],
+        longitude: add(0.0016, 0.0012)[1]
+      },
+      {
+        id: 'demo_2',
+        user_id: 'demo_user_2',
+        user_email: 'marta@demo.com',
+        user_name: 'Marta',
+        user_photo: photo(32),
+        car_brand: 'Seat',
+        car_model: 'Ibiza',
+        car_color: 'rojo',
+        car_plate: '1234 ABC',
+        vehicle_type: 'car',
+        price: 3,
+        available_in_minutes: 7,
+        address: 'Calle Pelayo, 8',
+        allow_phone_calls: false,
+        phone: null,
+        status: 'active',
+        latitude: add(-0.0012, 0.0008)[0],
+        longitude: add(-0.0012, 0.0008)[1]
+      },
+      {
+        id: 'demo_3',
+        user_id: 'demo_user_3',
+        user_email: 'carlos@demo.com',
+        user_name: 'Carlos',
+        user_photo: photo(12),
+        car_brand: 'Toyota',
+        car_model: 'Yaris',
+        car_color: 'azul',
+        car_plate: '5678 DEF',
+        vehicle_type: 'suv',
+        price: 5,
+        available_in_minutes: 18,
+        address: 'Avenida de Galicia, 14',
+        allow_phone_calls: true,
+        phone: '+34622222222',
+        status: 'active',
+        latitude: add(0.0009, -0.0014)[0],
+        longitude: add(0.0009, -0.0014)[1]
+      },
+      {
+        id: 'demo_4',
+        user_id: 'demo_user_4',
+        user_email: 'ana@demo.com',
+        user_name: 'Ana',
+        user_photo: photo(5),
+        car_brand: 'Volkswagen',
+        car_model: 'Polo',
+        car_color: 'blanco',
+        car_plate: '9090 KLM',
+        vehicle_type: 'car',
+        price: 6,
+        available_in_minutes: 25,
+        address: 'Plaza de la Escandalera',
+        allow_phone_calls: true,
+        phone: '+34633333333',
+        status: 'active',
+        latitude: add(-0.0007, -0.0009)[0],
+        longitude: add(-0.0007, -0.0009)[1]
+      },
+      {
+        id: 'demo_5',
+        user_id: 'demo_user_5',
+        user_email: 'david@demo.com',
+        user_name: 'David',
+        user_photo: photo(18),
+        car_brand: 'Renault',
+        car_model: 'Clio',
+        car_color: 'negro',
+        car_plate: '2222 ZZZ',
+        vehicle_type: 'van',
+        price: 7,
+        available_in_minutes: 30,
+        address: 'Calle Cervantes, 3',
+        allow_phone_calls: false,
+        phone: null,
+        status: 'active',
+        latitude: add(0.0011, 0.0002)[0],
+        longitude: add(0.0011, 0.0002)[1]
+      }
+    ];
+
+    return list;
+  }, [userLocation]);
+
   // Obtener usuario actual
   useEffect(() => {
     const fetchUser = async () => {
@@ -59,27 +171,35 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  // Obtener mensajes no leídos
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['unreadMessages', user?.email],
-    queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
-      return messages.length;
-    },
-    enabled: !!user?.email,
-    refetchInterval: 5000
-  });
-
-  // Obtener alertas activas solo cuando estamos en modo search
-  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
-    queryKey: ['parkingAlerts'],
+  // Obtener alertas reales (si existen)
+  const { data: rawAlertsReal = [] } = useQuery({
+    queryKey: ['parkingAlertsAllActive'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    refetchInterval: mode === 'search' ? 5000 : false,
-    enabled: mode === 'search'
+    refetchInterval: 8000,
+    enabled: true
   });
 
-  // Filtrar alertas según criterios
-  const alerts = rawAlerts.filter((alert) => {
+  const combinedRawAlerts = useMemo(() => {
+    // demo primero para que SIEMPRE veas coches aunque no haya nada real
+    const real = Array.isArray(rawAlertsReal) ? rawAlertsReal : [];
+    return [...demoAlerts, ...real];
+  }, [demoAlerts, rawAlertsReal]);
+
+  // Calcular distancia en km
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // Filtrar alertas según criterios (para modo search)
+  const alertsFiltered = combinedRawAlerts.filter((alert) => {
     if (alert.price > filters.maxPrice) return false;
     if (alert.available_in_minutes > filters.maxMinutes) return false;
 
@@ -94,18 +214,13 @@ export default function Home() {
     return true;
   });
 
-  // Calcular distancia en km
-  function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
+  // Alertas para el mapa de fondo (modo null): cerca y bonitas
+  const backgroundAlerts = useMemo(() => {
+    if (!userLocation) return combinedRawAlerts.slice(0, 8);
+    return combinedRawAlerts
+      .filter(a => calculateDistance(userLocation[0], userLocation[1], a.latitude, a.longitude) <= 1.2)
+      .slice(0, 10);
+  }, [combinedRawAlerts, userLocation]);
 
   // Crear alerta
   const createAlertMutation = useMutation({
@@ -132,16 +247,19 @@ export default function Home() {
       return newAlert;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['parkingAlertsAllActive'] });
       setMode(null);
       setSelectedPosition(null);
       setAddress('');
     }
   });
 
-  // Comprar alerta - ahora crea notificación
+  // Comprar alerta - crea notificación
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
+      // si es demo, solo simula cierre (no toca DB)
+      if (String(alert?.id || '').startsWith('demo_')) return alert;
+
       await base44.entities.Notification.create({
         type: 'reservation_request',
         recipient_id: alert.user_id,
@@ -157,7 +275,7 @@ export default function Home() {
       return alert;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['parkingAlertsAllActive'] });
       setConfirmDialog({ open: false, alert: null });
       setSelectedAlert(null);
     }
@@ -220,7 +338,6 @@ export default function Home() {
 
       <Header
         title="WaitMe!"
-        unreadCount={unreadCount}
         showBackButton={!!mode}
         onBack={() => {
           setMode(null);
@@ -228,7 +345,6 @@ export default function Home() {
         }}
       />
 
-      {/* Main Content (VUELVE A TU LAYOUT ORIGINAL) */}
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode && (
@@ -238,17 +354,17 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              {/* Mapa de fondo apagado */}
-              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
+              {/* Mapa de fondo (CON coches demo alrededor) */}
+              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-45 pointer-events-none">
                 <ParkingMap
-                  alerts={alerts}
+                  alerts={backgroundAlerts}
                   userLocation={userLocation}
                   className="absolute inset-0 w-full h-full"
                   zoomControl={false}
                 />
               </div>
 
-              {/* Overlay morado apagado */}
+              {/* Overlay morado */}
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
@@ -296,7 +412,7 @@ export default function Home() {
             >
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
-                  alerts={alerts}
+                  alerts={alertsFiltered}
                   onAlertClick={setSelectedAlert}
                   userLocation={userLocation}
                   selectedAlert={selectedAlert}
@@ -321,7 +437,7 @@ export default function Home() {
                       filters={filters}
                       onFilterChange={setFilters}
                       onClose={() => setShowFilters(false)}
-                      alertsCount={alerts.length}
+                      alertsCount={alertsFiltered.length}
                     />
                   )}
                 </AnimatePresence>
