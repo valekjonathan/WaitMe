@@ -737,8 +737,7 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      // (1) Finalizadas SIN borde (apagar borde)
-                const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
                       if (item.type === 'alert') {
                         const a = item.data;
@@ -865,30 +864,34 @@ export default function History() {
                                     </div>
                                   </div>
 
-                                  {/* DERECHA: 3 lineas compactas (apagadas) y dentro del alto de la foto */}
-                                  <div className="flex-1 h-[85px] flex flex-col">
-                                    {/* Nombre + marca/modelo comprimidos */}
+                                  {/* DERECHA: 3 lineas comprimidas dentro del alto de la foto + coche pegado a la derecha de la matrícula */}
+                                  <div className="flex-1 h-[85px] flex flex-col justify-between">
+                                    {/* Nombre + marca/modelo (más comprimido) */}
                                     <div className="opacity-60">
-                                      <p className="font-bold text-xl text-gray-300 leading-none">
+                                      <p className="font-bold text-lg text-gray-300 leading-tight truncate">
                                         {tx.buyer_name?.split(' ')[0]}
                                       </p>
-                                      <p className="text-sm font-medium text-gray-400 leading-none mt-1 truncate">
+                                      <p className="text-xs font-medium text-gray-400 leading-tight mt-0.5 truncate">
                                         {getBuyerCarLabel(tx) || 'Sin datos'}
                                       </p>
                                     </div>
 
-                                    {/* Fila inferior: matrícula a la izquierda + icono coche a la derecha pegado al borde */}
+                                    {/* Abajo: matrícula (igual perfil) + coche ocupando el hueco hasta el borde */}
                                     {getBuyerPhoto(tx) ? (
-                                      <div className="mt-auto flex items-center justify-between gap-2">
-                                        <div className="opacity-40">
+                                      <div className="flex items-center gap-2">
+                                        <div className="opacity-40 flex-shrink-0">
                                           <PlateProfile plate={getBuyerPlate(tx)} />
                                         </div>
-                                        <div className="opacity-35 flex-shrink-0">
-                                          <CarIconProfile color={getCarFill(getBuyerCarColor(tx))} size="w-16 h-10" />
+
+                                        <div className="opacity-35 flex-1 flex justify-end">
+                                          <CarIconProfile
+                                            color={getCarFill(getBuyerCarColor(tx))}
+                                            size="w-full max-w-[120px] h-10"
+                                          />
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="mt-auto flex items-center justify-end opacity-30">
+                                      <div className="flex items-center justify-end opacity-30">
                                         <Car className="w-5 h-5 text-gray-600" />
                                       </div>
                                     )}
@@ -1082,6 +1085,7 @@ export default function History() {
                     transition={{ delay: index * 0.05 }}
                     className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 relative"
                   >
+                    {/* ... (sin cambios en reservas) ... */}
                     <div className="flex items-center justify-between mb-2">
                       <Badge
                         className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
