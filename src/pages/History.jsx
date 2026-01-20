@@ -31,6 +31,74 @@ export default function History() {
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
 
+  // ====== Copia exacta del formato "coche + matrícula" de Mi Perfil ======
+  const carColors = [
+    { value: 'blanco', fill: '#FFFFFF' },
+    { value: 'negro', fill: '#1a1a1a' },
+    { value: 'rojo', fill: '#ef4444' },
+    { value: 'azul', fill: '#3b82f6' },
+    { value: 'amarillo', fill: '#facc15' },
+    { value: 'gris', fill: '#6b7280' }
+  ];
+
+  const getCarFill = (colorValue) => {
+    const c = carColors.find((x) => x.value === (colorValue || '').toLowerCase());
+    return c?.fill || '#6b7280';
+  };
+
+  const formatPlate = (plate) => {
+    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
+    if (!p) return '0000 XXX';
+    const a = p.slice(0, 4);
+    const b = p.slice(4);
+    return `${a} ${b}`.trim();
+  };
+
+  const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
+    <svg viewBox="0 0 48 24" className={size} fill="none">
+      <path
+        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+        fill={color}
+        stroke="white"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M16 9 L18 12 L30 12 L32 9 Z"
+        fill="rgba(255,255,255,0.3)"
+        stroke="white"
+        strokeWidth="0.5"
+      />
+      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="14" cy="18" r="2" fill="#666" />
+      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="2" fill="#666" />
+    </svg>
+  );
+
+  const PlateProfile = ({ plate }) => (
+    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+      <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+        <span className="text-white text-[8px] font-bold">E</span>
+      </div>
+      <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+        {formatPlate(plate)}
+      </span>
+    </div>
+  );
+
+  const Plate = ({ plate }) => (
+    <div className="mt-2 flex items-center">
+      <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+        <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+          <span className="text-white text-[8px] font-bold">E</span>
+        </div>
+        <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+          {formatPlate(plate)}
+        </span>
+      </div>
+    </div>
+  );
+
   // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
@@ -120,7 +188,8 @@ export default function History() {
   // Reservas (tuyas como comprador)
   const myReservations = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
 
-  // Transacciones finalizadas ficticias (solo para UI)
+  // Finalizadas ficticias (solo para UI) -> para ver todos los tipos (SIN activas)
+  // Importante: NO tocamos tus alertas reales; solo añadimos mocks extra.
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -128,6 +197,11 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-1',
       buyer_name: 'Marco Rossi',
+      buyer_photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      buyer_car_brand: 'BMW',
+      buyer_car_model: 'Serie 3',
+      buyer_car_color: 'azul',
+      buyer_car_plate: '2847BNM',
       amount: 5.0,
       seller_earnings: 4.0,
       platform_fee: 1.0,
@@ -142,6 +216,11 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-2',
       buyer_name: 'Sofia Gómez',
+      buyer_photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      buyer_car_brand: 'Seat',
+      buyer_car_model: 'Ibiza',
+      buyer_car_color: 'rojo',
+      buyer_car_plate: '1209KLP',
       amount: 3.5,
       seller_earnings: 2.8,
       platform_fee: 0.7,
@@ -156,6 +235,11 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-3',
       buyer_name: 'Diego López',
+      buyer_photo_url: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=400&h=400&fit=crop',
+      buyer_car_brand: 'Audi',
+      buyer_car_model: 'A3',
+      buyer_car_color: 'gris',
+      buyer_car_plate: '7001JRV',
       amount: 4.5,
       seller_earnings: 3.6,
       platform_fee: 0.9,
@@ -163,6 +247,77 @@ export default function History() {
       address: 'Plaza Mayor, 8',
       alert_id: 'mock-alert-3',
       created_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    // Como comprador (sin foto -> se verá el formato "simple")
+    {
+      id: 'mock-tx-4',
+      seller_id: 'seller-9',
+      seller_name: 'Laura',
+      buyer_id: user?.id,
+      buyer_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      amount: 6.0,
+      status: 'completed',
+      address: 'Calle Uría, 12',
+      alert_id: 'mock-alert-4',
+      created_date: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    // Otra como vendedor pero sin foto (no debe mostrar matrícula estilo perfil)
+    {
+      id: 'mock-tx-5',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-7',
+      buyer_name: 'Hugo',
+      amount: 2.0,
+      seller_earnings: 1.6,
+      platform_fee: 0.4,
+      status: 'completed',
+      address: 'Avenida Galicia, 44',
+      alert_id: 'mock-alert-5',
+      created_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
+
+  const mockFinalizedAlerts = [
+    {
+      id: 'mock-final-a1',
+      user_id: user?.id,
+      status: 'expired',
+      price: 4.0,
+      address: 'Calle Pelayo, 3',
+      created_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-final-a2',
+      user_id: user?.id,
+      status: 'cancelled',
+      price: 2.5,
+      address: 'Plaza de España, 1',
+      created_date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-final-a3',
+      user_id: user?.id,
+      status: 'completed',
+      price: 7.0,
+      address: 'Calle Jovellanos, 9',
+      created_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-final-a4',
+      user_id: user?.id,
+      status: 'expired',
+      price: 3.0,
+      address: 'Avenida de la Constitución, 20',
+      created_date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-final-a5',
+      user_id: user?.id,
+      status: 'cancelled',
+      price: 5.5,
+      address: 'Calle San Francisco, 6',
+      created_date: new Date(Date.now() - 16 * 24 * 60 * 60 * 1000).toISOString()
     }
   ];
 
@@ -170,9 +325,18 @@ export default function History() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
+  // (2) Borra (oculta en UI) las 4 últimas "sin éxito" (expired/cancelled)
+  const successfulFinalAlerts = myFinalizedAlerts.filter((a) => a.status === 'completed');
+  const unsuccessfulFinalAlerts = myFinalizedAlerts
+    .filter((a) => a.status === 'expired' || a.status === 'cancelled')
+    .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
+    .slice(4);
+
+  const finalizedAlertsForUI = [...successfulFinalAlerts, ...unsuccessfulFinalAlerts, ...mockFinalizedAlerts];
+
   // Finalizadas de vendedor (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
-    ...myFinalizedAlerts.map((a) => ({
+    ...finalizedAlertsForUI.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
       created_date: a.created_date,
@@ -298,18 +462,9 @@ export default function History() {
 
   // (3) Bloque matricula estilo "perfil" (solo se usa en transacción completada)
   const PlateBlock = ({ plate }) => {
-    const plateText = (plate || '').toUpperCase().trim();
-    if (!plateText) return null;
-    return (
-      <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-        <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-          <span className="text-[9px] font-bold text-white">E</span>
-        </div>
-        <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
-          {plateText}
-        </span>
-      </div>
-    );
+    const raw = String(plate || '').trim();
+    if (!raw) return null;
+    return <PlateProfile plate={raw} />;
   };
 
   const getBuyerPlate = (tx) => {
@@ -335,6 +490,28 @@ export default function History() {
     const model = tx?.buyer_car_model || tx?.buyerCarModel || '';
     const built = `${brand} ${model}`.trim();
     return (direct || built || '').trim();
+  };
+
+  const getBuyerPhoto = (tx) => {
+    return (
+      tx?.buyer_photo_url ||
+      tx?.buyerPhotoUrl ||
+      tx?.buyer_photo ||
+      tx?.buyerPhoto ||
+      tx?.buyer_photo_image ||
+      tx?.buyerPhotoImage ||
+      ''
+    );
+  };
+
+  const getBuyerCarColor = (tx) => {
+    return (
+      tx?.buyer_car_color ||
+      tx?.buyerCarColor ||
+      tx?.car_color ||
+      tx?.carColor ||
+      ''
+    );
   };
 
   return (
@@ -561,7 +738,7 @@ export default function History() {
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
                       // (1) Finalizadas SIN borde (apagar borde)
-                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border border-transparent relative';
+                const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-800 relative';
 
                       if (item.type === 'alert') {
                         const a = item.data;
@@ -593,7 +770,8 @@ export default function History() {
                                 </div>
                                 <Button
                                   size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  disabled
+                                  className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
                                   onClick={() => {}}
                                 >
                                   <X className="w-4 h-4" strokeWidth={3} />
@@ -656,7 +834,8 @@ export default function History() {
 
                               <Button
                                 size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                disabled
+                                className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
                                 onClick={() => {}}
                               >
                                 <X className="w-4 h-4" strokeWidth={3} />
@@ -666,16 +845,23 @@ export default function History() {
 
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 flex flex-col">
-                                <div className="opacity-60">
+                              {(() => {
+                                const buyerPhoto = getBuyerPhoto(tx);
+                                const hasPhoto = !!buyerPhoto;
+                                const carLabel = getBuyerCarLabel(tx);
+                                const carFill = getCarFill(getBuyerCarColor(tx));
+                                const plate = getBuyerPlate(tx);
+
+                                return (
+                                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-800 flex flex-col">
                                   <div className="flex gap-2.5 mb-1.5 flex-1">
                                     <div className="flex flex-col gap-1.5">
-                                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600 bg-gray-800 flex-shrink-0">
-                                        <img
-                                          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
-                                          alt={tx.buyer_name}
-                                          className="w-full h-full object-cover"
-                                        />
+                                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-500 bg-gray-700/40 flex-shrink-0">
+                                        {hasPhoto ? (
+                                          <img src={buyerPhoto} alt={tx.buyer_name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
+                                        )}
                                       </div>
                                     </div>
 
@@ -683,14 +869,16 @@ export default function History() {
                                       <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
 
                                       <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                                        <p className="text-sm font-medium text-white">
-                                          {getBuyerCarLabel(tx) || 'Sin datos'}
-                                        </p>
-                                        <Car className="w-5 h-5 text-gray-400" />
+                                        <p className="text-sm font-medium text-white">{carLabel || 'Sin datos'}</p>
+                                        {hasPhoto ? (
+                                          <CarIconProfile color={carFill} size="w-14 h-9" />
+                                        ) : (
+                                          <Car className="w-5 h-5 text-gray-500" />
+                                        )}
                                       </div>
 
-                                      {/* (3) SOLO aquí: matrícula estilo perfil, solo si hay placa en la transacción */}
-                                      <PlateBlock plate={getBuyerPlate(tx)} />
+                                      {/* SOLO si hay foto: coche+matrícula igual que en "Mi perfil" */}
+                                      {hasPhoto ? <PlateBlock plate={plate} /> : null}
                                     </div>
                                   </div>
 
@@ -715,7 +903,9 @@ export default function History() {
                                       </div>
                                     </div>
                                   </div>
-                                </div>
+                                  </div>
+                                );
+                              })()}
 
                                 <div className="mt-4">
                                   <div className="flex gap-2">
