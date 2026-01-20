@@ -110,6 +110,8 @@ export default function Home() {
   // Crear alerta
   const createAlertMutation = useMutation({
     mutationFn: async (alertData) => {
+      const minutes = Number(alertData.minutes) || 0;
+      const waitUntilIso = minutes > 0 ? new Date(Date.now() + minutes * 60000).toISOString() : null;
       const newAlert = await base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -124,7 +126,9 @@ export default function Home() {
         longitude: selectedPosition?.lng || userLocation?.[1] || -3.7038,
         address: address,
         price: alertData.price,
-        available_in_minutes: alertData.minutes,
+        available_in_minutes: minutes,
+        // Campo extra para que el contador sea consistente (evita que "aparezca y desaparezca")
+        ...(waitUntilIso ? { wait_until: waitUntilIso, expires_at: waitUntilIso } : {}),
         allow_phone_calls: user?.allow_phone_calls || false,
         phone: user?.phone,
         status: 'active'
