@@ -31,7 +31,6 @@ export default function History() {
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
 
-  // ====== Copia exacta del formato "coche + matrícula" de Mi Perfil ======
   const carColors = [
     { value: 'blanco', fill: '#FFFFFF' },
     { value: 'negro', fill: '#1a1a1a' },
@@ -86,28 +85,22 @@ export default function History() {
     </div>
   );
 
-  // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
-  // Scrollbar oculto (quita la barra morada de la derecha)
+  // Oculta scrollbar (la barrita morada de la derecha)
   const noScrollBar = '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
-  // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
 
-    if (typeof v === 'number') {
-      return v < 1e12 ? v * 1000 : v;
-    }
+    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
 
     if (typeof v === 'string') {
       const s = v.trim();
       if (!s) return null;
       const n = Number(s);
-      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
-        return n < 1e12 ? n * 1000 : n;
-      }
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) return n < 1e12 ? n * 1000 : n;
       const t = new Date(s).getTime();
       return Number.isNaN(t) ? null : t;
     }
@@ -130,7 +123,6 @@ export default function History() {
     return null;
   };
 
-  // Evita updates repetidos cuando el contador llega a 0
   const autoFinalizedRef = useRef(new Set());
 
   useEffect(() => {
@@ -140,7 +132,6 @@ export default function History() {
         (error) => console.log('Error obteniendo ubicación:', error)
       );
     }
-
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -163,22 +154,18 @@ export default function History() {
     enabled: !!user?.id
   });
 
-  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
-  // Finalizadas tuyas como alertas (para que al llegar a 0 “pase” aquí)
   const myFinalizedAlerts = myAlerts.filter(
     (a) =>
       a.user_id === user?.id &&
       (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
-  // Reservas (tuyas como comprador)
   const myReservations = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
 
-  // Finalizadas ficticias (solo para UI) -> para ver todos los tipos (SIN activas)
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -312,7 +299,6 @@ export default function History() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  // (2) Borra (oculta en UI) las 4 últimas "sin éxito" (expired/cancelled)
   const successfulFinalAlerts = myFinalizedAlerts.filter((a) => a.status === 'completed');
   const unsuccessfulFinalAlerts = myFinalizedAlerts
     .filter((a) => a.status === 'expired' || a.status === 'cancelled')
@@ -321,7 +307,6 @@ export default function History() {
 
   const finalizedAlertsForUI = [...successfulFinalAlerts, ...unsuccessfulFinalAlerts, ...mockFinalizedAlerts];
 
-  // Finalizadas de vendedor (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
     ...finalizedAlertsForUI.map((a) => ({
       type: 'alert',
@@ -366,11 +351,8 @@ export default function History() {
 
   const deleteAlertMutation = useMutation({
     mutationFn: async ({ type, id }) => {
-      if (type === 'alert') {
-        await base44.entities.ParkingAlert.delete(id);
-      } else if (type === 'transaction') {
-        await base44.entities.Transaction.delete(id);
-      }
+      if (type === 'alert') await base44.entities.ParkingAlert.delete(id);
+      if (type === 'transaction') await base44.entities.Transaction.delete(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
@@ -394,7 +376,6 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  // Si NO hay forma de calcular expiración, devolvemos null para NO auto-expirar
   const getWaitUntilTs = (alert) => {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
@@ -459,17 +440,14 @@ export default function History() {
     </Button>
   );
 
-  const getBuyerPlate = (tx) => {
-    return (
-      tx?.buyer_plate ||
-      tx?.buyerPlate ||
-      tx?.buyer_car_plate ||
-      tx?.buyerCarPlate ||
-      tx?.car_plate ||
-      tx?.carPlate ||
-      ''
-    );
-  };
+  const getBuyerPlate = (tx) =>
+    tx?.buyer_plate ||
+    tx?.buyerPlate ||
+    tx?.buyer_car_plate ||
+    tx?.buyerCarPlate ||
+    tx?.car_plate ||
+    tx?.carPlate ||
+    '';
 
   const getBuyerCarLabel = (tx) => {
     const direct = tx?.buyer_car || tx?.buyerCar || tx?.vehicle || tx?.car || '';
@@ -479,21 +457,17 @@ export default function History() {
     return (direct || built || '').trim();
   };
 
-  const getBuyerPhoto = (tx) => {
-    return (
-      tx?.buyer_photo_url ||
-      tx?.buyerPhotoUrl ||
-      tx?.buyer_photo ||
-      tx?.buyerPhoto ||
-      tx?.buyer_photo_image ||
-      tx?.buyerPhotoImage ||
-      ''
-    );
-  };
+  const getBuyerPhoto = (tx) =>
+    tx?.buyer_photo_url ||
+    tx?.buyerPhotoUrl ||
+    tx?.buyer_photo ||
+    tx?.buyerPhoto ||
+    tx?.buyer_photo_image ||
+    tx?.buyerPhotoImage ||
+    '';
 
-  const getBuyerCarColor = (tx) => {
-    return tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
-  };
+  const getBuyerCarColor = (tx) =>
+    tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -510,7 +484,6 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          {/* TUS ALERTAS */}
           <TabsContent
             value="alerts"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -522,7 +495,6 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS (no clicable) */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -531,7 +503,6 @@ export default function History() {
                   </div>
                 </div>
 
-                {/* LISTA ACTIVAS */}
                 {myActiveAlerts.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
                     <div className="h-[110px] flex items-center justify-center">
@@ -546,11 +517,9 @@ export default function History() {
                         const createdTs = getCreatedTs(alert) || nowTs;
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
-
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
-                        // Auto-finaliza SOLO si hay expiración válida
                         if (
                           alert.status === 'active' &&
                           hasExpiry &&
@@ -563,11 +532,7 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null
-                            ? '--:--'
-                            : remainingMs > 0
-                              ? formatRemaining(remainingMs)
-                              : 'Alerta finalizada';
+                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -582,7 +547,6 @@ export default function History() {
                                 <div className="flex items-center justify-between mb-2">
                                   {getStatusBadge(alert.status)}
 
-                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -658,7 +622,6 @@ export default function History() {
                                     Activa
                                   </Badge>
 
-                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -701,7 +664,6 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS (no clicable) */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -720,9 +682,8 @@ export default function History() {
                       const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
                       const onDelete = () => {
-                        // para alertas reales y mocks: si no existe en backend, no crashea el UI
                         const type = item.type;
-                        const realId = type === 'alert' ? item.data?.id : item.data?.id;
+                        const realId = item.data?.id;
                         if (!realId) return;
                         deleteAlertMutation.mutate({ type, id: realId });
                       };
@@ -756,7 +717,6 @@ export default function History() {
                                   <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
                                 </div>
 
-                                {/* X ENCENDIDA */}
                                 <Button
                                   size="icon"
                                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
@@ -780,7 +740,6 @@ export default function History() {
                         );
                       }
 
-                      // Transacción finalizada (COMPLETADA)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -821,7 +780,6 @@ export default function History() {
                                 </div>
                               )}
 
-                              {/* X ENCENDIDA */}
                               <Button
                                 size="icon"
                                 className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
@@ -835,10 +793,9 @@ export default function History() {
 
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              {/* SIN tarjeta interior */}
                               <div className="px-1 py-1">
                                 <div className="flex gap-2.5 mb-1.5">
-                                  {/* FOTO (apagada) */}
+                                  {/* FOTO */}
                                   <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
                                     {(() => {
                                       const buyerPhoto = getBuyerPhoto(tx);
@@ -856,45 +813,44 @@ export default function History() {
                                     })()}
                                   </div>
 
-                                  {/* DERECHA: nombre / modelo / matrícula dentro del alto de la foto */}
-                                  <div className="flex-1 h-[85px] flex flex-col justify-between">
-                                    {/* Nombre arriba (alineado izq) */}
+                                  {/* DERECHA: TODO alineado con alto de foto */}
+                                  <div className="flex-1 h-[85px] flex flex-col">
+                                    {/* Nombre arriba */}
                                     <p className="font-bold text-xl text-gray-300 leading-none opacity-60 text-left">
                                       {tx.buyer_name?.split(' ')[0]}
                                     </p>
 
-                                    {/* Modelo exactamente en medio (más abajo que antes) y alineado izq */}
-                                    <p className="text-sm font-medium text-gray-400 leading-none opacity-60 text-left translate-y-[2px] truncate">
-                                      {getBuyerCarLabel(tx) || 'Sin datos'}
-                                    </p>
+                                    {/* BMW... exactamente en el medio vertical */}
+                                    <div className="flex-1 flex items-center">
+                                      <p className="text-sm font-medium text-gray-400 leading-none opacity-60 text-left truncate">
+                                        {getBuyerCarLabel(tx) || 'Sin datos'}
+                                      </p>
+                                    </div>
 
-                                    {/* Matrícula abajo + coche a la derecha (misma línea, alineados) */}
+                                    {/* Abajo: matrícula + coche alineados con el borde inferior de la foto */}
                                     {getBuyerPhoto(tx) ? (
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-end gap-2">
                                         <div className="opacity-40 flex-shrink-0">
                                           <PlateProfile plate={getBuyerPlate(tx)} />
                                         </div>
 
-                                        {/* Coche alineado verticalmente con la matrícula y ocupando hasta el borde */}
-                                        <div className="opacity-35 flex-1 flex justify-end items-center">
-                                          <div className="-translate-y-[1px]">
-                                            <CarIconProfile
-                                              color={getCarFill(getBuyerCarColor(tx))}
-                                              size="w-full max-w-[130px] h-10"
-                                            />
-                                          </div>
+                                        <div className="opacity-35 flex-1 flex justify-end items-end h-7">
+                                          <CarIconProfile
+                                            color={getCarFill(getBuyerCarColor(tx))}
+                                            size="h-7 w-full max-w-[140px]"
+                                          />
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="flex items-center justify-end opacity-30">
+                                      <div className="flex items-end justify-end opacity-30 h-7">
                                         <Car className="w-5 h-5 text-gray-600" />
                                       </div>
                                     )}
                                   </div>
                                 </div>
 
-                                {/* Rayita horizontal */}
-                                <div className="mt-2 pt-2 border-t border-gray-800/70">
+                                {/* Rayita */}
+                                <div className="mt-1.5 pt-1.5 border-t border-gray-800/70">
                                   <div className="space-y-1.5 opacity-50">
                                     {tx.address && (
                                       <div className="flex items-start gap-1.5 text-xs">
@@ -917,8 +873,8 @@ export default function History() {
                                 </div>
                               </div>
 
-                              {/* Botones + COMPLETADA */}
-                              <div className="mt-4">
+                              {/* Botones subidos (menos hueco negro) */}
+                              <div className="mt-2">
                                 <div className="flex gap-2">
                                   <Button
                                     size="icon"
@@ -961,7 +917,6 @@ export default function History() {
             )}
           </TabsContent>
 
-          {/* TUS RESERVAS */}
           <TabsContent
             value="reservations"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -1119,7 +1074,6 @@ export default function History() {
 
       <BottomNav />
 
-      {/* Tracker para reservadas */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
