@@ -904,8 +904,9 @@ export default function History() {
                                     </div>
                                   </div>
                                   </div>
-                                );
-                              })()}
+                                  </div>
+                                  );
+                                  })()}
 
                                 <div className="mt-4">
                                   <div className="flex gap-2">
@@ -1199,4 +1200,4 @@ export default function History() {
         ))}
     </div>
   );
-} 
+}
