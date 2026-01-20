@@ -739,7 +739,7 @@ export default function History() {
                     {myFinalizedAll.map((item, index) => {
                       // (1) Finalizadas SIN borde (apagar borde)
                 // Finalizadas: borde exterior mas marcado (gris oscuro pero visible)
-                const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700 relative';
 
                       if (item.type === 'alert') {
                         const a = item.data;
@@ -846,73 +846,70 @@ export default function History() {
 
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-700/70 flex flex-col">
-                                {/* Apagado: foto + datos + matricula + direccion */}
-                                <div className="opacity-55">
-                                  <div className="flex gap-2.5 mb-1.5 flex-1">
-                                    <div className="flex flex-col gap-1.5">
-                                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/50 flex-shrink-0">
-                                        {(() => {
-                                          const buyerPhoto = getBuyerPhoto(tx);
-                                          return buyerPhoto ? (
-                                            <img
-                                              src={buyerPhoto}
-                                              alt={tx.buyer_name}
-                                              className="w-full h-full object-cover grayscale"
-                                            />
-                                          ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
-                                          );
-                                        })()}
-                                      </div>
-                                    </div>
-
-                                    {/* Columna derecha: 3 lineas + matricula a la altura del borde inferior de la foto */}
-                                    <div className="flex-1 flex flex-col h-[85px]">
-                                      <p className="font-bold text-xl text-gray-200 leading-tight">
-                                        {tx.buyer_name?.split(' ')[0]}
-                                      </p>
-
-                                      <div className="flex items-center justify-between mt-0.5">
-                                        <p className="text-sm font-medium text-gray-300 leading-none pr-2 line-clamp-1">
-                                          {getBuyerCarLabel(tx) || 'Sin datos'}
-                                        </p>
-                                        {getBuyerPhoto(tx) ? (
-                                          <div className="opacity-70">
-                                            <CarIconProfile color={getCarFill(getBuyerCarColor(tx))} size="w-14 h-9" />
-                                          </div>
+                              {/* SIN tarjeta interior: mismo layout que en Chats (Marta) */}
+                              <div className="opacity-55">
+                                <div className="flex gap-2.5 mb-1.5 flex-1">
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/40 flex-shrink-0">
+                                      {(() => {
+                                        const buyerPhoto = getBuyerPhoto(tx);
+                                        return buyerPhoto ? (
+                                          <img
+                                            src={buyerPhoto}
+                                            alt={tx.buyer_name}
+                                            className="w-full h-full object-cover grayscale"
+                                          />
                                         ) : (
-                                          <Car className="w-5 h-5 text-gray-500" />
-                                        )}
-                                      </div>
-
-                                      {/* Misma matricula que en Perfil (mismo tamano). La subimos un poco. */}
-                                      <div className="-mt-1 self-start">
-                                        {getBuyerPhoto(tx) && <PlateBlock plate={getBuyerPlate(tx)} />}
-                                      </div>
+                                          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
+                                        );
+                                      })()}
                                     </div>
                                   </div>
 
-                                  <div className="pt-1.5 border-t border-gray-700/70">
-                                    <div className="space-y-1.5">
-                                      {tx.address && (
-                                        <div className="flex items-start gap-1.5 text-xs">
-                                          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                          <span className="text-gray-400 leading-5 line-clamp-1">{tx.address}</span>
-                                        </div>
-                                      )}
+                                  {/* Columna derecha: misma altura que la foto para alinear la matrícula */}
+                                  <div className="flex-1 flex flex-col h-[85px] justify-between">
+                                    <p className="font-bold text-xl text-gray-200 leading-tight">
+                                      {tx.buyer_name?.split(' ')[0]}
+                                    </p>
 
-                                      <div className="flex items-start gap-1.5 text-xs">
-                                        <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                        <span className="text-gray-500 leading-5">
-                                          Transacción completada ·{' '}
-                                          {(() => {
-                                            const ts = toMs(tx.created_date);
-                                            return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
-                                          })()}
-                                        </span>
-                                      </div>
+                                    <div className="flex items-center justify-between mt-0.5">
+                                      <p className="text-sm font-medium text-gray-300 leading-none pr-2 line-clamp-1">
+                                        {getBuyerCarLabel(tx) || 'Sin datos'}
+                                      </p>
+                                      {getBuyerPhoto(tx) ? (
+                                        <div className="opacity-70 -mr-1">
+                                          <CarIconProfile color={getCarFill(getBuyerCarColor(tx))} size="w-14 h-9" />
+                                        </div>
+                                      ) : (
+                                        <Car className="w-5 h-5 text-gray-500" />
+                                      )}
                                     </div>
+
+                                    {/* Matricula EXACTA a Perfil, y un pelin mas arriba */}
+                                    <div className="self-start">
+                                      {getBuyerPhoto(tx) && <PlateBlock plate={getBuyerPlate(tx)} />}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Raya horizontal justo debajo de foto + matricula */}
+                                <div className="space-y-1.5 pt-1.5 border-t border-gray-700/70">
+                                  {tx.address && (
+                                    <div className="flex items-start gap-1.5 text-xs">
+                                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                      <span className="text-gray-400 leading-5 line-clamp-1">{tx.address}</span>
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-start gap-1.5 text-xs">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Transacción completada ·{' '}
+                                      {(() => {
+                                        const ts = toMs(tx.created_date);
+                                        return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                      })()}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
@@ -1121,7 +1118,7 @@ export default function History() {
                             <div className="flex-1 flex flex-col justify-between">
                               <p className="font-bold text-xl text-gray-500 mb-1.5">{tx.seller_name?.split(' ')[0]}</p>
 
-                              <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                              <div className="flex items-center justify-between mt-0.5.5 mb-1.5">
                                 <p className="text-sm font-medium text-gray-500">Sin datos</p>
                                 <Car className="w-5 h-5 text-gray-600" />
                               </div>
