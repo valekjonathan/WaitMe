@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
@@ -11,7 +10,8 @@ import {
   X,
   MessageCircle,
   PhoneOff,
-  Car
+  Car,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -228,7 +228,7 @@ export default function History() {
   };
 
   // Más robusto: si el backend guarda otra propiedad de expiración, la usamos.
-  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar
+  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar (evita que "aparezca y desaparezca").
   const getWaitUntilTs = (alert) => {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
@@ -260,9 +260,6 @@ export default function History() {
     return null;
   };
 
-  // (2) “Activa/Activas/Finalizada/Finalizadas” no deben parecer botones
-  const labelNoClick = 'cursor-default select-none pointer-events-none';
-
   const getStatusBadge = (status) => {
     const styles = {
       active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -279,7 +276,7 @@ export default function History() {
       expired: 'Expirada'
     };
     return (
-      <Badge className={`${styles[status]} border flex items-center justify-center text-center ${labelNoClick}`}>
+      <Badge className={`${styles[status]} border flex items-center justify-center text-center`}>
         {labels[status]}
       </Badge>
     );
@@ -290,43 +287,11 @@ export default function History() {
       type="button"
       variant="outline"
       disabled
-      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm cursor-default"
+      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm"
     >
       {text}
     </Button>
   );
-
-  // (3) Bloque de coche + matrícula (mismo formato que perfil: placa blanca + banda azul “E”)
-  const VehicleBlock = ({ plate, carLabel, muted = false }) => {
-    const plateText = (plate || '').toUpperCase().trim() || '---- ---';
-    const carText = (carLabel || '').trim() || 'Coche';
-    const txt = muted ? 'text-gray-500' : 'text-white';
-    const icon = muted ? 'text-gray-500' : 'text-gray-400';
-
-    return (
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <p className={`text-sm font-medium ${txt} line-clamp-1`}>{carText}</p>
-        <Car className={`w-5 h-5 ${icon} flex-shrink-0`} />
-        <div className="flex-1" />
-        <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8 w-[150px] flex-shrink-0">
-          <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-            <span className="text-[9px] font-bold text-white">E</span>
-          </div>
-          <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
-            {plateText}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-  const getMyVehicle = (alert) => {
-    const brand = alert?.car_brand || user?.car_brand || '';
-    const model = alert?.car_model || user?.car_model || '';
-    const label = `${brand} ${model}`.trim();
-    const plate = alert?.car_plate || user?.car_plate || user?.plate || '';
-    return { label: label || 'Coche', plate };
-  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -356,11 +321,9 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS (no clicable) */}
+                {/* ACTIVAS */}
                 <div className="flex justify-center pt-0">
-                  <div
-                    className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
+                  <div className="bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center">
                     Activas
                   </div>
                 </div>
@@ -384,7 +347,7 @@ export default function History() {
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
-                        // Auto-finaliza SOLO si hay expiración válida
+                        // Auto-finaliza SOLO si hay expiración válida (evita que "aparezca y desaparezca")
                         if (
                           alert.status === 'active' &&
                           hasExpiry &&
@@ -399,8 +362,6 @@ export default function History() {
                         const countdownText =
                           remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
 
-                        const myVeh = getMyVehicle(alert);
-
                         return (
                           <motion.div
                             key={`active-${alert.id}`}
@@ -414,7 +375,7 @@ export default function History() {
                                 <div className="flex items-center justify-between mb-2">
                                   {getStatusBadge(alert.status)}
 
-                                  {/* fecha en blanco */}
+                                  {/* 1) FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -434,9 +395,6 @@ export default function History() {
                                     </Button>
                                   </div>
                                 </div>
-
-                                {/* (3) Coche + matrícula como en perfil */}
-                                <VehicleBlock plate={myVeh.plate} carLabel={myVeh.label} />
 
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5 h-[220px]">
@@ -487,13 +445,11 @@ export default function History() {
                             ) : (
                               <>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Badge
-                                    className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                                  >
+                                  <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
                                     Activa
                                   </Badge>
 
-                                  {/* fecha en blanco */}
+                                  {/* 1) FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -513,9 +469,6 @@ export default function History() {
                                     </Button>
                                   </div>
                                 </div>
-
-                                {/* (3) Coche + matrícula como en perfil */}
-                                <VehicleBlock plate={myVeh.plate} carLabel={myVeh.label} />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
@@ -539,11 +492,9 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS (no clicable) */}
+                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
-                  <div
-                    className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
+                  <div className="bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center">
                     Finalizadas
                   </div>
                 </div>
@@ -555,26 +506,18 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      // (1) Apagar borde SOLO en finalizadas: sin borde morado
-                      const finalizedCardClass =
-                        'bg-gray-900 rounded-xl p-2 border border-transparent relative';
-
                       if (item.type === 'alert') {
                         const a = item.data;
-                        const myVeh = getMyVehicle(a);
-
                         return (
                           <motion.div
                             key={item.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className={finalizedCardClass}
+                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
-                              <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                              >
+                              <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
                                 Finalizada
                               </Badge>
 
@@ -599,9 +542,6 @@ export default function History() {
                               </div>
                             </div>
 
-                            {/* (3) Coche + matrícula como en perfil */}
-                            <VehicleBlock plate={myVeh.plate} carLabel={myVeh.label} muted />
-
                             <div className="flex items-start gap-1.5 text-xs mb-2">
                               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                               <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
@@ -624,21 +564,19 @@ export default function History() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className={finalizedCardClass}
+                          className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                            >
+                            <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
                               Finalizada
                             </Badge>
 
-                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {(() => {
-                                const ts = toMs(tx.created_date);
-                                return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
-                              })()}
-                            </span>
+                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                {(() => {
+                                  const ts = toMs(tx.created_date);
+                                  return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                                })()}
+                              </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {isSeller ? (
@@ -711,8 +649,7 @@ export default function History() {
                                       <div className="flex items-start gap-1.5 text-xs">
                                         <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                         <span className="text-gray-500 leading-5">
-                                          Transacción completada ·{' '}
-                                          {(() => {
+                                          Transacción completada · {(() => {
                                             const ts = toMs(tx.created_date);
                                             return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
                                           })()}
@@ -802,9 +739,7 @@ export default function History() {
                       className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                        >
+                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
                           Activa
                         </Badge>
                         <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -888,9 +823,7 @@ export default function History() {
                     className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 relative"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <Badge
-                        className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                      >
+                      <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
                         Finalizada
                       </Badge>
                       <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -955,8 +888,7 @@ export default function History() {
                               <div className="flex items-start gap-1.5 text-xs">
                                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                 <span className="text-gray-500 leading-5">
-                                  Transacción completada ·{' '}
-                                  {(() => {
+                                  Transacción completada · {(() => {
                                     const ts = toMs(tx.created_date);
                                     return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
                                   })()}
