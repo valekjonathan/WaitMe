@@ -845,97 +845,88 @@ export default function History() {
 
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              {(() => {
-                                const buyerPhoto = getBuyerPhoto(tx);
-                                const hasPhoto = !!buyerPhoto;
-                                const carLabel = getBuyerCarLabel(tx);
-                                const carFill = getCarFill(getBuyerCarColor(tx));
-                                const plate = getBuyerPlate(tx);
-
-                                return (
-                                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-800 flex flex-col">
-                                  <div className="flex gap-2.5 mb-1.5 flex-1">
-                                    <div className="flex flex-col gap-1.5">
-                                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-500 bg-gray-700/40 flex-shrink-0">
-                                        {hasPhoto ? (
+                              <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 border-2 border-gray-800 flex flex-col">
+                                <div className="flex gap-2.5 mb-1.5 flex-1">
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-500 bg-gray-700/40 flex-shrink-0">
+                                      {(() => {
+                                        const buyerPhoto = getBuyerPhoto(tx);
+                                        return buyerPhoto ? (
                                           <img src={buyerPhoto} alt={tx.buyer_name} className="w-full h-full object-cover" />
                                         ) : (
                                           <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    <div className="flex-1 flex flex-col justify-between">
-                                      <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
-
-                                      <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                                        <p className="text-sm font-medium text-white">{carLabel || 'Sin datos'}</p>
-                                        {hasPhoto ? (
-                                          <CarIconProfile color={carFill} size="w-14 h-9" />
-                                        ) : (
-                                          <Car className="w-5 h-5 text-gray-500" />
-                                        )}
-                                      </div>
-
-                                      {/* SOLO si hay foto: coche+matrícula igual que en "Mi perfil" */}
-                                      {hasPhoto ? <PlateBlock plate={plate} /> : null}
+                                        );
+                                      })()}
                                     </div>
                                   </div>
 
-                                  <div className="pt-1.5 border-t border-gray-700">
-                                    <div className="space-y-1.5">
-                                      {tx.address && (
-                                        <div className="flex items-start gap-1.5 text-xs">
-                                          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                          <span className="text-gray-400 leading-5 line-clamp-1">{tx.address}</span>
-                                        </div>
+                                  <div className="flex-1 flex flex-col justify-between">
+                                    <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
+
+                                    <div className="flex items-center justify-between -mt-2.5 mb-1.5">
+                                      <p className="text-sm font-medium text-white">{getBuyerCarLabel(tx) || 'Sin datos'}</p>
+                                      {getBuyerPhoto(tx) ? (
+                                        <CarIconProfile color={getCarFill(getBuyerCarColor(tx))} size="w-14 h-9" />
+                                      ) : (
+                                        <Car className="w-5 h-5 text-gray-500" />
                                       )}
+                                    </div>
 
+                                    {getBuyerPhoto(tx) && <PlateBlock plate={getBuyerPlate(tx)} />}
+                                  </div>
+                                </div>
+
+                                <div className="pt-1.5 border-t border-gray-700">
+                                  <div className="space-y-1.5">
+                                    {tx.address && (
                                       <div className="flex items-start gap-1.5 text-xs">
-                                        <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                        <span className="text-gray-500 leading-5">
-                                          Transacción completada ·{' '}
-                                          {(() => {
-                                            const ts = toMs(tx.created_date);
-                                            return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
-                                          })()}
-                                        </span>
+                                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                        <span className="text-gray-400 leading-5 line-clamp-1">{tx.address}</span>
                                       </div>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    );
-                                    })()}
+                                    )}
 
-                                <div className="mt-4">
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="icon"
-                                      className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-                                      onClick={() =>
-                                        (window.location.href = createPageUrl(
-                                          `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
-                                        ))
-                                      }
-                                    >
-                                      <MessageCircle className="w-4 h-4" />
-                                    </Button>
+                                    <div className="flex items-start gap-1.5 text-xs">
+                                      <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                      <span className="text-gray-500 leading-5">
+                                        Transacción completada ·{' '}
+                                        {(() => {
+                                          const ts = toMs(tx.created_date);
+                                          return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                        })()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
 
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
-                                      disabled
-                                    >
-                                      <PhoneOff className="w-4 h-4 text-gray-600" />
-                                    </Button>
+                              <div className="mt-4">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="icon"
+                                    className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+                                    onClick={() =>
+                                      (window.location.href = createPageUrl(
+                                        `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                      ))
+                                    }
+                                  >
+                                    <MessageCircle className="w-4 h-4" />
+                                  </Button>
 
-                                    <div className="flex-1">
-                                      <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
-                                        <span className="text-purple-300 text-sm font-mono font-bold">
-                                          {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
-                                        </span>
-                                      </div>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                    disabled
+                                  >
+                                    <PhoneOff className="w-4 h-4 text-gray-600" />
+                                  </Button>
+
+                                  <div className="flex-1">
+                                    <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                                      <span className="text-purple-300 text-sm font-mono font-bold">
+                                        {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
