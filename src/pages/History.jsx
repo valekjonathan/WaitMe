@@ -31,6 +31,16 @@ export default function History() {
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
 
+  // ✅ Ocultar items finalizados en UI (transacciones y mocks)
+  const [hiddenFinalItems, setHiddenFinalItems] = useState(() => new Set());
+  const hideFinalItem = (key) => {
+    setHiddenFinalItems((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  };
+
   // ====== Copia exacta del formato "coche + matrícula" de Mi Perfil ======
   const carColors = [
     { value: 'blanco', fill: '#FFFFFF' },
@@ -86,19 +96,25 @@ export default function History() {
     </div>
   );
 
+  // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
+  // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
 
-    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
+    if (typeof v === 'number') {
+      return v < 1e12 ? v * 1000 : v;
+    }
 
     if (typeof v === 'string') {
       const s = v.trim();
       if (!s) return null;
       const n = Number(s);
-      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) return n < 1e12 ? n * 1000 : n;
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
+        return n < 1e12 ? n * 1000 : n;
+      }
       const t = new Date(s).getTime();
       return Number.isNaN(t) ? null : t;
     }
@@ -107,7 +123,13 @@ export default function History() {
   };
 
   const getCreatedTs = (alert) => {
-    const candidates = [alert?.created_date, alert?.createdDate, alert?.created_at, alert?.createdAt, alert?.created];
+    const candidates = [
+      alert?.created_date,
+      alert?.createdDate,
+      alert?.created_at,
+      alert?.createdAt,
+      alert?.created
+    ];
     for (const v of candidates) {
       const t = toMs(v);
       if (typeof t === 'number' && t > 0) return t;
@@ -115,6 +137,7 @@ export default function History() {
     return null;
   };
 
+  // Evita updates repetidos cuando el contador llega a 0
   const autoFinalizedRef = useRef(new Set());
 
   useEffect(() => {
@@ -124,6 +147,7 @@ export default function History() {
         (error) => console.log('Error obteniendo ubicación:', error)
       );
     }
+
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -146,16 +170,22 @@ export default function History() {
     enabled: !!user?.id
   });
 
+  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
+  // Finalizadas tuyas como alertas
   const myFinalizedAlerts = myAlerts.filter(
-    (a) => a.user_id === user?.id && (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
+    (a) =>
+      a.user_id === user?.id &&
+      (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
+  // Reservas (tuyas como comprador)
   const myReservations = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
 
+  // Finalizadas ficticias (solo para UI)
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -289,6 +319,7 @@ export default function History() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
+  // Oculta en UI las 4 últimas "sin éxito"
   const successfulFinalAlerts = myFinalizedAlerts.filter((a) => a.status === 'completed');
   const unsuccessfulFinalAlerts = myFinalizedAlerts
     .filter((a) => a.status === 'expired' || a.status === 'cancelled')
@@ -297,6 +328,7 @@ export default function History() {
 
   const finalizedAlertsForUI = [...successfulFinalAlerts, ...unsuccessfulFinalAlerts, ...mockFinalizedAlerts];
 
+  // Finalizadas (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
     ...finalizedAlertsForUI.map((a) => ({
       type: 'alert',
@@ -325,14 +357,32 @@ export default function History() {
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myAlerts'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
   });
 
   const expireAlertMutation = useMutation({
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myAlerts'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
+  });
+
+  // ✅ X ENCENDIDA en finalizadas: borrar real si se puede; si no, cancelar. En mocks/tx, ocultar en UI.
+  const deleteAlertMutation = useMutation({
+    mutationFn: async (alertId) => {
+      try {
+        await base44.entities.ParkingAlert.delete(alertId);
+      } catch (e) {
+        await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
   });
 
   const formatRemaining = (ms) => {
@@ -415,14 +465,17 @@ export default function History() {
     </Button>
   );
 
-  const getBuyerPlate = (tx) =>
-    tx?.buyer_plate ||
-    tx?.buyerPlate ||
-    tx?.buyer_car_plate ||
-    tx?.buyerCarPlate ||
-    tx?.car_plate ||
-    tx?.carPlate ||
-    '';
+  const getBuyerPlate = (tx) => {
+    return (
+      tx?.buyer_plate ||
+      tx?.buyerPlate ||
+      tx?.buyer_car_plate ||
+      tx?.buyerCarPlate ||
+      tx?.car_plate ||
+      tx?.carPlate ||
+      ''
+    );
+  };
 
   const getBuyerCarLabel = (tx) => {
     const direct = tx?.buyer_car || tx?.buyerCar || tx?.vehicle || tx?.car || '';
@@ -432,16 +485,21 @@ export default function History() {
     return (direct || built || '').trim();
   };
 
-  const getBuyerPhoto = (tx) =>
-    tx?.buyer_photo_url ||
-    tx?.buyerPhotoUrl ||
-    tx?.buyer_photo ||
-    tx?.buyerPhoto ||
-    tx?.buyer_photo_image ||
-    tx?.buyerPhotoImage ||
-    '';
+  const getBuyerPhoto = (tx) => {
+    return (
+      tx?.buyer_photo_url ||
+      tx?.buyerPhotoUrl ||
+      tx?.buyer_photo ||
+      tx?.buyerPhoto ||
+      tx?.buyer_photo_image ||
+      tx?.buyerPhotoImage ||
+      ''
+    );
+  };
 
-  const getBuyerCarColor = (tx) => tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
+  const getBuyerCarColor = (tx) => {
+    return tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -458,6 +516,7 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
+          {/* TUS ALERTAS */}
           <TabsContent
             value="alerts"
             className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1"
@@ -470,6 +529,7 @@ export default function History() {
               </div>
             ) : (
               <>
+                {/* ACTIVAS (no clicable) */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -478,6 +538,7 @@ export default function History() {
                   </div>
                 </div>
 
+                {/* LISTA ACTIVAS o tarjeta vacía */}
                 {myActiveAlerts.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
                     <div className="h-[110px] flex items-center justify-center">
@@ -644,6 +705,7 @@ export default function History() {
                   </div>
                 )}
 
+                {/* FINALIZADAS (no clicable) */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -658,11 +720,74 @@ export default function History() {
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    {myFinalizedAll.map((item, index) => {
-                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-600/70 relative';
+                    {myFinalizedAll
+                      .filter((it) => !hiddenFinalItems.has(it.id))
+                      .map((item, index) => {
+                        const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
-                      if (item.type === 'alert') {
-                        const a = item.data;
+                        if (item.type === 'alert') {
+                          const a = item.data;
+                          const rawId = String(a.id || '');
+                          const isMock = rawId.startsWith('mock-');
+
+                          return (
+                            <motion.div
+                              key={item.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className={finalizedCardClass}
+                            >
+                              <div className="flex items-center justify-between mb-2 opacity-100">
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+
+                                <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                  {(() => {
+                                    const ts = toMs(a.created_date);
+                                    return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                                  })()}
+                                </span>
+
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                    <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
+                                  </div>
+
+                                  {/* ✅ X ENCENDIDA (ROJA) */}
+                                  <Button
+                                    size="icon"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                    onClick={() => {
+                                      if (isMock) hideFinalItem(item.id);
+                                      else deleteAlertMutation.mutate(a.id);
+                                    }}
+                                    disabled={deleteAlertMutation.isPending}
+                                  >
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div className="flex items-start gap-1.5 text-xs mb-2">
+                                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
+                              </div>
+
+                              <div className="mt-2">
+                                <CountdownButton text="Alerta finalizada" />
+                              </div>
+                            </motion.div>
+                          );
+                        }
+
+                        // Transacción finalizada (COMPLETADA)
+                        const tx = item.data;
+                        const isSeller = tx.seller_id === user?.id;
+
                         return (
                           <motion.div
                             key={item.id}
@@ -671,7 +796,7 @@ export default function History() {
                             transition={{ delay: index * 0.05 }}
                             className={finalizedCardClass}
                           >
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between mb-2 opacity-100">
                               <Badge
                                 className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
                               >
@@ -680,209 +805,164 @@ export default function History() {
 
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                 {(() => {
-                                  const ts = toMs(a.created_date);
+                                  const ts = toMs(tx.created_date);
                                   return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
                                 })()}
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
-                                <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
-                                </div>
+                                {isSeller ? (
+                                  <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                    <TrendingUp className="w-4 h-4 text-green-400" />
+                                    <span className="font-bold text-green-400 text-sm">
+                                      {(tx.seller_earnings ?? 0).toFixed(2)}€
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                    <TrendingDown className="w-4 h-4 text-red-400" />
+                                    <span className="font-bold text-red-400 text-sm">-{(tx.amount ?? 0).toFixed(2)}€</span>
+                                  </div>
+                                )}
+
+                                {/* ✅ X ENCENDIDA (ROJA) - en transacciones oculta en UI */}
                                 <Button
                                   size="icon"
-                                  disabled
-                                  className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideFinalItem(item.id)}
                                 >
                                   <X className="w-4 h-4" strokeWidth={3} />
                                 </Button>
                               </div>
                             </div>
 
-                            <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                              <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
-                            </div>
+                            {isSeller && tx.buyer_name && (
+                              <div className="mb-1.5">
+                                <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-2.5 border-2 border-gray-600/60 flex flex-col">
+                                  <div className="flex gap-2.5 mb-1.5 flex-1">
+                                    {/* FOTO (apagada) */}
+                                    <div className="flex flex-col gap-1.5">
+                                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
+                                        {(() => {
+                                          const buyerPhoto = getBuyerPhoto(tx);
+                                          return buyerPhoto ? (
+                                            <img
+                                              src={buyerPhoto}
+                                              alt={tx.buyer_name}
+                                              className="w-full h-full object-cover opacity-40 grayscale"
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
+                                              👤
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    </div>
 
-                            <div className="mt-2">
-                              <CountdownButton text="Alerta finalizada" />
-                            </div>
+                                    {/* DERECHA: nombre arriba, modelo CENTRADO y un pelín más abajo, matrícula abajo */}
+                                    <div className="flex-1 h-[85px] flex flex-col">
+                                      {/* Nombre arriba */}
+                                      <p className="font-bold text-xl text-gray-300 leading-none opacity-60">
+                                        {tx.buyer_name?.split(' ')[0]}
+                                      </p>
+
+                                      {/* ✅ Modelo centrado vertical + un pelín más abajo */}
+                                      <div className="flex-1 flex items-center justify-center">
+                                        <p className="text-sm font-medium text-gray-400 leading-none truncate opacity-60 relative top-[2px]">
+                                          {getBuyerCarLabel(tx) || 'Sin datos'}
+                                        </p>
+                                      </div>
+
+                                      {/* Fila inferior: matrícula + coche */}
+                                      {getBuyerPhoto(tx) ? (
+                                        <div className="flex items-end gap-2">
+                                          <div className="opacity-40 flex-shrink-0">
+                                            <PlateProfile plate={getBuyerPlate(tx)} />
+                                          </div>
+
+                                          <div className="opacity-35 flex-1 flex justify-end -mt-1">
+                                            <CarIconProfile
+                                              color={getCarFill(getBuyerCarColor(tx))}
+                                              size="w-full max-w-[130px] h-10"
+                                            />
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center justify-end opacity-30">
+                                          <Car className="w-5 h-5 text-gray-600" />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="pt-1.5 border-t border-gray-800/70">
+                                    <div className="space-y-1.5 opacity-50">
+                                      {tx.address && (
+                                        <div className="flex items-start gap-1.5 text-xs">
+                                          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                                          <span className="text-gray-500 leading-5 line-clamp-1">{tx.address}</span>
+                                        </div>
+                                      )}
+
+                                      <div className="flex items-start gap-1.5 text-xs">
+                                        <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                                        <span className="text-gray-600 leading-5">
+                                          Transacción completada ·{' '}
+                                          {(() => {
+                                            const ts = toMs(tx.created_date);
+                                            return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                          })()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4">
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="icon"
+                                      className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+                                      onClick={() =>
+                                        (window.location.href = createPageUrl(
+                                          `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                        ))
+                                      }
+                                    >
+                                      <MessageCircle className="w-4 h-4" />
+                                    </Button>
+
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+                                      disabled
+                                    >
+                                      <PhoneOff className="w-4 h-4 text-gray-600" />
+                                    </Button>
+
+                                    <div className="flex-1">
+                                      <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                                        <span className="text-purple-300 text-sm font-mono font-bold opacity-60">
+                                          {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </motion.div>
                         );
-                      }
-
-                      const tx = item.data;
-                      const isSeller = tx.seller_id === user?.id;
-
-                      return (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className={finalizedCardClass}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                            >
-                              Finalizada
-                            </Badge>
-
-                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {(() => {
-                                const ts = toMs(tx.created_date);
-                                return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
-                              })()}
-                            </span>
-
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {isSeller ? (
-                                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingUp className="w-4 h-4 text-green-400" />
-                                  <span className="font-bold text-green-400 text-sm">
-                                    {(tx.seller_earnings ?? 0).toFixed(2)}€
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">-{(tx.amount ?? 0).toFixed(2)}€</span>
-                                </div>
-                              )}
-
-                              <Button
-                                size="icon"
-                                disabled
-                                className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
-                              >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {isSeller && tx.buyer_name && (
-                            <div className="mb-1.5">
-                              <div className="flex gap-2.5 mb-2">
-                                <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
-                                  {(() => {
-                                    const buyerPhoto = getBuyerPhoto(tx);
-                                    return buyerPhoto ? (
-                                      <img
-                                        src={buyerPhoto}
-                                        alt={tx.buyer_name}
-                                        className="w-full h-full object-cover opacity-40 grayscale"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
-                                        👤
-                                      </div>
-                                    );
-                                  })()}
-                                </div>
-
-                                {/* ✅ AJUSTE: 3 líneas distribuidas exacto en la altura de la foto */}
-                                <div className="flex-1 h-[85px] flex flex-col">
-                                  {/* Nombre pegado arriba */}
-                                  <p className="font-bold text-xl text-gray-300 leading-none opacity-60">
-                                    {tx.buyer_name?.split(' ')[0]}
-                                  </p>
-
-                                  {/* Modelo justo en el centro vertical */}
-                                  <div className="flex-1 flex items-center">
-                                    <p className="text-sm font-medium text-gray-400 leading-none truncate opacity-60">
-                                      {getBuyerCarLabel(tx) || 'Sin datos'}
-                                    </p>
-                                  </div>
-
-                                  {/* Matrícula pegada abajo + coche alineado y un pelín más arriba */}
-                                  {getBuyerPhoto(tx) ? (
-                                    <div className="flex items-end gap-2">
-                                      <div className="opacity-40 flex-shrink-0">
-                                        <PlateProfile plate={getBuyerPlate(tx)} />
-                                      </div>
-
-                                      {/* ✅ Subimos el coche un poco para que su base quede a la misma altura que la matrícula */}
-                                      <div className="opacity-35 flex-1 flex justify-end -mt-1">
-                                        <CarIconProfile
-                                          color={getCarFill(getBuyerCarColor(tx))}
-                                          size="w-full max-w-[130px] h-10"
-                                        />
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center justify-end opacity-30">
-                                      <Car className="w-5 h-5 text-gray-600" />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="pt-2 border-t border-gray-800/70">
-                                <div className="space-y-1.5 opacity-50">
-                                  {tx.address && (
-                                    <div className="flex items-start gap-1.5 text-xs">
-                                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                                      <span className="text-gray-500 leading-5 line-clamp-1">{tx.address}</span>
-                                    </div>
-                                  )}
-
-                                  <div className="flex items-start gap-1.5 text-xs">
-                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                                    <span className="text-gray-600 leading-5">
-                                      Transacción completada ·{' '}
-                                      {(() => {
-                                        const ts = toMs(tx.created_date);
-                                        return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
-                                      })()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-3">
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="icon"
-                                    className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-                                    onClick={() =>
-                                      (window.location.href = createPageUrl(
-                                        `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
-                                      ))
-                                    }
-                                  >
-                                    <MessageCircle className="w-4 h-4" />
-                                  </Button>
-
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
-                                    disabled
-                                  >
-                                    <PhoneOff className="w-4 h-4 text-gray-600" />
-                                  </Button>
-
-                                  <div className="flex-1">
-                                    <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
-                                      <span className="text-purple-300 text-sm font-mono font-bold">
-                                        {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </motion.div>
-                      );
-                    })}
+                      })}
                   </div>
                 )}
               </>
             )}
           </TabsContent>
 
+          {/* TUS RESERVAS */}
           <TabsContent
             value="reservations"
             className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1"
@@ -1122,6 +1202,7 @@ export default function History() {
 
       <BottomNav />
 
+      {/* Tracker para reservadas */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
@@ -1129,4 +1210,4 @@ export default function History() {
         ))}
     </div>
   );
-} 
+}
