@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Header({
   title = 'WaitMe!',
@@ -12,35 +12,34 @@ export default function Header({
   onBack,
   unreadCount = 0
 }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (e) {
-        // no auth
-      }
-    };
-    fetchUser();
-  }, []);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const renderTitle = () => {
     const t = (title || '').trim();
     const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
 
-    if (isWaitMe) {
-      return (
-        <h1 className="text-lg font-semibold">
-          <span className="text-white">Wait</span>
-          <span className="text-purple-500">Me!</span>
-        </h1>
-      );
-    }
+    const TitleInner = isWaitMe ? (
+      <>
+        <span className="text-white">Wait</span>
+        <span className="text-purple-500">Me!</span>
+      </>
+    ) : (
+      <span className="text-white">{title}</span>
+    );
 
-    return <h1 className="text-lg font-semibold text-white">{title}</h1>;
+    // Click en el título = recarga de la página actual
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(0)}
+        className="text-lg font-semibold select-none"
+        aria-label="Recargar página"
+      >
+        {TitleInner}
+      </button>
+    );
   };
 
   const BackButton = () => (
@@ -56,44 +55,48 @@ export default function Header({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-      <div className="relative flex items-center justify-between px-4 py-3">
-        {/* IZQUIERDA: atrás + dinero centrado en la mitad izquierda */}
-        <div className="flex items-center w-1/2">
-          {showBackButton && (
-            onBack ? (
-              <BackButton />
-            ) : (
-              <Link to={createPageUrl(backTo)}>
+      <div className="px-4 py-3">
+        {/* Grid para garantizar: atrás | dinero | título | iconos */}
+        <div className="grid grid-cols-[auto_auto_1fr_auto] items-center">
+          {/* IZQUIERDA: atrás */}
+          <div className="flex items-center">
+            {showBackButton ? (
+              onBack ? (
                 <BackButton />
-              </Link>
-            )
-          )}
+              ) : (
+                <Link to={createPageUrl(backTo)}>
+                  <BackButton />
+                </Link>
+              )
+            ) : (
+              // placeholder para que el dinero no cambie de sitio entre pantallas
+              <div className="w-10" />
+            )}
+          </div>
 
-          <div className="flex-1 flex justify-center">
+          {/* DINERO: siempre entre atrás y título */}
+          <div className="flex items-center justify-center px-2">
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                <span className="text-purple-400 font-bold text-sm">
-                  {(user?.credits || 0).toFixed(2)}€
-                </span>
+                <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
               </div>
             </Link>
           </div>
-        </div>
 
-        {/* TÍTULO centrado */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          {renderTitle()}
-        </div>
+          {/* TÍTULO: click recarga */}
+          <div className="flex items-center justify-center">
+            {renderTitle()}
+          </div>
 
-        {/* DERECHA: iconos morados */}
-        <div className="flex items-center gap-1 w-1/2 justify-end">
+          {/* DERECHA: iconos morados */}
+          <div className="flex items-center gap-1 justify-end">
           <Link to={createPageUrl('Settings')}>
             <Button
               variant="ghost"
               size="icon"
               className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-6 h-6" />
             </Button>
           </Link>
 
@@ -103,7 +106,7 @@ export default function Header({
               size="icon"
               className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
             >
-              <User className="w-5 h-5" />
+              <User className="w-6 h-6" />
             </Button>
 
             {unreadCount > 0 && (
@@ -112,6 +115,7 @@ export default function Header({
               </span>
             )}
           </Link>
+          </div>
         </div>
       </div>
     </header>
