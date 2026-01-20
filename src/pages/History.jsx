@@ -86,19 +86,6 @@ export default function History() {
     </div>
   );
 
-  const Plate = ({ plate }) => (
-    <div className="mt-2 flex items-center">
-      <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-        <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-          <span className="text-white text-[8px] font-bold">E</span>
-        </div>
-        <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-          {formatPlate(plate)}
-        </span>
-      </div>
-    </div>
-  );
-
   // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
@@ -395,7 +382,7 @@ export default function History() {
   };
 
   // Más robusto: si el backend guarda otra propiedad de expiración, la usamos.
-  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar (evita que "aparezca y desaparezca").
+  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar.
   const getWaitUntilTs = (alert) => {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
@@ -460,13 +447,6 @@ export default function History() {
     </Button>
   );
 
-  // (3) Bloque matricula estilo "perfil" (solo se usa en transacción completada)
-  const PlateBlock = ({ plate }) => {
-    const raw = String(plate || '').trim();
-    if (!raw) return null;
-    return <PlateProfile plate={raw} />;
-  };
-
   const getBuyerPlate = (tx) => {
     return (
       tx?.buyer_plate ||
@@ -480,12 +460,7 @@ export default function History() {
   };
 
   const getBuyerCarLabel = (tx) => {
-    const direct =
-      tx?.buyer_car ||
-      tx?.buyerCar ||
-      tx?.vehicle ||
-      tx?.car ||
-      '';
+    const direct = tx?.buyer_car || tx?.buyerCar || tx?.vehicle || tx?.car || '';
     const brand = tx?.buyer_car_brand || tx?.buyerCarBrand || '';
     const model = tx?.buyer_car_model || tx?.buyerCarModel || '';
     const built = `${brand} ${model}`.trim();
@@ -505,13 +480,7 @@ export default function History() {
   };
 
   const getBuyerCarColor = (tx) => {
-    return (
-      tx?.buyer_car_color ||
-      tx?.buyerCarColor ||
-      tx?.car_color ||
-      tx?.carColor ||
-      ''
-    );
+    return tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
   };
 
   return (
@@ -570,7 +539,6 @@ export default function History() {
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
-                        // Auto-finaliza SOLO si hay expiración válida (evita que "aparezca y desaparezca")
                         if (
                           alert.status === 'active' &&
                           hasExpiry &&
@@ -583,11 +551,7 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null
-                            ? '--:--'
-                            : remainingMs > 0
-                              ? formatRemaining(remainingMs)
-                              : 'Alerta finalizada';
+                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -602,7 +566,6 @@ export default function History() {
                                 <div className="flex items-center justify-between mb-2">
                                   {getStatusBadge(alert.status)}
 
-                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -678,7 +641,6 @@ export default function History() {
                                     Activa
                                   </Badge>
 
-                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -737,7 +699,8 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      // Borde exterior más marcado (gris oscuro)
+                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-600/70 relative';
 
                       if (item.type === 'alert') {
                         const a = item.data;
@@ -749,7 +712,7 @@ export default function History() {
                             transition={{ delay: index * 0.05 }}
                             className={finalizedCardClass}
                           >
-                            <div className="flex items-center justify-between mb-2 opacity-100">
+                            <div className="flex items-center justify-between mb-2">
                               <Badge
                                 className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
                               >
@@ -771,7 +734,6 @@ export default function History() {
                                   size="icon"
                                   disabled
                                   className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
-                                  onClick={() => {}}
                                 >
                                   <X className="w-4 h-4" strokeWidth={3} />
                                 </Button>
@@ -802,7 +764,7 @@ export default function History() {
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-                          <div className="flex items-center justify-between mb-2 opacity-100">
+                          <div className="flex items-center justify-between mb-2">
                             <Badge
                               className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
                             >
@@ -835,93 +797,91 @@ export default function History() {
                                 size="icon"
                                 disabled
                                 className="bg-gray-800 text-gray-500 rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-700 cursor-not-allowed"
-                                onClick={() => {}}
                               >
                                 <X className="w-4 h-4" strokeWidth={3} />
                               </Button>
                             </div>
                           </div>
 
+                          {/* ====== BLOQUE MARCO (SIN TARJETA INTERIOR) + RAYITA HORIZONTAL ====== */}
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-2.5 border-2 border-gray-600/60 flex flex-col">
-                                <div className="flex gap-2.5 mb-1.5 flex-1">
-                                  {/* FOTO (apagada) */}
-                                  <div className="flex flex-col gap-1.5">
-                                    <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
-                                      {(() => {
-                                        const buyerPhoto = getBuyerPhoto(tx);
-                                        return buyerPhoto ? (
-                                          <img
-                                            src={buyerPhoto}
-                                            alt={tx.buyer_name}
-                                            className="w-full h-full object-cover opacity-40 grayscale"
-                                          />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">👤</div>
-                                        );
-                                      })()}
-                                    </div>
-                                  </div>
-
-                                  {/* DERECHA: 3 lineas comprimidas dentro del alto de la foto + coche pegado a la derecha de la matrícula */}
-                                  <div className="flex-1 h-[85px] flex flex-col justify-between">
-                                    {/* Nombre + marca/modelo (más comprimido) */}
-                                    <div className="opacity-60">
-                                      <p className="font-bold text-lg text-gray-300 leading-tight truncate">
-                                        {tx.buyer_name?.split(' ')[0]}
-                                      </p>
-                                      <p className="text-xs font-medium text-gray-400 leading-tight mt-0.5 truncate">
-                                        {getBuyerCarLabel(tx) || 'Sin datos'}
-                                      </p>
-                                    </div>
-
-                                    {/* Abajo: matrícula (igual perfil) + coche ocupando el hueco hasta el borde */}
-                                    {getBuyerPhoto(tx) ? (
-                                      <div className="flex items-center gap-2">
-                                        <div className="opacity-40 flex-shrink-0">
-                                          <PlateProfile plate={getBuyerPlate(tx)} />
-                                        </div>
-
-                                        <div className="opacity-35 flex-1 flex justify-end">
-                                          <CarIconProfile
-                                            color={getCarFill(getBuyerCarColor(tx))}
-                                            size="w-full max-w-[120px] h-10"
-                                          />
-                                        </div>
-                                      </div>
+                              {/* Parte superior: foto + 3 líneas compactas dentro del alto de foto */}
+                              <div className="flex gap-2.5 mb-2">
+                                <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
+                                  {(() => {
+                                    const buyerPhoto = getBuyerPhoto(tx);
+                                    return buyerPhoto ? (
+                                      <img
+                                        src={buyerPhoto}
+                                        alt={tx.buyer_name}
+                                        className="w-full h-full object-cover opacity-40 grayscale"
+                                      />
                                     ) : (
-                                      <div className="flex items-center justify-end opacity-30">
-                                        <Car className="w-5 h-5 text-gray-600" />
+                                      <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
+                                        👤
                                       </div>
-                                    )}
-                                  </div>
+                                    );
+                                  })()}
                                 </div>
 
-                                <div className="pt-1.5 border-t border-gray-800/70">
-                                  <div className="space-y-1.5 opacity-50">
-                                    {tx.address && (
-                                      <div className="flex items-start gap-1.5 text-xs">
-                                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                                        <span className="text-gray-500 leading-5 line-clamp-1">{tx.address}</span>
-                                      </div>
-                                    )}
+                                <div className="flex-1 h-[85px] flex flex-col justify-between">
+                                  <div className="opacity-60">
+                                    <p className="font-bold text-xl text-gray-300 leading-none">
+                                      {tx.buyer_name?.split(' ')[0]}
+                                    </p>
+                                    <p className="text-sm font-medium text-gray-400 leading-none mt-1 truncate">
+                                      {getBuyerCarLabel(tx) || 'Sin datos'}
+                                    </p>
+                                  </div>
 
-                                    <div className="flex items-start gap-1.5 text-xs">
-                                      <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                                      <span className="text-gray-600 leading-5">
-                                        Transacción completada ·{' '}
-                                        {(() => {
-                                          const ts = toMs(tx.created_date);
-                                          return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
-                                        })()}
-                                      </span>
+                                  {/* Matrícula + coche a la derecha ocupando hasta el borde */}
+                                  {getBuyerPhoto(tx) ? (
+                                    <div className="flex items-center gap-2">
+                                      <div className="opacity-40 flex-shrink-0">
+                                        <PlateProfile plate={getBuyerPlate(tx)} />
+                                      </div>
+
+                                      <div className="opacity-35 flex-1 flex justify-end">
+                                        <CarIconProfile
+                                          color={getCarFill(getBuyerCarColor(tx))}
+                                          size="w-full max-w-[130px] h-10"
+                                        />
+                                      </div>
                                     </div>
+                                  ) : (
+                                    <div className="flex items-center justify-end opacity-30">
+                                      <Car className="w-5 h-5 text-gray-600" />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Rayita horizontal justo debajo de foto+matrícula */}
+                              <div className="pt-2 border-t border-gray-800/70">
+                                <div className="space-y-1.5 opacity-50">
+                                  {tx.address && (
+                                    <div className="flex items-start gap-1.5 text-xs">
+                                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                                      <span className="text-gray-500 leading-5 line-clamp-1">{tx.address}</span>
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-start gap-1.5 text-xs">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                                    <span className="text-gray-600 leading-5">
+                                      Transacción completada ·{' '}
+                                      {(() => {
+                                        const ts = toMs(tx.created_date);
+                                        return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                      })()}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="mt-4">
+                              {/* Botones + COMPLETADA encendido */}
+                              <div className="mt-3">
                                 <div className="flex gap-2">
                                   <Button
                                     size="icon"
@@ -945,8 +905,8 @@ export default function History() {
                                   </Button>
 
                                   <div className="flex-1">
-                                    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800/60 flex items-center justify-center px-3">
-                                      <span className="text-gray-400 text-sm font-mono font-bold opacity-60">
+                                    <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                                      <span className="text-purple-300 text-sm font-mono font-bold">
                                         {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
                                       </span>
                                     </div>
@@ -1085,7 +1045,6 @@ export default function History() {
                     transition={{ delay: index * 0.05 }}
                     className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 relative"
                   >
-                    {/* ... (sin cambios en reservas) ... */}
                     <div className="flex items-center justify-between mb-2">
                       <Badge
                         className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
