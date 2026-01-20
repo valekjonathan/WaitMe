@@ -31,6 +31,7 @@ export default function History() {
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
 
+  // ====== Copia exacta del formato "coche + matrícula" de Mi Perfil ======
   const carColors = [
     { value: 'blanco', fill: '#FFFFFF' },
     { value: 'negro', fill: '#1a1a1a' },
@@ -85,22 +86,29 @@ export default function History() {
     </div>
   );
 
+  // No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
-  // Oculta scrollbar (la barrita morada de la derecha)
-  const noScrollBar = '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+  // Oculta scrollbar (para que no salga la barra a la derecha)
+  const noScrollBar =
+    '[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]';
 
+  // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
 
-    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
+    if (typeof v === 'number') {
+      return v < 1e12 ? v * 1000 : v;
+    }
 
     if (typeof v === 'string') {
       const s = v.trim();
       if (!s) return null;
       const n = Number(s);
-      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) return n < 1e12 ? n * 1000 : n;
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
+        return n < 1e12 ? n * 1000 : n;
+      }
       const t = new Date(s).getTime();
       return Number.isNaN(t) ? null : t;
     }
@@ -123,6 +131,7 @@ export default function History() {
     return null;
   };
 
+  // Evita updates repetidos cuando el contador llega a 0
   const autoFinalizedRef = useRef(new Set());
 
   useEffect(() => {
@@ -132,6 +141,7 @@ export default function History() {
         (error) => console.log('Error obteniendo ubicación:', error)
       );
     }
+
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -154,18 +164,22 @@ export default function History() {
     enabled: !!user?.id
   });
 
+  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
+  // Finalizadas tuyas como alertas
   const myFinalizedAlerts = myAlerts.filter(
     (a) =>
       a.user_id === user?.id &&
       (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
-  const myReservations = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
+  // Reservas (tuyas como comprador)
+  const myReservationsReal = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
 
+  // Finalizadas ficticias (solo para UI) -> para ver todos los tipos (SIN activas)
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -173,7 +187,8 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-1',
       buyer_name: 'Marco Rossi',
-      buyer_photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      buyer_photo_url:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
       buyer_car_brand: 'BMW',
       buyer_car_model: 'Serie 3',
       buyer_car_color: 'azul',
@@ -192,7 +207,8 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-2',
       buyer_name: 'Sofia Gómez',
-      buyer_photo_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      buyer_photo_url:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
       buyer_car_brand: 'Seat',
       buyer_car_model: 'Ibiza',
       buyer_car_color: 'rojo',
@@ -211,7 +227,8 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-3',
       buyer_name: 'Diego López',
-      buyer_photo_url: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=400&h=400&fit=crop',
+      buyer_photo_url:
+        'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=400&h=400&fit=crop',
       buyer_car_brand: 'Audi',
       buyer_car_model: 'A3',
       buyer_car_color: 'gris',
@@ -224,6 +241,7 @@ export default function History() {
       alert_id: 'mock-alert-3',
       created_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
     },
+    // Como comprador (sin foto)
     {
       id: 'mock-tx-4',
       seller_id: 'seller-9',
@@ -236,6 +254,7 @@ export default function History() {
       alert_id: 'mock-alert-4',
       created_date: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString()
     },
+    // Otra como vendedor pero sin foto
     {
       id: 'mock-tx-5',
       seller_id: user?.id,
@@ -295,10 +314,137 @@ export default function History() {
     }
   ];
 
+  // Reservas ficticias (solo UI) para "Tus reservas" (SIN dejar nada en blanco)
+  const mockReservations = [
+    {
+      id: 'mock-res-1',
+      user_id: 'seller-marta',
+      user_email: 'seller-marta',
+      user_name: 'Marta',
+      user_photo:
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop',
+      car_brand: 'Toyota',
+      car_model: 'Yaris',
+      car_color: 'blanco',
+      car_plate: '5678DEF',
+      vehicle_type: 'Coche normal',
+      address: 'Avenida del Paseo, 25',
+      available_in_minutes: 45,
+      price: 5.0,
+      latitude: 43.3603,
+      longitude: -5.8448,
+      allow_phone_calls: true,
+      phone: '600000001',
+      reserved_by_id: user?.id,
+      reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      status: 'reserved',
+      created_date: new Date(Date.now() - 35 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-res-2',
+      user_id: 'seller-raul',
+      user_email: 'seller-raul',
+      user_name: 'Raúl',
+      user_photo:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+      car_brand: 'Audi',
+      car_model: 'A3',
+      car_color: 'gris',
+      car_plate: '1022GHT',
+      vehicle_type: 'Coche voluminoso',
+      address: 'Calle Uría, 12',
+      available_in_minutes: 12,
+      price: 3.0,
+      latitude: 43.3620,
+      longitude: -5.8496,
+      allow_phone_calls: false,
+      phone: '600000002',
+      reserved_by_id: user?.id,
+      reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      status: 'reserved',
+      created_date: new Date(Date.now() - 9 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-res-3',
+      user_id: 'seller-sofia',
+      user_email: 'seller-sofia',
+      user_name: 'Sofía',
+      user_photo:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop',
+      car_brand: 'Seat',
+      car_model: 'Ibiza',
+      car_color: 'rojo',
+      car_plate: '7780KLP',
+      vehicle_type: 'Moto',
+      address: 'Plaza de España, 1',
+      available_in_minutes: 6,
+      price: 2.5,
+      latitude: 43.3614,
+      longitude: -5.8485,
+      allow_phone_calls: true,
+      phone: '600000003',
+      reserved_by_id: user?.id,
+      reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      status: 'reserved',
+      created_date: new Date(Date.now() - 2 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-res-4',
+      user_id: 'seller-diego',
+      user_email: 'seller-diego',
+      user_name: 'Diego',
+      user_photo:
+        'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=400&h=400&fit=crop',
+      car_brand: 'Volkswagen',
+      car_model: 'Golf',
+      car_color: 'azul',
+      car_plate: '4431JRV',
+      vehicle_type: 'Furgoneta',
+      address: 'Calle Jovellanos, 9',
+      available_in_minutes: 25,
+      price: 6.0,
+      latitude: 43.3632,
+      longitude: -5.8470,
+      allow_phone_calls: false,
+      phone: '600000004',
+      reserved_by_id: user?.id,
+      reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      status: 'reserved',
+      created_date: new Date(Date.now() - 58 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'mock-res-5',
+      user_id: 'seller-laura',
+      user_email: 'seller-laura',
+      user_name: 'Laura',
+      user_photo:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      car_brand: 'Porsche',
+      car_model: 'Macan',
+      car_color: 'negro',
+      car_plate: '2026VSR',
+      vehicle_type: 'Coche premium',
+      address: 'Calle Campomanes, 13',
+      available_in_minutes: 30,
+      price: 10.0,
+      latitude: 43.3610,
+      longitude: -5.8462,
+      allow_phone_calls: true,
+      phone: '600000005',
+      reserved_by_id: user?.id,
+      reserved_by_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      status: 'reserved',
+      created_date: new Date(Date.now() - 18 * 60 * 1000).toISOString()
+    }
+  ];
+
+  const myReservations = [...myReservationsReal, ...mockReservations].filter(Boolean);
+
   const myFinalizedAsSellerTx = [...transactions.filter((t) => t.seller_id === user?.id), ...mockTransactions].sort(
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
+  // Oculta en UI las 4 últimas "sin éxito" (expired/cancelled)
   const successfulFinalAlerts = myFinalizedAlerts.filter((a) => a.status === 'completed');
   const unsuccessfulFinalAlerts = myFinalizedAlerts
     .filter((a) => a.status === 'expired' || a.status === 'cancelled')
@@ -307,6 +453,7 @@ export default function History() {
 
   const finalizedAlertsForUI = [...successfulFinalAlerts, ...unsuccessfulFinalAlerts, ...mockFinalizedAlerts];
 
+  // Finalizadas (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
     ...finalizedAlertsForUI.map((a) => ({
       type: 'alert',
@@ -322,12 +469,10 @@ export default function History() {
     }))
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  const myReservationsItems = [
-    ...myReservations.map((a) => ({ type: 'alert', data: a, date: a.created_date })),
-    ...transactions
-      .filter((t) => t.buyer_id === user?.id)
-      .map((t) => ({ type: 'transaction', data: t, date: t.created_date }))
-  ].sort((a, b) => (toMs(b.date) || 0) - (toMs(a.date) || 0));
+  // Tus reservas: SOLO reservas (para que sean iguales a "Tus alertas")
+  const myReservationsItems = myReservations
+    .map((a) => ({ type: 'alert', data: a, date: a.created_date }))
+    .sort((a, b) => (toMs(b.date) || 0) - (toMs(a.date) || 0));
 
   const isLoading = loadingAlerts || loadingTransactions;
 
@@ -349,17 +494,6 @@ export default function History() {
     }
   });
 
-  const deleteAlertMutation = useMutation({
-    mutationFn: async ({ type, id }) => {
-      if (type === 'alert') await base44.entities.ParkingAlert.delete(id);
-      if (type === 'transaction') await base44.entities.Transaction.delete(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myTransactions'] });
-    }
-  });
-
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
     const h = Math.floor(totalSec / 3600);
@@ -376,6 +510,7 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
+  // Si NO hay forma de calcular expiración, devolvemos null para NO auto-expirar
   const getWaitUntilTs = (alert) => {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
@@ -484,9 +619,10 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
+          {/* TUS ALERTAS */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -495,6 +631,7 @@ export default function History() {
               </div>
             ) : (
               <>
+                {/* ACTIVAS */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -517,6 +654,7 @@ export default function History() {
                         const createdTs = getCreatedTs(alert) || nowTs;
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
@@ -532,7 +670,11 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
+                          remainingMs === null
+                            ? '--:--'
+                            : remainingMs > 0
+                              ? formatRemaining(remainingMs)
+                              : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -664,6 +806,7 @@ export default function History() {
                   </div>
                 )}
 
+                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -680,13 +823,6 @@ export default function History() {
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
                       const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
-
-                      const onDelete = () => {
-                        const type = item.type;
-                        const realId = item.data?.id;
-                        if (!realId) return;
-                        deleteAlertMutation.mutate({ type, id: realId });
-                      };
 
                       if (item.type === 'alert') {
                         const a = item.data;
@@ -716,12 +852,15 @@ export default function History() {
                                 <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                   <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
                                 </div>
-
                                 <Button
                                   size="icon"
                                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                  onClick={onDelete}
-                                  disabled={deleteAlertMutation.isPending}
+                                  onClick={async () => {
+                                    try {
+                                      await base44.entities.ParkingAlert.delete(a.id);
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    } catch (e) {}
+                                  }}
                                 >
                                   <X className="w-4 h-4" strokeWidth={3} />
                                 </Button>
@@ -783,8 +922,12 @@ export default function History() {
                               <Button
                                 size="icon"
                                 className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={onDelete}
-                                disabled={deleteAlertMutation.isPending}
+                                onClick={async () => {
+                                  try {
+                                    await base44.entities.Transaction.delete(tx.id);
+                                    queryClient.invalidateQueries({ queryKey: ['myTransactions'] });
+                                  } catch (e) {}
+                                }}
                               >
                                 <X className="w-4 h-4" strokeWidth={3} />
                               </Button>
@@ -793,64 +936,53 @@ export default function History() {
 
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              <div className="px-1 py-1">
-                                <div className="flex gap-2.5 mb-1.5">
-                                  {/* FOTO */}
-                                  <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
-                                    {(() => {
-                                      const buyerPhoto = getBuyerPhoto(tx);
-                                      return buyerPhoto ? (
-                                        <img
-                                          src={buyerPhoto}
-                                          alt={tx.buyer_name}
-                                          className="w-full h-full object-cover opacity-40 grayscale"
-                                        />
-                                      ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
-                                          👤
-                                        </div>
-                                      );
-                                    })()}
+                              <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-2.5 border-2 border-gray-600/60 flex flex-col">
+                                <div className="flex gap-2.5 mb-1.5 flex-1">
+                                  <div className="flex flex-col gap-1.5">
+                                    <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
+                                      {(() => {
+                                        const buyerPhoto = getBuyerPhoto(tx);
+                                        return buyerPhoto ? (
+                                          <img
+                                            src={buyerPhoto}
+                                            alt={tx.buyer_name}
+                                            className="w-full h-full object-cover opacity-40 grayscale"
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">👤</div>
+                                        );
+                                      })()}
+                                    </div>
                                   </div>
 
-                                  {/* DERECHA: TODO alineado con alto de foto */}
                                   <div className="flex-1 h-[85px] flex flex-col">
-                                    {/* Nombre arriba */}
-                                    <p className="font-bold text-xl text-gray-300 leading-none opacity-60 text-left">
-                                      {tx.buyer_name?.split(' ')[0]}
-                                    </p>
-
-                                    {/* BMW... exactamente en el medio vertical */}
-                                    <div className="flex-1 flex items-center">
-                                      <p className="text-sm font-medium text-gray-400 leading-none opacity-60 text-left truncate">
+                                    <div className="opacity-60">
+                                      <p className="font-bold text-xl text-gray-300 leading-none">
+                                        {tx.buyer_name?.split(' ')[0]}
+                                      </p>
+                                      <p className="text-sm font-medium text-gray-400 leading-none mt-1 truncate">
                                         {getBuyerCarLabel(tx) || 'Sin datos'}
                                       </p>
                                     </div>
 
-                                    {/* Abajo: matrícula + coche alineados con el borde inferior de la foto */}
                                     {getBuyerPhoto(tx) ? (
-                                      <div className="flex items-end gap-2">
-                                        <div className="opacity-40 flex-shrink-0">
+                                      <div className="mt-auto flex items-end justify-between gap-2">
+                                        <div className="opacity-40">
                                           <PlateProfile plate={getBuyerPlate(tx)} />
                                         </div>
-
-                                        <div className="opacity-35 flex-1 flex justify-end items-end h-7">
-                                          <CarIconProfile
-                                            color={getCarFill(getBuyerCarColor(tx))}
-                                            size="h-7 w-full max-w-[140px]"
-                                          />
+                                        <div className="opacity-35 flex-shrink-0 -mb-[1px]">
+                                          <CarIconProfile color={getCarFill(getBuyerCarColor(tx))} size="w-16 h-10" />
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="flex items-end justify-end opacity-30 h-7">
+                                      <div className="mt-auto flex items-center justify-end opacity-30">
                                         <Car className="w-5 h-5 text-gray-600" />
                                       </div>
                                     )}
                                   </div>
                                 </div>
 
-                                {/* Rayita */}
-                                <div className="mt-1.5 pt-1.5 border-t border-gray-800/70">
+                                <div className="pt-1.5 border-t border-gray-800/70">
                                   <div className="space-y-1.5 opacity-50">
                                     {tx.address && (
                                       <div className="flex items-start gap-1.5 text-xs">
@@ -873,8 +1005,7 @@ export default function History() {
                                 </div>
                               </div>
 
-                              {/* Botones subidos (menos hueco negro) */}
-                              <div className="mt-2">
+                              <div className="mt-3">
                                 <div className="flex gap-2">
                                   <Button
                                     size="icon"
@@ -898,8 +1029,8 @@ export default function History() {
                                   </Button>
 
                                   <div className="flex-1">
-                                    <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
-                                      <span className="text-purple-300 text-sm font-mono font-bold">
+                                    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800/60 flex items-center justify-center px-3">
+                                      <span className="text-gray-400 text-sm font-mono font-bold opacity-60">
                                         {tx.status === 'completed' ? 'COMPLETADA' : '--:--'}
                                       </span>
                                     </div>
@@ -917,11 +1048,18 @@ export default function History() {
             )}
           </TabsContent>
 
+          {/* TUS RESERVAS */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto ${noScrollBar}`}
           >
-            <p className="text-white text-[11px] mb-1 text-center font-bold">Reservaste a:</p>
+            <div className="flex justify-center pt-0">
+              <div
+                className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
+              >
+                Activas
+              </div>
+            </div>
 
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -935,135 +1073,98 @@ export default function History() {
               </div>
             ) : (
               myReservationsItems.map((item, index) => {
-                if (item.type === 'alert') {
-                  const alert = item.data;
-                  const createdTs = getCreatedTs(alert) || nowTs;
-                  const waitUntilTs = getWaitUntilTs(alert);
-                  const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
-                  const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
-
-                  return (
-                    <motion.div
-                      key={`res-alert-${alert.id}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge
-                          className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
-                        >
-                          Activa
-                        </Badge>
-                        <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                          {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
-                        </span>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                            <TrendingDown className="w-4 h-4 text-red-400" />
-                            <span className="text-red-400 font-bold text-sm">-{alert.price.toFixed(2)}€</span>
-                          </div>
-                          <Button
-                            size="icon"
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                            onClick={async () => {
-                              await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
-                              await base44.entities.ChatMessage.create({
-                                alert_id: alert.id,
-                                sender_id: user?.email || user?.id,
-                                sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-                                receiver_id: alert.user_email || alert.user_id,
-                                message: `He cancelado mi reserva de ${alert.price}€`,
-                                read: false
-                              });
-                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                            }}
-                          >
-                            <X className="w-4 h-4" strokeWidth={3} />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="mb-1.5 h-[220px]">
-                        <UserCard
-                          userName={alert.user_name}
-                          userPhoto={alert.user_photo}
-                          carBrand={alert.car_brand}
-                          carModel={alert.car_model}
-                          carColor={alert.car_color}
-                          carPlate={alert.car_plate}
-                          vehicleType={alert.vehicle_type}
-                          address={alert.address}
-                          availableInMinutes={alert.available_in_minutes}
-                          price={alert.price}
-                          showLocationInfo={false}
-                          showContactButtons={true}
-                          onChat={() =>
-                            (window.location.href = createPageUrl(
-                              `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
-                            ))
-                          }
-                          onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
-                          latitude={alert.latitude}
-                          longitude={alert.longitude}
-                          allowPhoneCalls={alert.allow_phone_calls}
-                          isReserved={true}
-                        />
-                      </div>
-
-                      <div className="flex items-start gap-1.5 text-xs mb-2">
-                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                        <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
-                      </div>
-
-                      <div className="flex items-start gap-1.5 text-xs">
-                        <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                        <span className="text-gray-500 leading-5">Se va en {alert.available_in_minutes} min ·</span>
-                        <span className="text-purple-400 leading-5">Te espera hasta las {waitUntilLabel}</span>
-                      </div>
-                    </motion.div>
-                  );
-                }
-
-                const tx = item.data;
+                const alert = item.data;
+                const createdTs = getCreatedTs(alert) || nowTs;
+                const waitUntilTs = getWaitUntilTs(alert);
+                const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+                const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
 
                 return (
                   <motion.div
-                    key={`res-tx-${tx.id}`}
+                    key={`res-alert-${alert.id}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 relative"
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <Badge
-                        className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                        className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
                       >
-                        Finalizada
+                        Activa
                       </Badge>
+
                       <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                        {(() => {
-                          const ts = toMs(tx.created_date);
-                          return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
-                        })()}
+                        {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                       </span>
+
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                           <TrendingDown className="w-4 h-4 text-red-400" />
-                          <span className="font-bold text-red-400 text-sm">-{(tx.amount ?? 0).toFixed(2)}€</span>
+                          <span className="text-red-400 font-bold text-sm">-{(alert.price ?? 0).toFixed(2)}€</span>
                         </div>
+
                         <Button
                           size="icon"
                           className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                          onClick={() => {}}
+                          onClick={async () => {
+                            // Si es mock, solo lo ocultamos recargando (no hay delete real)
+                            if (String(alert.id || '').startsWith('mock-res-')) return;
+
+                            await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                            await base44.entities.ChatMessage.create({
+                              alert_id: alert.id,
+                              sender_id: user?.email || user?.id,
+                              sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                              receiver_id: alert.user_email || alert.user_id,
+                              message: `He cancelado mi reserva de ${alert.price}€`,
+                              read: false
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                          }}
                         >
                           <X className="w-4 h-4" strokeWidth={3} />
                         </Button>
                       </div>
                     </div>
 
-                    <div className="text-gray-500 text-xs opacity-60">Reserva finalizada</div>
+                    <div className="mb-1.5 h-[220px]">
+                      <UserCard
+                        userName={alert.user_name}
+                        userPhoto={alert.user_photo}
+                        carBrand={alert.car_brand}
+                        carModel={alert.car_model}
+                        carColor={alert.car_color}
+                        carPlate={alert.car_plate}
+                        vehicleType={alert.vehicle_type}
+                        address={alert.address}
+                        availableInMinutes={alert.available_in_minutes}
+                        price={alert.price}
+                        showLocationInfo={false}
+                        showContactButtons={true}
+                        onChat={() =>
+                          (window.location.href = createPageUrl(
+                            `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
+                          ))
+                        }
+                        onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                        latitude={alert.latitude}
+                        longitude={alert.longitude}
+                        allowPhoneCalls={alert.allow_phone_calls}
+                        isReserved={true}
+                      />
+                    </div>
+
+                    <div className="flex items-start gap-1.5 text-xs mb-2">
+                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                      <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
+                    </div>
+
+                    <div className="flex items-start gap-1.5 text-xs">
+                      <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                      <span className="text-gray-500 leading-5">Se va en {alert.available_in_minutes} min ·</span>
+                      <span className="text-purple-400 leading-5">Te espera hasta las {waitUntilLabel}</span>
+                    </div>
                   </motion.div>
                 );
               })
@@ -1074,6 +1175,7 @@ export default function History() {
 
       <BottomNav />
 
+      {/* Tracker para reservadas */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
