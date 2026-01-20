@@ -1,25 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Bell, MessageCircle } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
-    fetchUser();
-  }, []);
+  const { user } = useAuth();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
@@ -50,6 +39,13 @@ export default function BottomNav() {
   const baseBtn =
     "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
 
+  // Badge: misma posicion en TODOS los botones del menú de abajo.
+  // (un poco mas a la izquierda y un poco mas abajo)
+  const badgeBase =
+    "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+  const badgeGreen =
+    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       {/* 4 botones iguales + separadores de 1px */}
@@ -64,7 +60,7 @@ export default function BottomNav() {
             <span className="text-[10px] font-bold">Alertas</span>
 
             {activeAlerts.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className={badgeGreen}>
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
@@ -90,7 +86,7 @@ export default function BottomNav() {
             <span className="text-[10px] font-bold">Notificaciones</span>
 
             {unreadNotifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className={badgeBase}>
                 {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
               </span>
             )}
