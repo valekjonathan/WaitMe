@@ -173,11 +173,11 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Avisos" showBackButton={true} backTo="Home" />
+      <Header title="Notificaciones" showBackButton={true} backTo="Home" />
 
       <main className="pt-16 pb-24">
         <div className="px-4 py-4">
-          <h2 className="text-xl font-bold mb-4 text-center">Avisos:</h2>
+          <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
 
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">Cargando...</div>
