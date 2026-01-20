@@ -31,6 +31,44 @@ export default function History() {
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
 
+  // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
+  const toMs = (v) => {
+    if (v == null) return null;
+    if (v instanceof Date) return v.getTime();
+
+    if (typeof v === 'number') {
+      return v < 1e12 ? v * 1000 : v;
+    }
+
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (!s) return null;
+      const n = Number(s);
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
+        return n < 1e12 ? n * 1000 : n;
+      }
+      const t = new Date(s).getTime();
+      return Number.isNaN(t) ? null : t;
+    }
+
+    return null;
+  };
+
+  const getCreatedTs = (alert) => {
+    const candidates = [
+      alert?.created_date,
+      alert?.createdDate,
+      alert?.created_at,
+      alert?.createdAt,
+      alert?.created
+    ];
+    for (const v of candidates) {
+      const t = toMs(v);
+      if (typeof t === 'number' && t > 0) return t;
+    }
+    return null;
+  };
+
   // Evita updates repetidos cuando el contador llega a 0
   const autoFinalizedRef = useRef(new Set());
 
@@ -126,7 +164,7 @@ export default function History() {
   ];
 
   const myFinalizedAsSellerTx = [...transactions.filter((t) => t.seller_id === user?.id), ...mockTransactions].sort(
-    (a, b) => new Date(b.created_date) - new Date(a.created_date)
+    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
   // Finalizadas de vendedor (alertas + transacciones) ORDEN: más reciente arriba
@@ -143,14 +181,14 @@ export default function History() {
       created_date: t.created_date,
       data: t
     }))
-  ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
   const myReservationsItems = [
     ...myReservations.map((a) => ({ type: 'alert', data: a, date: a.created_date })),
     ...transactions
       .filter((t) => t.buyer_id === user?.id)
       .map((t) => ({ type: 'transaction', data: t, date: t.created_date }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+  ].sort((a, b) => (toMs(b.date) || 0) - (toMs(a.date) || 0));
 
   const isLoading = loadingAlerts || loadingTransactions;
 
@@ -192,7 +230,8 @@ export default function History() {
   // Más robusto: si el backend guarda otra propiedad de expiración, la usamos.
   // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar (evita que "aparezca y desaparezca").
   const getWaitUntilTs = (alert) => {
-    const createdTs = new Date(alert.created_date).getTime();
+    const createdTs = getCreatedTs(alert);
+    if (!createdTs) return null;
 
     const dateFields = [
       alert.wait_until,
@@ -206,8 +245,8 @@ export default function History() {
     ].filter(Boolean);
 
     for (const v of dateFields) {
-      const t = new Date(v).getTime();
-      if (!Number.isNaN(t) && t > 0) return t;
+      const t = toMs(v);
+      if (typeof t === 'number' && t > 0) return t;
     }
 
     const mins =
@@ -299,9 +338,9 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myActiveAlerts
-                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                      .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
                       .map((alert, index) => {
-                        const createdTs = new Date(alert.created_date).getTime();
+                        const createdTs = getCreatedTs(alert) || nowTs;
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
@@ -338,7 +377,7 @@ export default function History() {
 
                                   {/* 1) FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {format(new Date(alert.created_date), 'd MMM, HH:mm', { locale: es })}
+                                    {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
 
                                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -412,7 +451,7 @@ export default function History() {
 
                                   {/* 1) FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {format(new Date(alert.created_date), 'd MMM, HH:mm', { locale: es })}
+                                    {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
 
                                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -483,7 +522,10 @@ export default function History() {
                               </Badge>
 
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {format(new Date(a.created_date), 'd MMM, HH:mm', { locale: es })}
+                                {(() => {
+                                  const ts = toMs(a.created_date);
+                                  return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                                })()}
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
@@ -529,9 +571,12 @@ export default function History() {
                               Finalizada
                             </Badge>
 
-                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {format(new Date(tx.created_date), 'd MMM, HH:mm', { locale: es })}
-                            </span>
+                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                                {(() => {
+                                  const ts = toMs(tx.created_date);
+                                  return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                                })()}
+                              </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {isSeller ? (
@@ -604,7 +649,10 @@ export default function History() {
                                       <div className="flex items-start gap-1.5 text-xs">
                                         <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                         <span className="text-gray-500 leading-5">
-                                          Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}
+                                          Transacción completada · {(() => {
+                                            const ts = toMs(tx.created_date);
+                                            return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                          })()}
                                         </span>
                                       </div>
                                     </div>
@@ -677,7 +725,7 @@ export default function History() {
               myReservationsItems.map((item, index) => {
                 if (item.type === 'alert') {
                   const alert = item.data;
-                  const createdTs = new Date(alert.created_date).getTime();
+                  const createdTs = getCreatedTs(alert) || nowTs;
                   const waitUntilTs = getWaitUntilTs(alert);
                   const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
                   const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
@@ -695,7 +743,7 @@ export default function History() {
                           Activa
                         </Badge>
                         <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                          {format(new Date(alert.created_date), 'd MMM, HH:mm', { locale: es })}
+                          {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                         </span>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
@@ -779,7 +827,10 @@ export default function History() {
                         Finalizada
                       </Badge>
                       <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                        {format(new Date(tx.created_date), 'd MMM, HH:mm', { locale: es })}
+                        {(() => {
+                          const ts = toMs(tx.created_date);
+                          return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                        })()}
                       </span>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
@@ -837,7 +888,10 @@ export default function History() {
                               <div className="flex items-start gap-1.5 text-xs">
                                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                 <span className="text-gray-500 leading-5">
-                                  Transacción completada · {format(new Date(tx.created_date), 'HH:mm', { locale: es })}
+                                  Transacción completada · {(() => {
+                                    const ts = toMs(tx.created_date);
+                                    return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
+                                  })()}
                                 </span>
                               </div>
                             </div>
