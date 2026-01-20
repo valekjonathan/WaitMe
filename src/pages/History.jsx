@@ -86,25 +86,19 @@ export default function History() {
     </div>
   );
 
-  // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
   const labelNoClick = 'cursor-default select-none pointer-events-none';
 
-  // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
 
-    if (typeof v === 'number') {
-      return v < 1e12 ? v * 1000 : v;
-    }
+    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
 
     if (typeof v === 'string') {
       const s = v.trim();
       if (!s) return null;
       const n = Number(s);
-      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
-        return n < 1e12 ? n * 1000 : n;
-      }
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) return n < 1e12 ? n * 1000 : n;
       const t = new Date(s).getTime();
       return Number.isNaN(t) ? null : t;
     }
@@ -113,13 +107,7 @@ export default function History() {
   };
 
   const getCreatedTs = (alert) => {
-    const candidates = [
-      alert?.created_date,
-      alert?.createdDate,
-      alert?.created_at,
-      alert?.createdAt,
-      alert?.created
-    ];
+    const candidates = [alert?.created_date, alert?.createdDate, alert?.created_at, alert?.createdAt, alert?.created];
     for (const v of candidates) {
       const t = toMs(v);
       if (typeof t === 'number' && t > 0) return t;
@@ -127,7 +115,6 @@ export default function History() {
     return null;
   };
 
-  // Evita updates repetidos cuando el contador llega a 0
   const autoFinalizedRef = useRef(new Set());
 
   useEffect(() => {
@@ -137,7 +124,6 @@ export default function History() {
         (error) => console.log('Error obteniendo ubicación:', error)
       );
     }
-
     const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
@@ -160,23 +146,16 @@ export default function History() {
     enabled: !!user?.id
   });
 
-  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
-  // Finalizadas tuyas como alertas (para que al llegar a 0 “pase” aquí)
   const myFinalizedAlerts = myAlerts.filter(
-    (a) =>
-      a.user_id === user?.id &&
-      (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
+    (a) => a.user_id === user?.id && (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
-  // Reservas (tuyas como comprador)
   const myReservations = myAlerts.filter((a) => a.reserved_by_id === user?.id && a.status === 'reserved');
 
-  // Finalizadas ficticias (solo para UI) -> para ver todos los tipos (SIN activas)
-  // Importante: NO tocamos tus alertas reales; solo añadimos mocks extra.
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -235,7 +214,6 @@ export default function History() {
       alert_id: 'mock-alert-3',
       created_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
     },
-    // Como comprador (sin foto -> se verá el formato "simple")
     {
       id: 'mock-tx-4',
       seller_id: 'seller-9',
@@ -248,7 +226,6 @@ export default function History() {
       alert_id: 'mock-alert-4',
       created_date: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString()
     },
-    // Otra como vendedor pero sin foto (no debe mostrar matrícula estilo perfil)
     {
       id: 'mock-tx-5',
       seller_id: user?.id,
@@ -312,7 +289,6 @@ export default function History() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  // (2) Borra (oculta en UI) las 4 últimas "sin éxito" (expired/cancelled)
   const successfulFinalAlerts = myFinalizedAlerts.filter((a) => a.status === 'completed');
   const unsuccessfulFinalAlerts = myFinalizedAlerts
     .filter((a) => a.status === 'expired' || a.status === 'cancelled')
@@ -321,7 +297,6 @@ export default function History() {
 
   const finalizedAlertsForUI = [...successfulFinalAlerts, ...unsuccessfulFinalAlerts, ...mockFinalizedAlerts];
 
-  // Finalizadas de vendedor (alertas + transacciones) ORDEN: más reciente arriba
   const myFinalizedAll = [
     ...finalizedAlertsForUI.map((a) => ({
       type: 'alert',
@@ -350,19 +325,14 @@ export default function History() {
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myAlerts'] })
   });
 
   const expireAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      // “Se cancela sola” al llegar a 0 -> la marcamos como expirada
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myAlerts'] })
   });
 
   const formatRemaining = (ms) => {
@@ -381,8 +351,6 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  // Más robusto: si el backend guarda otra propiedad de expiración, la usamos.
-  // Si NO hay forma de calcularlo, devolvemos null para NO auto-expirar.
   const getWaitUntilTs = (alert) => {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
@@ -447,17 +415,14 @@ export default function History() {
     </Button>
   );
 
-  const getBuyerPlate = (tx) => {
-    return (
-      tx?.buyer_plate ||
-      tx?.buyerPlate ||
-      tx?.buyer_car_plate ||
-      tx?.buyerCarPlate ||
-      tx?.car_plate ||
-      tx?.carPlate ||
-      ''
-    );
-  };
+  const getBuyerPlate = (tx) =>
+    tx?.buyer_plate ||
+    tx?.buyerPlate ||
+    tx?.buyer_car_plate ||
+    tx?.buyerCarPlate ||
+    tx?.car_plate ||
+    tx?.carPlate ||
+    '';
 
   const getBuyerCarLabel = (tx) => {
     const direct = tx?.buyer_car || tx?.buyerCar || tx?.vehicle || tx?.car || '';
@@ -467,21 +432,16 @@ export default function History() {
     return (direct || built || '').trim();
   };
 
-  const getBuyerPhoto = (tx) => {
-    return (
-      tx?.buyer_photo_url ||
-      tx?.buyerPhotoUrl ||
-      tx?.buyer_photo ||
-      tx?.buyerPhoto ||
-      tx?.buyer_photo_image ||
-      tx?.buyerPhotoImage ||
-      ''
-    );
-  };
+  const getBuyerPhoto = (tx) =>
+    tx?.buyer_photo_url ||
+    tx?.buyerPhotoUrl ||
+    tx?.buyer_photo ||
+    tx?.buyerPhoto ||
+    tx?.buyer_photo_image ||
+    tx?.buyerPhotoImage ||
+    '';
 
-  const getBuyerCarColor = (tx) => {
-    return tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
-  };
+  const getBuyerCarColor = (tx) => tx?.buyer_car_color || tx?.buyerCarColor || tx?.car_color || tx?.carColor || '';
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -498,7 +458,6 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          {/* TUS ALERTAS */}
           <TabsContent
             value="alerts"
             className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1"
@@ -511,7 +470,6 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS (no clicable) */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -520,7 +478,6 @@ export default function History() {
                   </div>
                 </div>
 
-                {/* LISTA ACTIVAS o tarjeta vacía */}
                 {myActiveAlerts.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
                     <div className="h-[110px] flex items-center justify-center">
@@ -551,7 +508,11 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
+                          remainingMs === null
+                            ? '--:--'
+                            : remainingMs > 0
+                              ? formatRemaining(remainingMs)
+                              : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -683,7 +644,6 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS (no clicable) */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -699,7 +659,6 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      // Borde exterior más marcado (gris oscuro)
                       const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-600/70 relative';
 
                       if (item.type === 'alert') {
@@ -752,7 +711,6 @@ export default function History() {
                         );
                       }
 
-                      // Transacción finalizada (COMPLETADA)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -803,10 +761,8 @@ export default function History() {
                             </div>
                           </div>
 
-                          {/* ====== BLOQUE MARCO (SIN TARJETA INTERIOR) + RAYITA HORIZONTAL ====== */}
                           {isSeller && tx.buyer_name && (
                             <div className="mb-1.5">
-                              {/* Parte superior: foto + 3 líneas compactas dentro del alto de foto */}
                               <div className="flex gap-2.5 mb-2">
                                 <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
                                   {(() => {
@@ -825,24 +781,29 @@ export default function History() {
                                   })()}
                                 </div>
 
-                                <div className="flex-1 h-[85px] flex flex-col justify-between">
-                                  <div className="opacity-60">
-                                    <p className="font-bold text-xl text-gray-300 leading-none">
-                                      {tx.buyer_name?.split(' ')[0]}
-                                    </p>
-                                    <p className="text-sm font-medium text-gray-400 leading-none mt-1 truncate">
+                                {/* ✅ AJUSTE: 3 líneas distribuidas exacto en la altura de la foto */}
+                                <div className="flex-1 h-[85px] flex flex-col">
+                                  {/* Nombre pegado arriba */}
+                                  <p className="font-bold text-xl text-gray-300 leading-none opacity-60">
+                                    {tx.buyer_name?.split(' ')[0]}
+                                  </p>
+
+                                  {/* Modelo justo en el centro vertical */}
+                                  <div className="flex-1 flex items-center">
+                                    <p className="text-sm font-medium text-gray-400 leading-none truncate opacity-60">
                                       {getBuyerCarLabel(tx) || 'Sin datos'}
                                     </p>
                                   </div>
 
-                                  {/* Matrícula + coche a la derecha ocupando hasta el borde */}
+                                  {/* Matrícula pegada abajo + coche alineado y un pelín más arriba */}
                                   {getBuyerPhoto(tx) ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-end gap-2">
                                       <div className="opacity-40 flex-shrink-0">
                                         <PlateProfile plate={getBuyerPlate(tx)} />
                                       </div>
 
-                                      <div className="opacity-35 flex-1 flex justify-end">
+                                      {/* ✅ Subimos el coche un poco para que su base quede a la misma altura que la matrícula */}
+                                      <div className="opacity-35 flex-1 flex justify-end -mt-1">
                                         <CarIconProfile
                                           color={getCarFill(getBuyerCarColor(tx))}
                                           size="w-full max-w-[130px] h-10"
@@ -857,7 +818,6 @@ export default function History() {
                                 </div>
                               </div>
 
-                              {/* Rayita horizontal justo debajo de foto+matrícula */}
                               <div className="pt-2 border-t border-gray-800/70">
                                 <div className="space-y-1.5 opacity-50">
                                   {tx.address && (
@@ -880,7 +840,6 @@ export default function History() {
                                 </div>
                               </div>
 
-                              {/* Botones + COMPLETADA encendido */}
                               <div className="mt-3">
                                 <div className="flex gap-2">
                                   <Button
@@ -924,7 +883,6 @@ export default function History() {
             )}
           </TabsContent>
 
-          {/* TUS RESERVAS */}
           <TabsContent
             value="reservations"
             className="space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-1"
@@ -1164,7 +1122,6 @@ export default function History() {
 
       <BottomNav />
 
-      {/* Tracker para reservadas */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
