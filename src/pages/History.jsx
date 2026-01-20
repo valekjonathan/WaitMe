@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
@@ -10,8 +11,7 @@ import {
   X,
   MessageCircle,
   PhoneOff,
-  Car,
-  User
+  Car
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,6 +30,9 @@ export default function History() {
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const queryClient = useQueryClient();
+
+  // (2) No clicables: "Activa/Activas/Finalizada/Finalizadas"
+  const labelNoClick = 'cursor-default select-none pointer-events-none';
 
   // Parse robusto de timestamps: algunos backends devuelven segundos (10 dígitos) en vez de ms.
   const toMs = (v) => {
@@ -276,7 +279,7 @@ export default function History() {
       expired: 'Expirada'
     };
     return (
-      <Badge className={`${styles[status]} border flex items-center justify-center text-center`}>
+      <Badge className={`${styles[status]} border flex items-center justify-center text-center ${labelNoClick}`}>
         {labels[status]}
       </Badge>
     );
@@ -287,11 +290,52 @@ export default function History() {
       type="button"
       variant="outline"
       disabled
-      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm"
+      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm cursor-default"
     >
       {text}
     </Button>
   );
+
+  // (3) Bloque matricula estilo "perfil" (solo se usa en transacción completada)
+  const PlateBlock = ({ plate }) => {
+    const plateText = (plate || '').toUpperCase().trim();
+    if (!plateText) return null;
+    return (
+      <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+        <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+          <span className="text-[9px] font-bold text-white">E</span>
+        </div>
+        <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
+          {plateText}
+        </span>
+      </div>
+    );
+  };
+
+  const getBuyerPlate = (tx) => {
+    return (
+      tx?.buyer_plate ||
+      tx?.buyerPlate ||
+      tx?.buyer_car_plate ||
+      tx?.buyerCarPlate ||
+      tx?.car_plate ||
+      tx?.carPlate ||
+      ''
+    );
+  };
+
+  const getBuyerCarLabel = (tx) => {
+    const direct =
+      tx?.buyer_car ||
+      tx?.buyerCar ||
+      tx?.vehicle ||
+      tx?.car ||
+      '';
+    const brand = tx?.buyer_car_brand || tx?.buyerCarBrand || '';
+    const model = tx?.buyer_car_model || tx?.buyerCarModel || '';
+    const built = `${brand} ${model}`.trim();
+    return (direct || built || '').trim();
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -321,9 +365,11 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS */}
+                {/* ACTIVAS (no clicable) */}
                 <div className="flex justify-center pt-0">
-                  <div className="bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center">
+                  <div
+                    className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
+                  >
                     Activas
                   </div>
                 </div>
@@ -360,7 +406,11 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
+                          remainingMs === null
+                            ? '--:--'
+                            : remainingMs > 0
+                              ? formatRemaining(remainingMs)
+                              : 'Alerta finalizada';
 
                         return (
                           <motion.div
@@ -375,7 +425,7 @@ export default function History() {
                                 <div className="flex items-center justify-between mb-2">
                                   {getStatusBadge(alert.status)}
 
-                                  {/* 1) FECHA EN BLANCO */}
+                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -445,11 +495,13 @@ export default function History() {
                             ) : (
                               <>
                                 <div className="flex items-center justify-between mb-2">
-                                  <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
+                                  <Badge
+                                    className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                                  >
                                     Activa
                                   </Badge>
 
-                                  {/* 1) FECHA EN BLANCO */}
+                                  {/* FECHA EN BLANCO */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
                                   </span>
@@ -492,9 +544,11 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
+                {/* FINALIZADAS (no clicable) */}
                 <div className="flex justify-center pt-2">
-                  <div className="bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center">
+                  <div
+                    className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
+                  >
                     Finalizadas
                   </div>
                 </div>
@@ -506,6 +560,9 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
+                      // (1) Finalizadas SIN borde (apagar borde)
+                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border border-transparent relative';
+
                       if (item.type === 'alert') {
                         const a = item.data;
                         return (
@@ -514,10 +571,12 @@ export default function History() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                            className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
-                              <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                              >
                                 Finalizada
                               </Badge>
 
@@ -564,19 +623,21 @@ export default function History() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                          className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
+                            <Badge
+                              className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                            >
                               Finalizada
                             </Badge>
 
-                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {(() => {
-                                  const ts = toMs(tx.created_date);
-                                  return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
-                                })()}
-                              </span>
+                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
+                              {(() => {
+                                const ts = toMs(tx.created_date);
+                                return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                              })()}
+                            </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               {isSeller ? (
@@ -622,18 +683,14 @@ export default function History() {
                                       <p className="font-bold text-xl text-white mb-1.5">{tx.buyer_name?.split(' ')[0]}</p>
 
                                       <div className="flex items-center justify-between -mt-2.5 mb-1.5">
-                                        <p className="text-sm font-medium text-white">BMW Serie 3</p>
+                                        <p className="text-sm font-medium text-white">
+                                          {getBuyerCarLabel(tx) || 'Sin datos'}
+                                        </p>
                                         <Car className="w-5 h-5 text-gray-400" />
                                       </div>
 
-                                      <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-                                        <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-                                          <span className="text-[9px] font-bold text-white">E</span>
-                                        </div>
-                                        <span className="flex-1 text-center font-mono font-bold text-base tracking-wider text-black">
-                                          2847 BNM
-                                        </span>
-                                      </div>
+                                      {/* (3) SOLO aquí: matrícula estilo perfil, solo si hay placa en la transacción */}
+                                      <PlateBlock plate={getBuyerPlate(tx)} />
                                     </div>
                                   </div>
 
@@ -649,7 +706,8 @@ export default function History() {
                                       <div className="flex items-start gap-1.5 text-xs">
                                         <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                         <span className="text-gray-500 leading-5">
-                                          Transacción completada · {(() => {
+                                          Transacción completada ·{' '}
+                                          {(() => {
                                             const ts = toMs(tx.created_date);
                                             return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
                                           })()}
@@ -739,7 +797,9 @@ export default function History() {
                       className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center">
+                        <Badge
+                          className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                        >
                           Activa
                         </Badge>
                         <span className="text-gray-500 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -823,7 +883,9 @@ export default function History() {
                     className="bg-gray-900/50 rounded-xl p-2 border-2 border-gray-700 relative"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <Badge className="bg-red-500/20 text-red-400 border-2 border-purple-500/50 min-w-[85px] h-7 flex items-center justify-center text-center">
+                      <Badge
+                        className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                      >
                         Finalizada
                       </Badge>
                       <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
@@ -888,7 +950,8 @@ export default function History() {
                               <div className="flex items-start gap-1.5 text-xs">
                                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                 <span className="text-gray-500 leading-5">
-                                  Transacción completada · {(() => {
+                                  Transacción completada ·{' '}
+                                  {(() => {
                                     const ts = toMs(tx.created_date);
                                     return ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--';
                                   })()}
