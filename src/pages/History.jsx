@@ -217,7 +217,7 @@ export default function History() {
         'w-full h-9 flex items-center justify-center font-mono font-extrabold text-sm',
         'pointer-events-none cursor-default',
         dimmed
-          ? '!border-white/10 !bg-white/5 !text-white/35 !shadow-none !opacity-60 hover:!bg-white/5'
+          ? '!border-purple-500/30 !bg-purple-600/10 !text-gray-400/70 !shadow-none !opacity-80 hover:!bg-purple-600/10'
           : '!border-purple-400/70 !bg-purple-600/25 !text-purple-100 hover:!bg-purple-600/25 hover:!text-purple-100 ' +
             '!shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]'
       ].join(' ')}
@@ -291,11 +291,12 @@ export default function History() {
     statusEnabled = false,
     bright = false
   }) => {
-    const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
-    const statusOn = statusEnabled || isCompleted;
-
+    const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
-      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(statusText.trim());
+      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
+    const isCompleted = stUpper === 'COMPLETADA';
+    const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
+    const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
 
     const photoCls = bright
       ? 'w-full h-full object-cover'
@@ -328,6 +329,8 @@ export default function History() {
     const statusTextCls = statusOn
       ? isCountdownLike
         ? 'text-purple-100'
+        : isDimStatus
+        ? 'text-gray-400/70'
         : 'text-purple-300'
       : 'text-gray-400 opacity-70';
 
@@ -622,7 +625,24 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  const myFinalizedAsSellerTx = [
+  
+  // Mock extra para ver una tarjeta CANCELADA en "Tus alertas"
+  const mockMyFinalizedAlerts = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-my-fin-cancel-1',
+        status: 'cancelled',
+        user_id: user?.id,
+        address: 'Calle Uría, 10',
+        available_in_minutes: 12,
+        price: 3.0,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 4).toISOString()
+      }
+    ];
+  }, [user?.id]);
+
+const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
     ...mockTransactions
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
@@ -631,6 +651,12 @@ export default function History() {
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
+      created_date: a.created_date,
+      data: a
+    })),
+    ...mockMyFinalizedAlerts.map((a) => ({
+      type: 'alert',
+      id: `final-mock-alert-${a.id}`,
       created_date: a.created_date,
       data: a
     })),
@@ -744,14 +770,16 @@ export default function History() {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border border-gray-800 mt-4 mb-1">
+          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
+            <TabsList className="w-full bg-gray-900 border border-gray-800">
             <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
               Tus alertas
             </TabsTrigger>
             <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
               Tus reservas
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
           {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
@@ -803,7 +831,7 @@ export default function History() {
                             ? '--:--'
                             : remainingMs > 0
                             ? formatRemaining(remainingMs)
-                            : 'Alerta finalizada';
+                            : 'EXPIRADA';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -910,7 +938,7 @@ export default function History() {
                                 <div className="mt-2">
                                   <CountdownButton
                                     text={countdownText}
-                                    dimmed={countdownText === 'Alerta finalizada'}
+                                    dimmed={countdownText === 'EXPIRADA'}
                                   />
                                 </div>
                               </>
@@ -971,7 +999,7 @@ export default function History() {
                                 <div className="mt-2">
                                   <CountdownButton
                                     text={countdownText}
-                                    dimmed={countdownText === 'Alerta finalizada'}
+                                    dimmed={countdownText === 'EXPIRADA'}
                                   />
                                 </div>
                               </>
@@ -1053,7 +1081,7 @@ export default function History() {
 
                             {/* APAGADO (sin quitarlo) */}
                             <div className="mt-2">
-                              <CountdownButton text="Alerta finalizada" dimmed />
+                              <CountdownButton text={statusLabelFrom(a.status)} dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'} />
                             </div>
                           </motion.div>
                         );
