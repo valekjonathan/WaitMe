@@ -374,7 +374,7 @@ export default function History() {
         </div>
 
         <div className="pt-1.5 border-t border-gray-700/80 mt-2">
-          <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
+          <div className={bright ? 'space-y-0.5' : 'space-y-0.5 opacity-80'}>
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
