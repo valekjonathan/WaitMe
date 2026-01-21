@@ -10,8 +10,7 @@ import {
   Loader,
   X,
   MessageCircle,
-  PhoneOff,
-  Car
+  PhoneOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +39,6 @@ export default function History() {
   const formatCardDate = (ts) => {
     if (!ts) return '--';
     const raw = format(new Date(ts), 'd MMMM - HH:mm', { locale: es }); // "19 enero - 21:05"
-    // Capitaliza el mes (solo la primera letra del mes)
     return raw.replace(/^\d+\s+([a-záéíóúñ]+)/i, (m, mon) => {
       const cap = mon.charAt(0).toUpperCase() + mon.slice(1);
       return m.replace(mon, cap);
@@ -204,17 +202,21 @@ export default function History() {
     statusText = 'COMPLETADA',
     address,
     timeLine,
-    priceChip // JSX opcional (p.ej. precio rojo en reservas)
+    priceChip
   }) => {
     const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
 
     return (
       <>
-        {/* FOTO + DATOS (sin caja envolvente) */}
+        {/* FOTO + DATOS */}
         <div className="flex gap-2.5">
           <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
             {photoUrl ? (
-              <img src={photoUrl} alt={name} className="w-full h-full object-cover opacity-40 grayscale" />
+              <img
+                src={photoUrl}
+                alt={name}
+                className="w-full h-full object-cover opacity-40 grayscale"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
                 👤
@@ -223,24 +225,23 @@ export default function History() {
           </div>
 
           <div className="flex-1 h-[85px] flex flex-col">
-            <p className="font-bold text-xl text-gray-300 leading-none opacity-60 min-h-[22px]">
+            <p className="font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]">
               {(name || '').split(' ')[0] || 'Usuario'}
             </p>
 
             {/* Modelo centrado verticalmente entre nombre y matrícula */}
-            <p className="text-sm font-medium text-gray-400 leading-none opacity-60 flex-1 flex items-center truncate">
+            <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate">
               {carLabel || 'Sin datos'}
             </p>
 
             {/* Matrícula + coche (coche centrado en el espacio desde matrícula al borde derecho) */}
             <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-              <div className="opacity-40 flex-shrink-0">
+              <div className="opacity-45 flex-shrink-0">
                 <PlateProfile plate={plate} />
               </div>
 
-              {/* este flex-1 es el "espacio" desde la matrícula al borde derecho */}
               <div className="flex-1 flex justify-center">
-                <div className="opacity-35 flex-shrink-0 relative -top-[1px]">
+                <div className="opacity-45 flex-shrink-0 relative -top-[1px]">
                   <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
                 </div>
               </div>
@@ -248,31 +249,32 @@ export default function History() {
           </div>
         </div>
 
-        {/* Rayita horizontal + líneas */}
+        {/* Rayita + líneas (apagado pero MÁS visible) */}
         <div className="pt-1.5 border-t border-gray-800/70 mt-2">
-          <div className="space-y-1.5 opacity-50">
+          <div className="space-y-1.5 opacity-80">
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                <span className="text-gray-500 leading-5 line-clamp-1">{address}</span>
+                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+                <span className="text-gray-300 leading-5 line-clamp-1">{address}</span>
               </div>
             ) : null}
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-                <span className="text-gray-600 leading-5">{timeLine}</span>
+                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+                <span className="text-gray-300 leading-5">{timeLine}</span>
               </div>
             ) : null}
           </div>
         </div>
 
-        {/* Botonera (misma que Marco) */}
+        {/* Botonera */}
         <div className="mt-2">
           <div className="flex gap-2">
+            {/* CHAT VERDE BRILLANTE */}
             <Button
               size="icon"
-              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+              className="bg-green-400 hover:bg-green-500 text-black rounded-lg h-8 w-[42px] ring-2 ring-green-200/40 shadow-lg shadow-green-400/20"
               onClick={onChat}
             >
               <MessageCircle className="w-4 h-4" />
@@ -281,24 +283,22 @@ export default function History() {
             <Button
               variant="outline"
               size="icon"
-              className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+              className="border-gray-700 h-8 w-[42px] opacity-50 cursor-not-allowed"
               disabled
             >
               <PhoneOff className="w-4 h-4 text-gray-600" />
             </Button>
 
-            {/* BOTÓN COMPLETADA "ENCENDIDO" como el de Alerta finalizada */}
+            {/* COMPLETADA encendida como "Alerta finalizada" */}
             <div className="flex-1">
               <div
                 className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${
-                  isCompleted
-                    ? 'border-purple-500/30 bg-purple-600/10'
-                    : 'border-gray-700 bg-gray-800/60'
+                  isCompleted ? 'border-purple-500/30 bg-purple-600/10' : 'border-gray-700 bg-gray-800/60'
                 }`}
               >
                 <span
                   className={`text-sm font-mono font-bold ${
-                    isCompleted ? 'text-purple-300' : 'text-gray-400 opacity-60'
+                    isCompleted ? 'text-purple-300' : 'text-gray-400 opacity-70'
                   }`}
                 >
                   {statusText}
@@ -306,7 +306,6 @@ export default function History() {
               </div>
             </div>
 
-            {/* por si algún día quieres añadir un chip extra */}
             {priceChip ? <div className="hidden">{priceChip}</div> : null}
           </div>
         </div>
@@ -327,9 +326,7 @@ export default function History() {
   const deleteAlertSafe = async (id) => {
     try {
       await base44.entities.ParkingAlert.delete(id);
-    } catch (e) {
-      // si Base44 no deja borrar, al menos queda oculto en UI
-    }
+    } catch (e) {}
   };
 
   // ====== Effects ======
@@ -709,7 +706,9 @@ export default function History() {
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
-                        const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
+                        const waitUntilLabel = hasExpiry
+                          ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
+                          : '--:--';
 
                         if (
                           alert.status === 'active' &&
@@ -723,7 +722,11 @@ export default function History() {
                         }
 
                         const countdownText =
-                          remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Alerta finalizada';
+                          remainingMs === null
+                            ? '--:--'
+                            : remainingMs > 0
+                            ? formatRemaining(remainingMs)
+                            : 'Alerta finalizada';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -745,7 +748,6 @@ export default function History() {
                                     Reservado por:
                                   </Badge>
 
-                                  {/* FECHA NUEVA */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {formatCardDate(createdTs)}
                                   </span>
@@ -753,7 +755,9 @@ export default function History() {
                                   <div className="flex items-center gap-1 flex-shrink-0">
                                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                       <TrendingUp className="w-4 h-4 text-green-400" />
-                                      <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
+                                      <span className="text-green-400 font-bold text-sm">
+                                        {alert.price.toFixed(2)}€
+                                      </span>
                                     </div>
                                     <Button
                                       size="icon"
@@ -769,7 +773,6 @@ export default function History() {
                                   </div>
                                 </div>
 
-                                {/* (esto es tu UserCard original; aquí no he tocado porque es tu flujo reservado) */}
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5 h-[220px]">
                                     <UserCard
@@ -787,7 +790,9 @@ export default function History() {
                                       showContactButtons={true}
                                       onChat={() =>
                                         (window.location.href = createPageUrl(
-                                          `Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`
+                                          `Chat?alertId=${alert.id}&userId=${
+                                            alert.reserved_by_email || alert.reserved_by_id
+                                          }`
                                         ))
                                       }
                                       onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
@@ -801,15 +806,21 @@ export default function History() {
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
+                                  <span className="text-gray-400 leading-5">
+                                    {alert.address || 'Ubicación marcada'}
+                                  </span>
                                 </div>
 
                                 <div className="flex items-start justify-between text-xs">
                                   <div className="flex items-start gap-1.5">
                                     <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                    <span className="text-gray-500 leading-5">Te vas en {alert.available_in_minutes} min</span>
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
                                   </div>
-                                  <span className="text-purple-400 leading-5">Debes esperar hasta las: {waitUntilLabel}</span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
                                 </div>
 
                                 <div className="mt-2">
@@ -825,7 +836,6 @@ export default function History() {
                                     Activa
                                   </Badge>
 
-                                  {/* FECHA NUEVA */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                     {formatCardDate(createdTs)}
                                   </span>
@@ -833,7 +843,9 @@ export default function History() {
                                   <div className="flex items-center gap-1 flex-shrink-0">
                                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                       <TrendingUp className="w-4 h-4 text-green-400" />
-                                      <span className="text-green-400 font-bold text-sm">{alert.price.toFixed(2)}€</span>
+                                      <span className="text-green-400 font-bold text-sm">
+                                        {alert.price.toFixed(2)}€
+                                      </span>
                                     </div>
                                     <Button
                                       size="icon"
@@ -851,13 +863,19 @@ export default function History() {
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">{alert.address || 'Ubicación marcada'}</span>
+                                  <span className="text-gray-400 leading-5">
+                                    {alert.address || 'Ubicación marcada'}
+                                  </span>
                                 </div>
 
                                 <div className="flex items-start gap-1.5 text-xs">
                                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-500 leading-5">Te vas en {alert.available_in_minutes} min · </span>
-                                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
+                                  <span className="text-gray-500 leading-5">
+                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                  </span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las {waitUntilLabel}
+                                  </span>
                                 </div>
 
                                 <div className="mt-2">
@@ -887,7 +905,8 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myFinalizedAll.map((item, index) => {
-                      const finalizedCardClass = 'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
                       const key = item.id;
                       if (hiddenKeys.has(key)) return null;
 
@@ -908,7 +927,6 @@ export default function History() {
                                 Finalizada
                               </Badge>
 
-                              {/* FECHA NUEVA */}
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                 {(() => {
                                   const ts = toMs(a.created_date);
@@ -918,7 +936,9 @@ export default function History() {
 
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <span className="font-bold text-gray-400 text-sm">{(a.price ?? 0).toFixed(2)}€</span>
+                                  <span className="font-bold text-gray-400 text-sm">
+                                    {(a.price ?? 0).toFixed(2)}€
+                                  </span>
                                 </div>
                                 <Button
                                   size="icon"
@@ -936,7 +956,9 @@ export default function History() {
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
                               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                              <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
+                              <span className="text-gray-400 leading-5">
+                                {a.address || 'Ubicación marcada'}
+                              </span>
                             </div>
 
                             <div className="mt-2">
@@ -946,7 +968,7 @@ export default function History() {
                         );
                       }
 
-                      // Transacción finalizada (Marco) -> SIN tarjeta envolvente
+                      // Transacción finalizada (Marco)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -957,7 +979,9 @@ export default function History() {
                         tx.buyerCar ||
                         tx.buyer_car_label ||
                         tx.buyerCarLabel ||
-                        (tx.buyer_car_brand ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim() : '');
+                        (tx.buyer_car_brand
+                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
+                          : '');
                       const buyerPlate =
                         tx.buyer_plate ||
                         tx.buyerPlate ||
@@ -986,7 +1010,6 @@ export default function History() {
                               Finalizada
                             </Badge>
 
-                            {/* FECHA NUEVA */}
                             <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                               {ts ? formatCardDate(ts) : '--'}
                             </span>
@@ -1002,7 +1025,9 @@ export default function History() {
                               ) : (
                                 <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                   <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">-{(tx.amount ?? 0).toFixed(2)}€</span>
+                                  <span className="font-bold text-red-400 text-sm">
+                                    -{(tx.amount ?? 0).toFixed(2)}€
+                                  </span>
                                 </div>
                               )}
 
@@ -1016,22 +1041,24 @@ export default function History() {
                             </div>
                           </div>
 
-                          <div className="mb-1.5 opacity-100">
-                            <div className="opacity-60">
-                              <MarcoContent
-                                photoUrl={buyerPhoto}
-                                name={buyerName}
-                                carLabel={buyerCarLabel || 'Sin datos'}
-                                plate={buyerPlate}
-                                carColor={buyerColor}
-                                address={tx.address}
-                                timeLine={`Transacción completada · ${ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'}`}
-                                onChat={() =>
-                                  (window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`))
-                                }
-                                statusText="COMPLETADA"
-                              />
-                            </div>
+                          <div className="mb-1.5">
+                            <MarcoContent
+                              photoUrl={buyerPhoto}
+                              name={buyerName}
+                              carLabel={buyerCarLabel || 'Sin datos'}
+                              plate={buyerPlate}
+                              carColor={buyerColor}
+                              address={tx.address}
+                              timeLine={`Transacción completada · ${
+                                ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                              }`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                ))
+                              }
+                              statusText="COMPLETADA"
+                            />
                           </div>
                         </motion.div>
                       );
@@ -1042,7 +1069,7 @@ export default function History() {
             )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS (SOFIA = IGUAL QUE MARCO, SIN CAJA ENVOLVENTE) ===================== */}
+          {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -1075,7 +1102,9 @@ export default function History() {
                       const createdTs = getCreatedTs(alert) || nowTs;
                       const waitUntilTs = getWaitUntilTs(alert);
                       const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
-                      const waitUntilLabel = hasExpiry ? format(new Date(waitUntilTs), 'HH:mm', { locale: es }) : '--:--';
+                      const waitUntilLabel = hasExpiry
+                        ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
+                        : '--:--';
 
                       const key = `res-active-${alert.id}`;
                       if (hiddenKeys.has(key)) return null;
@@ -1090,7 +1119,6 @@ export default function History() {
                           transition={{ delay: index * 0.05 }}
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
-                          {/* HEADER (igual, precio rojo) */}
                           <div className="flex items-center justify-between mb-2">
                             <Badge
                               className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
@@ -1099,13 +1127,15 @@ export default function History() {
                             </Badge>
 
                             <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
+                              {formatCardDate(createdTs)}
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
-                                <span className="font-bold text-red-400 text-sm">-{(alert.price ?? 0).toFixed(2)}€</span>
+                                <span className="font-bold text-red-400 text-sm">
+                                  -{(alert.price ?? 0).toFixed(2)}€
+                                </span>
                               </div>
 
                               <Button
@@ -1121,7 +1151,8 @@ export default function History() {
                                   await base44.entities.ChatMessage.create({
                                     alert_id: alert.id,
                                     sender_id: user?.email || user?.id,
-                                    sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                                    sender_name:
+                                      user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
                                     receiver_id: alert.user_email || alert.user_id,
                                     message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
                                     read: false
@@ -1135,24 +1166,21 @@ export default function History() {
                             </div>
                           </div>
 
-                          {/* CONTENIDO (SIN CAJA ENVOLVENTE) */}
-                          <div className="opacity-60">
-                            <MarcoContent
-                              photoUrl={alert.user_photo}
-                              name={alert.user_name}
-                              carLabel={carLabel || 'Sin datos'}
-                              plate={alert.car_plate}
-                              carColor={alert.car_color}
-                              address={alert.address}
-                              timeLine={`Se va en ${alert.available_in_minutes} min · Te espera hasta las ${waitUntilLabel}`}
-                              onChat={() =>
-                                (window.location.href = createPageUrl(
-                                  `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
-                                ))
-                              }
-                              statusText="EN CURSO"
-                            />
-                          </div>
+                          <MarcoContent
+                            photoUrl={alert.user_photo}
+                            name={alert.user_name}
+                            carLabel={carLabel || 'Sin datos'}
+                            plate={alert.car_plate}
+                            carColor={alert.car_color}
+                            address={alert.address}
+                            timeLine={`Se va en ${alert.available_in_minutes} min · Te espera hasta las ${waitUntilLabel}`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
+                              ))
+                            }
+                            statusText="EN CURSO"
+                          />
                         </motion.div>
                       );
                     })}
@@ -1178,7 +1206,6 @@ export default function History() {
                       const key = item.id;
                       if (hiddenKeys.has(key)) return null;
 
-                      // Finalizada como alerta (simple)
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date);
@@ -1198,13 +1225,15 @@ export default function History() {
                               </Badge>
 
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--'}
+                                {ts ? formatCardDate(ts) : '--'}
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
                                 <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                   <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">-{(a.price ?? 0).toFixed(2)}€</span>
+                                  <span className="font-bold text-red-400 text-sm">
+                                    -{(a.price ?? 0).toFixed(2)}€
+                                  </span>
                                 </div>
 
                                 <Button
@@ -1226,7 +1255,9 @@ export default function History() {
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
                               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                              <span className="text-gray-400 leading-5">{a.address || 'Ubicación marcada'}</span>
+                              <span className="text-gray-400 leading-5">
+                                {a.address || 'Ubicación marcada'}
+                              </span>
                             </div>
 
                             <div className="mt-2">
@@ -1236,7 +1267,7 @@ export default function History() {
                         );
                       }
 
-                      // Finalizada como transacción (SIN caja envolvente)
+                      // Finalizada como transacción
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
 
@@ -1273,13 +1304,15 @@ export default function History() {
                             </Badge>
 
                             <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--'}
+                              {ts ? formatCardDate(ts) : '--'}
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
-                                <span className="font-bold text-red-400 text-sm">-{(tx.amount ?? 0).toFixed(2)}€</span>
+                                <span className="font-bold text-red-400 text-sm">
+                                  -{(tx.amount ?? 0).toFixed(2)}€
+                                </span>
                               </div>
 
                               <Button
@@ -1292,21 +1325,23 @@ export default function History() {
                             </div>
                           </div>
 
-                          <div className="opacity-60">
-                            <MarcoContent
-                              photoUrl={sellerPhoto}
-                              name={sellerName}
-                              carLabel={sellerCarLabel || 'Sin datos'}
-                              plate={sellerPlate}
-                              carColor={sellerColor}
-                              address={tx.address}
-                              timeLine={`Transacción completada · ${ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'}`}
-                              onChat={() =>
-                                (window.location.href = createPageUrl(`Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`))
-                              }
-                              statusText="COMPLETADA"
-                            />
-                          </div>
+                          <MarcoContent
+                            photoUrl={sellerPhoto}
+                            name={sellerName}
+                            carLabel={sellerCarLabel || 'Sin datos'}
+                            plate={sellerPlate}
+                            carColor={sellerColor}
+                            address={tx.address}
+                            timeLine={`Transacción completada · ${
+                              ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                            }`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
+                              ))
+                            }
+                            statusText="COMPLETADA"
+                          />
                         </motion.div>
                       );
                     })}
