@@ -769,9 +769,9 @@ export default function History() {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* ✅ STICKY SIN BORDE NEGRO DEBAJO */}
+          {/* FIX: sin borde negro debajo */}
           <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
-            <TabsList className="w-full bg-gray-900">
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
                 Tus alertas
               </TabsTrigger>
@@ -782,9 +782,10 @@ export default function History() {
           </div>
 
           {/* ===================== TUS ALERTAS ===================== */}
+          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 pb-28 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1183,9 +1184,10 @@ export default function History() {
           </TabsContent>
 
           {/* ===================== TUS RESERVAS ===================== */}
+          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 pb-28 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1235,9 +1237,11 @@ export default function History() {
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert.update(alert.id, { status: 'expired' }).finally(() => {
-                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                            });
+                            base44.entities.ParkingAlert
+                              .update(alert.id, { status: 'expired' })
+                              .finally(() => {
+                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                              });
                           }
                         }
                         return null;
@@ -1247,7 +1251,6 @@ export default function History() {
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
                       const dateText = formatCardDate(createdTs);
-
                       const moneyMode = reservationMoneyModeFromStatus('reserved');
 
                       return (
@@ -1288,7 +1291,6 @@ export default function History() {
                                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
                                   onClick={async () => {
                                     hideKey(key);
-
                                     if (isMock) return;
 
                                     await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
@@ -1401,10 +1403,7 @@ export default function History() {
                                       amountText={`${(a.price ?? 0).toFixed(2)}€`}
                                     />
                                   ) : (
-                                    <MoneyChip
-                                      mode="neutral"
-                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
-                                    />
+                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
                                   )}
 
                                   <Button
@@ -1456,9 +1455,7 @@ export default function History() {
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car ||
-                        tx.sellerCar ||
-                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
@@ -1499,10 +1496,7 @@ export default function History() {
                                     amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip
-                                    mode="neutral"
-                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
-                                  />
+                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
                                 )}
 
                                 <Button
@@ -1549,7 +1543,6 @@ export default function History() {
 
       <BottomNav />
 
-      {/* Tracker para reservadas (tus alertas) */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
