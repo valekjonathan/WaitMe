@@ -207,7 +207,7 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  // ====== Countdown (apagable para Finalizadas) ======
+  // ====== Countdown (apagable) ======
   const CountdownButton = ({ text, dimmed = false }) => (
     <Button
       type="button"
@@ -224,6 +224,13 @@ export default function History() {
     >
       {text}
     </Button>
+  );
+
+  // ✅ NUEVO: igual que “COMPLETADA” pero apagado (para Finalizadas)
+  const FinalizedStatusBox = ({ text = 'EXPIRADA' }) => (
+    <div className="w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 border-purple-500/30 bg-purple-600/10 opacity-60">
+      <span className="text-sm font-mono font-extrabold text-white/35">{text}</span>
+    </div>
   );
 
   // ====== Secciones "Activas / Finalizadas" centradas ======
@@ -803,7 +810,7 @@ export default function History() {
                             ? '--:--'
                             : remainingMs > 0
                             ? formatRemaining(remainingMs)
-                            : 'Alerta finalizada';
+                            : 'EXPIRADA';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -852,7 +859,6 @@ export default function History() {
                                   }
                                 />
 
-                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
@@ -908,10 +914,7 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton
-                                    text={countdownText}
-                                    dimmed={countdownText === 'Alerta finalizada'}
-                                  />
+                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
                                 </div>
                               </>
                             ) : (
@@ -948,7 +951,6 @@ export default function History() {
                                   }
                                 />
 
-                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -969,10 +971,7 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton
-                                    text={countdownText}
-                                    dimmed={countdownText === 'Alerta finalizada'}
-                                  />
+                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
                                 </div>
                               </>
                             )}
@@ -1051,9 +1050,9 @@ export default function History() {
                               </span>
                             </div>
 
-                            {/* APAGADO (sin quitarlo) */}
+                            {/* ✅ IGUAL QUE "COMPLETADA" PERO APAGADO + TEXTO "EXPIRADA" */}
                             <div className="mt-2">
-                              <CountdownButton text="Alerta finalizada" dimmed />
+                              <FinalizedStatusBox text="EXPIRADA" />
                             </div>
                           </motion.div>
                         );
@@ -1204,7 +1203,6 @@ export default function History() {
 
                       const isMock = String(alert.id).startsWith('mock-');
 
-                      // cuando termina el contador, pasa a Finalizadas
                       if (
                         alert.status === 'reserved' &&
                         hasExpiry &&
@@ -1214,9 +1212,11 @@ export default function History() {
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert.update(alert.id, { status: 'expired' }).finally(() => {
-                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                            });
+                            base44.entities.ParkingAlert
+                              .update(alert.id, { status: 'expired' })
+                              .finally(() => {
+                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                              });
                           }
                         }
                         return null;
@@ -1227,7 +1227,7 @@ export default function History() {
 
                       const dateText = formatCardDate(createdTs);
 
-                      const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
+                      const moneyMode = reservationMoneyModeFromStatus('reserved');
 
                       return (
                         <motion.div
@@ -1270,7 +1270,9 @@ export default function History() {
 
                                     if (isMock) return;
 
-                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                                    await base44.entities.ParkingAlert.update(alert.id, {
+                                      status: 'cancelled'
+                                    });
                                     await base44.entities.ChatMessage.create({
                                       alert_id: alert.id,
                                       sender_id: user?.email || user?.id,
