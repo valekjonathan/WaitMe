@@ -207,13 +207,20 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  // ====== Countdown (más brillante + NO deshabilitado para que no se apague) ======
-  const CountdownButton = ({ text }) => (
+  // ====== Countdown (apagable para Finalizadas) ======
+  const CountdownButton = ({ text, dimmed = false }) => (
     <Button
       type="button"
       variant="outline"
-      aria-disabled="true"
-      className="w-full h-9 border-2 border-purple-400/70 bg-purple-600/25 text-purple-100 hover:bg-purple-600/25 hover:text-purple-100 flex items-center justify-center font-mono font-extrabold text-sm cursor-default pointer-events-none shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]"
+      disabled
+      className={[
+        'w-full h-9 flex items-center justify-center font-mono font-extrabold text-sm',
+        'pointer-events-none cursor-default',
+        dimmed
+          ? '!border-white/10 !bg-white/5 !text-white/35 !shadow-none !opacity-60 hover:!bg-white/5'
+          : '!border-purple-400/70 !bg-purple-600/25 !text-purple-100 hover:!bg-purple-600/25 hover:!text-purple-100 ' +
+            '!shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]'
+      ].join(' ')}
     >
       {text}
     </Button>
@@ -845,7 +852,7 @@ export default function History() {
                                   }
                                 />
 
-                                {/* 1) línea bajo cabecera (debajo de Activa/Reservado) */}
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
@@ -901,7 +908,10 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} />
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
                                 </div>
                               </>
                             ) : (
@@ -938,7 +948,7 @@ export default function History() {
                                   }
                                 />
 
-                                {/* 1) línea bajo cabecera (debajo de Activa) */}
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -959,7 +969,10 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} />
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
                                 </div>
                               </>
                             )}
@@ -1038,8 +1051,9 @@ export default function History() {
                               </span>
                             </div>
 
+                            {/* APAGADO (sin quitarlo) */}
                             <div className="mt-2">
-                              <CountdownButton text="Alerta finalizada" />
+                              <CountdownButton text="Alerta finalizada" dimmed />
                             </div>
                           </motion.div>
                         );
@@ -1190,14 +1204,13 @@ export default function History() {
 
                       const isMock = String(alert.id).startsWith('mock-');
 
-                      // 2) cuando termina el contador, pasa a Finalizadas
+                      // cuando termina el contador, pasa a Finalizadas
                       if (
                         alert.status === 'reserved' &&
                         hasExpiry &&
                         remainingMs !== null &&
                         remainingMs <= 0
                       ) {
-                        // mock: se mueve a finalizadas por "mockExpiredFromActive"
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
@@ -1206,7 +1219,6 @@ export default function History() {
                             });
                           }
                         }
-                        // no renderizar ya en Activas
                         return null;
                       }
 
@@ -1244,7 +1256,10 @@ export default function History() {
                                     amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip mode="neutral" amountText={`${(alert.price ?? 0).toFixed(2)}€`} />
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
                                 )}
 
                                 <Button
@@ -1294,7 +1309,6 @@ export default function History() {
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
-                            // 2) ahora sí descuenta en tiempo real (y ya no se resetea a 10:00 por los mocks)
                             statusText={countdownText}
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
@@ -1366,7 +1380,10 @@ export default function History() {
                                       amountText={`${(a.price ?? 0).toFixed(2)}€`}
                                     />
                                   ) : (
-                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
+                                    <MoneyChip
+                                      mode="neutral"
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
                                   )}
 
                                   <Button
@@ -1418,7 +1435,9 @@ export default function History() {
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car ||
+                        tx.sellerCar ||
+                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
@@ -1459,7 +1478,10 @@ export default function History() {
                                     amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
                                 )}
 
                                 <Button
