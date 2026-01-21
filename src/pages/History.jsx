@@ -207,7 +207,7 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  // ====== Countdown (apagable) ======
+  // ====== Countdown (apagable para Finalizadas) ======
   const CountdownButton = ({ text, dimmed = false }) => (
     <Button
       type="button"
@@ -226,21 +226,14 @@ export default function History() {
     </Button>
   );
 
-  // ✅ NUEVO: igual que “COMPLETADA” pero apagado (para Finalizadas)
-  const FinalizedStatusBox = ({ text = 'EXPIRADA' }) => (
-    <div className="w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 border-purple-500/30 bg-purple-600/10 opacity-60">
-      <span className="text-sm font-mono font-extrabold text-white/35">{text}</span>
-    </div>
-  );
-
-  // ====== Secciones "Activas / Finalizadas" fijas al hacer scroll ======
+  // ====== Secciones "Activas / Finalizadas" centradas ======
   const SectionTag = ({ variant, text }) => {
     const cls =
       variant === 'green'
         ? 'bg-green-500/20 border-green-500/30 text-green-400'
         : 'bg-red-500/20 border-red-500/30 text-red-400';
     return (
-      <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-sm w-full flex justify-center py-2">
+      <div className="w-full flex justify-center pt-0">
         <div
           className={`${cls} border rounded-md px-4 h-7 flex items-center justify-center font-bold text-xs text-center ${labelNoClick}`}
         >
@@ -432,16 +425,13 @@ export default function History() {
             )}
 
             <div className="flex-1">
-               {/* MODIFICADO: Uso de FinalizedStatusBox para que se vea igual que en Alertas */}
-              {statusOn ? (
-                 <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}>
-                  <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                    {statusText}
-                  </span>
-                </div>
-              ) : (
-                <FinalizedStatusBox text={statusText} />
-              )}
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
+              >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                  {statusText}
+                </span>
+              </div>
             </div>
 
             {priceChip ? <div className="hidden">{priceChip}</div> : null}
@@ -813,7 +803,7 @@ export default function History() {
                             ? '--:--'
                             : remainingMs > 0
                             ? formatRemaining(remainingMs)
-                            : 'EXPIRADA';
+                            : 'Alerta finalizada';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -862,6 +852,7 @@ export default function History() {
                                   }
                                 />
 
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
@@ -879,19 +870,58 @@ export default function History() {
                                       price={alert.price}
                                       showLocationInfo={false}
                                       showContactButtons={true}
+                                      onChat={() =>
+                                        (window.location.href = createPageUrl(
+                                          `Chat?alertId=${alert.id}&userId=${
+                                            alert.reserved_by_email || alert.reserved_by_id
+                                          }`
+                                        ))
+                                      }
+                                      onCall={() =>
+                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
+                                      }
+                                      latitude={alert.latitude}
+                                      longitude={alert.longitude}
+                                      allowPhoneCalls={alert.allow_phone_calls}
+                                      isReserved={true}
                                     />
                                   </div>
                                 )}
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start justify-between text-xs">
+                                  <div className="flex items-start gap-1.5">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
+                                  </div>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
+                                </div>
                               </>
                             ) : (
                               <>
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      variant="outline"
-                                      className={`border-green-500 text-green-500 px-3 ${labelNoClick}`}
+                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                                     >
-                                      ACTIVA
+                                      Activa
                                     </Badge>
                                   }
                                   dateText={dateText}
@@ -918,25 +948,31 @@ export default function History() {
                                   }
                                 />
 
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
-                                <div className="space-y-1.5 opacity-80">
-                                  <div className="flex items-center gap-1.5 text-xs">
-                                    <MapPin className="w-4 h-4 text-purple-400" />
-                                    <span className="text-gray-200">
-                                      {formatAddress(alert.address)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5 text-xs">
-                                    <Clock className="w-4 h-4 text-purple-400" />
-                                    <span className="text-gray-200">
-                                      Se iba en {alert.available_in_minutes} min - Te esperaba hasta las {waitUntilLabel}
-                                    </span>
-                                  </div>
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start gap-1.5 text-xs">
+                                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-500 leading-5">
+                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                  </span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las {waitUntilLabel}
+                                  </span>
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={remainingMs <= 0} />
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
                                 </div>
                               </>
                             )}
@@ -946,95 +982,177 @@ export default function History() {
                   </div>
                 )}
 
-                <SectionTag variant="red" text="Finalizadas" />
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
+                </div>
 
                 {myFinalizedAll.length === 0 ? (
-                  <div className="bg-gray-900 rounded-xl p-2 border border-gray-800">
-                    <div className="h-[60px] flex items-center justify-center">
-                      <p className="text-gray-600">No hay alertas pasadas</p>
-                    </div>
+                  <div className="text-center py-6 text-gray-500">
+                    <p>No tienes alertas finalizadas</p>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    {myFinalizedAll.map((item, idx) => {
-                      const { type, data } = item;
-                      const isAlert = type === 'alert';
-                      const createdTs = getCreatedTs(data) || 0;
-                      const dateText = formatCardDate(createdTs);
+                    {myFinalizedAll.map((item, index) => {
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
 
-                      if (isAlert) {
+                      if (item.type === 'alert') {
+                        const a = item.data;
+                        const ts = toMs(a.created_date);
+                        const dateText = ts ? formatCardDate(ts) : '--';
+
                         return (
-                          <div
-                            key={item.id}
-                            className="bg-gray-900 rounded-xl p-2 border border-gray-800"
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
                           >
                             <CardHeaderRow
                               left={
                                 <Badge
-                                  className={`bg-red-500/10 text-red-400 border border-red-500/20 px-3 ${labelNoClick}`}
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                 >
                                   Finalizada
                                 </Badge>
                               }
                               dateText={dateText}
-                              dateClassName="text-gray-400"
+                              dateClassName="text-gray-600"
                               right={
-                                <MoneyChip
-                                  amountText={`${(data.price ?? 0).toFixed(2)}€`}
-                                />
+                                <div className="flex items-center gap-1">
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${((a.price ?? 0) * 1).toFixed(2)}€`}
+                                  />
+                                  <Button
+                                    size="icon"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      await deleteAlertSafe(a.id);
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                  </Button>
+                                </div>
                               }
                             />
-                            <div className="border-t border-gray-800/80 mb-2" />
-                            <div className="space-y-1 opacity-50">
-                              <div className="flex items-center gap-1.5 text-xs">
-                                <MapPin className="w-4 h-4 text-gray-500" />
-                                <span>{formatAddress(data.address)}</span>
-                              </div>
+
+                            <div className="border-t border-gray-700/80 mb-2" />
+
+                            <div className="flex items-start gap-1.5 text-xs mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                              <span className="text-gray-400 leading-5">
+                                {formatAddress(a.address) || 'Ubicación marcada'}
+                              </span>
                             </div>
+
+                            {/* APAGADO (sin quitarlo) */}
                             <div className="mt-2">
-                              <FinalizedStatusBox text={statusLabelFrom(data.status)} />
+                              <CountdownButton text="Alerta finalizada" dimmed />
                             </div>
-                          </div>
+                          </motion.div>
                         );
-                      } else {
-                        const tx = data;
-                        return (
-                          <div
-                            key={item.id}
-                            className="bg-gray-900 rounded-xl p-2 border border-gray-800"
-                          >
-                            <CardHeaderRow
-                              left={
-                                <Badge
-                                  className={`bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 ${labelNoClick}`}
+                      }
+
+                      const tx = item.data;
+                      const isSeller = tx.seller_id === user?.id;
+
+                      const buyerName = tx.buyer_name || 'Usuario';
+                      const buyerPhoto = tx.buyer_photo_url || tx.buyerPhotoUrl || '';
+                      const buyerCarLabel =
+                        tx.buyer_car ||
+                        tx.buyerCar ||
+                        tx.buyer_car_label ||
+                        tx.buyerCarLabel ||
+                        (tx.buyer_car_brand
+                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
+                          : '');
+                      const buyerPlate =
+                        tx.buyer_plate ||
+                        tx.buyerPlate ||
+                        tx.buyer_car_plate ||
+                        tx.buyerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const buyerColor =
+                        tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
+
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {isSeller ? (
+                                  <MoneyChip
+                                    mode="green"
+                                    showUpIcon
+                                    amountText={`${(tx.seller_earnings ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
                                 >
-                                  Vendida
-                                </Badge>
-                              }
-                              dateText={dateText}
-                              dateClassName="text-gray-400"
-                              right={
-                                <MoneyChip
-                                  mode="green"
-                                  showUpIcon
-                                  amountText={`${(tx.seller_earnings ?? 0).toFixed(2)}€`}
-                                />
-                              }
-                            />
-                            <div className="border-t border-gray-800/80 mb-2" />
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <div className="mb-1.5">
                             <MarcoContent
-                              photoUrl={tx.buyer_photo_url}
-                              name={tx.buyer_name}
-                              carLabel={tx.buyer_car}
-                              plate={tx.buyer_plate}
-                              carColor={tx.buyer_car_color}
+                              photoUrl={buyerPhoto}
+                              name={buyerName}
+                              carLabel={buyerCarLabel || 'Sin datos'}
+                              plate={buyerPlate}
+                              carColor={buyerColor}
                               address={tx.address}
-                              timeLine="Venta completada"
+                              timeLine={`Transacción completada · ${
+                                ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                              }`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                ))
+                              }
                               statusText="COMPLETADA"
                             />
                           </div>
-                        );
-                      }
+                        </motion.div>
+                      );
                     })}
                   </div>
                 )}
@@ -1047,213 +1165,375 @@ export default function History() {
             value="reservations"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
-            <SectionTag variant="green" text="En curso" />
-
-            {reservationsActiveAll.length === 0 ? (
-              <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
-                <div className="h-[110px] flex items-center justify-center">
-                  <p className="text-gray-500 font-semibold">No tienes ninguna reserva activa</p>
-                </div>
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
+                Cargando...
               </div>
             ) : (
-              <div className="space-y-1.5">
-                {reservationsActiveAll.map((res, index) => {
-                  const createdTs = getCreatedTs(res) || nowTs;
-                  const waitUntilTs = getWaitUntilTs(res);
-                  const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
-                  const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
-                  const dateText = formatCardDate(createdTs);
+              <>
+                <SectionTag variant="green" text="Activas" />
 
-                  const countdownText =
-                    remainingMs === null
-                      ? '--:--'
-                      : remainingMs > 0
-                      ? formatRemaining(remainingMs)
-                      : 'EXPIRADA';
+                {reservationsActiveAll.length === 0 ? (
+                  <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
+                    <div className="h-[110px] flex items-center justify-center">
+                      <p className="text-gray-500 font-semibold">No tienes reservas</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {reservationsActiveAll.map((alert, index) => {
+                      const createdTs = getCreatedTs(alert) || nowTs;
+                      const waitUntilTs = getWaitUntilTs(alert);
+                      const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                  return (
-                    <motion.div
-                      key={res.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50"
-                    >
-                      <CardHeaderRow
-                        left={
-                          <Badge
-                            variant="outline"
-                            className="border-purple-500 text-purple-500 px-3 cursor-default"
+                      const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
+                      const waitUntilLabel = hasExpiry
+                        ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
+                        : '--:--';
+
+                      const countdownText =
+                        remainingMs === null
+                          ? '--:--'
+                          : remainingMs > 0
+                          ? formatRemaining(remainingMs)
+                          : 'Reserva finalizada';
+
+                      const key = `res-active-${alert.id}`;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const isMock = String(alert.id).startsWith('mock-');
+
+                      // cuando termina el contador, pasa a Finalizadas
+                      if (
+                        alert.status === 'reserved' &&
+                        hasExpiry &&
+                        remainingMs !== null &&
+                        remainingMs <= 0
+                      ) {
+                        if (!isMock) {
+                          if (!autoFinalizedReservationsRef.current.has(alert.id)) {
+                            autoFinalizedReservationsRef.current.add(alert.id);
+                            base44.entities.ParkingAlert.update(alert.id, { status: 'expired' }).finally(() => {
+                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                            });
+                          }
+                        }
+                        return null;
+                      }
+
+                      const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
+                      const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
+
+                      const dateText = formatCardDate(createdTs);
+
+                      const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Activa
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-white"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {moneyMode === 'paid' ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={async () => {
+                                    hideKey(key);
+
+                                    if (isMock) return;
+
+                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                                    await base44.entities.ChatMessage.create({
+                                      alert_id: alert.id,
+                                      sender_id: user?.email || user?.id,
+                                      sender_name:
+                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                                      receiver_id: alert.user_email || alert.user_id,
+                                      message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
+                                      read: false
+                                    });
+
+                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                  }}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            bright={true}
+                            photoUrl={alert.user_photo}
+                            name={alert.user_name}
+                            carLabel={carLabel || 'Sin datos'}
+                            plate={alert.car_plate}
+                            carColor={alert.car_color}
+                            address={alert.address}
+                            timeLine={{
+                              main: `Se va en ${alert.available_in_minutes} min ·`,
+                              accent: `Te espera hasta las ${waitUntilLabel}`
+                            }}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
+                              ))
+                            }
+                            statusText={countdownText}
+                            statusEnabled={true}
+                            phoneEnabled={phoneEnabled}
+                            onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
+                </div>
+
+                {reservationsFinalAll.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <p>No tienes reservas finalizadas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {reservationsFinalAll.map((item, index) => {
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+
+                      if (item.type === 'alert') {
+                        const a = item.data;
+                        const ts = toMs(a.created_date) || nowTs;
+                        const dateText = ts ? formatCardDate(ts) : '--';
+
+                        const waitUntilTs = getWaitUntilTs(a);
+                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
+                        const waitUntilLabel = hasExpiry
+                          ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
+                          : '--:--';
+
+                        const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+                        const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+
+                        const mode = reservationMoneyModeFromStatus(a.status);
+
+                        return (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
                           >
-                            RESERVA
-                          </Badge>
-                        }
-                        dateText={dateText}
-                        dateClassName="text-white"
-                        right={
-                          <div className="flex items-center gap-1">
-                            <MoneyChip
-                              mode="red"
-                              showDownIcon
-                              amountText={`${(res.price ?? 0).toFixed(2)}€`}
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  {mode === 'paid' ? (
+                                    <MoneyChip
+                                      mode="red"
+                                      showDownIcon
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
+                                  ) : (
+                                    <MoneyChip
+                                      mode="neutral"
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
+                                  )}
+
+                                  <Button
+                                    size="icon"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      const isMock = String(a.id).startsWith('mock-');
+                                      if (!isMock) {
+                                        await deleteAlertSafe(a.id);
+                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                      }
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                  </Button>
+                                </div>
+                              }
                             />
-                            <Button
-                              size="icon"
-                              className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                              onClick={() => {
-                                cancelAlertMutation.mutate(res.id);
-                              }}
-                            >
-                              <X className="w-4 h-4" strokeWidth={3} />
-                            </Button>
-                          </div>
-                        }
-                      />
-                      <div className="border-t border-gray-700/80 mb-2" />
-                      <MarcoContent
-                        photoUrl={res.user_photo}
-                        name={res.user_name}
-                        carLabel={`${res.car_brand} ${res.car_model}`}
-                        plate={res.car_plate}
-                        carColor={res.car_color}
-                        address={res.address}
-                        timeLine={{
-                          main: `Se va en ${res.available_in_minutes} min - Te espera hasta las`,
-                          accent: format(new Date(waitUntilTs || 0), 'HH:mm')
-                        }}
-                        statusText={countdownText}
-                        statusEnabled={true}
-                        phoneEnabled={res.allow_phone_calls}
-                        bright={true}
-                      />
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
 
-            <SectionTag variant="red" text="Finalizadas" />
+                            <div className="border-t border-gray-700/80 mb-2" />
 
-            {reservationsFinalAll.length === 0 ? (
-              <div className="bg-gray-900 rounded-xl p-2 border border-gray-800">
-                <div className="h-[60px] flex items-center justify-center">
-                  <p className="text-gray-600">No hay reservas pasadas</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {reservationsFinalAll.map((item) => {
-                  const { type, data } = item;
-                  const isAlert = type === 'alert';
-                  const createdTs = getCreatedTs(data) || 0;
-                  const dateText = formatCardDate(createdTs);
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={carLabel || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={phoneEnabled}
+                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                            />
+                          </motion.div>
+                        );
+                      }
 
-                  if (isAlert) {
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-gray-900 rounded-xl p-2 border border-gray-800"
-                      >
-                        <CardHeaderRow
-                          left={
-                            <Badge
-                              className={`bg-red-500/10 text-red-400 border border-red-500/20 px-3 ${labelNoClick}`}
-                            >
-                              Finalizada
-                            </Badge>
-                          }
-                          dateText={dateText}
-                          dateClassName="text-gray-400"
-                          right={
-                            <div className="flex items-center gap-1">
-                              <MoneyChip
-                                amountText={`${(data.price ?? 0).toFixed(2)}€`}
-                              />
-                              <Button
-                                size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={() => {
-                                  hideKey(item.id);
-                                }}
+                      const tx = item.data;
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      const sellerName = tx.seller_name || 'Usuario';
+                      const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
+                      const sellerCarLabel =
+                        tx.seller_car ||
+                        tx.sellerCar ||
+                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                      const sellerPlate =
+                        tx.seller_plate ||
+                        tx.sellerPlate ||
+                        tx.seller_car_plate ||
+                        tx.sellerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const sellerColor =
+                        tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
+
+                      const txPaid = String(tx.status || '').toLowerCase() === 'completed';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          }
-                        />
-                        <div className="border-t border-gray-800/80 mb-2" />
-                        <MarcoContent
-                          photoUrl={data.user_photo}
-                          name={data.user_name}
-                          carLabel={`${data.car_brand} ${data.car_model}`}
-                          plate={data.car_plate}
-                          carColor={data.car_color}
-                          address={data.address}
-                          timeLine={`Se iba en ${data.available_in_minutes} min`}
-                          statusText={statusLabelFrom(data.status)}
-                          statusEnabled={false}
-                        />
-                      </div>
-                    );
-                  } else {
-                    const tx = data;
-                    return (
-                      <div
-                        key={item.id}
-                        className="bg-gray-900 rounded-xl p-2 border border-gray-800"
-                      >
-                        <CardHeaderRow
-                          left={
-                            <Badge
-                              className={`bg-green-500/10 text-green-400 border border-green-500/20 px-3 ${labelNoClick}`}
-                            >
-                              Pagada
-                            </Badge>
-                          }
-                          dateText={dateText}
-                          dateClassName="text-gray-400"
-                          right={
-                            <div className="flex items-center gap-1">
-                              <MoneyChip
-                                mode="red"
-                                showDownIcon
-                                amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
-                              />
-                              <Button
-                                size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={() => {
-                                  hideKey(item.id);
-                                }}
-                              >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          }
-                        />
-                        <div className="border-t border-gray-800/80 mb-2" />
-                        <MarcoContent
-                          photoUrl={tx.seller_photo_url}
-                          name={tx.seller_name}
-                          carLabel={tx.seller_car}
-                          plate={tx.seller_plate}
-                          carColor={tx.seller_car_color}
-                          address={tx.address}
-                          timeLine="Compra completada"
-                          statusText="COMPLETADA"
-                          statusEnabled={true}
-                        />
-                      </div>
-                    );
-                  }
-                })}
-              </div>
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {txPaid ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            photoUrl={sellerPhoto}
+                            name={sellerName}
+                            carLabel={sellerCarLabel || 'Sin datos'}
+                            plate={sellerPlate}
+                            carColor={sellerColor}
+                            address={tx.address}
+                            timeLine={`Transacción completada · ${
+                              ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                            }`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
+                              ))
+                            }
+                            statusText="COMPLETADA"
+                            statusEnabled={true}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
         </Tabs>
       </main>
 
-      <BottomNav activeTab="history" />
+      <BottomNav />
+
+      {/* Tracker para reservadas (tus alertas) */}
+      {myActiveAlerts
+        .filter((a) => a.status === 'reserved')
+        .map((alert) => (
+          <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
+        ))}
     </div>
   );
-} 
+}
