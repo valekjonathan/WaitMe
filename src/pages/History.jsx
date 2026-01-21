@@ -202,9 +202,12 @@ export default function History() {
     statusText = 'COMPLETADA',
     address,
     timeLine,
-    priceChip
+    priceChip,
+    phoneEnabled = false,
+    statusEnabled = false
   }) => {
     const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
+    const statusOn = statusEnabled || isCompleted;
 
     return (
       <>
@@ -229,7 +232,7 @@ export default function History() {
               {(name || '').split(' ')[0] || 'Usuario'}
             </p>
 
-            {/* BMW... bajado un poquito (sin mover nombre ni matrícula) */}
+            {/* 1) BMW... bajado 2px EXACTOS (sin mover nombre ni matrícula) */}
             <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[2px]">
               {carLabel || 'Sin datos'}
             </p>
@@ -254,6 +257,7 @@ export default function History() {
           <div className="space-y-1.5 opacity-80">
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
+                {/* 2) Iconos morados */}
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 <span className="text-gray-300 leading-5 line-clamp-1">{address}</span>
               </div>
@@ -261,6 +265,7 @@ export default function History() {
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
+                {/* 2) Iconos morados */}
                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 <span className="text-gray-300 leading-5">{timeLine}</span>
               </div>
@@ -280,25 +285,30 @@ export default function History() {
               <MessageCircle className="w-4 h-4" />
             </Button>
 
+            {/* TEL: apagado por defecto, encendido cuando lo pidamos */}
             <Button
               variant="outline"
               size="icon"
-              className="border-gray-700 h-8 w-[42px] opacity-50 cursor-not-allowed"
-              disabled
+              className={
+                phoneEnabled
+                  ? 'border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/15 rounded-lg h-8 w-[42px]'
+                  : 'border-gray-700 h-8 w-[42px] opacity-50 cursor-not-allowed rounded-lg'
+              }
+              disabled={!phoneEnabled}
             >
-              <PhoneOff className="w-4 h-4 text-gray-600" />
+              <PhoneOff className={phoneEnabled ? 'w-4 h-4 text-purple-300' : 'w-4 h-4 text-gray-600'} />
             </Button>
 
-            {/* COMPLETADA encendida como "Alerta finalizada" */}
+            {/* COMPLETADA encendida como "Alerta finalizada" (o forzado con statusEnabled) */}
             <div className="flex-1">
               <div
                 className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${
-                  isCompleted ? 'border-purple-500/30 bg-purple-600/10' : 'border-gray-700 bg-gray-800/60'
+                  statusOn ? 'border-purple-500/30 bg-purple-600/10' : 'border-gray-700 bg-gray-800/60'
                 }`}
               >
                 <span
                   className={`text-sm font-mono font-bold ${
-                    isCompleted ? 'text-purple-300' : 'text-gray-400 opacity-70'
+                    statusOn ? 'text-purple-300' : 'text-gray-400 opacity-70'
                   }`}
                 >
                   {statusText}
@@ -379,7 +389,7 @@ export default function History() {
     (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
   );
 
-  // ====== MOCKS para reservas (5 activas + 5 finalizadas) ======
+  // ====== MOCKS para reservas (siempre hay al menos 1 activa) ======
   const mockReservationsActive = [
     {
       id: 'mock-res-1',
@@ -399,82 +409,6 @@ export default function History() {
       price: 2.5,
       created_date: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
       wait_until: new Date(Date.now() + 1000 * 60 * 10).toISOString()
-    },
-    {
-      id: 'mock-res-2',
-      status: 'reserved',
-      reserved_by_id: user?.id,
-      user_id: 'seller-2',
-      user_email: 'seller2@test.com',
-      user_name: 'Raúl',
-      user_photo:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
-      car_brand: 'Audi',
-      car_model: 'A3',
-      car_color: 'azul',
-      car_plate: '1209KLP',
-      address: 'Calle Uría, 10',
-      available_in_minutes: 12,
-      price: 3.0,
-      created_date: new Date(Date.now() - 1000 * 60 * 6).toISOString(),
-      wait_until: new Date(Date.now() + 1000 * 60 * 18).toISOString()
-    },
-    {
-      id: 'mock-res-3',
-      status: 'reserved',
-      reserved_by_id: user?.id,
-      user_id: 'seller-3',
-      user_email: 'seller3@test.com',
-      user_name: 'Marta',
-      user_photo:
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop',
-      car_brand: 'Toyota',
-      car_model: 'Yaris',
-      car_color: 'gris',
-      car_plate: '5678DEF',
-      address: 'Avenida del Paseo, 25',
-      available_in_minutes: 28,
-      price: 4.2,
-      created_date: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-      wait_until: new Date(Date.now() + 1000 * 60 * 30).toISOString()
-    },
-    {
-      id: 'mock-res-4',
-      status: 'reserved',
-      reserved_by_id: user?.id,
-      user_id: 'seller-4',
-      user_email: 'seller4@test.com',
-      user_name: 'Diego',
-      user_photo:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-      car_brand: 'Mercedes',
-      car_model: 'Clase A',
-      car_color: 'negro',
-      car_plate: '9812GHJ',
-      address: 'Calle Covadonga, 7',
-      available_in_minutes: 45,
-      price: 5.0,
-      created_date: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-      wait_until: new Date(Date.now() + 1000 * 60 * 50).toISOString()
-    },
-    {
-      id: 'mock-res-5',
-      status: 'reserved',
-      reserved_by_id: user?.id,
-      user_id: 'seller-5',
-      user_email: 'seller5@test.com',
-      user_name: 'Laura',
-      user_photo:
-        'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop',
-      car_brand: 'Renault',
-      car_model: 'Clio',
-      car_color: 'blanco',
-      car_plate: '4444XYZ',
-      address: 'Calle Rosal, 4',
-      available_in_minutes: 9,
-      price: 1.8,
-      created_date: new Date(Date.now() - 1000 * 60 * 1).toISOString(),
-      wait_until: new Date(Date.now() + 1000 * 60 * 12).toISOString()
     }
   ];
 
@@ -496,78 +430,6 @@ export default function History() {
       available_in_minutes: 8,
       price: 4.0,
       created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
-    },
-    {
-      id: 'mock-res-fin-2',
-      status: 'cancelled',
-      reserved_by_id: user?.id,
-      user_id: 'seller-9',
-      user_email: 'seller9@test.com',
-      user_name: 'Nuria',
-      user_photo:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-      car_brand: 'Seat',
-      car_model: 'León',
-      car_color: 'rojo',
-      car_plate: '9812GHJ',
-      address: 'Calle Pelayo, 3',
-      available_in_minutes: 15,
-      price: 3.0,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
-    },
-    {
-      id: 'mock-res-fin-3',
-      status: 'expired',
-      reserved_by_id: user?.id,
-      user_id: 'seller-10',
-      user_email: 'seller10@test.com',
-      user_name: 'Iván',
-      user_photo:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
-      car_brand: 'Audi',
-      car_model: 'A4',
-      car_color: 'azul',
-      car_plate: '1209KLP',
-      address: 'Calle Campoamor, 15',
-      available_in_minutes: 10,
-      price: 2.8,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
-    },
-    {
-      id: 'mock-res-fin-4',
-      status: 'completed',
-      reserved_by_id: user?.id,
-      user_id: 'seller-11',
-      user_email: 'seller11@test.com',
-      user_name: 'Sara',
-      user_photo:
-        'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop',
-      car_brand: 'Toyota',
-      car_model: 'Corolla',
-      car_color: 'blanco',
-      car_plate: '4444XYZ',
-      address: 'Avenida Galicia, 44',
-      available_in_minutes: 20,
-      price: 5.5,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString()
-    },
-    {
-      id: 'mock-res-fin-5',
-      status: 'cancelled',
-      reserved_by_id: user?.id,
-      user_id: 'seller-12',
-      user_email: 'seller12@test.com',
-      user_name: 'Pablo',
-      user_photo:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-      car_brand: 'Renault',
-      car_model: 'Megane',
-      car_color: 'negro',
-      car_plate: '7001JRV',
-      address: 'Calle Jovellanos, 9',
-      available_in_minutes: 25,
-      price: 2.0,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9).toISOString()
     }
   ];
 
@@ -1176,6 +1038,7 @@ export default function History() {
                             </div>
                           </div>
 
+                          {/* 2) En reservas activas: TODOS los botones encendidos */}
                           <MarcoContent
                             photoUrl={alert.user_photo}
                             name={alert.user_name}
@@ -1190,6 +1053,8 @@ export default function History() {
                               ))
                             }
                             statusText="EN CURSO"
+                            phoneEnabled={true}
+                            statusEnabled={true}
                           />
                         </motion.div>
                       );
@@ -1197,7 +1062,7 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
+                {/* 2) Botón/etiqueta "Finalizadas" IGUAL que en Tus alertas, y debajo las finalizadas */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -1216,6 +1081,10 @@ export default function History() {
                       const key = item.id;
                       if (hiddenKeys.has(key)) return null;
 
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+
+                      // Finalizada como alerta (apagado EXACTO como en tus alertas)
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date);
@@ -1225,7 +1094,7 @@ export default function History() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative"
+                            className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
                               <Badge
@@ -1239,10 +1108,10 @@ export default function History() {
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
-                                <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">
-                                    -{(a.price ?? 0).toFixed(2)}€
+                                {/* gris, no rojo (apagado) */}
+                                <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                  <span className="font-bold text-gray-400 text-sm">
+                                    {(a.price ?? 0).toFixed(2)}€
                                   </span>
                                 </div>
 
@@ -1277,7 +1146,7 @@ export default function History() {
                         );
                       }
 
-                      // Finalizada como transacción
+                      // Finalizada como transacción (apagado como en tus alertas)
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
 
@@ -1304,7 +1173,7 @@ export default function History() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative"
+                          className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
                             <Badge
