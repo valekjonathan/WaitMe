@@ -229,8 +229,8 @@ export default function History() {
               {(name || '').split(' ')[0] || 'Usuario'}
             </p>
 
-            {/* Modelo centrado verticalmente entre nombre y matrícula */}
-            <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate">
+            {/* BMW... bajado un poquito (sin mover nombre ni matrícula) */}
+            <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[2px]">
               {carLabel || 'Sin datos'}
             </p>
 
@@ -249,19 +249,19 @@ export default function History() {
           </div>
         </div>
 
-        {/* Rayita + líneas (apagado pero MÁS visible) */}
+        {/* Rayita + líneas (apagado pero visible) */}
         <div className="pt-1.5 border-t border-gray-800/70 mt-2">
           <div className="space-y-1.5 opacity-80">
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 <span className="text-gray-300 leading-5 line-clamp-1">{address}</span>
               </div>
             ) : null}
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 <span className="text-gray-300 leading-5">{timeLine}</span>
               </div>
             ) : null}
@@ -271,10 +271,10 @@ export default function History() {
         {/* Botonera */}
         <div className="mt-2">
           <div className="flex gap-2">
-            {/* CHAT VERDE BRILLANTE */}
+            {/* CHAT VERDE NORMAL */}
             <Button
               size="icon"
-              className="bg-green-400 hover:bg-green-500 text-black rounded-lg h-8 w-[42px] ring-2 ring-green-200/40 shadow-lg shadow-green-400/20"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
               onClick={onChat}
             >
               <MessageCircle className="w-4 h-4" />
@@ -621,10 +621,20 @@ export default function History() {
   const reservationsFinalAll = [
     ...myAlerts
       .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
-      .map((a) => ({ type: 'alert', id: `res-final-alert-${a.id}`, created_date: a.created_date, data: a })),
+      .map((a) => ({
+        type: 'alert',
+        id: `res-final-alert-${a.id}`,
+        created_date: a.created_date,
+        data: a
+      })),
     ...transactions
       .filter((t) => t.buyer_id === user?.id)
-      .map((t) => ({ type: 'transaction', id: `res-final-tx-${t.id}`, created_date: t.created_date, data: t })),
+      .map((t) => ({
+        type: 'transaction',
+        id: `res-final-tx-${t.id}`,
+        created_date: t.created_date,
+        data: t
+      })),
     ...mockReservationsFinal.map((a) => ({
       type: 'alert',
       id: `res-final-mock-${a.id}`,
