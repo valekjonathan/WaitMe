@@ -1155,7 +1155,6 @@ export default function History() {
                             {/* 4) “EN CURSO” pasa a contador en tiempo real */}
                             statusText={countdownText}
                             statusEnabled={true}
-                            {/* 6) Llamar blanco si hay teléfono visible; si no, blanco con tachado */}
                             phoneEnabled={phoneEnabled}
                             onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
                           />
