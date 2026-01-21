@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -207,12 +207,13 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
+  // ====== Countdown (más brillante + NO deshabilitado para que no se apague) ======
   const CountdownButton = ({ text }) => (
     <Button
       type="button"
       variant="outline"
-      disabled
-      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm cursor-default"
+      aria-disabled="true"
+      className="w-full h-9 border-2 border-purple-400/70 bg-purple-600/25 text-purple-100 hover:bg-purple-600/25 hover:text-purple-100 flex items-center justify-center font-mono font-extrabold text-sm cursor-default pointer-events-none shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]"
     >
       {text}
     </Button>
@@ -246,7 +247,6 @@ export default function History() {
 
   // ====== Chips de dinero ======
   const MoneyChip = ({ mode = 'neutral', amountText, showDownIcon = false, showUpIcon = false }) => {
-    // mode: 'green' | 'red' | 'neutral'
     const isGreen = mode === 'green';
     const isRed = mode === 'red';
 
@@ -287,6 +287,9 @@ export default function History() {
     const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
     const statusOn = statusEnabled || isCompleted;
 
+    const isCountdownLike =
+      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(statusText.trim());
+
     const photoCls = bright
       ? 'w-full h-full object-cover'
       : 'w-full h-full object-cover opacity-40 grayscale';
@@ -308,6 +311,18 @@ export default function History() {
 
     const isTimeObj =
       timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
+
+    const statusBoxCls = statusOn
+      ? isCountdownLike
+        ? 'border-purple-400/70 bg-purple-600/25'
+        : 'border-purple-500/30 bg-purple-600/10'
+      : 'border-gray-700 bg-gray-800/60';
+
+    const statusTextCls = statusOn
+      ? isCountdownLike
+        ? 'text-purple-100'
+        : 'text-purple-300'
+      : 'text-gray-400 opacity-70';
 
     return (
       <>
@@ -404,15 +419,9 @@ export default function History() {
 
             <div className="flex-1">
               <div
-                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${
-                  statusOn ? 'border-purple-500/30 bg-purple-600/10' : 'border-gray-700 bg-gray-800/60'
-                }`}
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
               >
-                <span
-                  className={`text-sm font-mono font-bold ${
-                    statusOn ? 'text-purple-300' : 'text-gray-400 opacity-70'
-                  }`}
-                >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
                   {statusText}
                 </span>
               </div>
@@ -443,6 +452,7 @@ export default function History() {
 
   // ====== Effects ======
   const autoFinalizedRef = useRef(new Set());
+  const autoFinalizedReservationsRef = useRef(new Set());
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -491,111 +501,119 @@ export default function History() {
     (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
   );
 
-  // ====== MOCKS (fotos fijas por nombre) ======
-  const mockReservationsActive = [
-    {
-      id: 'mock-res-1',
-      status: 'reserved',
-      reserved_by_id: user?.id,
-      user_id: 'seller-1',
-      user_email: 'seller1@test.com',
-      user_name: 'Sofía',
-      user_photo: avatarFor('Sofía'),
-      car_brand: 'Seat',
-      car_model: 'Ibiza',
-      car_color: 'rojo',
-      car_plate: '7780KLP',
-      address: 'Calle Gran Vía, 1',
-      available_in_minutes: 6,
-      price: 2.5,
-      phone: '600123123',
-      allow_phone_calls: true,
-      created_date: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-      wait_until: new Date(Date.now() + 1000 * 60 * 10).toISOString()
-    }
-  ];
+  // ====== MOCKS (ESTABLES: NO se regeneran con cada tick) ======
+  const mockReservationsActive = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-res-1',
+        status: 'reserved',
+        reserved_by_id: user?.id,
+        user_id: 'seller-1',
+        user_email: 'seller1@test.com',
+        user_name: 'Sofía',
+        user_photo: avatarFor('Sofía'),
+        car_brand: 'Seat',
+        car_model: 'Ibiza',
+        car_color: 'rojo',
+        car_plate: '7780KLP',
+        address: 'Calle Gran Vía, 1',
+        available_in_minutes: 6,
+        price: 2.5,
+        phone: '600123123',
+        allow_phone_calls: true,
+        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString(),
+        wait_until: new Date(baseNow + 1000 * 60 * 10).toISOString()
+      }
+    ];
+  }, [user?.id]);
 
-  const mockReservationsFinal = [
-    {
-      id: 'mock-res-fin-1',
-      status: 'completed',
-      reserved_by_id: user?.id,
-      user_id: 'seller-8',
-      user_email: 'seller8@test.com',
-      user_name: 'Hugo',
-      user_photo: avatarFor('Hugo'),
-      car_brand: 'BMW',
-      car_model: 'Serie 1',
-      car_color: 'gris',
-      car_plate: '2847BNM',
-      address: 'Calle Gran Vía, 25',
-      available_in_minutes: 8,
-      price: 4.0,
-      phone: '611111111',
-      allow_phone_calls: false,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
-    },
-    {
-      id: 'mock-res-fin-2',
-      status: 'cancelled',
-      reserved_by_id: user?.id,
-      user_id: 'seller-9',
-      user_email: 'seller9@test.com',
-      user_name: 'Nuria',
-      user_photo: avatarFor('Nuria'),
-      car_brand: 'Audi',
-      car_model: 'A3',
-      car_color: 'azul',
-      car_plate: '1209KLP',
-      address: 'Calle Uría, 10',
-      available_in_minutes: 12,
-      price: 3.0,
-      phone: '622222222',
-      allow_phone_calls: true,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
-    },
-    {
-      id: 'mock-res-fin-3',
-      status: 'expired',
-      reserved_by_id: user?.id,
-      user_id: 'seller-10',
-      user_email: 'seller10@test.com',
-      user_name: 'Iván',
-      user_photo: avatarFor('Iván'),
-      car_brand: 'Toyota',
-      car_model: 'Yaris',
-      car_color: 'blanco',
-      car_plate: '4444XYZ',
-      address: 'Calle Campoamor, 15',
-      available_in_minutes: 10,
-      price: 2.8,
-      phone: null,
-      allow_phone_calls: false,
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
-    }
-  ];
+  const mockReservationsFinal = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-res-fin-1',
+        status: 'completed',
+        reserved_by_id: user?.id,
+        user_id: 'seller-8',
+        user_email: 'seller8@test.com',
+        user_name: 'Hugo',
+        user_photo: avatarFor('Hugo'),
+        car_brand: 'BMW',
+        car_model: 'Serie 1',
+        car_color: 'gris',
+        car_plate: '2847BNM',
+        address: 'Calle Gran Vía, 25',
+        available_in_minutes: 8,
+        price: 4.0,
+        phone: '611111111',
+        allow_phone_calls: false,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
+      },
+      {
+        id: 'mock-res-fin-2',
+        status: 'cancelled',
+        reserved_by_id: user?.id,
+        user_id: 'seller-9',
+        user_email: 'seller9@test.com',
+        user_name: 'Nuria',
+        user_photo: avatarFor('Nuria'),
+        car_brand: 'Audi',
+        car_model: 'A3',
+        car_color: 'azul',
+        car_plate: '1209KLP',
+        address: 'Calle Uría, 10',
+        available_in_minutes: 12,
+        price: 3.0,
+        phone: '622222222',
+        allow_phone_calls: true,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 3).toISOString()
+      },
+      {
+        id: 'mock-res-fin-3',
+        status: 'expired',
+        reserved_by_id: user?.id,
+        user_id: 'seller-10',
+        user_email: 'seller10@test.com',
+        user_name: 'Iván',
+        user_photo: avatarFor('Iván'),
+        car_brand: 'Toyota',
+        car_model: 'Yaris',
+        car_color: 'blanco',
+        car_plate: '4444XYZ',
+        address: 'Calle Campoamor, 15',
+        available_in_minutes: 10,
+        price: 2.8,
+        phone: null,
+        allow_phone_calls: false,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 5).toISOString()
+      }
+    ];
+  }, [user?.id]);
 
-  // ====== Transacciones mock (Marco con foto fija) ======
-  const mockTransactions = [
-    {
-      id: 'mock-tx-1',
-      seller_id: user?.id,
-      seller_name: 'Tu',
-      buyer_id: 'buyer-1',
-      buyer_name: 'Marco',
-      buyer_photo_url: avatarFor('Marco'),
-      buyer_car: 'BMW Serie 3',
-      buyer_car_color: 'gris',
-      buyer_plate: '2847BNM',
-      amount: 5.0,
-      seller_earnings: 4.0,
-      platform_fee: 1.0,
-      status: 'completed',
-      address: 'Calle Gran Vía, 25',
-      alert_id: 'mock-alert-1',
-      created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
-    }
-  ];
+  const mockTransactions = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-tx-1',
+        seller_id: user?.id,
+        seller_name: 'Tu',
+        buyer_id: 'buyer-1',
+        buyer_name: 'Marco',
+        buyer_photo_url: avatarFor('Marco'),
+        buyer_car: 'BMW Serie 3',
+        buyer_car_color: 'gris',
+        buyer_plate: '2847BNM',
+        amount: 5.0,
+        seller_earnings: 4.0,
+        platform_fee: 1.0,
+        status: 'completed',
+        address: 'Calle Gran Vía, 25',
+        alert_id: 'mock-alert-1',
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
+      }
+    ];
+  }, [user?.id]);
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
@@ -621,7 +639,27 @@ export default function History() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  const reservationsFinalAll = [
+  // mocks caducadas (para que pasen a Finalizadas sin tocar BD)
+  const mockExpiredFromActive = reservationsActiveAll
+    .filter((a) => String(a.id).startsWith('mock-'))
+    .map((a) => {
+      const createdTs = getCreatedTs(a) || nowTs;
+      const waitUntilTs = getWaitUntilTs(a);
+      const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+      const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
+      if (!hasExpiry || remainingMs === null) return null;
+      if (remainingMs > 0) return null;
+
+      return {
+        type: 'alert',
+        id: `res-final-mock-expired-${a.id}`,
+        created_date: a.created_date,
+        data: { ...a, status: 'expired' }
+      };
+    })
+    .filter(Boolean);
+
+  const reservationsFinalAllBase = [
     ...myAlerts
       .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
       .map((a) => ({
@@ -643,8 +681,13 @@ export default function History() {
       id: `res-final-mock-${a.id}`,
       created_date: a.created_date,
       data: a
-    }))
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+    })),
+    ...mockExpiredFromActive
+  ];
+
+  const reservationsFinalAll = reservationsFinalAllBase.sort(
+    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
+  );
 
   const isLoading = loadingAlerts || loadingTransactions;
 
@@ -681,7 +724,6 @@ export default function History() {
   };
 
   // ====== Dinero en "Tus reservas" según estado ======
-  // Regla: SOLO rojo + flecha abajo si COMPLETADA (pagada). Si EXPIRADA/CANCELADA => neutral.
   const reservationMoneyModeFromStatus = (status) => {
     const st = String(status || '').toLowerCase();
     if (st === 'completed') return 'paid';
@@ -733,7 +775,6 @@ export default function History() {
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                        // contador SIEMPRE basado en waitUntilTs => sincroniza con "Te espera hasta..."
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry
                           ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -775,7 +816,7 @@ export default function History() {
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      className={`bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-center ${labelNoClick}`}
+                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
                                     >
                                       Reservado por:
                                     </Badge>
@@ -803,6 +844,9 @@ export default function History() {
                                     </div>
                                   }
                                 />
+
+                                {/* 1) línea bajo cabecera (debajo de Activa/Reservado) */}
+                                <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5 h-[220px]">
@@ -865,7 +909,7 @@ export default function History() {
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                                     >
                                       Activa
                                     </Badge>
@@ -893,6 +937,9 @@ export default function History() {
                                     </div>
                                   }
                                 />
+
+                                {/* 1) línea bajo cabecera (debajo de Activa) */}
+                                <div className="border-t border-gray-700/80 mb-2" />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
@@ -982,7 +1029,6 @@ export default function History() {
                               }
                             />
 
-                            {/* línea extra bajo cabecera */}
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -999,7 +1045,6 @@ export default function History() {
                         );
                       }
 
-                      // Transacción finalizada (Marco)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -1071,7 +1116,6 @@ export default function History() {
                             }
                           />
 
-                          {/* línea extra bajo cabecera */}
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <div className="mb-1.5">
@@ -1144,12 +1188,33 @@ export default function History() {
                       const key = `res-active-${alert.id}`;
                       if (hiddenKeys.has(key)) return null;
 
+                      const isMock = String(alert.id).startsWith('mock-');
+
+                      // 2) cuando termina el contador, pasa a Finalizadas
+                      if (
+                        alert.status === 'reserved' &&
+                        hasExpiry &&
+                        remainingMs !== null &&
+                        remainingMs <= 0
+                      ) {
+                        // mock: se mueve a finalizadas por "mockExpiredFromActive"
+                        if (!isMock) {
+                          if (!autoFinalizedReservationsRef.current.has(alert.id)) {
+                            autoFinalizedReservationsRef.current.add(alert.id);
+                            base44.entities.ParkingAlert.update(alert.id, { status: 'expired' }).finally(() => {
+                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                            });
+                          }
+                        }
+                        // no renderizar ya en Activas
+                        return null;
+                      }
+
                       const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
                       const dateText = formatCardDate(createdTs);
 
-                      // Regla: activa NO es "pagada" => neutral
                       const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
 
                       return (
@@ -1163,7 +1228,7 @@ export default function History() {
                           <CardHeaderRow
                             left={
                               <Badge
-                                className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                               >
                                 Activa
                               </Badge>
@@ -1179,10 +1244,7 @@ export default function History() {
                                     amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip
-                                    mode="neutral"
-                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
-                                  />
+                                  <MoneyChip mode="neutral" amountText={`${(alert.price ?? 0).toFixed(2)}€`} />
                                 )}
 
                                 <Button
@@ -1191,7 +1253,6 @@ export default function History() {
                                   onClick={async () => {
                                     hideKey(key);
 
-                                    const isMock = String(alert.id).startsWith('mock-');
                                     if (isMock) return;
 
                                     await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
@@ -1214,7 +1275,6 @@ export default function History() {
                             }
                           />
 
-                          {/* 2) línea extra también en activas (tus reservas) */}
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
@@ -1234,6 +1294,7 @@ export default function History() {
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
+                            // 2) ahora sí descuenta en tiempo real (y ya no se resetea a 10:00 por los mocks)
                             statusText={countdownText}
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
@@ -1262,7 +1323,6 @@ export default function History() {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
-                      // finalizada como alerta (rojo SOLO si completed; cancel/expired => neutral)
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date) || nowTs;
@@ -1306,10 +1366,7 @@ export default function History() {
                                       amountText={`${(a.price ?? 0).toFixed(2)}€`}
                                     />
                                   ) : (
-                                    <MoneyChip
-                                      mode="neutral"
-                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
-                                    />
+                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
                                   )}
 
                                   <Button
@@ -1354,7 +1411,6 @@ export default function History() {
                         );
                       }
 
-                      // finalizada como transacción (rojo SOLO si completed; si no => neutral)
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
                       const dateText = ts ? formatCardDate(ts) : '--';
@@ -1362,9 +1418,7 @@ export default function History() {
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car ||
-                        tx.sellerCar ||
-                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
@@ -1405,10 +1459,7 @@ export default function History() {
                                     amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip
-                                    mode="neutral"
-                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
-                                  />
+                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
                                 )}
 
                                 <Button
