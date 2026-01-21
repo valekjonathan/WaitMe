@@ -625,7 +625,6 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  
   // Mock extra para ver una tarjeta CANCELADA en "Tus alertas"
   const mockMyFinalizedAlerts = useMemo(() => {
     const baseNow = Date.now();
@@ -642,7 +641,7 @@ export default function History() {
     ];
   }, [user?.id]);
 
-const myFinalizedAsSellerTx = [
+  const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
     ...mockTransactions
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
@@ -770,21 +769,22 @@ const myFinalizedAsSellerTx = [
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
+          {/* ✅ STICKY SIN BORDE NEGRO DEBAJO */}
           <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
-            <TabsList className="w-full bg-gray-900 border border-gray-800">
-            <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
-              Tus alertas
-            </TabsTrigger>
-            <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
-              Tus reservas
-            </TabsTrigger>
+            <TabsList className="w-full bg-gray-900">
+              <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
+                Tus alertas
+              </TabsTrigger>
+              <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
+                Tus reservas
+              </TabsTrigger>
             </TabsList>
           </div>
 
           {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 pb-28 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -880,7 +880,6 @@ const myFinalizedAsSellerTx = [
                                   }
                                 />
 
-                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
@@ -936,10 +935,7 @@ const myFinalizedAsSellerTx = [
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton
-                                    text={countdownText}
-                                    dimmed={countdownText === 'EXPIRADA'}
-                                  />
+                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
                                 </div>
                               </>
                             ) : (
@@ -976,7 +972,6 @@ const myFinalizedAsSellerTx = [
                                   }
                                 />
 
-                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -997,10 +992,7 @@ const myFinalizedAsSellerTx = [
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton
-                                    text={countdownText}
-                                    dimmed={countdownText === 'EXPIRADA'}
-                                  />
+                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
                                 </div>
                               </>
                             )}
@@ -1079,9 +1071,11 @@ const myFinalizedAsSellerTx = [
                               </span>
                             </div>
 
-                            {/* APAGADO (sin quitarlo) */}
                             <div className="mt-2">
-                              <CountdownButton text={statusLabelFrom(a.status)} dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'} />
+                              <CountdownButton
+                                text={statusLabelFrom(a.status)}
+                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
+                              />
                             </div>
                           </motion.div>
                         );
@@ -1191,7 +1185,7 @@ const myFinalizedAsSellerTx = [
           {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 pb-28 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1232,7 +1226,6 @@ const myFinalizedAsSellerTx = [
 
                       const isMock = String(alert.id).startsWith('mock-');
 
-                      // cuando termina el contador, pasa a Finalizadas
                       if (
                         alert.status === 'reserved' &&
                         hasExpiry &&
@@ -1255,7 +1248,7 @@ const myFinalizedAsSellerTx = [
 
                       const dateText = formatCardDate(createdTs);
 
-                      const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
+                      const moneyMode = reservationMoneyModeFromStatus('reserved');
 
                       return (
                         <motion.div
