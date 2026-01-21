@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +16,6 @@ import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
 
 function buildDemoAlerts(centerLat, centerLng) {
-  // offsets (~0.001 ≈ 110m) para que se vean “alrededor”
   const offsets = [
     [0.0009, 0.0006],
     [-0.0007, 0.0008],
@@ -25,7 +25,6 @@ function buildDemoAlerts(centerLat, centerLng) {
     [-0.0004, 0.0012]
   ];
 
-  // 6 coches inventados (variados: coche/suv/van, precios, tiempo, fotos)
   const base = [
     {
       id: 'demo_1',
@@ -121,17 +120,12 @@ function buildDemoAlerts(centerLat, centerLng) {
 }
 
 export default function Home() {
+  const location = useLocation();
+
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
 
-  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
-
-  // Resetear mode cuando se navega a Home sin parámetros (al volver desde menú)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
-
+  const [mode, setMode] = useState(initialMode || null);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -147,7 +141,36 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
-  // Usuario
+  // Resetear a la vista principal (botones) cuando se entra a /home
+  useEffect(() => {
+    const params = new URLSearchParams(location.search || '');
+    if (!params.has('mode')) {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+    }
+    if (location.state && location.state.resetHome) {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key, location.pathname, location.search]);
+
+  // Reset instantáneo cuando se pulsa “Mapa” estando ya en Home
+  useEffect(() => {
+    const handler = () => {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+      if (location.pathname === createPageUrl('Home')) {
+        window.history.replaceState({}, '', createPageUrl('Home'));
+      }
+    };
+    window.addEventListener('waitme:goHome', handler);
+    return () => window.removeEventListener('waitme:goHome', handler);
+  }, [location.pathname]);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -160,7 +183,6 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  // Unread
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
@@ -171,7 +193,6 @@ export default function Home() {
     refetchInterval: 5000
   });
 
-  // Solo pedimos alertas reales en modo "search"
   const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
@@ -179,7 +200,6 @@ export default function Home() {
     enabled: mode === 'search'
   });
 
-  // Distancia km
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -192,7 +212,6 @@ export default function Home() {
     return R * c;
   }
 
-  // Geoloc
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -221,15 +240,13 @@ export default function Home() {
     getCurrentLocation();
   }, []);
 
-  // DEMO: 6 coches alrededor (misma lista se usa en Home fondo y dentro de “Dónde quieres aparcar”)
   const demoAlerts = useMemo(() => {
-    const fallback = [43.3619, -5.8494]; // Oviedo aprox
+    const fallback = [43.3619, -5.8494];
     const lat = userLocation?.[0] ?? fallback[0];
     const lng = userLocation?.[1] ?? fallback[1];
     return buildDemoAlerts(lat, lng);
   }, [userLocation]);
 
-  // Filtrar alertas reales por filtros
   const realAlerts = rawAlerts.filter((alert) => {
     if (alert.price > filters.maxPrice) return false;
     if (alert.available_in_minutes > filters.maxMinutes) return false;
@@ -241,7 +258,6 @@ export default function Home() {
     return true;
   });
 
-  // En “Dónde quieres aparcar”: reales + relleno demo hasta 6 (siempre verás 6 posibilidades)
   const searchAlerts = useMemo(() => {
     const merged = [...(realAlerts || [])];
     const used = new Set(merged.map((a) => a.id));
@@ -252,17 +268,14 @@ export default function Home() {
     return merged.length ? merged : demoAlerts;
   }, [realAlerts, demoAlerts]);
 
-  // En la Home principal (mapa de fondo): SIEMPRE los 6 demo
   const homeMapAlerts = demoAlerts;
 
-  // Selección por defecto al entrar en search
   useEffect(() => {
     if (mode === 'search' && !selectedAlert && searchAlerts.length > 0) {
       setSelectedAlert(searchAlerts[0]);
     }
   }, [mode, selectedAlert, searchAlerts]);
 
-  // Crear alerta
   const createAlertMutation = useMutation({
     mutationFn: async (alertData) => {
       const minutes = Number(alertData.minutes) || 0;
@@ -299,7 +312,6 @@ export default function Home() {
     }
   });
 
-  // Comprar alerta (solo reales)
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       await base44.entities.Notification.create({
@@ -323,7 +335,7 @@ export default function Home() {
   });
 
   const handleBuyAlert = (alert) => {
-    if (alert?.is_demo) return; // demo: no comprar
+    if (alert?.is_demo) return;
     setConfirmDialog({ open: true, alert });
   };
 
@@ -351,10 +363,8 @@ export default function Home() {
         }}
       />
 
-      {/* CONTENIDO (NO TOCA tu overlay ni tu home, solo añade coches al mapa de fondo) */}
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -362,7 +372,6 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              {/* Mapa de fondo apagado + coches demo */}
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
                   alerts={homeMapAlerts}
@@ -372,7 +381,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* Overlay morado apagado (NO TOCAR) */}
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
@@ -410,7 +418,6 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -419,7 +426,8 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
+              {/* MÁS AIRE ARRIBA + CENTRADO */}
+              <div className="h-[45%] relative px-3 pt-3 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -452,7 +460,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-2">
+              <div className="px-4 py-1.5">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -463,21 +471,23 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 min-h-0 overflow-y-auto">
-                <UserAlertCard
-                  alert={selectedAlert}
-                  isEmpty={!selectedAlert}
-                  onBuyAlert={handleBuyAlert}
-                  onChat={handleChat}
-                  onCall={handleCall}
-                  isLoading={buyAlertMutation.isPending}
-                  userLocation={userLocation}
-                />
+              {/* CENTRA la tarjeta en el hueco (y si crece, sigue pudiendo scrollear) */}
+              <div className="flex-1 px-4 min-h-0 overflow-y-auto flex items-center">
+                <div className="w-full">
+                  <UserAlertCard
+                    alert={selectedAlert}
+                    isEmpty={!selectedAlert}
+                    onBuyAlert={handleBuyAlert}
+                    onChat={handleChat}
+                    onCall={handleCall}
+                    isLoading={buyAlertMutation.isPending}
+                    userLocation={userLocation}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ (sin scroll: centrado dentro de pantalla) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -486,8 +496,8 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              {/* mapa un poco más grande y bien centrado */}
-              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
+              {/* un poco menos de mapa para que TODO entre sin scroll */}
+              <div className="h-[43%] relative px-3 pt-3 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -514,8 +524,7 @@ export default function Home() {
                 ¿ Dónde estas aparcado ?
               </h3>
 
-              {/* tarjeta: SIN scroll externo */}
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-center">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
