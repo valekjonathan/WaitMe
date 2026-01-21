@@ -64,4 +64,4 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
       ))}
     </div>
   );
-}
+} 
