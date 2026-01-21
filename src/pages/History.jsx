@@ -63,8 +63,6 @@ export default function History() {
     if (!s) return fallback;
 
     const hasOviedo = /oviedo/i.test(s);
-
-    // "Calle X, 25"  -> "Calle X, n25, Oviedo"
     const m = s.match(/^(.+?),\s*(?:n\s*)?(\d+)\s*(?:,.*)?$/i);
     if (m) {
       const street = m[1].trim();
@@ -190,7 +188,6 @@ export default function History() {
       Number(alert.durationMinutes);
 
     if (Number.isFinite(mins) && mins > 0) return createdTs + mins * 60000;
-
     return null;
   };
 
@@ -220,6 +217,55 @@ export default function History() {
       {text}
     </Button>
   );
+
+  // ====== Secciones "Activas / Finalizadas" centradas ======
+  const SectionTag = ({ variant, text }) => {
+    const cls =
+      variant === 'green'
+        ? 'bg-green-500/20 border-green-500/30 text-green-400'
+        : 'bg-red-500/20 border-red-500/30 text-red-400';
+    return (
+      <div className="w-full flex justify-center pt-0">
+        <div
+          className={`${cls} border rounded-md px-4 h-7 flex items-center justify-center font-bold text-xs text-center ${labelNoClick}`}
+        >
+          {text}
+        </div>
+      </div>
+    );
+  };
+
+  // ====== Header de tarjeta (fecha centrada ENTRE badge y precio) ======
+  const CardHeaderRow = ({ left, dateText, dateClassName, right }) => (
+    <div className="flex items-center gap-2 mb-2">
+      <div className="flex-shrink-0">{left}</div>
+      <div className={`flex-1 text-center text-xs ${dateClassName || ''}`}>{dateText}</div>
+      <div className="flex-shrink-0">{right}</div>
+    </div>
+  );
+
+  // ====== Chips de dinero ======
+  const MoneyChip = ({ mode = 'neutral', amountText, showDownIcon = false, showUpIcon = false }) => {
+    // mode: 'green' | 'red' | 'neutral'
+    const isGreen = mode === 'green';
+    const isRed = mode === 'red';
+
+    const wrapCls = isGreen
+      ? 'bg-green-500/20 border border-green-500/30'
+      : isRed
+      ? 'bg-red-500/20 border border-red-500/30'
+      : 'bg-gray-500/10 border border-gray-600';
+
+    const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-gray-400';
+
+    return (
+      <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
+        {showUpIcon ? <TrendingUp className={`w-4 h-4 ${textCls}`} /> : null}
+        {showDownIcon ? <TrendingDown className={`w-4 h-4 ${textCls}`} /> : null}
+        <span className={`font-bold text-sm ${textCls}`}>{amountText}</span>
+      </div>
+    );
+  };
 
   // ====== Contenido "Marco" SIN tarjeta envolvente ======
   const MarcoContent = ({
@@ -286,7 +332,6 @@ export default function History() {
 
           <div className="flex-1 h-[85px] flex flex-col">
             <p className={nameCls}>{(name || '').split(' ')[0] || 'Usuario'}</p>
-
             <p className={carCls}>{carLabel || 'Sin datos'}</p>
 
             <div className="flex items-end gap-2 mt-1 min-h-[28px]">
@@ -635,6 +680,15 @@ export default function History() {
     return 'COMPLETADA';
   };
 
+  // ====== Dinero en "Tus reservas" según estado ======
+  // Regla: SOLO rojo + flecha abajo si COMPLETADA (pagada). Si EXPIRADA/CANCELADA => neutral.
+  const reservationMoneyModeFromStatus = (status) => {
+    const st = String(status || '').toLowerCase();
+    if (st === 'completed') return 'paid';
+    if (st === 'expired' || st === 'cancelled') return 'neutral';
+    return 'neutral';
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
@@ -662,13 +716,7 @@ export default function History() {
               </div>
             ) : (
               <>
-                <div className="flex justify-center pt-0">
-                  <div
-                    className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
-                    Activas
-                  </div>
-                </div>
+                <SectionTag variant="green" text="Activas" />
 
                 {myActiveAlerts.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
@@ -712,6 +760,8 @@ export default function History() {
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
 
+                        const dateText = formatCardDate(createdTs);
+
                         return (
                           <motion.div
                             key={cardKey}
@@ -722,37 +772,37 @@ export default function History() {
                           >
                             {alert.status === 'reserved' ? (
                               <>
-                                <div className="flex items-center justify-between mb-2">
-                                  <Badge
-                                    className={`bg-purple-500/20 text-purple-400 border border-purple-500/30 border flex items-center justify-center text-center ${labelNoClick}`}
-                                  >
-                                    Reservado por:
-                                  </Badge>
-
-                                  <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {formatCardDate(createdTs)}
-                                  </span>
-
-                                  <div className="flex items-center gap-1 flex-shrink-0">
-                                    <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                      <TrendingUp className="w-4 h-4 text-green-400" />
-                                      <span className="text-green-400 font-bold text-sm">
-                                        {alert.price.toFixed(2)}€
-                                      </span>
-                                    </div>
-                                    <Button
-                                      size="icon"
-                                      className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                      onClick={() => {
-                                        hideKey(cardKey);
-                                        cancelAlertMutation.mutate(alert.id);
-                                      }}
-                                      disabled={cancelAlertMutation.isPending}
+                                <CardHeaderRow
+                                  left={
+                                    <Badge
+                                      className={`bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-center ${labelNoClick}`}
                                     >
-                                      <X className="w-4 h-4" strokeWidth={3} />
-                                    </Button>
-                                  </div>
-                                </div>
+                                      Reservado por:
+                                    </Badge>
+                                  }
+                                  dateText={dateText}
+                                  dateClassName="text-white"
+                                  right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                      />
+                                      <Button
+                                        size="icon"
+                                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                        onClick={() => {
+                                          hideKey(cardKey);
+                                          cancelAlertMutation.mutate(alert.id);
+                                        }}
+                                        disabled={cancelAlertMutation.isPending}
+                                      >
+                                        <X className="w-4 h-4" strokeWidth={3} />
+                                      </Button>
+                                    </div>
+                                  }
+                                />
 
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5 h-[220px]">
@@ -812,37 +862,37 @@ export default function History() {
                               </>
                             ) : (
                               <>
-                                <div className="flex items-center justify-between mb-2">
-                                  <Badge
-                                    className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                                  >
-                                    Activa
-                                  </Badge>
-
-                                  <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {formatCardDate(createdTs)}
-                                  </span>
-
-                                  <div className="flex items-center gap-1 flex-shrink-0">
-                                    <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                      <TrendingUp className="w-4 h-4 text-green-400" />
-                                      <span className="text-green-400 font-bold text-sm">
-                                        {alert.price.toFixed(2)}€
-                                      </span>
-                                    </div>
-                                    <Button
-                                      size="icon"
-                                      className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                      onClick={() => {
-                                        hideKey(cardKey);
-                                        cancelAlertMutation.mutate(alert.id);
-                                      }}
-                                      disabled={cancelAlertMutation.isPending}
+                                <CardHeaderRow
+                                  left={
+                                    <Badge
+                                      className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                     >
-                                      <X className="w-4 h-4" strokeWidth={3} />
-                                    </Button>
-                                  </div>
-                                </div>
+                                      Activa
+                                    </Badge>
+                                  }
+                                  dateText={dateText}
+                                  dateClassName="text-white"
+                                  right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                      />
+                                      <Button
+                                        size="icon"
+                                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                        onClick={() => {
+                                          hideKey(cardKey);
+                                          cancelAlertMutation.mutate(alert.id);
+                                        }}
+                                        disabled={cancelAlertMutation.isPending}
+                                      >
+                                        <X className="w-4 h-4" strokeWidth={3} />
+                                      </Button>
+                                    </div>
+                                  }
+                                />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
@@ -872,13 +922,8 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
-                <div className="flex justify-center pt-2">
-                  <div
-                    className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
-                    Finalizadas
-                  </div>
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
                 {myFinalizedAll.length === 0 ? (
@@ -896,6 +941,8 @@ export default function History() {
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date);
+                        const dateText = ts ? formatCardDate(ts) : '--';
+
                         return (
                           <motion.div
                             key={key}
@@ -904,36 +951,36 @@ export default function History() {
                             transition={{ delay: index * 0.05 }}
                             className={finalizedCardClass}
                           >
-                            <div className="flex items-center justify-between mb-2 opacity-100">
-                              <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Finalizada
-                              </Badge>
-
-                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {ts ? formatCardDate(ts) : '--'}
-                              </span>
-
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <span className="font-bold text-gray-400 text-sm">
-                                    {(a.price ?? 0).toFixed(2)}€
-                                  </span>
-                                </div>
-                                <Button
-                                  size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                  onClick={async () => {
-                                    hideKey(key);
-                                    await deleteAlertSafe(a.id);
-                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                                  }}
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                 >
-                                  <X className="w-4 h-4" strokeWidth={3} />
-                                </Button>
-                              </div>
-                            </div>
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${((a.price ?? 0) * 1).toFixed(2)}€`}
+                                  />
+                                  <Button
+                                    size="icon"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      await deleteAlertSafe(a.id);
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                  </Button>
+                                </div>
+                              }
+                            />
 
                             {/* línea extra bajo cabecera */}
                             <div className="border-t border-gray-700/80 mb-2" />
@@ -978,6 +1025,7 @@ export default function History() {
                         tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
 
                       const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
 
                       return (
                         <motion.div
@@ -987,43 +1035,41 @@ export default function History() {
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-                          <div className="flex items-center justify-between mb-2 opacity-100">
-                            <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                            >
-                              Finalizada
-                            </Badge>
-
-                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {ts ? formatCardDate(ts) : '--'}
-                            </span>
-
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {isSeller ? (
-                                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingUp className="w-4 h-4 text-green-400" />
-                                  <span className="font-bold text-green-400 text-sm">
-                                    {(tx.seller_earnings ?? 0).toFixed(2)}€
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">
-                                    {(tx.amount ?? 0).toFixed(2)}€
-                                  </span>
-                                </div>
-                              )}
-
-                              <Button
-                                size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={() => hideKey(key)}
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          </div>
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {isSeller ? (
+                                  <MoneyChip
+                                    mode="green"
+                                    showUpIcon
+                                    amountText={`${(tx.seller_earnings ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
 
                           {/* línea extra bajo cabecera */}
                           <div className="border-t border-gray-700/80 mb-2" />
@@ -1068,13 +1114,7 @@ export default function History() {
               </div>
             ) : (
               <>
-                <div className="flex justify-center pt-0">
-                  <div
-                    className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
-                    Activas
-                  </div>
-                </div>
+                <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
@@ -1089,7 +1129,6 @@ export default function History() {
                       const waitUntilTs = getWaitUntilTs(alert);
                       const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                      // contador SIEMPRE basado en waitUntilTs => sincroniza con "Te espera hasta..."
                       const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                       const waitUntilLabel = hasExpiry
                         ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -1108,6 +1147,11 @@ export default function History() {
                       const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
+                      const dateText = formatCardDate(createdTs);
+
+                      // Regla: activa NO es "pagada" => neutral
+                      const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
+
                       return (
                         <motion.div
                           key={key}
@@ -1116,52 +1160,62 @@ export default function History() {
                           transition={{ delay: index * 0.05 }}
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge
-                              className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                            >
-                              Activa
-                            </Badge>
-
-                            <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {formatCardDate(createdTs)}
-                            </span>
-
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                <TrendingDown className="w-4 h-4 text-red-400" />
-                                <span className="font-bold text-red-400 text-sm">
-                                  {(alert.price ?? 0).toFixed(2)}€
-                                </span>
-                              </div>
-
-                              <Button
-                                size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={async () => {
-                                  hideKey(key);
-
-                                  const isMock = String(alert.id).startsWith('mock-');
-                                  if (isMock) return;
-
-                                  await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
-                                  await base44.entities.ChatMessage.create({
-                                    alert_id: alert.id,
-                                    sender_id: user?.email || user?.id,
-                                    sender_name:
-                                      user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-                                    receiver_id: alert.user_email || alert.user_id,
-                                    message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
-                                    read: false
-                                  });
-
-                                  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                                }}
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          </div>
+                                Activa
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-white"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {moneyMode === 'paid' ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={async () => {
+                                    hideKey(key);
+
+                                    const isMock = String(alert.id).startsWith('mock-');
+                                    if (isMock) return;
+
+                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                                    await base44.entities.ChatMessage.create({
+                                      alert_id: alert.id,
+                                      sender_id: user?.email || user?.id,
+                                      sender_name:
+                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                                      receiver_id: alert.user_email || alert.user_id,
+                                      message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
+                                      read: false
+                                    });
+
+                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                  }}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          {/* 2) línea extra también en activas (tus reservas) */}
+                          <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
                             bright={true}
@@ -1191,13 +1245,8 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
-                <div className="flex justify-center pt-2">
-                  <div
-                    className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
-                  >
-                    Finalizadas
-                  </div>
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
                 {reservationsFinalAll.length === 0 ? (
@@ -1213,10 +1262,11 @@ export default function History() {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
-                      // finalizada como alerta (gasto SIEMPRE rojo + flecha abajo)
+                      // finalizada como alerta (rojo SOLO si completed; cancel/expired => neutral)
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date) || nowTs;
+                        const dateText = ts ? formatCardDate(ts) : '--';
 
                         const waitUntilTs = getWaitUntilTs(a);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
@@ -1227,6 +1277,8 @@ export default function History() {
                         const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
                         const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
 
+                        const mode = reservationMoneyModeFromStatus(a.status);
+
                         return (
                           <motion.div
                             key={key}
@@ -1235,43 +1287,49 @@ export default function History() {
                             transition={{ delay: index * 0.05 }}
                             className={finalizedCardClass}
                           >
-                            <div className="flex items-center justify-between mb-2 opacity-100">
-                              <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Finalizada
-                              </Badge>
-
-                              <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {ts ? formatCardDate(ts) : '--'}
-                              </span>
-
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <TrendingDown className="w-4 h-4 text-red-400" />
-                                  <span className="font-bold text-red-400 text-sm">
-                                    {(a.price ?? 0).toFixed(2)}€
-                                  </span>
-                                </div>
-
-                                <Button
-                                  size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                  onClick={async () => {
-                                    hideKey(key);
-                                    const isMock = String(a.id).startsWith('mock-');
-                                    if (!isMock) {
-                                      await deleteAlertSafe(a.id);
-                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                                    }
-                                  }}
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                 >
-                                  <X className="w-4 h-4" strokeWidth={3} />
-                                </Button>
-                              </div>
-                            </div>
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  {mode === 'paid' ? (
+                                    <MoneyChip
+                                      mode="red"
+                                      showDownIcon
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
+                                  ) : (
+                                    <MoneyChip
+                                      mode="neutral"
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
+                                  )}
 
-                            {/* línea extra bajo cabecera */}
+                                  <Button
+                                    size="icon"
+                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      const isMock = String(a.id).startsWith('mock-');
+                                      if (!isMock) {
+                                        await deleteAlertSafe(a.id);
+                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                      }
+                                    }}
+                                  >
+                                    <X className="w-4 h-4" strokeWidth={3} />
+                                  </Button>
+                                </div>
+                              }
+                            />
+
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             <MarcoContent
@@ -1296,9 +1354,10 @@ export default function History() {
                         );
                       }
 
-                      // finalizada como transacción (gasto rojo)
+                      // finalizada como transacción (rojo SOLO si completed; si no => neutral)
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
 
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
@@ -1317,6 +1376,8 @@ export default function History() {
                       const sellerColor =
                         tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
 
+                      const txPaid = String(tx.status || '').toLowerCase() === 'completed';
+
                       return (
                         <motion.div
                           key={key}
@@ -1325,36 +1386,42 @@ export default function History() {
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-                          <div className="flex items-center justify-between mb-2 opacity-100">
-                            <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                            >
-                              Finalizada
-                            </Badge>
-
-                            <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {ts ? formatCardDate(ts) : '--'}
-                            </span>
-
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                <TrendingDown className="w-4 h-4 text-red-400" />
-                                <span className="font-bold text-red-400 text-sm">
-                                  {(tx.amount ?? 0).toFixed(2)}€
-                                </span>
-                              </div>
-
-                              <Button
-                                size="icon"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                onClick={() => hideKey(key)}
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
-                                <X className="w-4 h-4" strokeWidth={3} />
-                              </Button>
-                            </div>
-                          </div>
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {txPaid ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
 
-                          {/* línea extra bajo cabecera */}
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
+                                >
+                                  <X className="w-4 h-4" strokeWidth={3} />
+                                </Button>
+                              </div>
+                            }
+                          />
+
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
