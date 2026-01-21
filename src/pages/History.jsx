@@ -276,7 +276,7 @@ export default function History() {
           <div className="flex-1 h-[85px] flex flex-col">
             <p className={nameCls}>{(name || '').split(' ')[0] || 'Usuario'}</p>
 
-            {/* 1) BMW... bajado 2px MÁS (total 4px) sin mover nada más */}
+
             <p className={carCls}>{carLabel || 'Sin datos'}</p>
 
             {/* Matrícula + coche */}
