@@ -54,6 +54,7 @@ export default function History() {
 
     const hasOviedo = /oviedo/i.test(s);
 
+    // "Calle X, 25"  -> "Calle X, n25, Oviedo"
     const m = s.match(/^(.+?),\s*(?:n\s*)?(\d+)\s*(?:,.*)?$/i);
     if (m) {
       const street = m[1].trim();
@@ -124,7 +125,6 @@ export default function History() {
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
-
     if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
 
     if (typeof v === 'string') {
@@ -212,6 +212,7 @@ export default function History() {
   );
 
   // ====== Contenido "Marco" SIN tarjeta envolvente ======
+  // timeLine puede ser string o { main: string, accent: string }
   const MarcoContent = ({
     photoUrl,
     name,
@@ -239,14 +240,20 @@ export default function History() {
       ? 'font-bold text-xl text-white leading-none min-h-[22px]'
       : 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]';
 
+    // 1) BMW... bajado 2px MÁS (antes top-[4px] -> ahora top-[6px])
     const carCls = bright
-      ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[4px]'
-      : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[4px]';
+      ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]'
+      : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]';
 
     const plateWrapCls = bright ? 'flex-shrink-0' : 'opacity-45 flex-shrink-0';
-    const carIconWrapCls = bright ? 'flex-shrink-0 relative -top-[1px]' : 'opacity-45 flex-shrink-0 relative -top-[1px]';
+    const carIconWrapCls = bright
+      ? 'flex-shrink-0 relative -top-[1px]'
+      : 'opacity-45 flex-shrink-0 relative -top-[1px]';
 
     const lineTextCls = bright ? 'text-gray-200 leading-5' : 'text-gray-300 leading-5';
+
+    const isTimeObj =
+      timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
 
     return (
       <>
@@ -288,7 +295,8 @@ export default function History() {
           </div>
         </div>
 
-        <div className="pt-1.5 border-t border-gray-800/70 mt-2">
+        {/* 5) raya horizontal más visible */}
+        <div className="pt-1.5 border-t border-gray-700/80 mt-2">
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
@@ -300,7 +308,14 @@ export default function History() {
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                <span className={lineTextCls}>{timeLine}</span>
+                {isTimeObj ? (
+                  <span className={lineTextCls}>
+                    {timeLine.main}{' '}
+                    <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
+                  </span>
+                ) : (
+                  <span className={lineTextCls}>{timeLine}</span>
+                )}
               </div>
             ) : null}
           </div>
@@ -316,6 +331,7 @@ export default function History() {
               <MessageCircle className="w-4 h-4" />
             </Button>
 
+            {/* 6) llamar: blanco si hay teléfono; si no, blanco con tachado */}
             {phoneEnabled ? (
               <Button
                 size="icon"
@@ -407,21 +423,26 @@ export default function History() {
     enabled: !!user?.id
   });
 
+  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
+  // Finalizadas tuyas como alertas
   const myFinalizedAlerts = myAlerts.filter(
     (a) =>
       a.user_id === user?.id &&
       (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
+  // Reservas (tuyas como comprador)
   const myReservationsReal = myAlerts.filter(
     (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
   );
 
-  // ====== MOCKS para reservas (siempre hay al menos 1 activa) ======
+  // ====== MOCKS (fotos AI realistas) ======
+  const aiFace = (v) => `https://thispersondoesnotexist.com/?v=${v}`;
+
   const mockReservationsActive = [
     {
       id: 'mock-res-1',
@@ -430,7 +451,7 @@ export default function History() {
       user_id: 'seller-1',
       user_email: 'seller1@test.com',
       user_name: 'Sofía',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SofiaWaitMe',
+      user_photo: aiFace(101),
       car_brand: 'Seat',
       car_model: 'Ibiza',
       car_color: 'rojo',
@@ -453,7 +474,7 @@ export default function History() {
       user_id: 'seller-8',
       user_email: 'seller8@test.com',
       user_name: 'Hugo',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=HugoWaitMe',
+      user_photo: aiFace(201),
       car_brand: 'BMW',
       car_model: 'Serie 1',
       car_color: 'gris',
@@ -461,6 +482,8 @@ export default function History() {
       address: 'Calle Gran Vía, 25',
       available_in_minutes: 8,
       price: 4.0,
+      phone: '611111111',
+      allow_phone_calls: false,
       created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
     },
     {
@@ -470,7 +493,7 @@ export default function History() {
       user_id: 'seller-9',
       user_email: 'seller9@test.com',
       user_name: 'Nuria',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=NuriaWaitMe',
+      user_photo: aiFace(202),
       car_brand: 'Audi',
       car_model: 'A3',
       car_color: 'azul',
@@ -478,6 +501,8 @@ export default function History() {
       address: 'Calle Uría, 10',
       available_in_minutes: 12,
       price: 3.0,
+      phone: '622222222',
+      allow_phone_calls: true,
       created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString()
     },
     {
@@ -487,7 +512,7 @@ export default function History() {
       user_id: 'seller-10',
       user_email: 'seller10@test.com',
       user_name: 'Iván',
-      user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=IvanWaitMe',
+      user_photo: aiFace(203),
       car_brand: 'Toyota',
       car_model: 'Yaris',
       car_color: 'blanco',
@@ -495,11 +520,13 @@ export default function History() {
       address: 'Calle Campoamor, 15',
       available_in_minutes: 10,
       price: 2.8,
+      phone: null,
+      allow_phone_calls: false,
       created_date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
     }
   ];
 
-  // ====== Transacciones mock (para Marco en tus alertas finalizadas) ======
+  // ====== Transacciones mock (Marco con foto AI realista) ======
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -507,8 +534,7 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-1',
       buyer_name: 'Marco',
-      buyer_photo_url:
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      buyer_photo_url: aiFace(301),
       buyer_car: 'BMW Serie 3',
       buyer_car_color: 'gris',
       buyer_plate: '2847BNM',
@@ -592,6 +618,19 @@ export default function History() {
     }
   });
 
+  // ====== Badge ancho igual que la foto (95px) ======
+  const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
+
+  // ====== Map status a texto ======
+  const statusLabelFrom = (s) => {
+    const st = String(s || '').toLowerCase();
+    if (st === 'completed') return 'COMPLETADA';
+    if (st === 'cancelled') return 'CANCELADA';
+    if (st === 'expired') return 'EXPIRADA';
+    if (st === 'reserved') return 'EN CURSO';
+    return 'COMPLETADA';
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
@@ -607,6 +646,7 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
+          {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
             value="alerts"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -766,8 +806,9 @@ export default function History() {
                             ) : (
                               <>
                                 <div className="flex items-center justify-between mb-2">
+                                  {/* 2) Badge ancho = foto */}
                                   <Badge
-                                    className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                                    className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                   >
                                     Activa
                                   </Badge>
@@ -825,6 +866,7 @@ export default function History() {
                   </div>
                 )}
 
+                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -847,6 +889,7 @@ export default function History() {
 
                       if (item.type === 'alert') {
                         const a = item.data;
+                        const ts = toMs(a.created_date);
                         return (
                           <motion.div
                             key={key}
@@ -856,17 +899,15 @@ export default function History() {
                             className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
+                              {/* 2) Badge ancho = foto */}
                               <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
                                 Finalizada
                               </Badge>
 
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                {(() => {
-                                  const ts = toMs(a.created_date);
-                                  return ts ? formatCardDate(ts) : '--';
-                                })()}
+                                {ts ? formatCardDate(ts) : '--'}
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
@@ -903,6 +944,7 @@ export default function History() {
                         );
                       }
 
+                      // Transacción finalizada (Marco)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -938,8 +980,9 @@ export default function History() {
                           className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
+                            {/* 2) Badge ancho = foto */}
                             <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                              className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
                               Finalizada
                             </Badge>
@@ -1003,6 +1046,7 @@ export default function History() {
             )}
           </TabsContent>
 
+          {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -1035,6 +1079,7 @@ export default function History() {
                       const waitUntilTs = getWaitUntilTs(alert);
                       const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
+                      // 4) contador tiempo real sincronizado con "te espera hasta..."
                       const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                       const waitUntilLabel = hasExpiry
                         ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -1051,7 +1096,6 @@ export default function History() {
                       if (hiddenKeys.has(key)) return null;
 
                       const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
-
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
                       return (
@@ -1063,8 +1107,9 @@ export default function History() {
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
                           <div className="flex items-center justify-between mb-2">
+                            {/* 2) Badge ancho = foto */}
                             <Badge
-                              className={`bg-green-500/20 text-green-400 border border-green-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                              className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
                               Activa
                             </Badge>
@@ -1074,6 +1119,7 @@ export default function History() {
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* precio sin "-" */}
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
                                 <span className="font-bold text-red-400 text-sm">
@@ -1117,17 +1163,16 @@ export default function History() {
                             plate={alert.car_plate}
                             carColor={alert.car_color}
                             address={alert.address}
-                            timeLine={
-                              <span>
-                                Se va en {alert.available_in_minutes} min ·{' '}
-                                <span className="text-purple-400">Te espera hasta las {waitUntilLabel}</span>
-                              </span>
-                            }
+                            timeLine={{
+                              main: `Se va en ${alert.available_in_minutes} min ·`,
+                              accent: `Te espera hasta las ${waitUntilLabel}`
+                            }}
                             onChat={() =>
                               (window.location.href = createPageUrl(
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
+                            // 4) el botón "EN CURSO" pasa a contador tiempo real
                             statusText={countdownText}
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
@@ -1139,6 +1184,7 @@ export default function History() {
                   </div>
                 )}
 
+                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -1160,9 +1206,20 @@ export default function History() {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
+                      // 6) finalizadas: misma info que activas, pero apagado como "tus alertas"
                       if (item.type === 'alert') {
                         const a = item.data;
-                        const ts = toMs(a.created_date);
+                        const ts = toMs(a.created_date) || nowTs;
+
+                        const waitUntilTs = getWaitUntilTs(a);
+                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
+                        const waitUntilLabel = hasExpiry
+                          ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
+                          : '--:--';
+
+                        const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+                        const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+
                         return (
                           <motion.div
                             key={key}
@@ -1172,8 +1229,9 @@ export default function History() {
                             className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
+                              {/* 2) Badge ancho = foto */}
                               <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
                                 Finalizada
                               </Badge>
@@ -1206,20 +1264,29 @@ export default function History() {
                               </div>
                             </div>
 
-                            <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                              <span className="text-gray-400 leading-5">
-                                {formatAddress(a.address) || 'Ubicación marcada'}
-                              </span>
-                            </div>
-
-                            <div className="mt-2">
-                              <CountdownButton text="Reserva finalizada" />
-                            </div>
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={carLabel || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={phoneEnabled}
+                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                            />
                           </motion.div>
                         );
                       }
 
+                      // Finalizada como transacción (apagado como "tus alertas")
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
 
@@ -1249,8 +1316,9 @@ export default function History() {
                           className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
+                            {/* 2) Badge ancho = foto */}
                             <Badge
-                              className={`bg-red-500/20 text-red-400 border border-red-500/30 min-w-[85px] h-7 flex items-center justify-center text-center ${labelNoClick}`}
+                              className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
                               Finalizada
                             </Badge>
@@ -1260,10 +1328,11 @@ export default function History() {
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* sin "-" también aquí */}
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
                                 <span className="font-bold text-red-400 text-sm">
-                                  -{(tx.amount ?? 0).toFixed(2)}€
+                                  {(tx.amount ?? 0).toFixed(2)}€
                                 </span>
                               </div>
 
@@ -1293,6 +1362,7 @@ export default function History() {
                               ))
                             }
                             statusText="COMPLETADA"
+                            statusEnabled={true}
                           />
                         </motion.div>
                       );
@@ -1307,6 +1377,7 @@ export default function History() {
 
       <BottomNav />
 
+      {/* Tracker para reservadas (tus alertas) */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
