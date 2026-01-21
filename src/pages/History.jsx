@@ -46,16 +46,14 @@ export default function History() {
     });
   };
 
-  // ====== Dirección formato: “Calle Gran Vía, n1, Oviedo” ======
+  // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
   const formatAddress = (addr) => {
     const fallback = 'Calle Gran Vía, n1, Oviedo';
     const s = String(addr || '').trim();
     if (!s) return fallback;
 
-    // Si ya contiene Oviedo, intenta normalizar solo el "n"
     const hasOviedo = /oviedo/i.test(s);
 
-    // Caso típico: "Calle X, 25" o "Calle X, n25"
     const m = s.match(/^(.+?),\s*(?:n\s*)?(\d+)\s*(?:,.*)?$/i);
     if (m) {
       const street = m[1].trim();
@@ -63,7 +61,6 @@ export default function History() {
       return `${street}, n${num}, Oviedo`;
     }
 
-    // Si no hay número claro, añade Oviedo si falta
     if (!hasOviedo) return `${s}, Oviedo`;
     return s;
   };
@@ -253,7 +250,6 @@ export default function History() {
 
     return (
       <>
-        {/* FOTO + DATOS */}
         <div className="flex gap-2.5">
           <div
             className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
@@ -276,10 +272,8 @@ export default function History() {
           <div className="flex-1 h-[85px] flex flex-col">
             <p className={nameCls}>{(name || '').split(' ')[0] || 'Usuario'}</p>
 
-
             <p className={carCls}>{carLabel || 'Sin datos'}</p>
 
-            {/* Matrícula + coche */}
             <div className="flex items-end gap-2 mt-1 min-h-[28px]">
               <div className={plateWrapCls}>
                 <PlateProfile plate={plate} />
@@ -294,7 +288,6 @@ export default function History() {
           </div>
         </div>
 
-        {/* Rayita + líneas */}
         <div className="pt-1.5 border-t border-gray-800/70 mt-2">
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
@@ -313,10 +306,8 @@ export default function History() {
           </div>
         </div>
 
-        {/* Botonera */}
         <div className="mt-2">
           <div className="flex gap-2">
-            {/* CHAT */}
             <Button
               size="icon"
               className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
@@ -325,7 +316,6 @@ export default function History() {
               <MessageCircle className="w-4 h-4" />
             </Button>
 
-            {/* LLAMAR (blanco si disponible, blanco con tachado si no) */}
             {phoneEnabled ? (
               <Button
                 size="icon"
@@ -345,7 +335,6 @@ export default function History() {
               </Button>
             )}
 
-            {/* ESTADO */}
             <div className="flex-1">
               <div
                 className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${
@@ -418,19 +407,16 @@ export default function History() {
     enabled: !!user?.id
   });
 
-  // Activas (tuyas)
   const myActiveAlerts = myAlerts.filter(
     (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
   );
 
-  // Finalizadas tuyas como alertas
   const myFinalizedAlerts = myAlerts.filter(
     (a) =>
       a.user_id === user?.id &&
       (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
   );
 
-  // Reservas (tuyas como comprador)
   const myReservationsReal = myAlerts.filter(
     (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
   );
@@ -444,7 +430,6 @@ export default function History() {
       user_id: 'seller-1',
       user_email: 'seller1@test.com',
       user_name: 'Sofía',
-      // “fotos IA” (avatares generados)
       user_photo: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SofiaWaitMe',
       car_brand: 'Seat',
       car_model: 'Ibiza',
@@ -460,7 +445,6 @@ export default function History() {
     }
   ];
 
-  // 7) Inventadas 3 reservas finalizadas con “fotos IA”
   const mockReservationsFinal = [
     {
       id: 'mock-res-fin-1',
@@ -623,7 +607,6 @@ export default function History() {
             </TabsTrigger>
           </TabsList>
 
-          {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
             value="alerts"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -635,7 +618,6 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -843,7 +825,6 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -922,7 +903,6 @@ export default function History() {
                         );
                       }
 
-                      // Transacción finalizada (Marco)
                       const tx = item.data;
                       const isSeller = tx.seller_id === user?.id;
 
@@ -1023,7 +1003,6 @@ export default function History() {
             )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
             className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -1035,7 +1014,6 @@ export default function History() {
               </div>
             ) : (
               <>
-                {/* ACTIVAS */}
                 <div className="flex justify-center pt-0">
                   <div
                     className={`bg-green-500/20 border border-green-500/30 rounded-md px-4 h-7 flex items-center justify-center text-green-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -1096,7 +1074,6 @@ export default function History() {
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
-                              {/* 5) Quitar el “-” del precio */}
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
                                 <span className="font-bold text-red-400 text-sm">
@@ -1132,7 +1109,6 @@ export default function History() {
                             </div>
                           </div>
 
-                          {/* 3) En reservas activas: TODO encendido + “te espera…” morado */}
                           <MarcoContent
                             bright={true}
                             photoUrl={alert.user_photo}
@@ -1152,7 +1128,6 @@ export default function History() {
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
-                            {/* 4) “EN CURSO” pasa a contador en tiempo real */}
                             statusText={countdownText}
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
@@ -1164,7 +1139,6 @@ export default function History() {
                   </div>
                 )}
 
-                {/* FINALIZADAS */}
                 <div className="flex justify-center pt-2">
                   <div
                     className={`bg-red-500/20 border border-red-500/30 rounded-md px-4 h-7 flex items-center justify-center text-red-400 font-bold text-xs text-center ${labelNoClick}`}
@@ -1246,7 +1220,6 @@ export default function History() {
                         );
                       }
 
-                      // Finalizada como transacción
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
 
@@ -1334,7 +1307,6 @@ export default function History() {
 
       <BottomNav />
 
-      {/* Tracker para reservadas (tus alertas) */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
