@@ -36,6 +36,16 @@ export default function History() {
   const noScrollBar =
     '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
+  // ====== Fotos fijas (NO rotan) ======
+  const fixedAvatars = {
+    Sofía: 'https://randomuser.me/api/portraits/women/68.jpg',
+    Hugo: 'https://randomuser.me/api/portraits/men/32.jpg',
+    Nuria: 'https://randomuser.me/api/portraits/women/44.jpg',
+    Iván: 'https://randomuser.me/api/portraits/men/75.jpg',
+    Marco: 'https://randomuser.me/api/portraits/men/12.jpg'
+  };
+  const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
+
   // ====== Fecha: "19 Enero - 21:05" ======
   const formatCardDate = (ts) => {
     if (!ts) return '--';
@@ -212,7 +222,6 @@ export default function History() {
   );
 
   // ====== Contenido "Marco" SIN tarjeta envolvente ======
-  // timeLine puede ser string o { main: string, accent: string }
   const MarcoContent = ({
     photoUrl,
     name,
@@ -240,7 +249,6 @@ export default function History() {
       ? 'font-bold text-xl text-white leading-none min-h-[22px]'
       : 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]';
 
-    // 1) BMW... bajado 2px MÁS (antes top-[4px] -> ahora top-[6px])
     const carCls = bright
       ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]'
       : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]';
@@ -295,7 +303,6 @@ export default function History() {
           </div>
         </div>
 
-        {/* 5) raya horizontal más visible */}
         <div className="pt-1.5 border-t border-gray-700/80 mt-2">
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
@@ -331,7 +338,6 @@ export default function History() {
               <MessageCircle className="w-4 h-4" />
             </Button>
 
-            {/* 6) llamar: blanco si hay teléfono; si no, blanco con tachado */}
             {phoneEnabled ? (
               <Button
                 size="icon"
@@ -440,9 +446,7 @@ export default function History() {
     (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
   );
 
-  // ====== MOCKS (fotos AI realistas) ======
-  const aiFace = (v) => `https://thispersondoesnotexist.com/?v=${v}`;
-
+  // ====== MOCKS (fotos fijas por nombre) ======
   const mockReservationsActive = [
     {
       id: 'mock-res-1',
@@ -451,7 +455,7 @@ export default function History() {
       user_id: 'seller-1',
       user_email: 'seller1@test.com',
       user_name: 'Sofía',
-      user_photo: aiFace(101),
+      user_photo: avatarFor('Sofía'),
       car_brand: 'Seat',
       car_model: 'Ibiza',
       car_color: 'rojo',
@@ -474,7 +478,7 @@ export default function History() {
       user_id: 'seller-8',
       user_email: 'seller8@test.com',
       user_name: 'Hugo',
-      user_photo: aiFace(201),
+      user_photo: avatarFor('Hugo'),
       car_brand: 'BMW',
       car_model: 'Serie 1',
       car_color: 'gris',
@@ -493,7 +497,7 @@ export default function History() {
       user_id: 'seller-9',
       user_email: 'seller9@test.com',
       user_name: 'Nuria',
-      user_photo: aiFace(202),
+      user_photo: avatarFor('Nuria'),
       car_brand: 'Audi',
       car_model: 'A3',
       car_color: 'azul',
@@ -512,7 +516,7 @@ export default function History() {
       user_id: 'seller-10',
       user_email: 'seller10@test.com',
       user_name: 'Iván',
-      user_photo: aiFace(203),
+      user_photo: avatarFor('Iván'),
       car_brand: 'Toyota',
       car_model: 'Yaris',
       car_color: 'blanco',
@@ -526,7 +530,7 @@ export default function History() {
     }
   ];
 
-  // ====== Transacciones mock (Marco con foto AI realista) ======
+  // ====== Transacciones mock (Marco con foto fija) ======
   const mockTransactions = [
     {
       id: 'mock-tx-1',
@@ -534,7 +538,7 @@ export default function History() {
       seller_name: 'Tu',
       buyer_id: 'buyer-1',
       buyer_name: 'Marco',
-      buyer_photo_url: aiFace(301),
+      buyer_photo_url: avatarFor('Marco'),
       buyer_car: 'BMW Serie 3',
       buyer_car_color: 'gris',
       buyer_plate: '2847BNM',
@@ -681,6 +685,7 @@ export default function History() {
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
+                        // contador SIEMPRE basado en waitUntilTs => sincroniza con "Te espera hasta..."
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry
                           ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -771,7 +776,9 @@ export default function History() {
                                           }`
                                         ))
                                       }
-                                      onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                                      onCall={() =>
+                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
+                                      }
                                       latitude={alert.latitude}
                                       longitude={alert.longitude}
                                       allowPhoneCalls={alert.allow_phone_calls}
@@ -806,7 +813,6 @@ export default function History() {
                             ) : (
                               <>
                                 <div className="flex items-center justify-between mb-2">
-                                  {/* 2) Badge ancho = foto */}
                                   <Badge
                                     className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                                   >
@@ -899,7 +905,6 @@ export default function History() {
                             className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
-                              {/* 2) Badge ancho = foto */}
                               <Badge
                                 className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
@@ -929,6 +934,9 @@ export default function History() {
                                 </Button>
                               </div>
                             </div>
+
+                            {/* línea extra bajo cabecera */}
+                            <div className="border-t border-gray-700/80 mb-2" />
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
                               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
@@ -980,7 +988,6 @@ export default function History() {
                           className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            {/* 2) Badge ancho = foto */}
                             <Badge
                               className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
@@ -1003,7 +1010,7 @@ export default function History() {
                                 <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                   <TrendingDown className="w-4 h-4 text-red-400" />
                                   <span className="font-bold text-red-400 text-sm">
-                                    -{(tx.amount ?? 0).toFixed(2)}€
+                                    {(tx.amount ?? 0).toFixed(2)}€
                                   </span>
                                 </div>
                               )}
@@ -1017,6 +1024,9 @@ export default function History() {
                               </Button>
                             </div>
                           </div>
+
+                          {/* línea extra bajo cabecera */}
+                          <div className="border-t border-gray-700/80 mb-2" />
 
                           <div className="mb-1.5">
                             <MarcoContent
@@ -1079,7 +1089,7 @@ export default function History() {
                       const waitUntilTs = getWaitUntilTs(alert);
                       const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                      // 4) contador tiempo real sincronizado con "te espera hasta..."
+                      // contador SIEMPRE basado en waitUntilTs => sincroniza con "Te espera hasta..."
                       const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                       const waitUntilLabel = hasExpiry
                         ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -1107,7 +1117,6 @@ export default function History() {
                           className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            {/* 2) Badge ancho = foto */}
                             <Badge
                               className={`bg-green-500/20 text-green-400 border border-green-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
@@ -1119,7 +1128,6 @@ export default function History() {
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
-                              {/* precio sin "-" */}
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
                                 <span className="font-bold text-red-400 text-sm">
@@ -1172,7 +1180,6 @@ export default function History() {
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
-                            // 4) el botón "EN CURSO" pasa a contador tiempo real
                             statusText={countdownText}
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
@@ -1206,7 +1213,7 @@ export default function History() {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
 
-                      // 6) finalizadas: misma info que activas, pero apagado como "tus alertas"
+                      // finalizada como alerta (gasto SIEMPRE rojo + flecha abajo)
                       if (item.type === 'alert') {
                         const a = item.data;
                         const ts = toMs(a.created_date) || nowTs;
@@ -1229,7 +1236,6 @@ export default function History() {
                             className={finalizedCardClass}
                           >
                             <div className="flex items-center justify-between mb-2 opacity-100">
-                              {/* 2) Badge ancho = foto */}
                               <Badge
                                 className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                               >
@@ -1241,8 +1247,9 @@ export default function History() {
                               </span>
 
                               <div className="flex items-center gap-1 flex-shrink-0">
-                                <div className="bg-gray-500/10 border border-gray-600 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
-                                  <span className="font-bold text-gray-400 text-sm">
+                                <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
+                                  <TrendingDown className="w-4 h-4 text-red-400" />
+                                  <span className="font-bold text-red-400 text-sm">
                                     {(a.price ?? 0).toFixed(2)}€
                                   </span>
                                 </div>
@@ -1263,6 +1270,9 @@ export default function History() {
                                 </Button>
                               </div>
                             </div>
+
+                            {/* línea extra bajo cabecera */}
+                            <div className="border-t border-gray-700/80 mb-2" />
 
                             <MarcoContent
                               photoUrl={a.user_photo}
@@ -1286,7 +1296,7 @@ export default function History() {
                         );
                       }
 
-                      // Finalizada como transacción (apagado como "tus alertas")
+                      // finalizada como transacción (gasto rojo)
                       const tx = item.data;
                       const ts = toMs(tx.created_date);
 
@@ -1316,7 +1326,6 @@ export default function History() {
                           className={finalizedCardClass}
                         >
                           <div className="flex items-center justify-between mb-2 opacity-100">
-                            {/* 2) Badge ancho = foto */}
                             <Badge
                               className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
                             >
@@ -1328,7 +1337,6 @@ export default function History() {
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
-                              {/* sin "-" también aquí */}
                               <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-2 py-1 flex items-center gap-1 h-7">
                                 <TrendingDown className="w-4 h-4 text-red-400" />
                                 <span className="font-bold text-red-400 text-sm">
@@ -1345,6 +1353,9 @@ export default function History() {
                               </Button>
                             </div>
                           </div>
+
+                          {/* línea extra bajo cabecera */}
+                          <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
                             photoUrl={sellerPhoto}
