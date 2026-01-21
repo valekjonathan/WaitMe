@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,21 +14,122 @@ import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
 
+function buildDemoAlerts(centerLat, centerLng) {
+  // offsets (~0.001 ≈ 110m) para que se vean “alrededor”
+  const offsets = [
+    [0.0009, 0.0006],
+    [-0.0007, 0.0008],
+    [0.0011, -0.0005],
+    [-0.0010, -0.0007],
+    [0.0004, -0.0011],
+    [-0.0004, 0.0012]
+  ];
+
+  // 6 coches inventados (variados: coche/suv/van, precios, tiempo, fotos)
+  const base = [
+    {
+      id: 'demo_1',
+      user_name: 'Sofía',
+      user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+      car_brand: 'SEAT',
+      car_model: 'Ibiza',
+      car_color: 'blanco',
+      car_plate: '1234 KLM',
+      vehicle_type: 'car',
+      price: 3,
+      available_in_minutes: 6,
+      address: 'Calle Uría, Oviedo'
+    },
+    {
+      id: 'demo_2',
+      user_name: 'Marco',
+      user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+      car_brand: 'Volkswagen',
+      car_model: 'Golf',
+      car_color: 'negro',
+      car_plate: '5678 HJP',
+      vehicle_type: 'car',
+      price: 5,
+      available_in_minutes: 10,
+      address: 'Calle Fray Ceferino, Oviedo'
+    },
+    {
+      id: 'demo_3',
+      user_name: 'Nerea',
+      user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+      car_brand: 'Toyota',
+      car_model: 'RAV4',
+      car_color: 'azul',
+      car_plate: '9012 LSR',
+      vehicle_type: 'suv',
+      price: 7,
+      available_in_minutes: 14,
+      address: 'Calle Campoamor, Oviedo'
+    },
+    {
+      id: 'demo_4',
+      user_name: 'David',
+      user_photo: 'https://randomuser.me/api/portraits/men/19.jpg',
+      car_brand: 'Renault',
+      car_model: 'Trafic',
+      car_color: 'gris',
+      car_plate: '3456 JTZ',
+      vehicle_type: 'van',
+      price: 4,
+      available_in_minutes: 4,
+      address: 'Plaza de la Escandalera, Oviedo'
+    },
+    {
+      id: 'demo_5',
+      user_name: 'Lucía',
+      user_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
+      car_brand: 'Peugeot',
+      car_model: '208',
+      car_color: 'rojo',
+      car_plate: '7788 MNB',
+      vehicle_type: 'car',
+      price: 2,
+      available_in_minutes: 3,
+      address: 'Calle Rosal, Oviedo'
+    },
+    {
+      id: 'demo_6',
+      user_name: 'Álvaro',
+      user_photo: 'https://randomuser.me/api/portraits/men/61.jpg',
+      car_brand: 'Kia',
+      car_model: 'Sportage',
+      car_color: 'verde',
+      car_plate: '2468 GHT',
+      vehicle_type: 'suv',
+      price: 6,
+      available_in_minutes: 18,
+      address: 'Calle Jovellanos, Oviedo'
+    }
+  ];
+
+  return base.map((a, i) => {
+    const [dLat, dLng] = offsets[i] || [0, 0];
+    return {
+      ...a,
+      latitude: centerLat + dLat,
+      longitude: centerLng + dLng,
+      allow_phone_calls: false,
+      phone: null,
+      is_demo: true
+    };
+  });
+}
+
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
 
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
-  // Resetear mode cuando se navega a Home sin parámetros
+  // Resetear mode cuando se navega a Home sin parámetros (al volver desde menú)
   useEffect(() => {
-    const checkReset = () => {
-      const params = new URLSearchParams(window.location.search);
-      if (!params.has('mode')) {
-        setMode(null);
-      }
-    };
-    checkReset();
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('mode')) setMode(null);
   }, [window.location.search]);
 
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -46,20 +147,20 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
-  // Obtener usuario actual
+  // Usuario
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-      } catch (error) {
-        console.log('Usuario no autenticado');
+      } catch {
+        // no auth
       }
     };
     fetchUser();
   }, []);
 
-  // Obtener mensajes no leídos
+  // Unread
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
@@ -70,31 +171,15 @@ export default function Home() {
     refetchInterval: 5000
   });
 
-  // Obtener alertas activas solo cuando estamos en modo search
-  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
+  // Solo pedimos alertas reales en modo "search"
+  const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
     refetchInterval: mode === 'search' ? 5000 : false,
     enabled: mode === 'search'
   });
 
-  // Filtrar alertas según criterios
-  const alerts = rawAlerts.filter((alert) => {
-    if (alert.price > filters.maxPrice) return false;
-    if (alert.available_in_minutes > filters.maxMinutes) return false;
-
-    if (userLocation) {
-      const distance = calculateDistance(
-        userLocation[0], userLocation[1],
-        alert.latitude, alert.longitude
-      );
-      if (distance > filters.maxDistance) return false;
-    }
-
-    return true;
-  });
-
-  // Calcular distancia en km
+  // Distancia km
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -107,11 +192,82 @@ export default function Home() {
     return R * c;
   }
 
+  // Geoloc
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setSelectedPosition({ lat: latitude, lng: longitude });
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.address) {
+              const road = data.address.road || data.address.street || '';
+              const number = data.address.house_number || '';
+              setAddress(number ? `${road}, ${number}` : road);
+            }
+          })
+          .catch(() => {});
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  // DEMO: 6 coches alrededor (misma lista se usa en Home fondo y dentro de “Dónde quieres aparcar”)
+  const demoAlerts = useMemo(() => {
+    const fallback = [43.3619, -5.8494]; // Oviedo aprox
+    const lat = userLocation?.[0] ?? fallback[0];
+    const lng = userLocation?.[1] ?? fallback[1];
+    return buildDemoAlerts(lat, lng);
+  }, [userLocation]);
+
+  // Filtrar alertas reales por filtros
+  const realAlerts = rawAlerts.filter((alert) => {
+    if (alert.price > filters.maxPrice) return false;
+    if (alert.available_in_minutes > filters.maxMinutes) return false;
+
+    if (userLocation) {
+      const distance = calculateDistance(userLocation[0], userLocation[1], alert.latitude, alert.longitude);
+      if (distance > filters.maxDistance) return false;
+    }
+    return true;
+  });
+
+  // En “Dónde quieres aparcar”: reales + relleno demo hasta 6 (siempre verás 6 posibilidades)
+  const searchAlerts = useMemo(() => {
+    const merged = [...(realAlerts || [])];
+    const used = new Set(merged.map((a) => a.id));
+    for (const d of demoAlerts) {
+      if (merged.length >= 6) break;
+      if (!used.has(d.id)) merged.push(d);
+    }
+    return merged.length ? merged : demoAlerts;
+  }, [realAlerts, demoAlerts]);
+
+  // En la Home principal (mapa de fondo): SIEMPRE los 6 demo
+  const homeMapAlerts = demoAlerts;
+
+  // Selección por defecto al entrar en search
+  useEffect(() => {
+    if (mode === 'search' && !selectedAlert && searchAlerts.length > 0) {
+      setSelectedAlert(searchAlerts[0]);
+    }
+  }, [mode, selectedAlert, searchAlerts]);
+
   // Crear alerta
   const createAlertMutation = useMutation({
     mutationFn: async (alertData) => {
       const minutes = Number(alertData.minutes) || 0;
       const waitUntilIso = minutes > 0 ? new Date(Date.now() + minutes * 60000).toISOString() : null;
+
       const newAlert = await base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -127,12 +283,12 @@ export default function Home() {
         address: address,
         price: alertData.price,
         available_in_minutes: minutes,
-        // Campo extra para que el contador sea consistente (evita que "aparezca y desaparezca")
         ...(waitUntilIso ? { wait_until: waitUntilIso, expires_at: waitUntilIso } : {}),
         allow_phone_calls: user?.allow_phone_calls || false,
         phone: user?.phone,
         status: 'active'
       });
+
       return newAlert;
     },
     onSuccess: () => {
@@ -143,7 +299,7 @@ export default function Home() {
     }
   });
 
-  // Comprar alerta - ahora crea notificación
+  // Comprar alerta (solo reales)
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       await base44.entities.Notification.create({
@@ -157,7 +313,6 @@ export default function Home() {
         amount: alert.price,
         status: 'pending'
       });
-
       return alert;
     },
     onSuccess: () => {
@@ -167,55 +322,19 @@ export default function Home() {
     }
   });
 
-  // Obtener ubicación actual
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-          setSelectedPosition({ lat: latitude, lng: longitude });
-
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.address) {
-                const road = data.address.road || data.address.street || '';
-                const number = data.address.house_number || '';
-                setAddress(number ? `${road}, ${number}` : road);
-              }
-            });
-        },
-        (error) => console.log('Error obteniendo ubicación:', error)
-      );
-    }
-  };
-
-  useEffect(() => {
-    getCurrentLocation();
-  }, []);
-
-  // Centrar en ubicación cuando se entra en modo search
-  useEffect(() => {
-    if (mode === 'search' && userLocation) {
-      setTimeout(() => {
-        getCurrentLocation();
-      }, 300);
-    }
-  }, [mode]);
-
   const handleBuyAlert = (alert) => {
+    if (alert?.is_demo) return; // demo: no comprar
     setConfirmDialog({ open: true, alert });
   };
 
   const handleChat = (alert) => {
+    if (alert?.is_demo) return;
     window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
   };
 
   const handleCall = (alert) => {
-    if (alert.phone) {
-      window.location.href = `tel:${alert.phone}`;
-    }
+    if (alert?.is_demo) return;
+    if (alert.phone) window.location.href = `tel:${alert.phone}`;
   };
 
   return (
@@ -232,9 +351,10 @@ export default function Home() {
         }}
       />
 
-      {/* Main Content (VUELVE A TU LAYOUT ORIGINAL) */}
+      {/* CONTENIDO (NO TOCA tu overlay ni tu home, solo añade coches al mapa de fondo) */}
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
+          {/* HOME PRINCIPAL */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -242,17 +362,17 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              {/* Mapa de fondo apagado */}
+              {/* Mapa de fondo apagado + coches demo */}
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
-                  alerts={alerts}
+                  alerts={homeMapAlerts}
                   userLocation={userLocation}
                   className="absolute inset-0 w-full h-full"
                   zoomControl={false}
                 />
               </div>
 
-              {/* Overlay morado apagado */}
+              {/* Overlay morado apagado (NO TOCAR) */}
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
@@ -290,6 +410,7 @@ export default function Home() {
             </motion.div>
           )}
 
+          {/* DÓNDE QUIERES APARCAR */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -300,7 +421,7 @@ export default function Home() {
             >
               <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
-                  alerts={alerts}
+                  alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
                   userLocation={userLocation}
                   selectedAlert={selectedAlert}
@@ -325,7 +446,7 @@ export default function Home() {
                       filters={filters}
                       onFilterChange={setFilters}
                       onClose={() => setShowFilters(false)}
-                      alertsCount={alerts.length}
+                      alertsCount={searchAlerts.length}
                     />
                   )}
                 </AnimatePresence>
@@ -356,14 +477,17 @@ export default function Home() {
             </motion.div>
           )}
 
+          {/* ESTOY APARCADO AQUÍ (sin scroll: centrado dentro de pantalla) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="h-screen pt-4"
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[35%] relative px-3">
+              {/* mapa un poco más grande y bien centrado */}
+              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -372,12 +496,13 @@ export default function Home() {
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
                       .then((res) => res.json())
                       .then((data) => {
-                        if (data.address) {
+                        if (data?.address) {
                           const road = data.address.road || data.address.street || '';
                           const number = data.address.house_number || '';
                           setAddress(number ? `${road}, ${number}` : road);
                         }
-                      });
+                      })
+                      .catch(() => {});
                   }}
                   userLocation={userLocation}
                   zoomControl={true}
@@ -385,18 +510,21 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-2 text-sm">
+              <h3 className="text-white font-semibold text-center py-2 text-sm flex-shrink-0">
                 ¿ Dónde estas aparcado ?
               </h3>
 
-              <div className="px-4">
-                <CreateAlertCard
-                  address={address}
-                  onAddressChange={setAddress}
-                  onUseCurrentLocation={getCurrentLocation}
-                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                  isLoading={createAlertMutation.isPending}
-                />
+              {/* tarjeta: SIN scroll externo */}
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+                <div className="w-full">
+                  <CreateAlertCard
+                    address={address}
+                    onAddressChange={setAddress}
+                    onUseCurrentLocation={getCurrentLocation}
+                    onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                    isLoading={createAlertMutation.isPending}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
@@ -405,12 +533,16 @@ export default function Home() {
 
       <BottomNav />
 
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}
+      >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
             <DialogDescription className="text-gray-400">
-              Vas a enviar una solicitud de reserva por <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> a{' '}
+              Vas a enviar una solicitud de reserva por{' '}
+              <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> a{' '}
               <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span>
             </DialogDescription>
           </DialogHeader>
@@ -438,9 +570,9 @@ export default function Home() {
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending}
+              disabled={buyAlertMutation.isPending || confirmDialog.alert?.is_demo}
             >
-              {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
+              {confirmDialog.alert?.is_demo ? 'Solo demo' : (buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud')}
             </Button>
           </DialogFooter>
         </DialogContent>
