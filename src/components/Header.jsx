@@ -72,11 +72,13 @@ export default function Header({
               <div className="w-10" />
             )}
 
-            {/* DINERO: se queda donde está (entre atrás y título) */}
+            {/* DINERO: 5px a la izquierda */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
-                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                  <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer -translate-x-[5px]">
+                  <span className="text-purple-400 font-bold text-sm">
+                    {(user?.credits || 0).toFixed(2)}€
+                  </span>
                 </div>
               </Link>
             </div>
@@ -99,7 +101,6 @@ export default function Header({
               </Button>
             </Link>
 
-            {/* Perfil SIN circulito (no lleva notificaciones) */}
             <Link to={createPageUrl('Profile')}>
               <Button
                 variant="ghost"
