@@ -207,16 +207,29 @@ export default function History() {
     return `${mm}:${ss}`;
   };
 
-  const CountdownButton = ({ text }) => (
-    <Button
-      type="button"
-      variant="outline"
-      disabled
-      className="w-full h-9 border-2 border-purple-500/30 bg-purple-600/10 text-purple-300 hover:bg-purple-600/10 hover:text-purple-300 flex items-center justify-center font-mono font-bold text-sm cursor-default"
-    >
-      {text}
-    </Button>
-  );
+  // ====== Countdown más brillante + “encendido” (no clicable) ======
+  const CountdownButton = ({ text }) => {
+    const isRunning =
+      !!text && text !== '--:--' && !/finalizada/i.test(String(text || '')) && !/finalizado/i.test(String(text || ''));
+
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        tabIndex={-1}
+        aria-disabled="true"
+        className={[
+          'w-full h-10 border-2 flex items-center justify-center font-mono font-bold text-sm',
+          'pointer-events-none cursor-default',
+          isRunning
+            ? 'border-purple-400/70 bg-purple-600/25 text-purple-200 shadow-[0_0_14px_rgba(168,85,247,0.25)]'
+            : 'border-gray-600/60 bg-gray-800/40 text-gray-300'
+        ].join(' ')}
+      >
+        {text}
+      </Button>
+    );
+  };
 
   // ====== Secciones "Activas / Finalizadas" centradas ======
   const SectionTag = ({ variant, text }) => {
@@ -246,7 +259,6 @@ export default function History() {
 
   // ====== Chips de dinero ======
   const MoneyChip = ({ mode = 'neutral', amountText, showDownIcon = false, showUpIcon = false }) => {
-    // mode: 'green' | 'red' | 'neutral'
     const isGreen = mode === 'green';
     const isRed = mode === 'red';
 
@@ -681,7 +693,6 @@ export default function History() {
   };
 
   // ====== Dinero en "Tus reservas" según estado ======
-  // Regla: SOLO rojo + flecha abajo si COMPLETADA (pagada). Si EXPIRADA/CANCELADA => neutral.
   const reservationMoneyModeFromStatus = (status) => {
     const st = String(status || '').toLowerCase();
     if (st === 'completed') return 'paid';
@@ -733,7 +744,6 @@ export default function History() {
                         const waitUntilTs = getWaitUntilTs(alert);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
 
-                        // contador SIEMPRE basado en waitUntilTs => sincroniza con "Te espera hasta..."
                         const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                         const waitUntilLabel = hasExpiry
                           ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
@@ -803,6 +813,9 @@ export default function History() {
                                     </div>
                                   }
                                 />
+
+                                {/* 1) Línea horizontal debajo del header (debajo de “Activa/Reservado…”) */}
+                                <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5 h-[220px]">
@@ -894,6 +907,9 @@ export default function History() {
                                   }
                                 />
 
+                                {/* 1) Línea horizontal debajo de “Activa” */}
+                                <div className="border-t border-gray-700/80 mb-2" />
+
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                   <span className="text-gray-400 leading-5">
@@ -982,7 +998,6 @@ export default function History() {
                               }
                             />
 
-                            {/* línea extra bajo cabecera */}
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -1071,7 +1086,6 @@ export default function History() {
                             }
                           />
 
-                          {/* línea extra bajo cabecera */}
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <div className="mb-1.5">
@@ -1214,7 +1228,7 @@ export default function History() {
                             }
                           />
 
-                          {/* 2) línea extra también en activas (tus reservas) */}
+                          {/* Línea bajo header */}
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
@@ -1234,11 +1248,17 @@ export default function History() {
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
-                            statusText={countdownText}
+                            // IMPORTANTE: aquí no metemos la cuenta atrás para que sea “el botón” abajo
+                            statusText="EN CURSO"
                             statusEnabled={true}
                             phoneEnabled={phoneEnabled}
                             onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
                           />
+
+                          {/* 2) Botón cuenta atrás en tiempo real también en “Tus reservas” */}
+                          <div className="mt-2">
+                            <CountdownButton text={countdownText} />
+                          </div>
                         </motion.div>
                       );
                     })}
