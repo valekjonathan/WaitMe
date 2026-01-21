@@ -1256,4 +1256,4 @@ export default function History() {
       <BottomNav activeTab="history" />
     </div>
   );
-}
+} 
