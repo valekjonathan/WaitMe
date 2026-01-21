@@ -36,6 +36,17 @@ export default function History() {
   const noScrollBar =
     '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
+  // ====== Fecha: "19 Enero - 21:05" ======
+  const formatCardDate = (ts) => {
+    if (!ts) return '--';
+    const raw = format(new Date(ts), 'd MMMM - HH:mm', { locale: es }); // "19 enero - 21:05"
+    // Capitaliza el mes (solo la primera letra del mes)
+    return raw.replace(/^\d+\s+([a-záéíóúñ]+)/i, (m, mon) => {
+      const cap = mon.charAt(0).toUpperCase() + mon.slice(1);
+      return m.replace(mon, cap);
+    });
+  };
+
   // ====== Coche + matrícula (como Marco) ======
   const carColors = [
     { value: 'blanco', fill: '#FFFFFF' },
@@ -194,95 +205,114 @@ export default function History() {
     address,
     timeLine,
     priceChip // JSX opcional (p.ej. precio rojo en reservas)
-  }) => (
-    <>
-      {/* FOTO + DATOS (sin caja envolvente) */}
-      <div className="flex gap-2.5">
-        <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
-          {photoUrl ? (
-            <img src={photoUrl} alt={name} className="w-full h-full object-cover opacity-40 grayscale" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
-              👤
-            </div>
-          )}
-        </div>
+  }) => {
+    const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
 
-        <div className="flex-1 h-[85px] flex flex-col">
-          <p className="font-bold text-xl text-gray-300 leading-none opacity-60">
-            {(name || '').split(' ')[0] || 'Usuario'}
-          </p>
+    return (
+      <>
+        {/* FOTO + DATOS (sin caja envolvente) */}
+        <div className="flex gap-2.5">
+          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/70 bg-gray-800/30 flex-shrink-0">
+            {photoUrl ? (
+              <img src={photoUrl} alt={name} className="w-full h-full object-cover opacity-40 grayscale" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl text-gray-600 opacity-40">
+                👤
+              </div>
+            )}
+          </div>
 
-          {/* Modelo centrado verticalmente entre nombre y matrícula */}
-          <p className="text-sm font-medium text-gray-400 leading-none opacity-60 flex-1 flex items-center truncate">
-            {carLabel || 'Sin datos'}
-          </p>
+          <div className="flex-1 h-[85px] flex flex-col">
+            <p className="font-bold text-xl text-gray-300 leading-none opacity-60 min-h-[22px]">
+              {(name || '').split(' ')[0] || 'Usuario'}
+            </p>
 
-          {/* Matrícula + coche alineados abajo */}
-          <div className="flex items-end justify-between gap-2 mt-1">
-            <div className="opacity-40">
-              <PlateProfile plate={plate} />
-            </div>
-            <div className="opacity-35 flex-shrink-0 relative -top-[1px]">
-              <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+            {/* Modelo centrado verticalmente entre nombre y matrícula */}
+            <p className="text-sm font-medium text-gray-400 leading-none opacity-60 flex-1 flex items-center truncate">
+              {carLabel || 'Sin datos'}
+            </p>
+
+            {/* Matrícula + coche (coche centrado en el espacio desde matrícula al borde derecho) */}
+            <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+              <div className="opacity-40 flex-shrink-0">
+                <PlateProfile plate={plate} />
+              </div>
+
+              {/* este flex-1 es el "espacio" desde la matrícula al borde derecho */}
+              <div className="flex-1 flex justify-center">
+                <div className="opacity-35 flex-shrink-0 relative -top-[1px]">
+                  <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Rayita horizontal + líneas */}
-      <div className="pt-1.5 border-t border-gray-800/70 mt-2">
-        <div className="space-y-1.5 opacity-50">
-          {address ? (
-            <div className="flex items-start gap-1.5 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-              <span className="text-gray-500 leading-5 line-clamp-1">{address}</span>
-            </div>
-          ) : null}
+        {/* Rayita horizontal + líneas */}
+        <div className="pt-1.5 border-t border-gray-800/70 mt-2">
+          <div className="space-y-1.5 opacity-50">
+            {address ? (
+              <div className="flex items-start gap-1.5 text-xs">
+                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                <span className="text-gray-500 leading-5 line-clamp-1">{address}</span>
+              </div>
+            ) : null}
 
-          {timeLine ? (
-            <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
-              <span className="text-gray-600 leading-5">{timeLine}</span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {/* Botonera (misma que Marco) */}
-      <div className="mt-2">
-        <div className="flex gap-2">
-          <Button
-            size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-            onClick={onChat}
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
-            disabled
-          >
-            <PhoneOff className="w-4 h-4 text-gray-600" />
-          </Button>
-
-          <div className="flex-1">
-            <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800/60 flex items-center justify-center px-3">
-              <span className="text-gray-400 text-sm font-mono font-bold opacity-60">
-                {statusText}
-              </span>
-            </div>
+            {timeLine ? (
+              <div className="flex items-start gap-1.5 text-xs">
+                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-600" />
+                <span className="text-gray-600 leading-5">{timeLine}</span>
+              </div>
+            ) : null}
           </div>
-
-          {/* por si algún día quieres añadir un chip extra */}
-          {priceChip ? <div className="hidden">{priceChip}</div> : null}
         </div>
-      </div>
-    </>
-  );
+
+        {/* Botonera (misma que Marco) */}
+        <div className="mt-2">
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+              onClick={onChat}
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-gray-700 h-8 w-[42px] opacity-40 cursor-not-allowed"
+              disabled
+            >
+              <PhoneOff className="w-4 h-4 text-gray-600" />
+            </Button>
+
+            {/* BOTÓN COMPLETADA "ENCENDIDO" como el de Alerta finalizada */}
+            <div className="flex-1">
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${
+                  isCompleted
+                    ? 'border-purple-500/30 bg-purple-600/10'
+                    : 'border-gray-700 bg-gray-800/60'
+                }`}
+              >
+                <span
+                  className={`text-sm font-mono font-bold ${
+                    isCompleted ? 'text-purple-300' : 'text-gray-400 opacity-60'
+                  }`}
+                >
+                  {statusText}
+                </span>
+              </div>
+            </div>
+
+            {/* por si algún día quieres añadir un chip extra */}
+            {priceChip ? <div className="hidden">{priceChip}</div> : null}
+          </div>
+        </div>
+      </>
+    );
+  };
 
   // ====== Ocultar tarjetas al borrar (UI) ======
   const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
@@ -567,9 +597,10 @@ export default function History() {
     }
   ];
 
-  const myFinalizedAsSellerTx = [...transactions.filter((t) => t.seller_id === user?.id), ...mockTransactions].sort(
-    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
-  );
+  const myFinalizedAsSellerTx = [
+    ...transactions.filter((t) => t.seller_id === user?.id),
+    ...mockTransactions
+  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
   const myFinalizedAll = [
     ...myFinalizedAlerts.map((a) => ({
@@ -714,8 +745,9 @@ export default function History() {
                                     Reservado por:
                                   </Badge>
 
+                                  {/* FECHA NUEVA */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
+                                    {formatCardDate(createdTs)}
                                   </span>
 
                                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -793,8 +825,9 @@ export default function History() {
                                     Activa
                                   </Badge>
 
+                                  {/* FECHA NUEVA */}
                                   <span className="text-white text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                                    {format(new Date(createdTs), 'd MMM, HH:mm', { locale: es })}
+                                    {formatCardDate(createdTs)}
                                   </span>
 
                                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -875,10 +908,11 @@ export default function History() {
                                 Finalizada
                               </Badge>
 
+                              {/* FECHA NUEVA */}
                               <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
                                 {(() => {
                                   const ts = toMs(a.created_date);
-                                  return ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--';
+                                  return ts ? formatCardDate(ts) : '--';
                                 })()}
                               </span>
 
@@ -952,8 +986,9 @@ export default function History() {
                               Finalizada
                             </Badge>
 
+                            {/* FECHA NUEVA */}
                             <span className="text-gray-600 text-xs absolute left-1/2 -translate-x-1/2 -ml-3">
-                              {ts ? format(new Date(ts), 'd MMM, HH:mm', { locale: es }) : '--'}
+                              {ts ? formatCardDate(ts) : '--'}
                             </span>
 
                             <div className="flex items-center gap-1 flex-shrink-0">
