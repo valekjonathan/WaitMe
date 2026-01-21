@@ -14,15 +14,13 @@ import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
 
-import SearchAlertCard from '@/components/cards/SearchAlertCard';
-import ActiveAlertCard from '@/components/cards/ActiveAlertCard';
-
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
 
-  const [mode, setMode] = useState(initialMode || null); 
+  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
+  // Resetear mode cuando se navega a Home sin parámetros
   useEffect(() => {
     const checkReset = () => {
       const params = new URLSearchParams(window.location.search);
@@ -48,6 +46,7 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
+  // Obtener usuario actual
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -60,6 +59,7 @@ export default function Home() {
     fetchUser();
   }, []);
 
+  // Obtener mensajes no leídos
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
@@ -70,6 +70,7 @@ export default function Home() {
     refetchInterval: 5000
   });
 
+  // Obtener alertas activas solo cuando estamos en modo search
   const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
@@ -77,30 +78,41 @@ export default function Home() {
     enabled: mode === 'search'
   });
 
+  // Filtrar alertas según criterios
   const alerts = rawAlerts.filter((alert) => {
     if (alert.price > filters.maxPrice) return false;
     if (alert.available_in_minutes > filters.maxMinutes) return false;
+
     if (userLocation) {
-      const distance = calculateDistance(userLocation[0], userLocation[1], alert.latitude, alert.longitude);
+      const distance = calculateDistance(
+        userLocation[0], userLocation[1],
+        alert.latitude, alert.longitude
+      );
       if (distance > filters.maxDistance) return false;
     }
+
     return true;
   });
 
+  // Calcular distancia en km
   function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 
+  // Crear alerta
   const createAlertMutation = useMutation({
     mutationFn: async (alertData) => {
       const minutes = Number(alertData.minutes) || 0;
       const waitUntilIso = minutes > 0 ? new Date(Date.now() + minutes * 60000).toISOString() : null;
-      return await base44.entities.ParkingAlert.create({
+      const newAlert = await base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
         user_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
@@ -115,11 +127,13 @@ export default function Home() {
         address: address,
         price: alertData.price,
         available_in_minutes: minutes,
+        // Campo extra para que el contador sea consistente (evita que "aparezca y desaparezca")
         ...(waitUntilIso ? { wait_until: waitUntilIso, expires_at: waitUntilIso } : {}),
         allow_phone_calls: user?.allow_phone_calls || false,
         phone: user?.phone,
         status: 'active'
       });
+      return newAlert;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
@@ -129,6 +143,7 @@ export default function Home() {
     }
   });
 
+  // Comprar alerta - ahora crea notificación
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       await base44.entities.Notification.create({
@@ -142,6 +157,7 @@ export default function Home() {
         amount: alert.price,
         status: 'pending'
       });
+
       return alert;
     },
     onSuccess: () => {
@@ -151,76 +167,237 @@ export default function Home() {
     }
   });
 
+  // Obtener ubicación actual
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
-        setSelectedPosition({ lat: latitude, lng: longitude });
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.address) {
-              const road = data.address.road || data.address.street || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          });
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          setSelectedPosition({ lat: latitude, lng: longitude });
+
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.address) {
+                const road = data.address.road || data.address.street || '';
+                const number = data.address.house_number || '';
+                setAddress(number ? `${road}, ${number}` : road);
+              }
+            });
+        },
+        (error) => console.log('Error obteniendo ubicación:', error)
+      );
     }
   };
 
-  useEffect(() => { getCurrentLocation(); }, []);
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  // Centrar en ubicación cuando se entra en modo search
+  useEffect(() => {
+    if (mode === 'search' && userLocation) {
+      setTimeout(() => {
+        getCurrentLocation();
+      }, 300);
+    }
+  }, [mode]);
+
+  const handleBuyAlert = (alert) => {
+    setConfirmDialog({ open: true, alert });
+  };
+
+  const handleChat = (alert) => {
+    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
+  };
+
+  const handleCall = (alert) => {
+    if (alert.phone) {
+      window.location.href = `tel:${alert.phone}`;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
-      <Header 
-        title="WaitMe!" 
-        unreadCount={unreadCount} 
-        showBackButton={!!mode} 
-        onBack={() => { setMode(null); setSelectedAlert(null); }} 
+
+      <Header
+        title="WaitMe!"
+        unreadCount={unreadCount}
+        showBackButton={!!mode}
+        onBack={() => {
+          setMode(null);
+          setSelectedAlert(null);
+        }}
       />
 
-      <main className="fixed inset-0 overflow-y-auto">
+      {/* Main Content (VUELVE A TU LAYOUT ORIGINAL) */}
+      <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center pt-20 px-6 pb-32">
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" className="w-40 h-40 object-contain mb-4" />
-              <h1 className="text-xl font-bold mb-8">Aparca donde te <span className="text-purple-500">avisen!</span></h1>
-              
-              <div className="w-full max-w-sm space-y-4 mb-8">
-                <Button onClick={() => setMode('search')} className="w-full h-16 bg-gray-900 border border-gray-700 rounded-2xl flex items-center justify-center gap-4 text-lg">
-                  🔍 ¿Dónde quieres aparcar?
-                </Button>
-                <Button onClick={() => setMode('create')} className="w-full h-16 bg-purple-600 rounded-2xl flex items-center justify-center gap-4 text-lg">
-                  <Car className="w-6 h-6" /> ¡Estoy aparcado aquí!
-                </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
+            >
+              {/* Mapa de fondo apagado */}
+              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
+                <ParkingMap
+                  alerts={alerts}
+                  userLocation={userLocation}
+                  className="absolute inset-0 w-full h-full"
+                  zoomControl={false}
+                />
               </div>
 
-              {/* TUS NUEVAS TARJETAS VISIBLES SIEMPRE */}
-              <div className="w-full max-w-sm space-y-4 border-t border-gray-800 pt-8">
-                <h2 className="text-gray-400 text-sm font-medium uppercase tracking-wider">Tus Alertas</h2>
-                <SearchAlertCard />
-                <ActiveAlertCard />
+              {/* Overlay morado apagado */}
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
+
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                  alt="WaitMe!"
+                  className="w-48 h-48 mb-0 object-contain"
+                />
+
+                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                </h1>
+              </div>
+
+              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
+                <Button
+                  onClick={() => setMode('search')}
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
+                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  ¿ Dónde quieres aparcar ?
+                </Button>
+
+                <Button
+                  onClick={() => setMode('create')}
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
+                  <Car className="w-14 h-14" strokeWidth={2.5} />
+                  ¡ Estoy aparcado aquí !
+                </Button>
               </div>
             </motion.div>
           )}
 
           {mode === 'search' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-[60px] h-full flex flex-col">
-              <div className="h-64 relative px-3 pt-2">
-                <ParkingMap alerts={alerts} onAlertClick={setSelectedAlert} userLocation={userLocation} selectedAlert={selectedAlert} zoomControl={true} className="h-full rounded-2xl" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+            >
+              <div className="h-[42%] relative px-3 pt-1 flex-shrink-0">
+                <ParkingMap
+                  alerts={alerts}
+                  onAlertClick={setSelectedAlert}
+                  userLocation={userLocation}
+                  selectedAlert={selectedAlert}
+                  showRoute={!!selectedAlert}
+                  zoomControl={true}
+                  className="h-full"
+                />
+
+                {!showFilters && (
+                  <Button
+                    onClick={() => setShowFilters(true)}
+                    className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    size="icon"
+                  >
+                    <SlidersHorizontal className="w-5 h-5" />
+                  </Button>
+                )}
+
+                <AnimatePresence>
+                  {showFilters && (
+                    <MapFilters
+                      filters={filters}
+                      onFilterChange={setFilters}
+                      onClose={() => setShowFilters(false)}
+                      alertsCount={alerts.length}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
-              <div className="p-4 flex-1">
-                <UserAlertCard alert={selectedAlert} isEmpty={!selectedAlert} onBuyAlert={(a) => setConfirmDialog({open:true, alert:a})} onChat={(a) => window.location.href = createPageUrl(`Chat?alertId=${a.id}`)} userLocation={userLocation} />
+
+              <div className="px-4 py-2">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 px-4 min-h-0 overflow-y-auto">
+                <UserAlertCard
+                  alert={selectedAlert}
+                  isEmpty={!selectedAlert}
+                  onBuyAlert={handleBuyAlert}
+                  onChat={handleChat}
+                  onCall={handleCall}
+                  isLoading={buyAlertMutation.isPending}
+                  userLocation={userLocation}
+                />
               </div>
             </motion.div>
           )}
 
           {mode === 'create' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-[60px] p-4">
-               <CreateAlertCard address={address} onAddressChange={setAddress} onUseCurrentLocation={getCurrentLocation} onCreateAlert={(data) => createAlertMutation.mutate(data)} isLoading={createAlertMutation.isPending} />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-screen pt-4"
+            >
+              <div className="h-[35%] relative px-3">
+                <ParkingMap
+                  isSelecting={true}
+                  selectedPosition={selectedPosition}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data.address) {
+                          const road = data.address.road || data.address.street || '';
+                          const number = data.address.house_number || '';
+                          setAddress(number ? `${road}, ${number}` : road);
+                        }
+                      });
+                  }}
+                  userLocation={userLocation}
+                  zoomControl={true}
+                  className="h-full"
+                />
+              </div>
+
+              <h3 className="text-white font-semibold text-center py-2 text-sm">
+                ¿ Dónde estas aparcado ?
+              </h3>
+
+              <div className="px-4">
+                <CreateAlertCard
+                  address={address}
+                  onAddressChange={setAddress}
+                  onUseCurrentLocation={getCurrentLocation}
+                  onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                  isLoading={createAlertMutation.isPending}
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -228,13 +405,43 @@ export default function Home() {
 
       <BottomNav />
 
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white">
-          <DialogHeader><DialogTitle>Confirmar reserva</DialogTitle></DialogHeader>
-          <div className="py-4">¿Quieres reservar este sitio por {confirmDialog.alert?.price}€?</div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setConfirmDialog({open:false, alert:null})}>Cancelar</Button>
-            <Button className="bg-purple-600" onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}>Confirmar</Button>
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Vas a enviar una solicitud de reserva por <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> a{' '}
+              <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
+            <p className="text-sm text-gray-400">
+              <span className="text-white">{confirmDialog.alert?.car_brand} {confirmDialog.alert?.car_model}</span>
+            </p>
+            <p className="text-sm text-gray-400">
+              Matrícula: <span className="text-white font-mono">{confirmDialog.alert?.car_plate}</span>
+            </p>
+            <p className="text-sm text-gray-400">
+              Se va en: <span className="text-purple-400">{confirmDialog.alert?.available_in_minutes} min</span>
+            </p>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialog({ open: false, alert: null })}
+              className="flex-1 border-gray-700"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              disabled={buyAlertMutation.isPending}
+            >
+              {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
