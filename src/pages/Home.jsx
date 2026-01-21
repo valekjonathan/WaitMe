@@ -14,9 +14,8 @@ import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
 
-// TUS NUEVOS COMPONENTES
-import { SearchAlertCard } from '@/components/cards/SearchAlertCard';
-import { ActiveAlertCard } from '@/components/cards/ActiveAlertCard';
+import SearchAlertCard from '@/components/cards/SearchAlertCard';
+import ActiveAlertCard from '@/components/cards/ActiveAlertCard';
 
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
