@@ -1,123 +1,327 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Bell, MessageCircle } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader } from 'lucide-react';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
+import ParkingMap from '@/components/map/ParkingMap';
+import SearchAlertCard from '@/components/cards/SearchAlertCard';
+import CreateAlertCard from '@/components/cards/CreateAlertCard';
+import ActiveAlertCard from '@/components/cards/ActiveAlertCard';
 import { useAuth } from '@/lib/AuthContext';
 
-export default function BottomNav() {
+export default function Home() {
   const { user } = useAuth();
-  const location = useLocation();
+  const queryClient = useQueryClient();
 
-  const { data: activeAlerts = [] } = useQuery({
-    queryKey: ['userActiveAlerts', user?.email],
+  const [mode, setMode] = useState(null); // null | 'search' | 'create'
+  const [userLocation, setUserLocation] = useState(null);
+
+  // ====== Geolocalización ======
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
+      () => {}
+    );
+  }, []);
+
+  // ====== Lee mode de la URL (Home?mode=search) ======
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const m = sp.get('mode');
+    if (m === 'search' || m === 'create') setMode(m);
+    else setMode(null);
+  }, [window.location.search]);
+
+  const goHome = () => {
+    window.location.href = createPageUrl('Home');
+  };
+
+  const goSearch = () => {
+    window.location.href = createPageUrl('Home?mode=search');
+  };
+
+  const goCreate = () => {
+    window.location.href = createPageUrl('Home?mode=create');
+  };
+
+  // ====== Datos reales (si existen) ======
+  const { data: alerts = [], isLoading } = useQuery({
+    queryKey: ['nearbyAlerts'],
     queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.filter({
-        user_email: user?.email,
-        status: 'active'
-      });
-      return alerts;
-    },
-    enabled: !!user?.email,
-    refetchInterval: 20000
-  });
-
-  const { data: unreadNotifications = [] } = useQuery({
-    queryKey: ['unreadNotifications', user?.email],
-    queryFn: async () => {
-      const notifs = await base44.entities.Notification.filter({
-        recipient_email: user?.email,
-        read: false
-      });
-      return notifs;
-    },
-    enabled: !!user?.email,
-    refetchInterval: 20000
-  });
-
-  // Botones iguales de ancho: cada uno ocupa el mismo espacio.
-  const baseBtn =
-    "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
-
-  const homeUrl = createPageUrl('Home');
-  // Home usa ?mode=search para "Dónde quieres aparcar".
-  // Si estás ahí y pulsas "Mapa", vuelve al Home limpio (recarga la principal).
-  // En el resto de casos, mantén el comportamiento anterior.
-  const isHome = location.pathname === homeUrl;
-  const mode = (() => {
-    try {
-      const p = new URLSearchParams(location.search || '');
-      return p.get('mode');
-    } catch {
-      return null;
+      // Si tienes un endpoint real, cámbialo aquí. Esto mantiene tu comportamiento actual.
+      try {
+        return await base44.entities.ParkingAlert.filter({ status: 'active' });
+      } catch (e) {
+        return [];
+      }
     }
-  })();
-  const mapHref = isHome
-    ? (mode === 'search' ? homeUrl : `${location.pathname}${location.search || ''}`)
-    : homeUrl;
+  });
 
-  // Badge: misma posicion en TODOS los botones del menú de abajo.
-  const badgeBase =
-    "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
-  const badgeGreen =
-    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+  // ====== 6 coches inventados alrededor de ti (estables, no cambian cada tick) ======
+  const mockCars = useMemo(() => {
+    const base = userLocation || [43.3619, -5.8494]; // Oviedo fallback
+    const [lat, lng] = base;
+
+    const mk = (dLat, dLng, obj) => ({
+      id: obj.id,
+      status: 'active',
+      user_id: obj.user_id,
+      user_email: obj.user_email,
+      user_name: obj.user_name,
+      user_photo: obj.user_photo,
+      car_brand: obj.car_brand,
+      car_model: obj.car_model,
+      car_color: obj.car_color,
+      car_plate: obj.car_plate,
+      vehicle_type: obj.vehicle_type,
+      address: obj.address,
+      available_in_minutes: obj.available_in_minutes,
+      price: obj.price,
+      latitude: lat + dLat,
+      longitude: lng + dLng,
+      created_date: new Date(Date.now() - obj.createdAgoMs).toISOString()
+    });
+
+    return [
+      mk(0.0012, 0.0010, {
+        id: 'mock-1',
+        user_id: 'seller-m1',
+        user_email: 'm1@test.com',
+        user_name: 'Sofía',
+        user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+        car_brand: 'Seat',
+        car_model: 'Ibiza',
+        car_color: 'rojo',
+        car_plate: '7780KLP',
+        vehicle_type: 'coche',
+        address: 'Calle Campoamor, 15',
+        available_in_minutes: 8,
+        price: 3.0,
+        createdAgoMs: 1000 * 60 * 4
+      }),
+      mk(-0.0010, 0.0007, {
+        id: 'mock-2',
+        user_id: 'seller-m2',
+        user_email: 'm2@test.com',
+        user_name: 'Hugo',
+        user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+        car_brand: 'BMW',
+        car_model: 'Serie 1',
+        car_color: 'gris',
+        car_plate: '2847BNM',
+        vehicle_type: 'coche',
+        address: 'Calle Fray Ceferino, 10',
+        available_in_minutes: 5,
+        price: 6.5,
+        createdAgoMs: 1000 * 60 * 9
+      }),
+      mk(0.0005, -0.0012, {
+        id: 'mock-3',
+        user_id: 'seller-m3',
+        user_email: 'm3@test.com',
+        user_name: 'Nuria',
+        user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+        car_brand: 'Audi',
+        car_model: 'A3',
+        car_color: 'azul',
+        car_plate: '1209KLP',
+        vehicle_type: 'coche',
+        address: 'Calle Uría, 10',
+        available_in_minutes: 12,
+        price: 4.0,
+        createdAgoMs: 1000 * 60 * 12
+      }),
+      mk(-0.0007, -0.0009, {
+        id: 'mock-4',
+        user_id: 'seller-m4',
+        user_email: 'm4@test.com',
+        user_name: 'Iván',
+        user_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+        car_brand: 'Toyota',
+        car_model: 'Yaris',
+        car_color: 'blanco',
+        car_plate: '4444XYZ',
+        vehicle_type: 'coche',
+        address: 'Calle Jovellanos, 3',
+        available_in_minutes: 6,
+        price: 2.5,
+        createdAgoMs: 1000 * 60 * 2
+      }),
+      mk(0.0015, -0.0003, {
+        id: 'mock-5',
+        user_id: 'seller-m5',
+        user_email: 'm5@test.com',
+        user_name: 'Marco',
+        user_photo: 'https://randomuser.me/api/portraits/men/12.jpg',
+        car_brand: 'Mercedes',
+        car_model: 'Clase A',
+        car_color: 'negro',
+        car_plate: '9981JTR',
+        vehicle_type: 'coche',
+        address: 'Calle Rosal, 8',
+        available_in_minutes: 9,
+        price: 8.0,
+        createdAgoMs: 1000 * 60 * 7
+      }),
+      mk(-0.0013, 0.0014, {
+        id: 'mock-6',
+        user_id: 'seller-m6',
+        user_email: 'm6@test.com',
+        user_name: 'Laura',
+        user_photo: 'https://randomuser.me/api/portraits/women/21.jpg',
+        car_brand: 'Volkswagen',
+        car_model: 'Golf',
+        car_color: 'amarillo',
+        car_plate: '3112HMD',
+        vehicle_type: 'coche',
+        address: 'Plaza Longoria Carbajal, 1',
+        available_in_minutes: 15,
+        price: 5.0,
+        createdAgoMs: 1000 * 60 * 14
+      })
+    ];
+  }, [userLocation]);
+
+  // ====== Lo que se muestra en “Dónde quieres aparcar” (search) ======
+  const searchAlerts = useMemo(() => {
+    // mezcla reales + mocks (mocks primero para que siempre veas ejemplos)
+    const real = Array.isArray(alerts) ? alerts : [];
+    const merged = [...mockCars, ...real];
+
+    // quita duplicados por id
+    const seen = new Set();
+    return merged.filter((a) => {
+      const k = String(a?.id ?? '');
+      if (!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }, [alerts, mockCars]);
+
+  // ====== Puntos del mapa ======
+  const mapAlerts = useMemo(() => {
+    // En Home principal (null) también se ven los coches del ejemplo en el mapa
+    if (mode === 'search') return searchAlerts;
+    return mockCars;
+  }, [mode, searchAlerts, mockCars]);
+
+  // ====== Layout ======
+  const mainHeight = 'calc(100vh - 56px - 80px)'; // header + bottomNav
+  const mapHeight = mode === 'create' ? '40%' : '55%';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
-      <div className="flex items-center max-w-md mx-auto gap-0">
-        <Link to={createPageUrl('History')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-              <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
-              <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
-            </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
+    <div className="min-h-screen bg-black text-white">
+      <Header title="WaitMe!" showBackButton={false} />
 
-            {activeAlerts.length > 0 && (
-              <span className={badgeGreen}>
-                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
-              </span>
-            )}
-          </Button>
-        </Link>
+      <main className="pt-[56px] pb-20">
+        {/* Mapa siempre detrás en Home (sin tocar el resto de tu UI) */}
+        <div style={{ height: mainHeight }} className="relative w-full">
+          <div className="absolute inset-0">
+            <ParkingMap userLocation={userLocation} alerts={mapAlerts} />
+          </div>
 
-        <div className="w-px h-10 bg-gray-700" />
+          {/* Capa de contenido */}
+          <div className="absolute inset-0 flex flex-col px-4">
+            {/* Espacio arriba para que se vea el mapa */}
+            <div className="w-full" style={{ height: mapHeight }} />
 
-        <Link to={mapHref} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Mapa</span>
-          </Button>
-        </Link>
+            {/* Tarjeta inferior */}
+            <div className="flex-1 flex flex-col justify-end pb-3">
+              {mode === null ? (
+                <div className="bg-black/55 backdrop-blur-md rounded-2xl border border-purple-500/40 shadow-[0_0_30px_rgba(168,85,247,0.18)] p-3">
+                  <div className="text-center font-semibold mb-2">¿Dónde estás aparcado?</div>
 
-        <div className="w-px h-10 bg-gray-700" />
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      type="button"
+                      onClick={goSearch}
+                      className="w-full rounded-xl border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/25 transition px-4 py-3 font-semibold"
+                    >
+                      Dónde quieres aparcar
+                    </button>
 
-        <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <Bell className="w-8 h-8" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Notificaciones</span>
+                    <button
+                      type="button"
+                      onClick={goCreate}
+                      className="w-full rounded-xl border border-purple-500/40 bg-purple-600/20 hover:bg-purple-600/25 transition px-4 py-3 font-semibold"
+                    >
+                      Estoy aparcado aquí
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
-            {unreadNotifications.length > 0 && (
-              <span className={badgeBase}>
-                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
-              </span>
-            )}
-          </Button>
-        </Link>
+              {mode === 'search' ? (
+                <div className="bg-black/55 backdrop-blur-md rounded-2xl border border-purple-500/40 shadow-[0_0_30px_rgba(168,85,247,0.18)] p-3 max-h-[45vh] overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold">Dónde quieres aparcar</div>
+                    <button
+                      type="button"
+                      onClick={goHome}
+                      className="text-sm text-purple-300 hover:text-purple-200"
+                    >
+                      Volver
+                    </button>
+                  </div>
 
-        <div className="w-px h-10 bg-gray-700" />
+                  {isLoading ? (
+                    <div className="text-center py-10 text-gray-400">
+                      <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
+                      Cargando...
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {searchAlerts.map((a) => (
+                        <SearchAlertCard
+                          key={a.id}
+                          alert={a}
+                          onOpen={() =>
+                            (window.location.href = createPageUrl(
+                              `AlertDetails?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                            ))
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
 
-        <Link to={createPageUrl('Chats')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <MessageCircle className="w-8 h-8" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
-          </Button>
-        </Link>
-      </div>
-    </nav>
+              {mode === 'create' ? (
+                <div className="bg-black/55 backdrop-blur-md rounded-2xl border border-purple-500/40 shadow-[0_0_30px_rgba(168,85,247,0.18)] p-3 max-h-[55vh] overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold">Estoy aparcado aquí</div>
+                    <button
+                      type="button"
+                      onClick={goHome}
+                      className="text-sm text-purple-300 hover:text-purple-200"
+                    >
+                      Volver
+                    </button>
+                  </div>
+
+                  {/* Aquí mantengo tu flujo tal cual: Create / Active según tu app */}
+                  <div className="space-y-2 overflow-y-auto max-h-[48vh] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <ActiveAlertCard
+                      userLocation={userLocation}
+                      onRefresh={() => queryClient.invalidateQueries({ queryKey: ['nearbyAlerts'] })}
+                    />
+                    <CreateAlertCard
+                      userLocation={userLocation}
+                      onCreated={() => queryClient.invalidateQueries({ queryKey: ['nearbyAlerts'] })}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <BottomNav />
+    </div>
   );
 }
