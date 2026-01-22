@@ -200,20 +200,9 @@ export default function Home() {
 
   const handleSelectCar = (car) => {
     if (!car || typeof car.lat !== 'number' || typeof car.lng !== 'number') return;
-    if (isNaN(car.lat) || isNaN(car.lng)) return;
     setSelectedAlert(car);
     setCenter([car.lat, car.lng]);
   };
-
-  const validCenter = useMemo(() => {
-    if (Array.isArray(center) && center.length === 2) {
-      const [lat, lng] = center;
-      if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
-        return center;
-      }
-    }
-    return [43.3619, -5.8494]; // Fallback to Oviedo
-  }, [center]);
 
   const renderMainCard = () => {
     if (loadingUser) {
@@ -253,7 +242,7 @@ export default function Home() {
             <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
               <div className="h-[230px]">
                 <MapContainer
-                  center={validCenter}
+                  center={center}
                   zoom={15}
                   style={{ height: '100%', width: '100%' }}
                   whenCreated={(map) => {
@@ -284,7 +273,7 @@ export default function Home() {
                     </Marker>
                   ))}
 
-                  <FlyTo position={validCenter} />
+                  <FlyTo position={center} />
                 </MapContainer>
               </div>
             </div>
@@ -354,7 +343,7 @@ export default function Home() {
               <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
                 <div className="h-[42%] min-h-[220px]">
                   <MapContainer
-                    center={validCenter}
+                    center={center}
                     zoom={15}
                     style={{ height: '100%', width: '100%' }}
                   >
@@ -372,7 +361,7 @@ export default function Home() {
                         }}
                       />
                     ))}
-                    <FlyTo position={validCenter} />
+                    <FlyTo position={center} />
                   </MapContainer>
                 </div>
               </div>
@@ -444,7 +433,7 @@ export default function Home() {
               <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
                 <div className="h-[40%] min-h-[210px]">
                   <MapContainer
-                    center={validCenter}
+                    center={center}
                     zoom={16}
                     style={{ height: '100%', width: '100%' }}
                   >
@@ -452,8 +441,8 @@ export default function Home() {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <Marker position={validCenter} />
-                    <FlyTo position={validCenter} />
+                    <Marker position={center} />
+                    <FlyTo position={center} />
                   </MapContainer>
                 </div>
               </div>
