@@ -445,11 +445,8 @@ export default function Home() {
 
             <div className="flex-1 overflow-hidden px-3 pb-2 pt-2">
               <CreateAlertCard
-                address="Calle Campoamor, 13"
-                onAddressChange={() => {}}
-                onUseCurrentLocation={() => {}}
-                onCreateAlert={() => setMode(null)}
-                isLoading={false}
+                initialAddress="Calle Campoamor, 13"
+                onPublish={() => setMode(null)}
               />
             </div>
           </div>
