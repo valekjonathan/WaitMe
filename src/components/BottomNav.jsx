@@ -36,7 +36,7 @@ export default function BottomNav() {
   const baseBtn =
     "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
 
-  const badge =
+  const badgeRed =
     "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   const badgeGreen =
@@ -65,15 +65,14 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA – vuelve SIEMPRE a Home limpio */}
+        {/* MAPA — SIEMPRE vuelve a Home */}
         <Button
           variant="ghost"
           className={`flex-1 ${baseBtn}`}
           onClick={() =>
-            navigate(createPageUrl('Home'), {
-              replace: true,
-              state: { reset: Date.now() }
-            })
+            navigate(
+              `${createPageUrl('Home')}?reload=${Date.now()}`
+            )
           }
         >
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,7 +92,7 @@ export default function BottomNav() {
           <Bell className="w-8 h-8" />
           <span className="text-[10px] font-bold">Notificaciones</span>
           {unreadNotifications.length > 0 && (
-            <span className={badge}>
+            <span className={badgeRed}>
               {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
             </span>
           )}
