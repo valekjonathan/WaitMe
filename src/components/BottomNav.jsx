@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
@@ -44,10 +46,11 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       <div className="flex items-center max-w-md mx-auto gap-0">
 
+        {/* ALERTAS */}
         <Button
           variant="ghost"
           className={`flex-1 ${baseBtn}`}
-          onClick={() => window.location.assign(createPageUrl('History'))}
+          onClick={() => navigate(createPageUrl('History'))}
         >
           <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
             <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
@@ -63,11 +66,11 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA — RELOAD DURO, SIEMPRE AL HOME PRINCIPAL */}
+        {/* MAPA — SIEMPRE vuelve al HOME PRINCIPAL */}
         <Button
           variant="ghost"
           className={`flex-1 ${baseBtn}`}
-          onClick={() => window.location.assign('/')}
+          onClick={() => navigate('/')}
         >
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -78,10 +81,11 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
+        {/* NOTIFICACIONES */}
         <Button
           variant="ghost"
           className={`flex-1 ${baseBtn}`}
-          onClick={() => window.location.assign(createPageUrl('Notifications'))}
+          onClick={() => navigate(createPageUrl('Notifications'))}
         >
           <Bell className="w-8 h-8" />
           <span className="text-[10px] font-bold">Notificaciones</span>
@@ -94,10 +98,11 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
+        {/* CHATS */}
         <Button
           variant="ghost"
           className={`flex-1 ${baseBtn}`}
-          onClick={() => window.location.assign(createPageUrl('Chats'))}
+          onClick={() => navigate(createPageUrl('Chats'))}
         >
           <MessageCircle className="w-8 h-8" />
           <span className="text-[10px] font-bold">Chats</span>
