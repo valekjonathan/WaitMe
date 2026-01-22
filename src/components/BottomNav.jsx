@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
+  const location = useLocation();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
@@ -64,8 +65,12 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA – navegación instantánea sin recarga */}
-        <Link to={createPageUrl('Home')} className="flex-1 min-w-0">
+        {/* MAPA – fuerza reset de Home */}
+        <Link
+          to={createPageUrl('Home')}
+          state={{ reset: Date.now() }}
+          className="flex-1 min-w-0"
+        >
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
