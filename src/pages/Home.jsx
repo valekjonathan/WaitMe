@@ -14,7 +14,6 @@ import BottomNav from '@/components/BottomNav';
 import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
 
-/* ===================== DEMO ALERTS ===================== */
 function buildDemoAlerts(centerLat, centerLng) {
   const offsets = [
     [0.0009, 0.0006],
@@ -119,7 +118,6 @@ function buildDemoAlerts(centerLat, centerLng) {
   });
 }
 
-/* ===================== HOME ===================== */
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
@@ -140,7 +138,7 @@ export default function Home() {
 
   const queryClient = useQueryClient();
 
-  /* ===== RESET DESDE BOTÓN MAPA ===== */
+  // 🔴 RESET DESDE BOTÓN MAPA (ÚNICO AÑADIDO)
   useEffect(() => {
     const resetHome = () => {
       setMode(null);
@@ -154,7 +152,6 @@ export default function Home() {
     return () => window.removeEventListener('RESET_HOME', resetHome);
   }, []);
 
-  /* ===== USUARIO ===== */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -165,7 +162,6 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  /* ===== UNREAD ===== */
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
@@ -179,34 +175,19 @@ export default function Home() {
     refetchInterval: 5000
   });
 
-  /* ===== GEOLOCALIZACIÓN ===== */
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
-        setSelectedPosition({ lat: latitude, lng: longitude });
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.address) {
-              const road = data.address.road || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          })
-          .catch(() => {});
-      }
-    );
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      setUserLocation([latitude, longitude]);
+      setSelectedPosition({ lat: latitude, lng: longitude });
+    });
   };
 
   useEffect(() => {
     getCurrentLocation();
   }, []);
 
-  /* ===== DEMO ALERTS ===== */
   const demoAlerts = useMemo(() => {
     const fallback = [43.3619, -5.8494];
     const lat = userLocation?.[0] ?? fallback[0];
@@ -216,7 +197,6 @@ export default function Home() {
 
   const homeMapAlerts = demoAlerts;
 
-  /* ===================== RENDER ===================== */
   return (
     <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
@@ -234,17 +214,9 @@ export default function Home() {
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {!mode && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center"
-            >
+            <motion.div className="absolute inset-0 flex flex-col items-center justify-center">
               <div className="absolute inset-0 opacity-20 pointer-events-none">
-                <ParkingMap
-                  alerts={homeMapAlerts}
-                  userLocation={userLocation}
-                  zoomControl={false}
-                />
+                <ParkingMap alerts={homeMapAlerts} userLocation={userLocation} zoomControl={false} />
               </div>
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
@@ -255,17 +227,11 @@ export default function Home() {
               />
 
               <div className="w-full max-w-sm px-6 space-y-4">
-                <Button
-                  onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 rounded-2xl text-lg"
-                >
+                <Button onClick={() => setMode('search')} className="w-full h-20 bg-gray-900 rounded-2xl text-lg">
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
-                <Button
-                  onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 rounded-2xl text-lg"
-                >
+                <Button onClick={() => setMode('create')} className="w-full h-20 bg-purple-600 rounded-2xl text-lg">
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
