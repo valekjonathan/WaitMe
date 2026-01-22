@@ -15,7 +15,12 @@ import { Filter, Loader2, X } from 'lucide-react';
 function FlyTo({ position }) {
   const map = useMap();
   useEffect(() => {
-    if (position) map.flyTo(position, 15, { duration: 0.7 });
+    if (position && Array.isArray(position) && position.length === 2) {
+      const [lat, lng] = position;
+      if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+        map.flyTo(position, 15, { duration: 0.7 });
+      }
+    }
   }, [position, map]);
   return null;
 }
