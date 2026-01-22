@@ -1,35 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { motion } from 'framer-motion';
 import ParkingMap from '@/components/map/ParkingMap';
-import UserAlertCard from '@/components/cards/UserAlertCard';
-import CreateAlertCard from '@/components/cards/CreateAlertCard';
-import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
-import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
+import NotificationManager from '@/components/NotificationManager';
 
-/* DEMO ALERTS */
 function buildDemoAlerts(lat, lng) {
   const offsets = [
     [0.0009, 0.0006], [-0.0007, 0.0008], [0.0011, -0.0005],
     [-0.0010, -0.0007], [0.0004, -0.0011], [-0.0004, 0.0012]
   ];
-
   return offsets.map((o, i) => ({
     id: `demo_${i}`,
-    user_name: ['Sofía','Marco','Nerea','David','Lucía','Álvaro'][i],
-    user_photo: i % 2 ? 'https://randomuser.me/api/portraits/men/32.jpg' : 'https://randomuser.me/api/portraits/women/44.jpg',
-    car_brand: 'Demo',
-    car_model: 'Demo',
-    price: 3 + i,
-    available_in_minutes: 5 + i * 2,
+    user_name: 'Demo',
     latitude: lat + o[0],
     longitude: lng + o[1],
+    price: 3,
+    available_in_minutes: 5,
     is_demo: true
   }));
 }
@@ -37,23 +27,15 @@ function buildDemoAlerts(lat, lng) {
 export default function Home() {
   const [mode, setMode] = useState(null); // null | search | create
   const [userLocation, setUserLocation] = useState(null);
-  const [selectedAlert, setSelectedAlert] = useState(null);
-  const [selectedPosition, setSelectedPosition] = useState(null);
-  const [address, setAddress] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
 
-  /* RESET INSTANTÁNEO */
+  /* RESET INMEDIATO */
   useEffect(() => {
     const reset = () => {
-      setMode(null);
-      setSelectedAlert(null);
-      setSelectedPosition(null);
-      setAddress('');
-      setShowFilters(false);
+      if (mode !== null) setMode(null); // 👈 evita renders innecesarios
     };
     window.addEventListener('RESET_HOME', reset);
     return () => window.removeEventListener('RESET_HOME', reset);
-  }, []);
+  }, [mode]);
 
   /* GEO */
   useEffect(() => {
@@ -78,7 +60,7 @@ export default function Home() {
         onBack={() => setMode(null)}
       />
 
-      {/* MAPA DE FONDO — SIEMPRE MONTADO */}
+      {/* MAPA DE FONDO — NUNCA SE DESMONTA */}
       <div className="fixed inset-0 opacity-20 pointer-events-none">
         <ParkingMap
           alerts={demoAlerts}
@@ -89,35 +71,30 @@ export default function Home() {
 
       <div className="fixed inset-0 bg-purple-900/40 pointer-events-none" />
 
-      {/* HOME */}
+      {/* HOME PRINCIPAL */}
       {!mode && (
         <div className="fixed inset-0 flex flex-col items-center justify-center z-10">
           <img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
             className="w-48 h-48"
           />
+
           <div className="w-full max-w-sm px-6 space-y-4">
-            <Button onClick={() => setMode('search')} className="h-20 bg-gray-900 rounded-2xl">
+            <Button
+              onClick={() => setMode('search')}
+              className="w-full h-20 bg-gray-900 rounded-2xl text-lg"
+            >
               ¿ Dónde quieres aparcar ?
             </Button>
-            <Button onClick={() => setMode('create')} className="h-20 bg-purple-600 rounded-2xl">
+
+            <Button
+              onClick={() => setMode('create')}
+              className="w-full h-20 bg-purple-600 rounded-2xl text-lg"
+            >
+              <Car className="mr-3" />
               ¡ Estoy aparcado aquí !
             </Button>
           </div>
-        </div>
-      )}
-
-      {/* SEARCH */}
-      {mode === 'search' && (
-        <div className="fixed inset-0 top-[60px] bottom-[88px] z-10">
-          {/* tu search igual que antes */}
-        </div>
-      )}
-
-      {/* CREATE */}
-      {mode === 'create' && (
-        <div className="fixed inset-0 top-[60px] bottom-[88px] z-10">
-          {/* tu create igual que antes */}
         </div>
       )}
 
