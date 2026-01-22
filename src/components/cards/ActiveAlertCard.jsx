@@ -1,58 +1,67 @@
 import React from 'react';
-import { MapPin, Clock } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { MapPin, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/AuthContext';
 
-function ActiveAlertCard({
-  user = {},
-  onCancel = () => {},
-  onOpen = () => {}
-}) {
-  const {
-    address = 'Dirección',
-    minutes = 10,
-    price = 3,
-    expiresAt = '',
-    statusLabel = 'Activa'
-  } = user;
+export function ActiveAlertCard({ userLocation, onRefresh }) {
+  const { user } = useAuth();
+
+  const { data: myActiveAlerts = [] } = useQuery({
+    queryKey: ['myActiveAlerts', user?.id],
+    queryFn: async () => {
+      const alerts = await base44.entities.ParkingAlert.filter({
+        user_id: user?.id,
+        status: 'active'
+      });
+      return alerts;
+    },
+    enabled: !!user?.id,
+    refetchInterval: 10000
+  });
+
+  const handleCancel = async (alertId) => {
+    try {
+      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+      if (onRefresh) onRefresh();
+    } catch (e) {
+      console.error('Error cancelando alerta:', e);
+    }
+  };
+
+  if (myActiveAlerts.length === 0) return null;
 
   return (
-    <div className="w-full bg-gray-900/60 border border-purple-500/30 rounded-2xl p-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="bg-green-500/20 border border-green-500/40 text-green-200 rounded-full px-3 py-1 text-xs font-extrabold">
-          {statusLabel}
-        </div>
-        <div className="text-xs text-gray-400">{expiresAt}</div>
-        <div className="bg-purple-600/20 border border-purple-500/30 text-purple-200 rounded-full px-3 py-1 text-xs font-extrabold">
-          {price.toFixed ? price.toFixed(2) : price}€
-        </div>
-        <button
-          onClick={onCancel}
-          className="bg-red-500 text-white rounded-lg w-8 h-8 flex items-center justify-center"
+    <div className="space-y-2">
+      <p className="text-sm text-gray-300 font-semibold">Tus alertas activas:</p>
+      {myActiveAlerts.map((alert) => (
+        <div
+          key={alert.id}
+          className="bg-green-500/10 border border-green-500/30 rounded-xl p-3"
         >
-          ×
-        </button>
-      </div>
-
-      <div className="space-y-2 pt-2 border-t border-gray-700 mt-2">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-purple-400 shrink-0" />
-          <span className="text-gray-300 text-xs truncate">{address}</span>
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-green-400 font-bold text-lg">{(alert.price ?? 0).toFixed(2)}€</span>
+                <span className="text-xs text-gray-400">·</span>
+                <span className="text-sm text-gray-300">{alert.available_in_minutes} min</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-400">
+                <MapPin className="w-3 h-3" />
+                <span className="truncate">{alert.address || 'Sin ubicación'}</span>
+              </div>
+            </div>
+            <Button
+              size="icon"
+              onClick={() => handleCancel(alert.id)}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-8 w-8"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-purple-400 shrink-0" />
-          <span className="text-gray-400 text-xs">Te espera {minutes} min</span>
-        </div>
-      </div>
-
-      <Button
-        onClick={onOpen}
-        className="w-full mt-3 bg-purple-600/30 hover:bg-purple-600/40 border border-purple-500/30 text-purple-200 font-extrabold rounded-xl"
-      >
-        VER
-      </Button>
+      ))}
     </div>
   );
-}
-
-export { ActiveAlertCard };
-export default ActiveAlertCard;
+} 
