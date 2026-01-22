@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, MessageCircle, Phone, Car } from 'lucide-react';
+import { MapPin, Clock, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function UserAlertCard({
@@ -19,80 +19,76 @@ export default function UserAlertCard({
   }
 
   return (
-    <div className="border border-purple-500/40 rounded-2xl bg-gradient-to-b from-gray-900 to-gray-950 p-4 space-y-3">
-
-      {/* ───── CABECERA ───── */}
-      <div className="flex items-center justify-between">
-        <span className="px-3 py-1 text-xs rounded-full bg-purple-600/20 text-purple-300 font-medium">
-          Activa
-        </span>
-        <span className="text-purple-400 font-bold">
-          {alert.price}€
-        </span>
-      </div>
-
-      {/* ───── USUARIO ───── */}
-      <div className="flex gap-3 items-center">
+    <div className="border border-purple-500/40 rounded-2xl p-4 bg-gradient-to-b from-gray-900 to-black shadow-lg">
+      {/* CABECERA – IGUAL QUE MIS RESERVAS */}
+      <div className="flex items-center gap-3 pb-3 border-b border-purple-500/20">
         <img
           src={alert.user_photo}
           alt={alert.user_name}
-          className="w-16 h-16 rounded-xl object-cover border border-purple-500/40"
+          className="w-14 h-14 rounded-xl object-cover border border-purple-500/40"
         />
 
         <div className="flex-1">
-          <p className="text-white font-semibold leading-tight">
+          <div className="text-white font-semibold text-lg leading-tight">
             {alert.user_name}
-          </p>
-          <p className="text-sm text-gray-400 flex items-center gap-1">
-            <Car className="w-4 h-4" />
+          </div>
+          <div className="text-sm text-gray-400">
             {alert.car_brand} {alert.car_model}
-          </p>
+          </div>
         </div>
 
-        <div className="text-xs bg-gray-800 px-2 py-1 rounded-lg font-mono">
-          {alert.car_plate}
+        <div className="text-purple-400 font-bold text-lg">
+          {alert.price}€
         </div>
       </div>
 
-      {/* ───── SEPARADOR ───── */}
-      <div className="h-px bg-purple-500/20" />
+      {/* MATRÍCULA + COCHE */}
+      <div className="flex items-center gap-3 py-3 border-b border-purple-500/20">
+        <span className="bg-white text-black text-sm font-mono px-3 py-1 rounded-md">
+          {alert.car_plate || 'XXXX XXX'}
+        </span>
+        <Car className="w-5 h-5 text-gray-400" />
+      </div>
 
-      {/* ───── INFO ───── */}
-      <div className="space-y-1 text-sm text-gray-300">
-        <div className="flex items-center gap-2">
+      {/* INFO */}
+      <div className="py-3 space-y-2 text-sm">
+        <div className="flex items-center gap-2 text-gray-400">
           <MapPin className="w-4 h-4 text-purple-400" />
-          <span>{alert.address}</span>
+          {alert.address}
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2 text-gray-400">
           <Clock className="w-4 h-4 text-purple-400" />
-          <span>
-            Se va en {alert.available_in_minutes} min
-          </span>
+          Se va en {alert.available_in_minutes} min
         </div>
       </div>
 
-      {/* ───── BOTONES (IGUAL FORMATO) ───── */}
-      <div className="flex gap-2 pt-2">
+      {/* BOTONES – SOLO DIFERENCIA POR PANTALLA */}
+      <div className="flex gap-2 pt-3">
         <Button
+          size="icon"
+          variant="outline"
+          className="border-green-500 text-green-500 hover:bg-green-500/10"
           onClick={() => onChat?.(alert)}
-          className="w-12 h-12 p-0 bg-green-600 hover:bg-green-700 rounded-xl"
         >
-          <MessageCircle className="w-5 h-5" />
+          💬
         </Button>
 
         <Button
+          size="icon"
+          variant="outline"
+          className="border-gray-500 text-gray-400 hover:bg-gray-500/10"
           onClick={() => onCall?.(alert)}
-          className="w-12 h-12 p-0 bg-gray-700 hover:bg-gray-600 rounded-xl"
         >
-          <Phone className="w-5 h-5" />
+          📞
         </Button>
 
         <Button
-          onClick={() => onBuyAlert?.(alert)}
+          className="flex-1 bg-purple-600 hover:bg-purple-700"
           disabled={isLoading || alert.is_demo}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 rounded-xl text-base font-semibold"
+          onClick={() => onBuyAlert?.(alert)}
         >
-          WaitMe!
+          {alert.is_demo ? 'Demo' : 'WaitMe!'}
         </Button>
       </div>
     </div>
