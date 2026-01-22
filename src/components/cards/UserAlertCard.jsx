@@ -1,68 +1,90 @@
-import { MessageCircle, Phone } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function UserAlertCard({ alert, isEmpty }) {
+export default function UserAlertCard({
+  alert,
+  isEmpty,
+  onBuyAlert,
+  onChat,
+  onCall,
+  isLoading
+}) {
   if (isEmpty || !alert) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500">
+      <div className="text-center text-gray-500 mt-8">
         Selecciona una alerta del mapa
       </div>
     );
   }
 
   return (
-    <div className="bg-[#0f172a] border border-purple-600/40 rounded-2xl p-4 mt-4">
-      {/* Estado + precio */}
-      <div className="flex justify-between items-center mb-3">
-        <span className="bg-green-700 text-white text-xs px-3 py-1 rounded-full">
+    <div className="bg-gradient-to-b from-gray-900 to-black border border-purple-500/40 rounded-2xl p-4 space-y-3">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <span className="bg-green-600/20 text-green-400 text-xs px-3 py-1 rounded-full">
           Activa
         </span>
         <span className="text-purple-400 font-bold">
-          {alert.price?.toFixed(2)}€
+          {alert.price}€
         </span>
       </div>
 
-      {/* Usuario */}
-      <div className="flex gap-3 items-center mb-3">
+      {/* USER */}
+      <div className="flex gap-3 items-center">
         <img
           src={alert.user_photo}
           alt={alert.user_name}
-          className="w-14 h-14 rounded-xl object-cover"
+          className="w-14 h-14 rounded-xl object-cover border border-purple-500/30"
         />
-
         <div className="flex-1">
-          <div className="text-lg font-bold">{alert.user_name}</div>
-          <div className="text-sm text-gray-400">
+          <p className="text-white font-semibold">{alert.user_name}</p>
+          <p className="text-sm text-gray-400">
             {alert.car_brand} {alert.car_model}
-          </div>
-
-          <div className="flex items-center gap-2 mt-1">
-            <span className="bg-blue-700 text-white text-xs px-2 py-0.5 rounded">
-              E
-            </span>
-            <span className="bg-white text-black text-xs px-2 py-0.5 rounded">
+          </p>
+          <div className="mt-1 inline-flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-lg">
+            <span className="bg-blue-600 text-xs px-2 py-0.5 rounded">E</span>
+            <span className="font-mono text-sm text-white">
               {alert.car_plate}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Dirección */}
-      <div className="text-sm text-gray-400 mb-1">
-        📍 {alert.address}
-      </div>
-      <div className="text-sm text-purple-300 mb-3">
-        Se va en {alert.available_in_minutes} min
+      {/* INFO */}
+      <div className="space-y-1 text-sm text-gray-400">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-purple-400" />
+          <span>{alert.address}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-purple-400" />
+          <span>Se va en {alert.available_in_minutes} min</span>
+        </div>
       </div>
 
-      {/* Acciones */}
-      <div className="flex gap-2">
-        <Button className="bg-green-600 flex-1">
-          <MessageCircle className="w-4 h-4 mr-1" />
-          Chat
+      {/* ACTIONS */}
+      <div className="flex gap-2 pt-2">
+        <Button
+          onClick={() => onChat?.(alert)}
+          className="bg-green-600 hover:bg-green-700 w-12 h-12 p-0"
+        >
+          <MessageCircle />
         </Button>
 
-        <Button className="bg-purple-600 flex-[2]">
+        {alert.phone && (
+          <Button
+            onClick={() => onCall?.(alert)}
+            className="bg-gray-700 hover:bg-gray-600 w-12 h-12 p-0"
+          >
+            <Phone />
+          </Button>
+        )}
+
+        <Button
+          onClick={() => onBuyAlert?.(alert)}
+          disabled={isLoading || alert.is_demo}
+          className="flex-1 bg-purple-600 hover:bg-purple-700"
+        >
           WaitMe!
         </Button>
       </div>
