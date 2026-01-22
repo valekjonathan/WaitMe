@@ -1,78 +1,71 @@
-import { MapPin, Clock, MessageCircle, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { MessageCircle, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function UserAlertCard({ alert, isEmpty }) {
   if (isEmpty || !alert) {
     return (
-      <div className="text-gray-500 text-center mt-10">
-        Selecciona una alerta
+      <div className="h-full flex items-center justify-center text-gray-500">
+        Selecciona una alerta del mapa
       </div>
-    )
+    );
   }
 
   return (
-    <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
-      {/* TOP */}
-      <div className="flex justify-between mb-2">
-        <div className="bg-green-500/25 text-green-300 px-3 rounded-md text-xs font-bold h-7 flex items-center">
+    <div className="bg-[#0f172a] border border-purple-600/40 rounded-2xl p-4 mt-4">
+      {/* Estado + precio */}
+      <div className="flex justify-between items-center mb-3">
+        <span className="bg-green-700 text-white text-xs px-3 py-1 rounded-full">
           Activa
-        </div>
-        <div className="bg-green-500/20 text-green-400 px-2 rounded-lg font-bold">
-          {alert.price}€
-        </div>
+        </span>
+        <span className="text-purple-400 font-bold">
+          {alert.price?.toFixed(2)}€
+        </span>
       </div>
 
-      {/* BODY */}
-      <div className="flex gap-2.5">
-        <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40">
-          <img
-            src={alert.user_photo}
-            alt={alert.user_name}
-            className="w-full h-full object-cover"
-          />
-        </div>
+      {/* Usuario */}
+      <div className="flex gap-3 items-center mb-3">
+        <img
+          src={alert.user_photo}
+          alt={alert.user_name}
+          className="w-14 h-14 rounded-xl object-cover"
+        />
 
         <div className="flex-1">
-          <p className="font-bold text-xl">{alert.user_name}</p>
-          <p className="text-gray-300 text-sm">
+          <div className="text-lg font-bold">{alert.user_name}</div>
+          <div className="text-sm text-gray-400">
             {alert.car_brand} {alert.car_model}
-          </p>
+          </div>
 
-          <div className="bg-white rounded-md inline-flex mt-1 border-2 border-gray-400">
-            <span className="bg-blue-600 text-white text-[8px] px-1">E</span>
-            <span className="px-2 text-black font-mono font-bold">
-              {alert.car_plate || 'XXXX XXX'}
+          <div className="flex items-center gap-2 mt-1">
+            <span className="bg-blue-700 text-white text-xs px-2 py-0.5 rounded">
+              E
+            </span>
+            <span className="bg-white text-black text-xs px-2 py-0.5 rounded">
+              {alert.car_plate}
             </span>
           </div>
         </div>
       </div>
 
-      {/* INFO */}
-      <div className="mt-2 border-t border-gray-700 pt-2 text-xs space-y-1">
-        <div className="flex gap-1.5">
-          <MapPin className="w-4 h-4 text-purple-400" />
-          <span>{alert.address}</span>
-        </div>
-        <div className="flex gap-1.5">
-          <Clock className="w-4 h-4 text-purple-400" />
-          <span>Se va en {alert.available_in_minutes} min</span>
-        </div>
+      {/* Dirección */}
+      <div className="text-sm text-gray-400 mb-1">
+        📍 {alert.address}
+      </div>
+      <div className="text-sm text-purple-300 mb-3">
+        Se va en {alert.available_in_minutes} min
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex gap-2 mt-3">
-        <Button className="bg-green-500 h-8 w-[42px]" size="icon">
-          <MessageCircle className="w-4 h-4" />
+      {/* Acciones */}
+      <div className="flex gap-2">
+        <Button className="bg-green-600 flex-1">
+          <MessageCircle className="w-4 h-4 mr-1" />
+          Chat
         </Button>
 
-        <Button className="bg-white text-black h-8 w-[42px]" size="icon">
-          <Phone className="w-4 h-4" />
-        </Button>
-
-        <Button className="flex-1 bg-purple-600 h-8">
+        <Button className="bg-purple-600 flex-[2]">
           WaitMe!
         </Button>
       </div>
     </div>
-  )
+  );
 }
