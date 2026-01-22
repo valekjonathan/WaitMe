@@ -1,84 +1,102 @@
 import React from 'react';
-import { Phone, PhoneOff, MessageCircle, MapPin } from 'lucide-react';
+import { MapPin, Clock, Phone, MessageCircle, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import UserCard from './UserCard';
 
 export default function UserAlertCard({
   alert,
+  isEmpty,
   onBuyAlert,
   onChat,
   onCall,
-  isLoading = false,
-  isEmpty = false,
-  userLocation
+  isLoading
 }) {
   if (isEmpty || !alert) {
     return (
-      <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl px-4 py-4 border-2 border-purple-500/50 h-full flex items-center justify-center">
-        <div className="text-center text-gray-500">
-          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2.5} />
-          <p className="text-xs">Toca un coche en el mapa para ver sus datos</p>
-        </div>
-      </div>);
-
+      <div className="border border-purple-500/30 rounded-2xl bg-gray-900/40 p-6 text-center text-gray-400">
+        Selecciona una alerta en el mapa
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <UserCard
-        userName={alert.user_name}
-        userPhoto={alert.user_photo}
-        carBrand={alert.car_brand}
-        carModel={alert.car_model}
-        carColor={alert.car_color}
-        carPlate={alert.car_plate}
-        vehicleType={alert.vehicle_type}
-        address={alert.address}
-        availableInMinutes={alert.available_in_minutes}
-        price={alert.price}
-        showLocationInfo={true}
-        latitude={alert.latitude}
-        longitude={alert.longitude}
-        userLocation={userLocation}
-        actionButtons={
-        <div className="flex gap-2">
-          {/* Chat Button */}
-          <div>
-            <Button
-            size="icon"
-            className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
-            onClick={() => onChat(alert)}>
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          {/* Phone Button */}
-          <div>
-            <Button
-            variant="outline"
-            size="icon"
-            className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-            onClick={() => alert.allow_phone_calls && onCall(alert)}
-            disabled={!alert.allow_phone_calls}>
-              {alert.allow_phone_calls ?
-            <Phone className="w-4 h-4 text-green-400" /> :
-            <PhoneOff className="w-4 h-4 text-gray-600" />
-            }
-            </Button>
+    <div className="border border-purple-500/40 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 p-4 space-y-3">
+      {/* HEADER */}
+      <div className="flex items-center gap-3">
+        <img
+          src={alert.user_photo}
+          alt={alert.user_name}
+          className="w-14 h-14 rounded-xl object-cover border border-purple-500/30"
+        />
+
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white text-base">
+              {alert.user_name}
+            </h3>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded-full">
+                {alert.available_in_minutes} min
+              </span>
+              <span className="text-sm font-bold text-purple-400">
+                {alert.price}€
+              </span>
+            </div>
           </div>
 
-          {/* WaitMe Button */}
-          <div className="flex-1">
-            <Button className="bg-purple-600 text-white ml-2 px-4 py-2 text-sm font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow hover:bg-purple-700 h-8 w-full"
-
-          onClick={() => onBuyAlert(alert)}
-          disabled={isLoading}>
-              {isLoading ? 'Procesando...' : 'WaitMe!'}
-            </Button>
-          </div>
+          <p className="text-sm text-gray-400 flex items-center gap-1">
+            <Car className="w-4 h-4 text-purple-400" />
+            {alert.car_brand} {alert.car_model}
+          </p>
         </div>
-        } />
+      </div>
 
-    </div>);
+      {/* MATRÍCULA */}
+      <div className="bg-white text-black rounded-md px-3 py-1 font-mono text-sm inline-flex items-center gap-2">
+        <span className="bg-blue-600 text-white px-2 rounded-sm text-xs">E</span>
+        {alert.car_plate}
+      </div>
 
+      {/* UBICACIÓN */}
+      <div className="text-sm text-gray-400 flex items-center gap-2">
+        <MapPin className="w-4 h-4 text-purple-400" />
+        {alert.address}
+      </div>
+
+      {/* TIEMPO */}
+      <div className="text-sm text-gray-400 flex items-center gap-2">
+        <Clock className="w-4 h-4 text-purple-400" />
+        Se va en {alert.available_in_minutes} min
+      </div>
+
+      {/* BOTONES */}
+      <div className="flex gap-2 pt-2">
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={() => onChat(alert)}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <MessageCircle className="w-5 h-5" />
+        </Button>
+
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={() => onCall(alert)}
+          className="bg-gray-700 hover:bg-gray-600"
+        >
+          <Phone className="w-5 h-5" />
+        </Button>
+
+        <Button
+          onClick={() => onBuyAlert(alert)}
+          disabled={isLoading}
+          className="flex-1 bg-purple-600 hover:bg-purple-700"
+        >
+          WaitMe!
+        </Button>
+      </div>
+    </div>
+  );
 }
