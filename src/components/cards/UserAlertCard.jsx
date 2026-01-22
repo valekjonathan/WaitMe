@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Car, MessageCircle, Phone } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function UserAlertCard({
@@ -12,92 +12,85 @@ export default function UserAlertCard({
 }) {
   if (isEmpty || !alert) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-500 text-sm">
-        Selecciona una alerta
+      <div className="border border-purple-500/30 rounded-2xl p-6 text-center text-gray-400">
+        Selecciona una alerta en el mapa
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-gray-950 border border-purple-500/40 rounded-2xl p-4 mb-4 shadow-lg">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="px-3 py-1 text-xs rounded-full bg-green-900/40 text-green-400 border border-green-500/30">
+    <div className="border border-purple-500/40 rounded-2xl bg-gradient-to-b from-gray-900 to-gray-950 p-4 space-y-3">
+
+      {/* ───── CABECERA ───── */}
+      <div className="flex items-center justify-between">
+        <span className="px-3 py-1 text-xs rounded-full bg-purple-600/20 text-purple-300 font-medium">
           Activa
         </span>
-
-        <div className="flex items-center gap-2">
-          <span className="text-purple-400 font-bold text-sm">
-            {alert.price?.toFixed(2)}€
-          </span>
-        </div>
+        <span className="text-purple-400 font-bold">
+          {alert.price}€
+        </span>
       </div>
 
-      {/* USUARIO */}
-      <div className="flex gap-3 items-center border-b border-purple-500/20 pb-3 mb-3">
+      {/* ───── USUARIO ───── */}
+      <div className="flex gap-3 items-center">
         <img
           src={alert.user_photo}
           alt={alert.user_name}
-          className="w-14 h-14 rounded-xl object-cover"
+          className="w-16 h-16 rounded-xl object-cover border border-purple-500/40"
         />
 
         <div className="flex-1">
-          <p className="font-semibold text-white leading-tight">
+          <p className="text-white font-semibold leading-tight">
             {alert.user_name}
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-400 flex items-center gap-1">
+            <Car className="w-4 h-4" />
             {alert.car_brand} {alert.car_model}
           </p>
         </div>
 
-        <Car className="w-6 h-6 text-purple-400" />
-      </div>
-
-      {/* MATRÍCULA */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
-          E
-        </span>
-        <span className="bg-white text-black text-sm font-mono px-3 py-1 rounded">
+        <div className="text-xs bg-gray-800 px-2 py-1 rounded-lg font-mono">
           {alert.car_plate}
-        </span>
+        </div>
       </div>
 
-      {/* UBICACIÓN */}
-      <div className="flex items-center gap-2 text-sm text-gray-300 mb-1">
-        <MapPin className="w-4 h-4 text-purple-400" />
-        <span>{alert.address}</span>
+      {/* ───── SEPARADOR ───── */}
+      <div className="h-px bg-purple-500/20" />
+
+      {/* ───── INFO ───── */}
+      <div className="space-y-1 text-sm text-gray-300">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-purple-400" />
+          <span>{alert.address}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-purple-400" />
+          <span>
+            Se va en {alert.available_in_minutes} min
+          </span>
+        </div>
       </div>
 
-      {/* TIEMPO */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-        <Clock className="w-4 h-4 text-purple-400" />
-        <span>
-          Se va en {alert.available_in_minutes} min
-        </span>
-      </div>
-
-      {/* BOTONES */}
-      <div className="flex gap-2">
+      {/* ───── BOTONES (IGUAL FORMATO) ───── */}
+      <div className="flex gap-2 pt-2">
         <Button
-          onClick={() => onChat(alert)}
-          className="w-12 h-12 bg-green-600 hover:bg-green-700 p-0"
+          onClick={() => onChat?.(alert)}
+          className="w-12 h-12 p-0 bg-green-600 hover:bg-green-700 rounded-xl"
         >
           <MessageCircle className="w-5 h-5" />
         </Button>
 
         <Button
-          onClick={() => onCall(alert)}
-          variant="outline"
-          className="w-12 h-12 border-gray-600 p-0"
+          onClick={() => onCall?.(alert)}
+          className="w-12 h-12 p-0 bg-gray-700 hover:bg-gray-600 rounded-xl"
         >
           <Phone className="w-5 h-5" />
         </Button>
 
         <Button
-          onClick={() => onBuyAlert(alert)}
-          disabled={isLoading}
-          className="flex-1 bg-purple-600 hover:bg-purple-700"
+          onClick={() => onBuyAlert?.(alert)}
+          disabled={isLoading || alert.is_demo}
+          className="flex-1 bg-purple-600 hover:bg-purple-700 rounded-xl text-base font-semibold"
         >
           WaitMe!
         </Button>
