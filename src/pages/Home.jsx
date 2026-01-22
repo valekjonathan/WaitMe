@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import UserAlertCard from '@/components/cards/UserAlertCard';
+import UserCard from '@/components/cards/UserCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -194,6 +194,7 @@ export default function Home() {
   }, [demoCars, searchQuery]);
 
   const handleSelectCar = (car) => {
+    if (!car || typeof car.lat !== 'number' || typeof car.lng !== 'number') return;
     setSelectedAlert(car);
     setCenter([car.lat, car.lng]);
   };
@@ -211,28 +212,15 @@ export default function Home() {
     const sofia = demoCars[0];
 
     return (
-      <UserAlertCard
-        userName={sofia.name}
-        userPhoto={sofia.photo}
-        carBrand={sofia.car.split(' ')[0]}
-        carModel={sofia.car.split(' ').slice(1).join(' ')}
-        carPlate={sofia.plate}
-        carColor="rojo"
-        price={sofia.price}
-        availableInMinutes={sofia.eta}
-        address={sofia.address}
-        latitude={sofia.lat}
-        longitude={sofia.lng}
-        showLocationInfo
-        actionButtons={
-          <Button
-            className="w-full bg-purple-600 hover:bg-purple-700 rounded-lg h-9"
-            onClick={() => setMode('search')}
-          >
-            WaitMe!
-          </Button>
-        }
-      />
+      <div className="space-y-2">
+        <UserCard user={sofia} />
+        <Button
+          className="w-full bg-purple-600 hover:bg-purple-700 rounded-lg h-9"
+          onClick={() => setMode('search')}
+        >
+          WaitMe!
+        </Button>
+      </div>
     );
   };
 
@@ -387,32 +375,15 @@ export default function Home() {
 
             <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
               {selectedAlert ? (
-                <UserAlertCard
-                  userName={selectedAlert.name}
-                  userPhoto={selectedAlert.photo}
-                  carBrand={selectedAlert.car.split(' ')[0]}
-                  carModel={selectedAlert.car.split(' ').slice(1).join(' ')}
-                  carPlate={selectedAlert.plate}
-                  carColor="gris"
-                  price={selectedAlert.price}
-                  availableInMinutes={selectedAlert.eta}
-                  address={selectedAlert.address}
-                  latitude={selectedAlert.lat}
-                  longitude={selectedAlert.lng}
-                  showLocationInfo
-                  showContactButtons
-                  onChat={() => console.log('Chat')}
-                  onCall={() => console.log('Call')}
-                  allowPhoneCalls
-                  actionButtons={
-                    <Button
-                      className="w-full bg-purple-600 hover:bg-purple-700 rounded-lg h-9"
-                      onClick={() => console.log('Reservar')}
-                    >
-                      WaitMe!
-                    </Button>
-                  }
-                />
+                <div className="space-y-2">
+                  <UserCard user={selectedAlert} />
+                  <Button
+                    className="w-full bg-purple-600 hover:bg-purple-700 rounded-lg h-9"
+                    onClick={() => console.log('Reservar')}
+                  >
+                    WaitMe!
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-2">
                   {filteredCars.map((c) => (
