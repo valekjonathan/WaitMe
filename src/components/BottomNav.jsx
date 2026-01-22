@@ -37,10 +37,18 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 border-t-2 border-gray-700 px-4 py-3 z-50">
       <div className="flex items-center max-w-md mx-auto gap-0">
 
-        <Button className={`flex-1 ${baseBtn}`}>Alertas</Button>
+        <Button className={`flex-1 ${baseBtn}`}>
+          Alertas
+          {activeAlerts.length > 0 && (
+            <span className="absolute top-1 right-2 bg-green-500/20 border border-green-500 text-green-400 text-xs rounded-full px-1">
+              {activeAlerts.length}
+            </span>
+          )}
+        </Button>
 
         <div className="w-px h-10 bg-gray-700" />
 
+        {/* MAPA — SOLO RESET DE ESTADO */}
         <Button
           className={`flex-1 ${baseBtn}`}
           onClick={() => window.dispatchEvent(new Event('RESET_HOME'))}
@@ -50,11 +58,17 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        <Button className={`flex-1 ${baseBtn}`}>Notificaciones</Button>
+        <Button className={`flex-1 ${baseBtn}`}>
+          <Bell className="w-5 h-5" />
+          Notificaciones
+        </Button>
 
         <div className="w-px h-10 bg-gray-700" />
 
-        <Button className={`flex-1 ${baseBtn}`}>Chats</Button>
+        <Button className={`flex-1 ${baseBtn}`}>
+          <MessageCircle className="w-5 h-5" />
+          Chats
+        </Button>
 
       </div>
     </nav>
