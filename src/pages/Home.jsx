@@ -135,7 +135,9 @@ export default function Home() {
         address: 'Calle Uría, Oviedo',
         available_in_minutes: 6,
         price: 3,
-        phone: null
+        phone: null,
+        latitude: 43.3619,
+        longitude: -5.8494
       }
     ],
     []
