@@ -1,474 +1,244 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { motion, AnimatePresence } from 'framer-motion';
+import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Filter, Loader2, X } from 'lucide-react';
+import MapFilters from '@/components/map/MapFilters';
+import BottomNav from '@/components/BottomNav';
+import NotificationManager from '@/components/NotificationManager';
+import Header from '@/components/Header';
 
-function FlyTo({ position }) {
-  const map = useMap();
-  useEffect(() => {
-    if (position) map.flyTo(position, 15, { duration: 0.7 });
-  }, [position, map]);
-  return null;
-}
-
-const carIcon = (color = '#A855F7') =>
-  L.divIcon({
-    className: '',
-    html: `
-    <div style="
-      width:36px;height:22px;border-radius:12px;
-      background:${color};
-      border:2px solid rgba(255,255,255,0.8);
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 8px 18px rgba(0,0,0,.35);
-      font-weight:800;font-size:12px;color:#0b0b0b;">
-      🚗
-    </div>
-  `,
-    iconSize: [36, 22],
-    iconAnchor: [18, 11]
-  });
+// TUS NUEVOS COMPONENTES
+import { SearchAlertCard } from '@/components/cards/SearchAlertCard';
+import { ActiveAlertCard } from '@/components/cards/ActiveAlertCard';
 
 export default function Home() {
-  const location = useLocation();
-  const urlParams = new URLSearchParams(location.search || '');
+  const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
 
-  const [mode, setMode] = useState(initialMode || null); // null | 'search' | 'create'
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [mode, setMode] = useState(initialMode || null); 
+
+  useEffect(() => {
+    const checkReset = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('mode')) {
+        setMode(null);
+      }
+    };
+    checkReset();
+  }, [window.location.search]);
 
   const [selectedAlert, setSelectedAlert] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [address, setAddress] = useState('');
+  const [userLocation, setUserLocation] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
+  const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    maxPrice: 7,
+    maxMinutes: 25,
+    maxDistance: 1
+  });
 
-  const [center, setCenter] = useState([43.3619, -5.8494]); // Oviedo aprox
-  const mapRef = useRef(null);
-
-  // Resetear mode cuando se navega a Home sin parámetros (al volver desde menú)
-  useEffect(() => {
-    const params = new URLSearchParams(location.search || '');
-    if (!params.has('mode')) setMode(null);
-  }, [location.search]);
-
-  // Si se pulsa "Mapa" en el menú inferior, volvemos al Home principal sin recargar
-  useEffect(() => {
-    if (location.state?.resetHome) {
-      setMode(null);
-      setSelectedAlert(null);
-      setShowFilters(false);
-      setSearchQuery('');
-    }
-  }, [location.state]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    let mounted = true;
     const fetchUser = async () => {
       try {
-        setLoadingUser(true);
-        const me = await base44.auth.me();
-        if (!mounted) return;
-        setUser(me);
-      } catch (e) {
-        // ignore
-      } finally {
-        if (mounted) setLoadingUser(false);
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Usuario no autenticado');
       }
     };
     fetchUser();
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  // Datos demo de coches alrededor
-  const demoCars = useMemo(
-    () => [
-      {
-        id: 'c1',
-        name: 'Sofía',
-        car: 'SEAT Ibiza',
-        plate: '1234 KLM',
-        price: 3,
-        eta: 6,
-        address: 'Calle Uría, Oviedo',
-        lat: 43.3626,
-        lng: -5.8484,
-        photo:
-          'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=256&q=80',
-        color: '#A855F7'
-      },
-      {
-        id: 'c2',
-        name: 'Marco',
-        car: 'BMW Serie 3',
-        plate: '2847 BNM',
-        price: 4,
-        eta: 11,
-        address: 'Calle Gran Vía, Oviedo',
-        lat: 43.3613,
-        lng: -5.8466,
-        photo:
-          'https://images.unsplash.com/photo-1542206395-9feb3edaa68d?auto=format&fit=crop&w=256&q=80',
-        color: '#22C55E'
-      },
-      {
-        id: 'c3',
-        name: 'Lucía',
-        car: 'Toyota Yaris',
-        plate: '9152 JTR',
-        price: 2,
-        eta: 4,
-        address: 'Plaza Longoria, Oviedo',
-        lat: 43.3622,
-        lng: -5.8469,
-        photo:
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=256&q=80',
-        color: '#EF4444'
-      },
-      {
-        id: 'c4',
-        name: 'Hugo',
-        car: 'Volkswagen Golf',
-        plate: '7701 LVP',
-        price: 5,
-        eta: 8,
-        address: 'C. San Francisco, Oviedo',
-        lat: 43.3629,
-        lng: -5.8502,
-        photo:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&q=80',
-        color: '#3B82F6'
-      },
-      {
-        id: 'c5',
-        name: 'Paula',
-        car: 'Renault Clio',
-        plate: '4420 MKS',
-        price: 4,
-        eta: 7,
-        address: 'Calle Campoamor, Oviedo',
-        lat: 43.3608,
-        lng: -5.8489,
-        photo:
-          'https://images.unsplash.com/photo-1548142813-c348350df52b?auto=format&fit=crop&w=256&q=80',
-        color: '#F59E0B'
-      },
-      {
-        id: 'c6',
-        name: 'Diego',
-        car: 'Peugeot 208',
-        plate: '1039 HBR',
-        price: 6,
-        eta: 12,
-        address: 'Calle Rosal, Oviedo',
-        lat: 43.3618,
-        lng: -5.8512,
-        photo:
-          'https://images.unsplash.com/photo-1552058544-f2b08422138a?auto=format&fit=crop&w=256&q=80',
-        color: '#10B981'
-      }
-    ],
-    []
-  );
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['unreadMessages', user?.email],
+    queryFn: async () => {
+      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
+      return messages.length;
+    },
+    enabled: !!user?.email,
+    refetchInterval: 5000
+  });
 
-  const filteredCars = useMemo(() => {
-    const q = (searchQuery || '').trim().toLowerCase();
-    if (!q) return demoCars;
-    return demoCars.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.car.toLowerCase().includes(q) ||
-        c.address.toLowerCase().includes(q) ||
-        String(c.price).includes(q)
-    );
-  }, [demoCars, searchQuery]);
+  const { data: rawAlerts = [], isLoading: loadingAlerts } = useQuery({
+    queryKey: ['parkingAlerts'],
+    queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
+    refetchInterval: mode === 'search' ? 5000 : false,
+    enabled: mode === 'search'
+  });
 
-  const handleSelectCar = (car) => {
-    setSelectedAlert(car);
-    setCenter([car.lat, car.lng]);
-  };
-
-  const renderMainCard = () => {
-    if (loadingUser) {
-      return (
-        <div className="w-full bg-gray-900/60 border border-purple-500/30 rounded-2xl p-4 flex items-center justify-center gap-2">
-          <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-          <span className="text-sm text-gray-200">Cargando...</span>
-        </div>
-      );
+  const alerts = rawAlerts.filter((alert) => {
+    if (alert.price > filters.maxPrice) return false;
+    if (alert.available_in_minutes > filters.maxMinutes) return false;
+    if (userLocation) {
+      const distance = calculateDistance(userLocation[0], userLocation[1], alert.latitude, alert.longitude);
+      if (distance > filters.maxDistance) return false;
     }
+    return true;
+  });
 
-    // Card principal (Sofía) como ejemplo
-    const sofia = demoCars[0];
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
 
-    return (
-      <UserAlertCard
-        user={{
-          name: sofia.name,
-          car: sofia.car,
-          plate: sofia.plate,
-          photo: sofia.photo,
-          price: sofia.price,
-          eta: sofia.eta,
-          address: sofia.address
-        }}
-        status="active"
-        onPrimary={() => setMode('search')}
-        primaryLabel="WaitMe!"
-        showChat
-        showCancel={false}
-      />
-    );
+  const createAlertMutation = useMutation({
+    mutationFn: async (alertData) => {
+      const minutes = Number(alertData.minutes) || 0;
+      const waitUntilIso = minutes > 0 ? new Date(Date.now() + minutes * 60000).toISOString() : null;
+      return await base44.entities.ParkingAlert.create({
+        user_id: user?.id,
+        user_email: user?.email,
+        user_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+        user_photo: user?.photo_url,
+        car_brand: user?.car_brand || 'Sin especificar',
+        car_model: user?.car_model || '',
+        car_color: user?.car_color || 'gris',
+        car_plate: user?.car_plate || '',
+        vehicle_type: user?.vehicle_type || 'car',
+        latitude: selectedPosition?.lat || userLocation?.[0] || 40.4168,
+        longitude: selectedPosition?.lng || userLocation?.[1] || -3.7038,
+        address: address,
+        price: alertData.price,
+        available_in_minutes: minutes,
+        ...(waitUntilIso ? { wait_until: waitUntilIso, expires_at: waitUntilIso } : {}),
+        allow_phone_calls: user?.allow_phone_calls || false,
+        phone: user?.phone,
+        status: 'active'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      setMode(null);
+      setSelectedPosition(null);
+      setAddress('');
+    }
+  });
+
+  const buyAlertMutation = useMutation({
+    mutationFn: async (alert) => {
+      await base44.entities.Notification.create({
+        type: 'reservation_request',
+        recipient_id: alert.user_id,
+        recipient_email: alert.user_email || alert.created_by,
+        sender_id: user?.id,
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        sender_photo: user?.photo_url,
+        alert_id: alert.id,
+        amount: alert.price,
+        status: 'pending'
+      });
+      return alert;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      setConfirmDialog({ open: false, alert: null });
+      setSelectedAlert(null);
+    }
+  });
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setSelectedPosition({ lat: latitude, lng: longitude });
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.address) {
+              const road = data.address.road || data.address.street || '';
+              const number = data.address.house_number || '';
+              setAddress(number ? `${road}, ${number}` : road);
+            }
+          });
+      });
+    }
   };
+
+  useEffect(() => { getCurrentLocation(); }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="WaitMe!" />
+      <NotificationManager user={user} />
+      <Header 
+        title="WaitMe!" 
+        unreadCount={unreadCount} 
+        showBackButton={!!mode} 
+        onBack={() => { setMode(null); setSelectedAlert(null); }} 
+      />
 
-      {/* CONTENIDO */}
-      <div className="pt-[60px] pb-[88px]">
-        {/* HOME (principal) */}
-        {mode === null && (
-          <div className="max-w-md mx-auto px-3 space-y-3">
-            {/* MAPA */}
-            <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
-              <div className="h-[230px]">
-                <MapContainer
-                  center={center}
-                  zoom={15}
-                  style={{ height: '100%', width: '100%' }}
-                  whenCreated={(map) => {
-                    mapRef.current = map;
-                  }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-
-                  {demoCars.map((c) => (
-                    <Marker
-                      key={c.id}
-                      position={[c.lat, c.lng]}
-                      icon={carIcon(c.color)}
-                      eventHandlers={{
-                        click: () => handleSelectCar(c)
-                      }}
-                    >
-                      <Popup>
-                        <div className="text-sm">
-                          <div className="font-bold">{c.name}</div>
-                          <div>{c.car}</div>
-                          <div className="font-bold">{c.price}€</div>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-
-                  <FlyTo position={center} />
-                </MapContainer>
-              </div>
-            </div>
-
-            {/* BUSCADOR */}
-            <div className="bg-gray-900/50 border border-purple-500/30 rounded-xl px-3 py-2">
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar dirección..."
-                className="bg-transparent border-none text-gray-200 placeholder:text-gray-500 focus-visible:ring-0"
-              />
-            </div>
-
-            {/* CARD PRINCIPAL */}
-            {renderMainCard()}
-
-            {/* BOTONES */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                className="bg-purple-600 hover:bg-purple-700 rounded-xl"
-                onClick={() => setMode('search')}
-              >
-                ¿Dónde quieres aparcar?
-              </Button>
-              <Button
-                className="bg-gray-800 hover:bg-gray-700 rounded-xl border border-purple-500/30"
-                onClick={() => setMode('create')}
-              >
-                Estoy aparcado aquí
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* BUSCAR APARCAMIENTO */}
-        {mode === 'search' && (
-          <div className="fixed inset-x-0 top-[60px] bottom-[88px] max-w-md mx-auto flex flex-col">
-            <div className="px-3 pt-3 pb-2 flex items-center justify-between">
-              <div className="text-sm font-bold text-white">
-                ¿Dónde quieres aparcar?
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  className="text-purple-300 hover:text-purple-200"
-                  onClick={() => setShowFilters((v) => !v)}
-                >
-                  <Filter className="w-5 h-5" />
+      <main className="fixed inset-0 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {!mode && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center pt-20 px-6 pb-32">
+              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png" className="w-40 h-40 object-contain mb-4" />
+              <h1 className="text-xl font-bold mb-8">Aparca donde te <span className="text-purple-500">avisen!</span></h1>
+              
+              <div className="w-full max-w-sm space-y-4 mb-8">
+                <Button onClick={() => setMode('search')} className="w-full h-16 bg-gray-900 border border-gray-700 rounded-2xl flex items-center justify-center gap-4 text-lg">
+                  🔍 ¿Dónde quieres aparcar?
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="text-gray-300 hover:text-white"
-                  onClick={() => {
-                    setMode(null);
-                    setSelectedAlert(null);
-                    setSearchQuery('');
-                    setShowFilters(false);
-                  }}
-                >
-                  <X className="w-5 h-5" />
+                <Button onClick={() => setMode('create')} className="w-full h-16 bg-purple-600 rounded-2xl flex items-center justify-center gap-4 text-lg">
+                  <Car className="w-6 h-6" /> ¡Estoy aparcado aquí!
                 </Button>
               </div>
-            </div>
 
-            <div className="px-3">
-              <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
-                <div className="h-[42%] min-h-[220px]">
-                  <MapContainer
-                    center={center}
-                    zoom={15}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    {filteredCars.map((c) => (
-                      <Marker
-                        key={c.id}
-                        position={[c.lat, c.lng]}
-                        icon={carIcon(c.color)}
-                        eventHandlers={{
-                          click: () => handleSelectCar(c)
-                        }}
-                      />
-                    ))}
-                    <FlyTo position={center} />
-                  </MapContainer>
-                </div>
+              {/* TUS NUEVAS TARJETAS VISIBLES SIEMPRE */}
+              <div className="w-full max-w-sm space-y-4 border-t border-gray-800 pt-8">
+                <h2 className="text-gray-400 text-sm font-medium uppercase tracking-wider">Tus Alertas</h2>
+                <SearchAlertCard />
+                <ActiveAlertCard />
               </div>
-            </div>
+            </motion.div>
+          )}
 
-            <div className="px-3 pt-2">
-              <div className="bg-gray-900/50 border border-purple-500/30 rounded-xl px-3 py-2">
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar dirección..."
-                  className="bg-transparent border-none text-gray-200 placeholder:text-gray-500 focus-visible:ring-0"
-                />
+          {mode === 'search' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-[60px] h-full flex flex-col">
+              <div className="h-64 relative px-3 pt-2">
+                <ParkingMap alerts={alerts} onAlertClick={setSelectedAlert} userLocation={userLocation} selectedAlert={selectedAlert} zoomControl={true} className="h-full rounded-2xl" />
               </div>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
-              {selectedAlert ? (
-                <UserAlertCard
-                  user={{
-                    name: selectedAlert.name,
-                    car: selectedAlert.car,
-                    plate: selectedAlert.plate,
-                    photo: selectedAlert.photo,
-                    price: selectedAlert.price,
-                    eta: selectedAlert.eta,
-                    address: selectedAlert.address
-                  }}
-                  status="active"
-                  onPrimary={() => setMode(null)}
-                  primaryLabel="WaitMe!"
-                  showChat
-                  showCancel={false}
-                />
-              ) : (
-                <div className="space-y-2">
-                  {filteredCars.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => handleSelectCar(c)}
-                      className="w-full text-left bg-gray-900/50 border border-purple-500/20 rounded-xl px-3 py-2 hover:border-purple-500/40"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-sm">{c.name}</div>
-                        <div className="font-bold text-purple-300">
-                          {c.price}€
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-300">{c.car}</div>
-                      <div className="text-xs text-gray-500">{c.address}</div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* CREAR ALERTA (poner alerta) */}
-        {mode === 'create' && (
-          <div className="fixed inset-x-0 top-[60px] bottom-[88px] max-w-md mx-auto flex flex-col">
-            <div className="px-3 pt-3 pb-2 flex items-center justify-between">
-              <div className="text-sm font-bold text-white">
-                ¿Dónde estás aparcado?
+              <div className="p-4 flex-1">
+                <UserAlertCard alert={selectedAlert} isEmpty={!selectedAlert} onBuyAlert={(a) => setConfirmDialog({open:true, alert:a})} onChat={(a) => window.location.href = createPageUrl(`Chat?alertId=${a.id}`)} userLocation={userLocation} />
               </div>
-              <Button
-                variant="ghost"
-                className="text-gray-300 hover:text-white"
-                onClick={() => setMode(null)}
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+            </motion.div>
+          )}
 
-            <div className="px-3">
-              <div className="rounded-2xl overflow-hidden border border-purple-500/30 shadow-lg">
-                <div className="h-[40%] min-h-[210px]">
-                  <MapContainer
-                    center={center}
-                    zoom={16}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Marker position={center} />
-                    <FlyTo position={center} />
-                  </MapContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* SIN SCROLL: todo debe caber */}
-            <div className="flex-1 overflow-hidden px-3 pb-2 pt-2">
-              <CreateAlertCard
-                initialAddress="Calle Campoamor, 13"
-                onPublish={() => setMode(null)}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+          {mode === 'create' && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-[60px] p-4">
+               <CreateAlertCard address={address} onAddressChange={setAddress} onUseCurrentLocation={getCurrentLocation} onCreateAlert={(data) => createAlertMutation.mutate(data)} isLoading={createAlertMutation.isPending} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
 
       <BottomNav />
+
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white">
+          <DialogHeader><DialogTitle>Confirmar reserva</DialogTitle></DialogHeader>
+          <div className="py-4">¿Quieres reservar este sitio por {confirmDialog.alert?.price}€?</div>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setConfirmDialog({open:false, alert:null})}>Cancelar</Button>
+            <Button className="bg-purple-600" onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}>Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

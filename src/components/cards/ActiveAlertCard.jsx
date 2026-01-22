@@ -5,7 +5,7 @@ import { MapPin, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
-export function ActiveAlertCard({ userLocation, onRefresh }) {
+export default function ActiveAlertCard({ userLocation, onRefresh }) {
   const { user } = useAuth();
 
   const { data: myActiveAlerts = [] } = useQuery({
@@ -64,4 +64,4 @@ export function ActiveAlertCard({ userLocation, onRefresh }) {
       ))}
     </div>
   );
-} 
+}

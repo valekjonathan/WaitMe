@@ -48,4 +48,4 @@ export default function SearchAlertCard({ alert, onOpen }) {
       </div>
     </button>
   );
-} 
+}

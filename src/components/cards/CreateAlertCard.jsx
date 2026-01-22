@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
-export default function CreateAlertCard({
-  address,
+export default function CreateAlertCard({ 
+  address, 
   onAddressChange,
   onUseCurrentLocation,
   onCreateAlert,
-  isLoading = false
+  isLoading = false 
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
@@ -20,13 +20,11 @@ export default function CreateAlertCard({
   };
 
   return (
-    <div
-      className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2.5 border-2 border-purple-500 shadow-xl"
-      style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}
-    >
-      <div className="space-y-1.5">
+    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-3 border-2 border-purple-500 shadow-xl" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
+      {/* Dirección */}
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
@@ -34,12 +32,11 @@ export default function CreateAlertCard({
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1"
           />
         </div>
-
         <div className="flex items-center gap-2">
           <div className="w-4 flex-shrink-0"></div>
           <Button
             variant="outline"
-            className="flex-1 border-purple-500 text-purple-400 hover:bg-purple-500/20 h-6 text-xs"
+            className="flex-1 border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
             onClick={onUseCurrentLocation}
           >
             <Navigation className="w-3 h-3 mr-1" />
@@ -47,9 +44,10 @@ export default function CreateAlertCard({
           </Button>
         </div>
 
+        {/* Tiempo */}
         <div className="space-y-1">
           <Label className="text-white flex items-center gap-2 text-sm font-medium">
-            <Clock className="w-4 h-4 text-purple-400" />
+            <Clock className="w-4 h-4" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
@@ -62,9 +60,10 @@ export default function CreateAlertCard({
           />
         </div>
 
+        {/* Precio */}
         <div className="space-y-1">
           <Label className="text-white flex items-center gap-2 text-sm font-medium">
-            <Euro className="w-4 h-4 text-purple-400" />
+            <Euro className="w-4 h-4" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
             <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)}€)</span>
           </Label>
@@ -80,7 +79,7 @@ export default function CreateAlertCard({
       </div>
 
       <Button
-        className="w-full mt-1.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8"
+        className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-9"
         onClick={handleCreate}
         disabled={isLoading || !address}
       >

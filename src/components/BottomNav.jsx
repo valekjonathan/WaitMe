@@ -1,130 +1,114 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { Bell, MessageCircle, DollarSign } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Bell, MessageCircle } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const location = useLocation();
 
-  const [alertsCount, setAlertsCount] = useState(0);
-  const homeUrl = createPageUrl('Home');
-  const alertsUrl = createPageUrl('History');
-  const notificationsUrl = createPageUrl('Notifications');
-  const chatUrl = createPageUrl('ChatList');
-  const settingsUrl = createPageUrl('Settings');
+  const { data: activeAlerts = [] } = useQuery({
+    queryKey: ['userActiveAlerts', user?.email],
+    queryFn: async () => {
+      const alerts = await base44.entities.ParkingAlert.filter({
+        user_email: user?.email,
+        status: 'active'
+      });
+      return alerts;
+    },
+    enabled: !!user?.email,
+    refetchInterval: 20000
+  });
 
-  useEffect(() => {
-    let mounted = true;
+  const { data: unreadNotifications = [] } = useQuery({
+    queryKey: ['unreadNotifications', user?.email],
+    queryFn: async () => {
+      const notifs = await base44.entities.Notification.filter({
+        recipient_email: user?.email,
+        read: false
+      });
+      return notifs;
+    },
+    enabled: !!user?.email,
+    refetchInterval: 20000
+  });
 
-    const fetchAlertsCount = async () => {
-      try {
-        const user = await base44.auth.me();
-        if (!user) return;
-
-        const { data } = await base44.table('alerts').select({
-          filter: { created_by: user.id, status: 'active' }
-        });
-
-        if (!mounted) return;
-        setAlertsCount(Array.isArray(data) ? data.length : 0);
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    fetchAlertsCount();
-    const t = setInterval(fetchAlertsCount, 15000);
-
-    return () => {
-      mounted = false;
-      clearInterval(t);
-    };
-  }, []);
-
+  // Botones iguales de ancho: cada uno ocupa el mismo espacio.
   const baseBtn =
-    'w-full h-full flex flex-col items-center justify-center gap-1 text-gray-300 hover:text-purple-300';
+    "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
+
+  const homeUrl = createPageUrl('Home');
+  // Si ya estás en /home con ?mode=..., NO lo borres al tocar 'Mapa'.
+  const mapHref = location.pathname === homeUrl ? `${location.pathname}${location.search || ''}` : homeUrl;
+
+  // Badge: misma posicion en TODOS los botones del menú de abajo.
+  // (un poco mas a la izquierda y un poco mas abajo)
+  const badgeBase =
+    "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+  const badgeGreen =
+    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-purple-500/20 z-50">
-      <div className="max-w-md mx-auto flex items-stretch h-[76px] px-2">
-        {/* Alertas */}
-        <Link to={alertsUrl} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <div className="relative">
-              <Bell className="w-7 h-7" />
-              {alertsCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-green-500 text-black text-[10px] font-bold rounded-full px-1.5 py-0.5">
-                  {alertsCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">
-              Alertas
-            </span>
-          </Button>
-        </Link>
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
+      {/* 4 botones iguales + separadores de 1px */}
+      <div className="flex items-center max-w-md mx-auto gap-0">
 
-        {/* Mapa (SIN recarga, instantáneo) */}
-        <button
-          type="button"
-          className="flex-1 min-w-0"
-          onClick={() => {
-            // Fuerza volver al Home principal incluso si ya estás en /home
-            navigate(homeUrl, { state: { resetHome: Date.now() } });
-          }}
-        >
+        <Link to={createPageUrl('History')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-              />
+            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
+              <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
+              <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
             </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">
-              Mapa
-            </span>
-          </Button>
-        </button>
+            <span className="text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
 
-        {/* Notificaciones */}
-        <Link to={notificationsUrl} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn}>
-            <Bell className="w-7 h-7" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">
-              Notificaciones
-            </span>
+            {activeAlerts.length > 0 && (
+              <span className={badgeGreen}>
+                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
+              </span>
+            )}
           </Button>
         </Link>
 
-        {/* Chats */}
-        <Link to={chatUrl} className="flex-1 min-w-0">
+        <div className="w-px h-10 bg-gray-700" />
+
+        <Link to={mapHref} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
-            <MessageCircle className="w-7 h-7" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">
-              Chats
-            </span>
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <span className="text-[10px] font-bold whitespace-nowrap truncate">Mapa</span>
           </Button>
         </Link>
 
-        {/* Dinero (Settings) */}
-        <Link to={settingsUrl} className="flex-1 min-w-0">
+        <div className="w-px h-10 bg-gray-700" />
+
+        <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
-            <DollarSign className="w-7 h-7" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">
-              Dinero
-            </span>
+            <Bell className="w-8 h-8" />
+            <span className="text-[10px] font-bold whitespace-nowrap truncate">Notificaciones</span>
+
+            {unreadNotifications.length > 0 && (
+              <span className={badgeBase}>
+                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+              </span>
+            )}
           </Button>
         </Link>
+
+        <div className="w-px h-10 bg-gray-700" />
+
+        <Link to={createPageUrl('Chats')} className="flex-1 min-w-0">
+          <Button variant="ghost" className={baseBtn}>
+            <MessageCircle className="w-8 h-8" />
+            <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
+          </Button>
+        </Link>
+
       </div>
-    </div>
+    </nav>
   );
 }
