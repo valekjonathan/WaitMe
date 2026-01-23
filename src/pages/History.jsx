@@ -1,6 +1,6 @@
 // FILE: src/pages/Historia.jsx
 import React from 'react';
-import UserCard from '@/components/cards/UserCard';
+import UserCard from '@/components/UserCard';
 
 export default function Historia() {
   return (
