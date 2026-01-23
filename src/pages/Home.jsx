@@ -1,6 +1,6 @@
 // FILE: src/pages/Hogar.jsx
 import React from 'react';
-import UserCard from '@/components/UserCard';
+import UserCard from '@/components/cards/UserCard';
 
 export default function Hogar() {
   return (
