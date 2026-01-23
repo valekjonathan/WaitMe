@@ -337,10 +337,13 @@ export default function Chat() {
 
   // Calcular distancia
   const calculateDistance = () => {
-    if (!user?.user_location || !alert?.latitude || !alert?.longitude) return null;
+    if (!alert?.latitude || !alert?.longitude) return null;
     
-    const userLat = user.user_location?.latitude;
-    const userLon = user.user_location?.longitude;
+    const userLoc = user?.user_location;
+    if (!userLoc) return null;
+    
+    const userLat = userLoc.latitude || userLoc.lat;
+    const userLon = userLoc.longitude || userLoc.lng;
     
     if (!userLat || !userLon) return null;
 
