@@ -1,6 +1,6 @@
 // FILE: src/pages/Chats.jsx
 import React from 'react';
-import UserCard from '@/components/cards/UserCard';
+import UserCard from '@/components/UserCard';
 
 export default function Chats() {
   return (
