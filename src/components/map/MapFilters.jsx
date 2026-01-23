@@ -1,7 +1,7 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X, SlidersHorizontal } from 'lucide-react';
+import { X, SlidersHorizontal, Clock, Euro, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
@@ -31,7 +31,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Precio máximo */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
+            <Euro className="w-4 h-4 text-purple-400 inline-block mr-1" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
           </label>
           <Slider
             value={[filters.maxPrice]}
@@ -46,7 +46,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Disponibilidad */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
+            <Clock className="w-4 h-4 text-purple-400 inline-block mr-1" /> Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
           </label>
           <Slider
             value={[filters.maxMinutes]}
@@ -61,7 +61,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Distancia máxima */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
+            <MapPin className="w-4 h-4 text-purple-400 inline-block mr-1" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
           </label>
           <Slider
             value={[filters.maxDistance]}
