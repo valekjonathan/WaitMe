@@ -99,9 +99,9 @@ export default function UserAlertCard({
   );
 
   const dateText = useMemo(() => {
-    if (!alert?.created_at) return '';
+    if (!alert?.created_date) return '';
     try {
-      const d = new Date(toMs(alert.created_at));
+      const d = new Date(toMs(alert.created_date));
       // Formato: "23 Enero - 16:22"
       const datePart = format(d, "d MMMM", { locale: es });
       const timePart = format(d, "HH:mm", { locale: es });
@@ -109,7 +109,7 @@ export default function UserAlertCard({
     } catch {
       return '';
     }
-  }, [alert?.created_at]);
+  }, [alert?.created_date]);
 
   return (
     <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
