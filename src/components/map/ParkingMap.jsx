@@ -28,16 +28,18 @@ const carColors = {
 
 function createCarIcon(color, price, vehicleType = 'car') {
   const carColor = carColors[color] || '#6b7280';
-  
+
   let vehicleSVG = '';
-  
+
   if (vehicleType === 'van') {
     vehicleSVG = `
       <svg width="80" height="50" viewBox="0 0 48 30" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
         <path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
         <circle cx="14" cy="24" r="3" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="34" cy="24" r="3" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="20" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
+        <text x="24" y="20" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(
+          price
+        )}€</text>
       </svg>
     `;
   } else if (vehicleType === 'suv') {
@@ -46,7 +48,9 @@ function createCarIcon(color, price, vehicleType = 'car') {
         <path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
         <circle cx="14" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="36" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="18" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
+        <text x="24" y="18" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(
+          price
+        )}€</text>
       </svg>
     `;
   } else {
@@ -57,7 +61,9 @@ function createCarIcon(color, price, vehicleType = 'car') {
         <circle cx="14" cy="24" r="2" fill="#666"/>
         <circle cx="36" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="36" cy="24" r="2" fill="#666"/>
-        <text x="24" y="19" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
+        <text x="24" y="19" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(
+          price
+        )}€</text>
       </svg>
     `;
   }
@@ -130,19 +136,14 @@ function LocationMarker({ position, setPosition, isSelecting }) {
     }
   }, [position, map]);
 
-  return position === null ? null :
-  <Marker position={position}>
-    </Marker>;
-
+  return position === null ? null : <Marker position={position}></Marker>;
 }
 
 function FlyToLocation({ position }) {
   const map = useMap();
 
   useEffect(() => {
-    if (position && position.lat != null && position.lng != null) {
-      map.setView([position.lat, position.lng], 16);
-    } else if (position && Array.isArray(position) && position.length === 2) {
+    if (position) {
       map.setView(position, 16);
     }
   }, [position, map]);
@@ -163,39 +164,75 @@ export default function ParkingMap({
   zoomControl = true,
   buyerLocations = []
 }) {
-  // Convertir userLocation a formato [lat, lng] si es objeto
-  const normalizedUserLocation = userLocation 
-    ? (Array.isArray(userLocation) 
-        ? userLocation 
-        : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
-    : null;
-  
-  const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
+  const normalizeLatLngArray = (loc) => {
+    if (!loc) return null;
+    if (Array.isArray(loc)) {
+      const lat = Number(loc[0]);
+      const lng = Number(loc[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
+      return null;
+    }
+    if (typeof loc === 'object') {
+      const lat = Number(loc.lat ?? loc.latitude);
+      const lng = Number(loc.lng ?? loc.lon ?? loc.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return [lat, lng];
+    }
+    return null;
+  };
+
+  const normalizeLatLngObject = (pos) => {
+    if (!pos) return null;
+    if (Array.isArray(pos)) {
+      const lat = Number(pos[0]);
+      const lng = Number(pos[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+      return null;
+    }
+    if (typeof pos === 'object') {
+      const lat = Number(pos.lat ?? pos.latitude);
+      const lng = Number(pos.lng ?? pos.lon ?? pos.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    }
+    return null;
+  };
+
+  const userLoc = normalizeLatLngArray(userLocation);
+  const selectedPos = normalizeLatLngObject(selectedPosition);
+  const defaultCenter = userLoc || [40.4168, -3.7038];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
-    if (showRoute && selectedAlert && normalizedUserLocation) {
-      const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
-      const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
+    if (showRoute && selectedAlert && userLoc) {
+      const endLat = Number(selectedAlert?.latitude);
+      const endLng = Number(selectedAlert?.longitude);
+      if (!Number.isFinite(endLat) || !Number.isFinite(endLng)) {
+        setRoute(null);
+        setRouteDistance(null);
+        return;
+      }
+      const start = { lat: userLoc[0], lng: userLoc[1] };
+      const end = { lat: endLat, lng: endLng };
 
       // Usar OSRM para calcular la ruta
-      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
-      then((res) => res.json()).
-      then((data) => {
-        if (data.routes && data.routes[0]) {
-          const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
-          setRoute(coords);
-          setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
-        }
-      }).
-      catch((err) => console.log('Error calculando ruta:', err));
+      fetch(
+        `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.routes && data.routes[0]) {
+            const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
+            setRoute(coords);
+            setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
+          }
+        })
+        .catch((err) => console.log('Error calculando ruta:', err));
     } else {
       setRoute(null);
       setRouteDistance(null);
     }
-  }, [showRoute, selectedAlert, normalizedUserLocation]);
+  }, [showRoute, selectedAlert, userLoc]);
 
   return (
     <div className={`relative ${className}`}>
@@ -250,32 +287,30 @@ export default function ParkingMap({
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
         zoomControl={zoomControl}
-        key={`map-${zoomControl}`}>
-
+        key={`map-${zoomControl}`}
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+        />
 
-        
-        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} />}
-        
+        {userLoc && <FlyToLocation position={userLoc} />}
+
         {/* Marcador de ubicación del usuario estilo Uber */}
-        {normalizedUserLocation &&
-        <Marker 
-          position={normalizedUserLocation}
-          icon={createUserLocationIcon()}
-          draggable={isSelecting}>
-          </Marker>
-        }
+        {userLoc && (
+          <Marker position={userLoc} icon={createUserLocationIcon()} draggable={isSelecting}></Marker>
+        )}
 
         {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
-        {buyerLocations.map((loc) => (
-          <Marker 
-            key={loc.id}
-            position={[loc.latitude, loc.longitude]} 
-            icon={L.divIcon({
-              className: 'custom-buyer-icon',
-              html: `
+        {buyerLocations
+          .filter((loc) => Number.isFinite(Number(loc?.latitude)) && Number.isFinite(Number(loc?.longitude)))
+          .map((loc) => (
+            <Marker
+              key={loc.id}
+              position={[Number(loc.latitude), Number(loc.longitude)]}
+              icon={L.divIcon({
+                className: 'custom-buyer-icon',
+                html: `
                 <style>
                   @keyframes pulse-buyer {
                     0%, 100% { transform: scale(1); }
@@ -299,47 +334,36 @@ export default function ParkingMap({
                   </svg>
                 </div>
               `,
-              iconSize: [40, 40],
-              iconAnchor: [20, 20]
-            })}
-            zIndexOffset={1500}
-          >
-            <Popup>Usuario en camino</Popup>
-          </Marker>
-        ))}
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+              })}
+              zIndexOffset={1500}
+            >
+              <Popup>Usuario en camino</Popup>
+            </Marker>
+          ))}
 
-        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
-        <Marker
-          position={selectedPosition}
-          icon={createUserLocationIcon()}>
-          </Marker>
-        }
-        
-        {/* Ruta */}
-        {route &&
-        <Polyline
-          positions={route}
-          color="#a855f7"
-          weight={4}
-          opacity={0.8}
-          dashArray="10, 10" />
-
-        }
-        
-        {/* Alertas */}
-        {alerts.map((alert) =>
-        <Marker
-          key={alert.id}
-          position={[alert.latitude, alert.longitude]}
-          icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
-          eventHandlers={{
-            click: () => onAlertClick && onAlertClick(alert)
-          }}>
-          </Marker>
+        {isSelecting && selectedPos && (!userLoc || selectedPos.lat !== userLoc[0] || selectedPos.lng !== userLoc[1]) && (
+          <Marker position={[selectedPos.lat, selectedPos.lng]} icon={createUserLocationIcon()}></Marker>
         )}
+
+        {/* Ruta */}
+        {route && <Polyline positions={route} color="#a855f7" weight={4} opacity={0.8} dashArray="10, 10" />}
+
+        {/* Alertas */}
+        {alerts
+          .filter((alert) => Number.isFinite(Number(alert?.latitude)) && Number.isFinite(Number(alert?.longitude)))
+          .map((alert) => (
+            <Marker
+              key={alert.id}
+              position={[Number(alert.latitude), Number(alert.longitude)]}
+              icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
+              eventHandlers={{
+                click: () => onAlertClick && onAlertClick(alert)
+              }}
+            ></Marker>
+          ))}
       </MapContainer>
-
-
-    </div>);
-
+    </div>
+  );
 }
