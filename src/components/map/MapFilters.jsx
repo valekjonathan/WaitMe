@@ -1,8 +1,8 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X, SlidersHorizontal, Clock, Euro, MapPin } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, SlidersHorizontal, Clock, MapPin, Euro } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
   return (
@@ -30,8 +30,11 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
       <div className="space-y-5">
         {/* Precio máximo */}
         <div>
-          <label className="text-sm text-white mb-2 block font-medium">
-            <Euro className="w-4 h-4 text-purple-400 inline-block mr-1" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
+          <label className="text-sm text-white mb-2 block font-medium flex items-center gap-2">
+            <Euro className="w-4 h-4 text-purple-400" />
+            <span>
+              Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
+            </span>
           </label>
           <Slider
             value={[filters.maxPrice]}
@@ -45,8 +48,11 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
 
         {/* Disponibilidad */}
         <div>
-          <label className="text-sm text-white mb-2 block font-medium">
-            <Clock className="w-4 h-4 text-purple-400 inline-block mr-1" /> Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
+          <label className="text-sm text-white mb-2 block font-medium flex items-center gap-2">
+            <Clock className="w-4 h-4 text-purple-400" />
+            <span>
+              Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
+            </span>
           </label>
           <Slider
             value={[filters.maxMinutes]}
@@ -60,8 +66,11 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
 
         {/* Distancia máxima */}
         <div>
-          <label className="text-sm text-white mb-2 block font-medium">
-            <MapPin className="w-4 h-4 text-purple-400 inline-block mr-1" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
+          <label className="text-sm text-white mb-2 block font-medium flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-purple-400" />
+            <span>
+              Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
+            </span>
           </label>
           <Slider
             value={[filters.maxDistance]}
