@@ -1,93 +1,82 @@
-import { MapPin, Clock, MessageCircle, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+// FILE: src/components/UserCard.jsx
+import React from 'react';
+import { MapPin, Clock, Navigation, MessageCircle, Phone } from 'lucide-react';
 
-export default function UserAlertCard({
-  alert,
-  isEmpty,
-  onBuyAlert,
-  onChat,
-  onCall,
-  isLoading
+export default function UserCard({
+  avatar,
+  name,
+  car,
+  plate,
+  location,
+  timeText,
+  distance,
+  price,
+  footer = 'waitme', // waitme | countdown | actions
+  countdownText = '09:51'
 }) {
-  if (isEmpty || !alert) {
-    return (
-      <div className="text-center text-gray-500 mt-8">
-        Selecciona una alerta del mapa
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-black border border-purple-500/40 rounded-2xl p-4 space-y-3">
+    <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50 space-y-3">
+      
       {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <span className="bg-green-600/20 text-green-400 text-xs px-3 py-1 rounded-full">
+      <div className="flex items-center justify-between">
+        <span className="px-2 py-0.5 rounded bg-green-600/20 text-green-400 text-xs">
           Activa
         </span>
-        <span className="text-purple-400 font-bold">
-          {alert.price}€
-        </span>
+        <span className="text-purple-400 font-bold">{price}</span>
       </div>
 
-      {/* USER */}
-      <div className="flex gap-3 items-center">
+      {/* BODY */}
+      <div className="flex gap-3">
         <img
-          src={alert.user_photo}
-          alt={alert.user_name}
-          className="w-14 h-14 rounded-xl object-cover border border-purple-500/30"
+          src={avatar}
+          className="w-14 h-14 rounded-lg object-cover"
         />
         <div className="flex-1">
-          <p className="text-white font-semibold">{alert.user_name}</p>
-          <p className="text-sm text-gray-400">
-            {alert.car_brand} {alert.car_model}
-          </p>
-          <div className="mt-1 inline-flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-lg">
-            <span className="bg-blue-600 text-xs px-2 py-0.5 rounded">E</span>
-            <span className="font-mono text-sm text-white">
-              {alert.car_plate}
-            </span>
+          <div className="text-white font-semibold">{name}</div>
+          <div className="text-gray-300 text-sm">{car}</div>
+          <div className="inline-block mt-1 px-2 py-0.5 bg-blue-600 rounded text-xs font-bold text-white">
+            {plate}
+          </div>
+
+          <div className="mt-2 space-y-1 text-sm text-gray-300">
+            <div className="flex items-center gap-1">
+              <MapPin size={14} /> {location}
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock size={14} /> {timeText}
+            </div>
+            {distance && (
+              <div className="flex items-center gap-1">
+                <Navigation size={14} /> {distance}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* INFO */}
-      <div className="space-y-1 text-sm text-gray-400">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-purple-400" />
-          <span>{alert.address}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-purple-400" />
-          <span>Se va en {alert.available_in_minutes} min</span>
-        </div>
-      </div>
-
-      {/* ACTIONS */}
-      <div className="flex gap-2 pt-2">
-        <Button
-          onClick={() => onChat?.(alert)}
-          className="bg-green-600 hover:bg-green-700 w-12 h-12 p-0"
-        >
-          <MessageCircle />
-        </Button>
-
-        {alert.phone && (
-          <Button
-            onClick={() => onCall?.(alert)}
-            className="bg-gray-700 hover:bg-gray-600 w-12 h-12 p-0"
-          >
-            <Phone />
-          </Button>
-        )}
-
-        <Button
-          onClick={() => onBuyAlert?.(alert)}
-          disabled={isLoading || alert.is_demo}
-          className="flex-1 bg-purple-600 hover:bg-purple-700"
-        >
+      {/* FOOTER */}
+      {footer === 'waitme' && (
+        <button className="w-full bg-purple-600 rounded-md py-2 text-white font-semibold">
           WaitMe!
-        </Button>
-      </div>
+        </button>
+      )}
+
+      {footer === 'countdown' && (
+        <div className="w-full bg-purple-700 rounded-md py-2 text-white text-center font-semibold">
+          {countdownText}
+        </div>
+      )}
+
+      {footer === 'actions' && (
+        <div className="flex gap-2">
+          <button className="flex-1 bg-green-600 rounded-md py-2 flex justify-center">
+            <MessageCircle size={18} />
+          </button>
+          <button className="flex-1 bg-gray-700 rounded-md py-2 flex justify-center">
+            <Phone size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
