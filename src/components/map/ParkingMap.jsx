@@ -140,7 +140,9 @@ function FlyToLocation({ position }) {
   const map = useMap();
 
   useEffect(() => {
-    if (position) {
+    if (position && position.lat != null && position.lng != null) {
+      map.setView([position.lat, position.lng], 16);
+    } else if (position && Array.isArray(position) && position.length === 2) {
       map.setView(position, 16);
     }
   }, [position, map]);
