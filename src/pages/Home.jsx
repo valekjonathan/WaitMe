@@ -12,12 +12,6 @@ import UserCard from '@/components/cards/UserCard'; // ✅ LA TARJETA DE SOFÍA
 
 export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
-  const [filters, setFilters] = useState({
-    maxPrice: 7,
-    maxMinutes: 25,
-    maxDistance: 1
-  });
-  const [showFilters, setShowFilters] = useState(false);
 
   // 🔹 DEMO ALERTA (la que ves debajo del mapa)
   const demoAlert = {
@@ -44,14 +38,7 @@ export default function Home() {
       </div>
 
       {/* FILTROS – NO SE TOCAN */}
-      {showFilters && (
-        <MapFilters
-          filters={filters}
-          onFilterChange={setFilters}
-          onClose={() => setShowFilters(false)}
-          alertsCount={1}
-        />
-      )}
+      <MapFilters />
 
       {/* ✅ TARJETA BAJO EL MAPA (MISMA QUE SOFÍA) */}
       <div className="px-3 mt-3">
