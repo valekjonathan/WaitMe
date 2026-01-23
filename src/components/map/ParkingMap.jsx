@@ -163,7 +163,14 @@ export default function ParkingMap({
   zoomControl = true,
   buyerLocations = []
 }) {
-  const defaultCenter = userLocation || [40.4168, -3.7038];
+  // Convertir userLocation a formato [lat, lng] si es objeto
+  const normalizedUserLocation = userLocation 
+    ? (Array.isArray(userLocation) 
+        ? userLocation 
+        : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
+    : null;
+  
+  const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
 
