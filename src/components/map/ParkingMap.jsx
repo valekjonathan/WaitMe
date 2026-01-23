@@ -176,8 +176,8 @@ export default function ParkingMap({
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
-    if (showRoute && selectedAlert && userLocation) {
-      const start = { lat: userLocation[0], lng: userLocation[1] };
+    if (showRoute && selectedAlert && normalizedUserLocation) {
+      const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
       const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
 
       // Usar OSRM para calcular la ruta
