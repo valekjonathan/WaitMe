@@ -257,12 +257,12 @@ export default function ParkingMap({
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
         
-        {userLocation && <FlyToLocation position={userLocation} />}
+        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
-        {userLocation &&
+        {normalizedUserLocation &&
         <Marker 
-          position={userLocation}
+          position={normalizedUserLocation}
           icon={createUserLocationIcon()}
           draggable={isSelecting}>
           </Marker>
