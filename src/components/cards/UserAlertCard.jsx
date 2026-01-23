@@ -30,123 +30,23 @@ export default function UserAlertCard({
     return null;
   };
 
-  const formatCardDate = (ts) => {
-    if (!ts) return '--';
-    const raw = format(new Date(ts), 'd MMMM - HH:mm', { locale: es });
-    return raw.replace(/^\d+\s+([a-záéíóúñ]+)/i, (m, mon) => {
-      const cap = mon.charAt(0).toUpperCase() + mon.slice(1);
-      return m.replace(mon, cap);
-    });
-  };
-
-  const calculateDistanceLabel = (lat, lon) => {
-    if (!userLocation || lat == null || lon == null) return null;
-    const [lat1, lon1] = userLocation;
-    const R = 6371;
-    const dLat = (lat - lat1) * Math.PI / 180;
-    const dLon = (lon - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const calculateDistanceLabel = (lat, lng) => {
+    if (!lat || !lng || !userLocation) return null;
+    const R = 6371e3;
+    const φ1 = userLocation.latitude * (Math.PI / 180);
+    const φ2 = lat * (Math.PI / 180);
+    const Δφ = (lat - userLocation.latitude) * (Math.PI / 180);
+    const Δλ = (lng - userLocation.longitude) * (Math.PI / 180);
+    const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const km = R * c;
-    if (km < 1) return `${Math.round(km * 1000)}m`;
-    return `${km.toFixed(1)}km`;
+    const meters = R * c;
+    const distanceKm = meters / 1000;
+    return { value: distanceKm.toFixed(1), unit: 'km' };
   };
 
-  const getWaitUntilTs = (a) => {
-    const created = toMs(a?.created_date) || toMs(a?.created_at) || Date.now();
-    const candidates = [
-      a?.wait_until,
-      a?.waitUntil,
-      a?.expires_at,
-      a?.expiresAt,
-      a?.ends_at,
-      a?.endsAt
-    ].filter(Boolean);
-    for (const v of candidates) {
-      const t = toMs(v);
-      if (typeof t === 'number' && t > 0) return t;
-    }
-    const mins = Number(a?.available_in_minutes ?? a?.availableInMinutes);
-    if (Number.isFinite(mins) && mins > 0) return created + mins * 60000;
-    return null;
-  };
+  const formatPlate = (plate) => String(plate || '').toUpperCase().replace(/\s/g, '');
 
-  const carColors = {
-    blanco: '#FFFFFF',
-    negro: '#1a1a1a',
-    rojo: '#ef4444',
-    azul: '#3b82f6',
-    amarillo: '#facc15',
-    gris: '#6b7280',
-    verde: '#22c55e'
-  };
-
-  const getCarFill = (colorValue) => carColors[String(colorValue || '').toLowerCase()] || '#6b7280';
-
-  const formatPlate = (plate) => {
-    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
-    if (!p) return 'XXXX XXX';
-    const a = p.slice(0, 4);
-    const b = p.slice(4);
-    return `${a} ${b}`.trim();
-  };
-
-  const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
-    <svg viewBox="0 0 48 24" className={size} fill="none">
-      <path
-        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-        fill={color}
-        stroke="white"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M16 9 L18 12 L30 12 L32 9 Z"
-        fill="rgba(255,255,255,0.3)"
-        stroke="white"
-        strokeWidth="0.5"
-      />
-      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="14" cy="18" r="2" fill="#666" />
-      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="36" cy="18" r="2" fill="#666" />
-    </svg>
-  );
-
-  const PlateProfile = ({ plate }) => (
-    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
-      <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-        <span className="text-white text-[9px] font-bold">E</span>
-      </div>
-      <span className="flex-1 text-center text-black font-mono font-bold text-base tracking-wider">
-        {formatPlate(plate)}
-      </span>
-    </div>
-  );
-
-  const CardHeaderRow = ({ left, dateText, right }) => (
-    <div className="flex items-center gap-2 mb-2">
-      <div className="flex-shrink-0">{left}</div>
-      <div className="flex-1 text-center text-xs text-white">{dateText}</div>
-      <div className="flex-shrink-0">{right}</div>
-    </div>
-  );
-
-  const distanceLabel = useMemo(
-    () => calculateDistanceLabel(alert?.latitude, alert?.longitude),
-    [alert?.latitude, alert?.longitude, userLocation]
-  );
-
-  const createdTs = useMemo(
-    () => toMs(alert?.created_date) || toMs(alert?.created_at) || Date.now(),
-    [alert?.created_date, alert?.created_at]
-  );
-
-  const dateText = useMemo(() => formatCardDate(createdTs), [createdTs]);
-
-  const waitUntilTs = useMemo(() => getWaitUntilTs(alert), [alert]);
+  const waitUntilTs = alert?.wait_until ? toMs(alert.wait_until) : null;
   const waitUntilLabel = useMemo(() => {
     if (!waitUntilTs) return '--:--';
     return format(new Date(waitUntilTs), 'HH:mm', { locale: es });
@@ -173,12 +73,50 @@ export default function UserAlertCard({
 
   const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
 
+  // Componentes internos para licencia y header
+  const PlateProfile = ({ plate }) => (
+    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8 w-24">
+      <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+        <span className="text-white text-[9px] font-bold">E</span>
+      </div>
+      <span className="flex-1 text-center text-black font-mono font-bold text-base tracking-wider">
+        {formatPlate(plate)}
+      </span>
+    </div>
+  );
+
+  const CardHeaderRow = ({ left, dateText, right }) => (
+    <div className="flex items-center gap-2 mb-2">
+      <div className="flex-shrink-0">{left}</div>
+      <div className="flex-1 text-center text-xs text-white">{dateText}</div>
+      <div className="flex-shrink-0">{right}</div>
+    </div>
+  );
+
+  const distanceLabel = useMemo(
+    () => calculateDistanceLabel(alert?.latitude, alert?.longitude),
+    [alert?.latitude, alert?.longitude, userLocation]
+  );
+
+  const dateText = useMemo(() => {
+    if (!alert?.created_at) return '';
+    try {
+      const d = new Date(toMs(alert.created_at));
+      // Formato: "23 Enero - 16:22"
+      const datePart = format(d, "d MMMM", { locale: es });
+      const timePart = format(d, "HH:mm", { locale: es });
+      return `${datePart.charAt(0).toUpperCase() + datePart.slice(1)} - ${timePart}`;
+    } catch {
+      return '';
+    }
+  }, [alert?.created_at]);
+
   return (
     <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
       {/* Header: Info usuario + Fecha + Distancia + Precio */}
       <CardHeaderRow
         left={
-          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-4 flex items-center justify-center text-center cursor-default select-none pointer-events-none">
             Info usuario
           </Badge>
         }
@@ -188,7 +126,7 @@ export default function UserAlertCard({
             {distanceLabel ? (
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                 <Navigation className="w-3 h-3 text-purple-400" />
-                <span className="text-white font-bold text-xs">{distanceLabel}</span>
+                <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
               </div>
             ) : null}
             <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
@@ -287,7 +225,7 @@ export default function UserAlertCard({
 
           <div className="flex-1">
             <Button
-              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
+              className="w-full h-8 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold border-2 border-green-500/40"
               onClick={() => onBuyAlert(alert)}
               disabled={isLoading || Boolean(alert?.is_demo)}
             >
@@ -298,4 +236,26 @@ export default function UserAlertCard({
       </div>
     </div>
   );
-} 
+}
+
+// Funciones auxiliares para obtener color de vehículo (icono) – pueden estar definidas en otro módulo utilitario
+const carColors = {
+  blanco: '#FFFFFF',
+  negro: '#1a1a1a',
+  rojo: '#ef4444',
+  azul: '#3b82f6',
+  amarillo: '#facc15',
+  gris: '#6b7280'
+};
+const getCarFill = (colorName) => carColors[colorName] || '#CCCCCC';
+
+// Componente de icono de vehículo (coche/furgoneta) con color
+const CarIconProfile = ({ color, size = 'w-8 h-5' }) => (
+  <svg viewBox="0 0 48 24" className={size} fill="none">
+    <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill={color} stroke="white" strokeWidth="1.5" />
+    <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+    <rect x="12" y="5" width="20" height="4" fill="white" />
+    <rect x="2" y="18" width="6" height="2" fill="white" />
+    <rect x="40" y="18" width="6" height="2" fill="white" />
+  </svg>
+);
