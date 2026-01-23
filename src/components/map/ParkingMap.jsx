@@ -195,7 +195,7 @@ export default function ParkingMap({
       setRoute(null);
       setRouteDistance(null);
     }
-  }, [showRoute, selectedAlert, userLocation]);
+  }, [showRoute, selectedAlert, normalizedUserLocation]);
 
   return (
     <div className={`relative ${className}`}>
