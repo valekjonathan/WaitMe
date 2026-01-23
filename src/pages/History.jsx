@@ -217,7 +217,7 @@ export default function History() {
         'w-full h-9 flex items-center justify-center font-mono font-extrabold text-sm',
         'pointer-events-none cursor-default',
         dimmed
-          ? '!border-purple-500/30 !bg-purple-600/10 !text-gray-400/70 !shadow-none !opacity-80 hover:!bg-purple-600/10'
+          ? '!border-white/10 !bg-white/5 !text-white/35 !shadow-none !opacity-60 hover:!bg-white/5'
           : '!border-purple-400/70 !bg-purple-600/25 !text-purple-100 hover:!bg-purple-600/25 hover:!text-purple-100 ' +
             '!shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]'
       ].join(' ')}
@@ -291,12 +291,11 @@ export default function History() {
     statusEnabled = false,
     bright = false
   }) => {
-    const stUpper = String(statusText || '').trim().toUpperCase();
+    const isCompleted = String(statusText || '').toUpperCase() === 'COMPLETADA';
+    const statusOn = statusEnabled || isCompleted;
+
     const isCountdownLike =
-      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
-    const isCompleted = stUpper === 'COMPLETADA';
-    const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
-    const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
+      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(statusText.trim());
 
     const photoCls = bright
       ? 'w-full h-full object-cover'
@@ -329,8 +328,6 @@ export default function History() {
     const statusTextCls = statusOn
       ? isCountdownLike
         ? 'text-purple-100'
-        : isDimStatus
-        ? 'text-gray-400/70'
         : 'text-purple-300'
       : 'text-gray-400 opacity-70';
 
@@ -625,22 +622,6 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  // Mock extra para ver una tarjeta CANCELADA en "Tus alertas"
-  const mockMyFinalizedAlerts = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-my-fin-cancel-1',
-        status: 'cancelled',
-        user_id: user?.id,
-        address: 'Calle Uría, 10',
-        available_in_minutes: 12,
-        price: 3.0,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 4).toISOString()
-      }
-    ];
-  }, [user?.id]);
-
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
     ...mockTransactions
@@ -650,12 +631,6 @@ export default function History() {
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-      created_date: a.created_date,
-      data: a
-    })),
-    ...mockMyFinalizedAlerts.map((a) => ({
-      type: 'alert',
-      id: `final-mock-alert-${a.id}`,
       created_date: a.created_date,
       data: a
     })),
@@ -769,23 +744,19 @@ export default function History() {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* FIX: sin borde negro debajo */}
-          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
-            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
-              <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
-                Tus alertas
-              </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
-                Tus reservas
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="w-full bg-gray-900 border border-gray-800 mt-4 mb-1">
+            <TabsTrigger value="alerts" className="flex-1 data-[state=active]:bg-purple-600">
+              Tus alertas
+            </TabsTrigger>
+            <TabsTrigger value="reservations" className="flex-1 data-[state=active]:bg-purple-600">
+              Tus reservas
+            </TabsTrigger>
+          </TabsList>
 
           {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -832,7 +803,7 @@ export default function History() {
                             ? '--:--'
                             : remainingMs > 0
                             ? formatRemaining(remainingMs)
-                            : 'EXPIRADA';
+                            : 'Alerta finalizada';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -881,6 +852,7 @@ export default function History() {
                                   }
                                 />
 
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
@@ -936,7 +908,10 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
                                 </div>
                               </>
                             ) : (
@@ -973,6 +948,7 @@ export default function History() {
                                   }
                                 />
 
+                                {/* línea bajo cabecera */}
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
@@ -993,7 +969,10 @@ export default function History() {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
+                                  <CountdownButton
+                                    text={countdownText}
+                                    dimmed={countdownText === 'Alerta finalizada'}
+                                  />
                                 </div>
                               </>
                             )}
@@ -1072,11 +1051,9 @@ export default function History() {
                               </span>
                             </div>
 
+                            {/* APAGADO (sin quitarlo) */}
                             <div className="mt-2">
-                              <CountdownButton
-                                text={statusLabelFrom(a.status)}
-                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
-                              />
+                              <CountdownButton text="Alerta finalizada" dimmed />
                             </div>
                           </motion.div>
                         );
@@ -1184,10 +1161,9 @@ export default function History() {
           </TabsContent>
 
           {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1228,6 +1204,7 @@ export default function History() {
 
                       const isMock = String(alert.id).startsWith('mock-');
 
+                      // cuando termina el contador, pasa a Finalizadas
                       if (
                         alert.status === 'reserved' &&
                         hasExpiry &&
@@ -1237,11 +1214,9 @@ export default function History() {
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert
-                              .update(alert.id, { status: 'expired' })
-                              .finally(() => {
-                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                              });
+                            base44.entities.ParkingAlert.update(alert.id, { status: 'expired' }).finally(() => {
+                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                            });
                           }
                         }
                         return null;
@@ -1251,7 +1226,8 @@ export default function History() {
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
                       const dateText = formatCardDate(createdTs);
-                      const moneyMode = reservationMoneyModeFromStatus('reserved');
+
+                      const moneyMode = reservationMoneyModeFromStatus('reserved'); // neutral
 
                       return (
                         <motion.div
@@ -1291,6 +1267,7 @@ export default function History() {
                                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
                                   onClick={async () => {
                                     hideKey(key);
+
                                     if (isMock) return;
 
                                     await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
@@ -1403,7 +1380,10 @@ export default function History() {
                                       amountText={`${(a.price ?? 0).toFixed(2)}€`}
                                     />
                                   ) : (
-                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
+                                    <MoneyChip
+                                      mode="neutral"
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
                                   )}
 
                                   <Button
@@ -1455,7 +1435,9 @@ export default function History() {
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car ||
+                        tx.sellerCar ||
+                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
@@ -1496,7 +1478,10 @@ export default function History() {
                                     amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
                                   />
                                 ) : (
-                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
                                 )}
 
                                 <Button
@@ -1543,6 +1528,7 @@ export default function History() {
 
       <BottomNav />
 
+      {/* Tracker para reservadas (tus alertas) */}
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
@@ -1550,4 +1536,4 @@ export default function History() {
         ))}
     </div>
   );
-} 
+}
