@@ -308,7 +308,7 @@ export default function ParkingMap({
           </Marker>
         ))}
 
-        {isSelecting && selectedPosition && selectedPosition.lat !== userLocation?.[0] &&
+        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
         <Marker
           position={selectedPosition}
           icon={createUserLocationIcon()}>
