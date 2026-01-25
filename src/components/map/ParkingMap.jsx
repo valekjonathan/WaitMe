@@ -130,14 +130,19 @@ function LocationMarker({ position, setPosition, isSelecting }) {
     }
   }, [position, map]);
 
-  return position === null ? null : <Marker position={position}></Marker>;
+  return position === null ? null :
+  <Marker position={position}>
+    </Marker>;
+
 }
 
 function FlyToLocation({ position }) {
   const map = useMap();
 
   useEffect(() => {
-    if (position) {
+    if (position && position.lat != null && position.lng != null) {
+      map.setView([position.lat, position.lng], 16);
+    } else if (position && Array.isArray(position) && position.length === 2) {
       map.setView(position, 16);
     }
   }, [position, map]);
@@ -158,32 +163,39 @@ export default function ParkingMap({
   zoomControl = true,
   buyerLocations = []
 }) {
-  const defaultCenter = userLocation || [40.4168, -3.7038];
+  // Convertir userLocation a formato [lat, lng] si es objeto
+  const normalizedUserLocation = userLocation 
+    ? (Array.isArray(userLocation) 
+        ? userLocation 
+        : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
+    : null;
+  
+  const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
-    if (showRoute && selectedAlert && userLocation) {
-      const start = { lat: userLocation[0], lng: userLocation[1] };
+    if (showRoute && selectedAlert && normalizedUserLocation) {
+      const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
       const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
 
       // Usar OSRM para calcular la ruta
-      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
-      .then((res) => res.json())
-      .then((data) => {
+      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
+      then((res) => res.json()).
+      then((data) => {
         if (data.routes && data.routes[0]) {
           const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
           setRoute(coords);
           setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
         }
-      })
-      .catch((err) => console.log('Error calculando ruta:', err));
+      }).
+      catch((err) => console.log('Error calculando ruta:', err));
     } else {
       setRoute(null);
       setRouteDistance(null);
     }
-  }, [showRoute, selectedAlert, userLocation]);
+  }, [showRoute, selectedAlert, normalizedUserLocation]);
 
   return (
     <div className={`relative ${className}`}>
@@ -244,15 +256,16 @@ export default function ParkingMap({
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
-        {userLocation && <FlyToLocation position={userLocation} />}
-
+        
+        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} />}
+        
         {/* Marcador de ubicación del usuario estilo Uber */}
-        {userLocation &&
+        {normalizedUserLocation &&
         <Marker 
-          position={userLocation}
+          position={normalizedUserLocation}
           icon={createUserLocationIcon()}
           draggable={isSelecting}>
-        </Marker>
+          </Marker>
         }
 
         {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
@@ -295,11 +308,11 @@ export default function ParkingMap({
           </Marker>
         ))}
 
-        {isSelecting && selectedPosition && selectedPosition.lat !== userLocation?.[0] &&
+        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
         <Marker
           position={selectedPosition}
           icon={createUserLocationIcon()}>
-        </Marker>
+          </Marker>
         }
         
         {/* Ruta */}
@@ -310,6 +323,7 @@ export default function ParkingMap({
           weight={4}
           opacity={0.8}
           dashArray="10, 10" />
+
         }
         
         {/* Alertas */}
@@ -321,9 +335,11 @@ export default function ParkingMap({
           eventHandlers={{
             click: () => onAlertClick && onAlertClick(alert)
           }}>
-        </Marker>
+          </Marker>
         )}
       </MapContainer>
-    </div>
-  );
+
+
+    </div>);
+
 }

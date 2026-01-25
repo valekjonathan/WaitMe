@@ -1,7 +1,7 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X, SlidersHorizontal, MapPin, Clock, Euro } from 'lucide-react';
+import { X, SlidersHorizontal, Clock, Euro, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
@@ -31,7 +31,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Precio máximo */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <Euro className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
+            <Euro className="w-4 h-4 text-purple-400 inline-block mr-1" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
           </label>
           <Slider
             value={[filters.maxPrice]}
@@ -39,49 +39,52 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
-        {/* Disponible en */}
+        {/* Disponibilidad */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <Clock className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
+            <Clock className="w-4 h-4 text-purple-400 inline-block mr-1" /> Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
           </label>
           <Slider
             value={[filters.maxMinutes]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxMinutes: value })}
-            max={30}
-            min={1}
-            step={1}
-            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
+            max={60}
+            min={5}
+            step={5}
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Distancia máxima */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <MapPin className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
+            <MapPin className="w-4 h-4 text-purple-400 inline-block mr-1" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
           </label>
           <Slider
             value={[filters.maxDistance]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxDistance: value })}
             max={5}
-            min={0.1}
-            step={0.1}
-            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
+            min={0.5}
+            step={0.5}
+            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Resultados */}
-        <p className="text-center text-sm text-gray-400">
-          {alertsCount} {alertsCount === 1 ? 'plaza' : 'plazas'} encontrada{alertsCount === 1 ? '' : 's'}
-        </p>
+        <div className="pt-3 border-t border-gray-700">
+          <p className="text-center text-sm text-gray-400">
+            <span className="text-purple-400 font-bold">{alertsCount}</span> plazas encontradas
+          </p>
+        </div>
 
+        {/* Reset */}
         <Button
-          variant="outline"
-          className="w-full border border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white bg-transparent"
           onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
+          variant="outline"
+          className="w-full border-gray-700 text-gray-900 hover:bg-gray-800 hover:text-white bg-white"
         >
           Restablecer filtros
         </Button>
