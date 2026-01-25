@@ -193,7 +193,7 @@ export default function ParkingMap({
         ) : null}
 
         {isSelecting && selectedPosition?.lat != null && selectedPosition?.lng != null ? (
-          <Marker position={selectedPosition} icon={createUserLocationIcon()} />
+          <Marker position={[selectedPosition.lat, selectedPosition.lng]} icon={createUserLocationIcon()} />
         ) : null}
 
         {route ? (
