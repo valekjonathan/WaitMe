@@ -189,7 +189,7 @@ export default function Navigate() {
           alerts={[alert]}
           userLocation={userLocation}
           selectedAlert={alert}
-          showRoute={isTracking && userLocation}
+          showRoute={!!(isTracking && userLocation && userLocation.length === 2)}
           zoomControl={true}
           className="h-full"
         />
