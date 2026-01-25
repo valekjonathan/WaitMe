@@ -14,6 +14,7 @@ export default function UserAlertCard({
   isEmpty = false,
   userLocation
 }) {
+  // ===== Helpers (mismo look que la tarjeta de “Sofía” en Tus reservas) =====
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
@@ -56,7 +57,14 @@ export default function UserAlertCard({
 
   const getWaitUntilTs = (a) => {
     const created = toMs(a?.created_date) || toMs(a?.created_at) || Date.now();
-    const candidates = [a?.wait_until, a?.waitUntil, a?.expires_at, a?.expiresAt, a?.ends_at, a?.endsAt].filter(Boolean);
+    const candidates = [
+      a?.wait_until,
+      a?.waitUntil,
+      a?.expires_at,
+      a?.expiresAt,
+      a?.ends_at,
+      a?.endsAt
+    ].filter(Boolean);
     for (const v of candidates) {
       const t = toMs(v);
       if (typeof t === 'number' && t > 0) return t;
@@ -126,8 +134,16 @@ export default function UserAlertCard({
     </div>
   );
 
-  const distanceLabel = useMemo(() => calculateDistanceLabel(alert?.latitude, alert?.longitude), [alert?.latitude, alert?.longitude, userLocation]);
-  const createdTs = useMemo(() => toMs(alert?.created_date) || toMs(alert?.created_at) || Date.now(), [alert?.created_date, alert?.created_at]);
+  const distanceLabel = useMemo(
+    () => calculateDistanceLabel(alert?.latitude, alert?.longitude),
+    [alert?.latitude, alert?.longitude, userLocation]
+  );
+
+  const createdTs = useMemo(
+    () => toMs(alert?.created_date) || toMs(alert?.created_at) || Date.now(),
+    [alert?.created_date, alert?.created_at]
+  );
+
   const dateText = useMemo(() => formatCardDate(createdTs), [createdTs]);
 
   const waitUntilTs = useMemo(() => getWaitUntilTs(alert), [alert]);
@@ -148,8 +164,8 @@ export default function UserAlertCard({
     return (
       <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl px-4 py-4 border-2 border-purple-500/50 h-full flex items-center justify-center">
         <div className="text-center text-gray-500">
-          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2.5} />
-          <p className="text-xs">Toca un coche en el mapa para ver sus datos</p>
+          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2} />
+          <p className="text-sm">Toca un coche en el mapa para ver sus datos</p>
         </div>
       </div>
     );
@@ -158,32 +174,29 @@ export default function UserAlertCard({
   const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
 
   return (
-    <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
-      {/* Header: Info usuario (MISMO ANCHO QUE LA FOTO) + Fecha + Distancia + Precio */}
+    <div className="bg-black/70 rounded-xl p-3 pb-2 border border-purple-500/50">
+      {/* Header: Info usuario + Fecha + Distancia + Precio */}
       <CardHeaderRow
         left={
-          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none text-xs">
+          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
             Info usuario
           </Badge>
         }
         dateText={dateText}
         right={
-          <div className="flex items-center gap-1">
-            {distanceLabel ? (
-              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+          <div className="flex items-center gap-1 text-xs text-white">
+            {distanceLabel && (
+              <>
                 <Navigation className="w-3 h-3 text-purple-400" />
-                <span className="text-white font-bold text-xs">{distanceLabel}</span>
-              </div>
-            ) : null}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-              <span className="text-purple-300 font-bold text-xs">{priceText}</span>
-            </div>
+                <span className="text-white font-medium">{distanceLabel}</span>
+              </>
+            )}
+            <span className="text-white font-medium">{priceText}</span>
           </div>
         }
       />
 
-      <div className="border-t border-gray-700/80 mb-2" />
-
+      {/* Cuerpo: Foto usuario, datos vehículo */}
       <div className="flex gap-2.5">
         <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
           {alert?.user_photo ? (
@@ -193,91 +206,63 @@ export default function UserAlertCard({
           )}
         </div>
 
-        <div className="flex-1 h-[85px] flex flex-col text-left">
+        <div className="flex-1 h-[85px] flex flex-col">
           <p className="font-bold text-xl text-white leading-none min-h-[22px]">
-            {(alert?.user_name || '').split(' ')[0] || 'Usuario'}
+            {(alert?.user_name || '').split(' ')[0]}
           </p>
           <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">
             {carLabel}
           </p>
 
-          <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-            <div className="flex-shrink-0">
-              <PlateProfile plate={alert?.car_plate} />
-            </div>
-
+          <div className="flex items-center gap-x-2 mt-auto">
+            <PlateProfile plate={alert?.car_plate} />
             <div className="flex-1 flex justify-center">
               <div className="flex-shrink-0 relative -top-[1px]">
-                <CarIconProfile color={getCarFill(alert?.car_color)} size="w-16 h-10" />
+                <CarIconProfile color={getCarFill(alert?.car_color)} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Calle y tiempo PEGADOS A LA IZQUIERDA */}
-      <div className="pt-1.5 border-t border-gray-700/80 mt-2">
-        <div className="space-y-1.5">
-          {alert?.address ? (
-            <div className="flex items-start gap-1.5 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5 line-clamp-1">{alert.address}</span>
-            </div>
-          ) : null}
+      {/* Acciones: Chat, Llamar, WaitMe */}
+      <div className="flex items-end gap-2 mt-2">
+        <Button
+          size="icon"
+          className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+          onClick={() => onChat(alert)}
+          disabled={Boolean(alert?.is_demo)}
+        >
+          <MessageCircle className="w-4 h-4" />
+        </Button>
 
-          {alert?.available_in_minutes != null ? (
-            <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5">
-                Se va en {alert.available_in_minutes} min ·{' '}
-                <span className="text-purple-400">Te espera hasta las {waitUntilLabel}</span>
-              </span>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {/* Footer: Chat (verde encendido) + Llamar + WaitMe (MORADO) */}
-      <div className="mt-2">
-        <div className="flex gap-2">
+        {phoneEnabled ? (
           <Button
             size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-            onClick={() => onChat(alert)}
+            className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+            onClick={() => onCall(alert)}
             disabled={Boolean(alert?.is_demo)}
           >
-            <MessageCircle className="w-4 h-4" />
+            <Phone className="w-4 h-4" />
           </Button>
+        ) : (
+          <Button
+            size="icon"
+            className="bg-white text-gray-400 rounded-lg h-8 w-[42px]"
+            disabled
+          >
+            <PhoneOff className="w-4 h-4 text-white" />
+          </Button>
+        )}
 
-          {phoneEnabled ? (
-            <Button
-              size="icon"
-              className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-              onClick={() => onCall(alert)}
-              disabled={Boolean(alert?.is_demo)}
-            >
-              <Phone className="w-4 h-4" />
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-              disabled
-            >
-              <PhoneOff className="w-4 h-4 text-white" />
-            </Button>
-          )}
-
-          <div className="flex-1">
-            <Button
-              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
-              onClick={() => onBuyAlert(alert)}
-              disabled={isLoading || Boolean(alert?.is_demo)}
-            >
-              {isLoading ? 'Procesando...' : 'WaitMe!'}
-            </Button>
-          </div>
+        <div className="flex-1">
+          <Button
+            className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
+            onClick={() => onBuyAlert(alert)}
+            disabled={isLoading || Boolean(alert?.is_demo) || alert?.status !== 'active'}
+          >
+            {isLoading ? 'Procesando...' : 'WaitMe!'}
+          </Button>
         </div>
       </div>
     </div>
