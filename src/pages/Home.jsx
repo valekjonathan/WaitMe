@@ -123,11 +123,6 @@ export default function Home() {
   const initialMode = urlParams.get('mode');
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
-
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
