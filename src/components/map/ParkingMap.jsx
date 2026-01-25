@@ -206,7 +206,7 @@ export default function ParkingMap({
         {safeAlerts.map((alert) => (
           <Marker
             key={alert.id}
-            position={[Number(alert.latitude), Number(alert.longitude)]}
+            position={[alert.latitude, alert.longitude]}
             icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
             eventHandlers={{
               click: () => {
