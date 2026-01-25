@@ -1,8 +1,8 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X, SlidersHorizontal, Euro, Clock, Route } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { X, SlidersHorizontal, MapPin, Clock, Euro } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
   return (
@@ -17,7 +17,12 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
           <SlidersHorizontal className="w-5 h-5 text-purple-400" />
           <h3 className="font-bold text-white">Filtros:</h3>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="text-gray-400 hover:text-white h-8 w-8"
+        >
           <X className="w-5 h-5" />
         </Button>
       </div>
@@ -26,10 +31,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Precio máximo */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <span className="inline-flex items-center gap-2">
-              <Euro className="w-4 h-4 text-purple-400" />
-              Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
-            </span>
+            <Euro className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
           </label>
           <Slider
             value={[filters.maxPrice]}
@@ -37,58 +39,49 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             max={30}
             min={1}
             step={1}
-            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
           />
         </div>
 
-        {/* Disponibilidad */}
+        {/* Disponible en */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <span className="inline-flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-400" />
-              Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
-            </span>
+            <Clock className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Disponible en: <span className="text-purple-400 font-bold">{filters.maxMinutes} min</span>
           </label>
           <Slider
             value={[filters.maxMinutes]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxMinutes: value })}
-            max={60}
-            min={5}
-            step={5}
-            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            max={30}
+            min={1}
+            step={1}
+            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Distancia máxima */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <span className="inline-flex items-center gap-2">
-              <Route className="w-4 h-4 text-purple-400" />
-              Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
-            </span>
+            <MapPin className="w-4 h-4 inline-block align-middle mr-1 text-purple-400" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
           </label>
           <Slider
             value={[filters.maxDistance]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxDistance: value })}
             max={5}
-            min={0.5}
-            step={0.5}
-            className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            min={0.1}
+            step={0.1}
+            className="w-full [&[data-orientation=horizontal]]:bg-gray-700 [&[data-orientation=horizontal]>*]:bg-purple-500 [&[role=slider]]:border-purple-400 [&[role=slider]]:bg-purple-500"
           />
         </div>
 
         {/* Resultados */}
-        <div className="pt-3 border-t border-gray-700">
-          <p className="text-center text-sm text-gray-400">
-            <span className="text-purple-400 font-bold">{alertsCount}</span> plazas encontradas
-          </p>
-        </div>
+        <p className="text-center text-sm text-gray-400">
+          {alertsCount} {alertsCount === 1 ? 'plaza' : 'plazas'} encontrada{alertsCount === 1 ? '' : 's'}
+        </p>
 
-        {/* Reset */}
         <Button
-          onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
           variant="outline"
-          className="w-full border-gray-700 text-gray-900 hover:bg-gray-800 hover:text-white bg-white"
+          className="w-full border border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white bg-transparent"
+          onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
         >
           Restablecer filtros
         </Button>
