@@ -81,19 +81,6 @@ function buildDemoAlerts(centerLat, centerLng) {
       id: 'demo_5',
       user_name: 'Lucía',
       user_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
-      car_brand: 'Peugeot',
-      car_model: '208',
-      car_color: 'rojo',
-      car_plate: '7788 MNB',
-      vehicle_type: 'car',
-      price: 2,
-      available_in_minutes: 3,
-      address: 'Calle Rosal, Oviedo'
-    },
-    {
-      id: 'demo_6',
-      user_name: 'Álvaro',
-      user_photo: 'https://randomuser.me/api/portraits/men/61.jpg',
       car_brand: 'Kia',
       car_model: 'Sportage',
       car_color: 'verde',
@@ -102,6 +89,19 @@ function buildDemoAlerts(centerLat, centerLng) {
       price: 6,
       available_in_minutes: 18,
       address: 'Calle Jovellanos, Oviedo'
+    },
+    {
+      id: 'demo_6',
+      user_name: 'Álvaro',
+      user_photo: 'https://randomuser.me/api/portraits/men/14.jpg',
+      car_brand: 'Porsche',
+      car_model: 'Macan',
+      car_color: 'rojo',
+      car_plate: '2026 VSR',
+      vehicle_type: 'car',
+      price: 9,
+      available_in_minutes: 25,
+      address: 'Calle Fray Ceferino, 10'
     }
   ];
 
@@ -118,6 +118,64 @@ function buildDemoAlerts(centerLat, centerLng) {
   });
 }
 
+function toNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeAlert(a) {
+  if (!a) return null;
+
+  const lat = toNumber(
+    a.latitude ??
+      a.lat ??
+      a.user_location?.lat ??
+      a.user_location?.latitude ??
+      a.location?.lat ??
+      a.location?.latitude
+  );
+
+  const lng = toNumber(
+    a.longitude ??
+      a.lng ??
+      a.user_location?.lng ??
+      a.user_location?.lon ??
+      a.user_location?.longitude ??
+      a.location?.lng ??
+      a.location?.lon ??
+      a.location?.longitude
+  );
+
+  if (lat == null || lng == null) return null;
+
+  return {
+    id: String(a.id ?? `${lat}_${lng}`),
+    status: a.status ?? a.state ?? 'active',
+
+    user_name: a.user_name ?? a.userName ?? 'Usuario',
+    user_photo: a.user_photo ?? a.userPhoto ?? null,
+    user_email: a.user_email ?? a.userEmail ?? a.created_by ?? '',
+
+    car_brand: a.car_brand ?? a.carBrand ?? '',
+    car_model: a.car_model ?? a.carModel ?? '',
+    car_color: a.car_color ?? a.carColor ?? '',
+    car_plate: a.car_plate ?? a.carPlate ?? '',
+    vehicle_type: a.vehicle_type ?? a.vehicleType ?? 'car',
+
+    price: Number(a.price ?? 0),
+    available_in_minutes: Number(a.available_in_minutes ?? a.availableInMinutes ?? 0),
+
+    address: a.address ?? a.street ?? a.road ?? '',
+    latitude: lat,
+    longitude: lng,
+
+    allow_phone_calls: !!(a.allow_phone_calls ?? a.allowPhoneCalls),
+    phone: a.phone ?? null,
+
+    created_date: a.created_date ?? a.created_at ?? a.createdAt ?? null
+  };
+}
+
 export default function Home() {
   const urlParams = new URLSearchParams(window.location.search);
   const initialMode = urlParams.get('mode');
@@ -128,27 +186,25 @@ export default function Home() {
   const [address, setAddress] = useState('');
   const [userLocation, setUserLocation] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
-  const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
+
+  const [filters, setFilters] = useState({
+    maxPrice: 7,
+    maxMinutes: 25,
+    maxDistance: 1
+  });
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch {
-        // no auth
-      }
-    };
-    fetchUser();
-  }, []);
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me()
+  });
 
   const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['unreadMessages', user?.email],
+    queryKey: ['unreadCount', user?.email],
     queryFn: async () => {
+      if (!user?.email) return 0;
       const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
       return messages.length;
     },
@@ -201,32 +257,23 @@ export default function Home() {
 
   useEffect(() => {
     getCurrentLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const homeMapAlerts = useMemo(() => {
-    const center = userLocation || [43.3619, -5.8494];
-    return buildDemoAlerts(center[0], center[1]);
-  }, [userLocation]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
+    const normalized = list.map(normalizeAlert).filter(Boolean);
+
     const [uLat, uLng] = Array.isArray(userLocation) ? userLocation : [null, null];
 
-    return list.filter((a) => {
-      if (!a) return false;
-
+    return normalized.filter((a) => {
       const price = Number(a.price);
       if (Number.isFinite(price) && price > filters.maxPrice) return false;
 
-      const mins = Number(a.available_in_minutes ?? a.availableInMinutes);
+      const mins = Number(a.available_in_minutes);
       if (Number.isFinite(mins) && mins > filters.maxMinutes) return false;
 
-      const lat = a.latitude ?? a.lat;
-      const lng = a.longitude ?? a.lng;
-
-      if (uLat != null && uLng != null && lat != null && lng != null) {
-        const km = calculateDistance(uLat, uLng, lat, lng);
+      if (uLat != null && uLng != null) {
+        const km = calculateDistance(uLat, uLng, a.latitude, a.longitude);
         if (Number.isFinite(km) && km > filters.maxDistance) return false;
       }
       return true;
@@ -249,23 +296,27 @@ export default function Home() {
         ...data,
         status: 'active',
         user_email: currentUser?.email || currentUser?.id || '',
-        created_by: currentUser?.email || currentUser?.id || ''
+        user_name: currentUser?.name || currentUser?.email || 'Usuario',
+        user_photo: currentUser?.photo || null,
+        created_date: new Date().toISOString()
       };
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
-      setMode(null);
+      setMode('search');
     }
   });
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       const currentUser = await base44.auth.me();
-      const tx = await base44.entities.Transaction.create({
+      if (!alert?.id) throw new Error('Alert inválida');
+
+      await base44.entities.Transaction.create({
         alert_id: alert.id,
         buyer_id: currentUser?.email || currentUser?.id || '',
-        seller_id: alert.user_email || alert.created_by || '',
+        seller_id: alert.user_email || '',
         amount: Number(alert.price) || 0,
         status: 'pending'
       });
@@ -273,163 +324,108 @@ export default function Home() {
       await base44.entities.ChatMessage.create({
         alert_id: alert.id,
         sender_id: currentUser?.email || currentUser?.id || '',
-        receiver_id: alert.user_email || alert.created_by || '',
+        receiver_id: alert.user_email || '',
         message: `Solicitud de reserva enviada (${Number(alert.price || 0).toFixed(2)}€).`,
         read: false
       });
 
-      return tx;
+      return true;
     },
     onSuccess: () => {
       setConfirmDialog({ open: false, alert: null });
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
-    },
-    onError: () => {
-      setConfirmDialog({ open: false, alert: null });
-      setSelectedAlert(null);
     }
   });
 
   const handleBuyAlert = (alert) => {
-    if (alert?.is_demo) return;
     setConfirmDialog({ open: true, alert });
   };
 
-  const handleChat = (alert) => {
-    if (alert?.is_demo) return;
-    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
+  const handleChat = async (alert) => {
+    const currentUser = await base44.auth.me();
+    const email = currentUser?.email || currentUser?.id || '';
+    if (!email || !alert?.user_email) return;
+    window.location.href = createPageUrl('Chats') + `?alertId=${encodeURIComponent(alert.id)}`;
   };
 
   const handleCall = (alert) => {
-    if (alert?.is_demo) return;
-    if (alert.phone) window.location.href = `tel:${alert.phone}`;
+    if (!alert?.phone) return;
+    window.location.href = `tel:${alert.phone}`;
   };
 
+  const showRoute = !!selectedAlert && Array.isArray(userLocation);
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      <NotificationManager user={user} />
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <Header title="WaitMe!" />
 
-      <Header
-        title="WaitMe!"
-        unreadCount={unreadCount}
-        showBackButton={!!mode}
-        onBack={() => {
-          setMode(null);
-          setSelectedAlert(null);
-        }}
-      />
-
-      <main className="fixed inset-0">
-        <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
-          {!mode && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
-                <ParkingMap
-                  alerts={homeMapAlerts}
-                  userLocation={userLocation}
-                  className="absolute inset-0 w-full h-full"
-                  zoomControl={false}
-                />
+      <div className="flex-1 min-h-0">
+        {/* HOME INICIAL */}
+        {!mode && (
+          <div className="h-full flex flex-col items-center justify-center px-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl bg-black/50 border border-purple-500/40 flex items-center justify-center shadow-xl">
+                <div className="text-purple-400 font-extrabold text-2xl">W</div>
               </div>
-
-              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
-
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
-                  alt="WaitMe!"
-                  className="w-48 h-48 mb-0 object-contain"
-                />
-                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
-                </h1>
+              <div className="text-center">
+                <div className="text-3xl font-black">WaitMe!</div>
+                <div className="text-purple-300/90 font-semibold mt-1">Aparca donde te avisen!</div>
               </div>
+            </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
-                <Button
-                  onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
-                >
-                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  ¿ Dónde quieres aparcar ?
-                </Button>
+            <div className="w-full max-w-sm mt-8 flex flex-col gap-4">
+              <Button
+                className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                onClick={() => setMode('search')}
+              >
+                <MapPin className="w-5 h-5 mr-2" />
+                ¿Dónde quieres aparcar?
+              </Button>
 
+              <Button
+                className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold"
+                onClick={() => setMode('create')}
+              >
+                <Car className="w-5 h-5 mr-2" />
+                ¡Estoy aparcado aquí!
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* MODO BUSCAR */}
+        {mode === 'search' && (
+          <div className="h-full flex flex-col">
+            <div className="px-4 pt-3">
+              <div className="flex items-center gap-2">
                 <Button
-                  onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  variant="outline"
+                  className="border-purple-500/40 text-white bg-black/50 hover:bg-black/70"
+                  onClick={() => setShowFilters(true)}
                 >
-                  <Car className="w-14 h-14" strokeWidth={2.5} />
-                  ¡ Estoy aparcado aquí !
+                  <SlidersHorizontal className="w-4 h-4 mr-2" />
+                  Filtros
                 </Button>
               </div>
-            </motion.div>
-          )}
+            </div>
 
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
-          {mode === 'search' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
-            >
-              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
-                <ParkingMap
-                  alerts={searchAlerts}
-                  onAlertClick={setSelectedAlert}
-                  userLocation={userLocation}
-                  selectedAlert={selectedAlert}
-                  showRoute={!!selectedAlert}
-                  zoomControl={true}
-                  className="h-full"
-                />
-
-                {!showFilters && (
-                  <Button
-                    onClick={() => setShowFilters(true)}
-                    className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                    size="icon"
-                  >
-                    <SlidersHorizontal className="w-5 h-5" />
-                  </Button>
-                )}
-
-                <AnimatePresence>
-                  {showFilters && (
-                    <MapFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      onClose={() => setShowFilters(false)}
-                      alertsCount={searchAlerts.length}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="px-4 py-2 flex-shrink-0">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Buscar dirección..."
-                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            {/* Mapa + card (sin romper al click) */}
+            <div className="flex-1 min-h-0 px-4 pt-3 pb-3">
+              <div className="h-full flex flex-col gap-3">
+                <div className="rounded-2xl overflow-hidden border border-purple-500/30 bg-black/40 h-[45%] min-h-[220px]">
+                  <ParkingMap
+                    alerts={searchAlerts}
+                    onAlertClick={(a) => {
+                      const safe = normalizeAlert(a);
+                      if (safe) setSelectedAlert(safe);
+                    }}
+                    userLocation={userLocation}
+                    selectedAlert={selectedAlert}
+                    showRoute={showRoute}
+                    zoomControl={true}
                   />
                 </div>
-              </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
-              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
-                <div className="w-full h-full">
+                <div className="flex-1 min-h-0 overflow-hidden">
                   <UserAlertCard
                     alert={selectedAlert}
                     isEmpty={!selectedAlert}
@@ -441,98 +437,61 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </motion.div>
-          )}
+            </div>
 
-          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
-          {mode === 'create' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
-            >
-              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
-                <ParkingMap
-                  isSelecting={true}
-                  selectedPosition={selectedPosition}
-                  setSelectedPosition={(pos) => {
-                    setSelectedPosition(pos);
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (data?.address) {
-                          const road = data.address.road || data.address.street || '';
-                          const number = data.address.house_number || '';
-                          setAddress(number ? `${road}, ${number}` : road);
-                        }
-                      })
-                      .catch(() => {});
-                  }}
-                  userLocation={userLocation}
-                  zoomControl={true}
-                  className="h-full"
+            <AnimatePresence>
+              {showFilters && (
+                <MapFilters
+                  filters={filters}
+                  alertsCount={searchAlerts.length}
+                  onFilterChange={(f) => setFilters(f)}
+                  onClose={() => setShowFilters(false)}
                 />
-              </div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
-              <h3 className="text-white font-semibold text-center py-2 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
-              </h3>
+        {/* MODO CREAR */}
+        {mode === 'create' && (
+          <div className="h-full flex flex-col px-4 pt-3 pb-3">
+            <CreateAlertCard
+              address={address}
+              setAddress={setAddress}
+              userLocation={userLocation}
+              selectedPosition={selectedPosition}
+              setSelectedPosition={setSelectedPosition}
+              onCreate={(data) => createAlertMutation.mutate(data)}
+              isLoading={createAlertMutation.isPending}
+            />
+          </div>
+        )}
+      </div>
 
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
-                <div className="w-full">
-                  <CreateAlertCard
-                    address={address}
-                    onAddressChange={setAddress}
-                    onUseCurrentLocation={getCurrentLocation}
-                    onCreateAlert={(data) => createAlertMutation.mutate(data)}
-                    isLoading={createAlertMutation.isPending}
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      <BottomNav />
+      <BottomNav unreadCount={unreadCount} />
+      <NotificationManager />
 
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+        <DialogContent className="bg-black text-white border border-purple-500/30">
           <DialogHeader>
-            <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Vas a enviar una solicitud de reserva por{' '}
-              <span className="text-purple-400 font-bold">{confirmDialog.alert?.price}€</span> a{' '}
-              <span className="text-white font-medium">{confirmDialog.alert?.user_name}</span>
+            <DialogTitle>Confirmar reserva</DialogTitle>
+            <DialogDescription className="text-gray-300">
+              ¿Quieres reservar esta plaza por {Number(confirmDialog.alert?.price || 0).toFixed(2)}€?
             </DialogDescription>
           </DialogHeader>
-
-          <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
-            <p className="text-sm text-gray-400">
-              <span className="text-white">
-                {confirmDialog.alert?.car_brand} {confirmDialog.alert?.car_model}
-              </span>
-            </p>
-            <p className="text-sm text-gray-400">
-              Matrícula: <span className="text-white font-mono">{confirmDialog.alert?.car_plate}</span>
-            </p>
-            <p className="text-sm text-gray-400">
-              Se va en: <span className="text-purple-400">{confirmDialog.alert?.available_in_minutes} min</span>
-            </p>
-          </div>
-
-          <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => setConfirmDialog({ open: false, alert: null })} className="flex-1 border-gray-700">
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="border-gray-700 text-white"
+              onClick={() => setConfirmDialog({ open: false, alert: null })}
+            >
               Cancelar
             </Button>
             <Button
+              className="bg-purple-600 hover:bg-purple-700"
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending || confirmDialog.alert?.is_demo}
             >
-              {confirmDialog.alert?.is_demo ? 'Solo demo' : (buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud')}
+              Confirmar
             </Button>
           </DialogFooter>
         </DialogContent>
