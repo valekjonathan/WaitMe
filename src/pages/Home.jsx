@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -105,6 +106,7 @@ function buildDemoAlerts(centerLat, centerLng) {
     }
   ];
 
+  const now = Date.now();
   return base.map((a, i) => {
     const [dLat, dLng] = offsets[i] || [0, 0];
     return {
@@ -113,31 +115,37 @@ function buildDemoAlerts(centerLat, centerLng) {
       longitude: centerLng + dLng,
       allow_phone_calls: false,
       phone: null,
-      is_demo: true
+      is_demo: true,
+      created_date: now,
+      wait_until: now + Number(a.available_in_minutes || 10) * 60000
     };
   });
 }
 
 export default function Home() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const initialMode = urlParams.get('mode');
-  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
+  const initialMode = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('mode');
+  }, [location.search]);
+
+  const [mode, setMode] = useState(() => initialMode || null); // null, 'search', 'create'
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
+  }, [location.search]);
 
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
-  const [userLocation, setUserLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null); // { latitude, longitude }
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
   const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
-
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -185,7 +193,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
+        setUserLocation({ latitude, longitude });
         setSelectedPosition({ lat: latitude, lng: longitude });
 
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
@@ -210,13 +218,15 @@ export default function Home() {
   }, []);
 
   const homeMapAlerts = useMemo(() => {
-    const center = userLocation || [43.3619, -5.8494];
-    return buildDemoAlerts(center[0], center[1]);
+    const centerLat = Number(userLocation?.latitude) || 43.3619;
+    const centerLng = Number(userLocation?.longitude) || -5.8494;
+    return buildDemoAlerts(centerLat, centerLng);
   }, [userLocation]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
-    const [uLat, uLng] = Array.isArray(userLocation) ? userLocation : [null, null];
+    const uLat = Number(userLocation?.latitude);
+    const uLng = Number(userLocation?.longitude);
 
     return list.filter((a) => {
       if (!a) return false;
@@ -227,10 +237,12 @@ export default function Home() {
       const mins = Number(a.available_in_minutes ?? a.availableInMinutes);
       if (Number.isFinite(mins) && mins > filters.maxMinutes) return false;
 
-      const lat = a.latitude ?? a.lat;
-      const lng = a.longitude ?? a.lng;
+      const latRaw = a.latitude ?? a.lat;
+      const lngRaw = a.longitude ?? a.lng;
+      const lat = Number(latRaw);
+      const lng = Number(lngRaw);
 
-      if (uLat != null && uLng != null && lat != null && lng != null) {
+      if (Number.isFinite(uLat) && Number.isFinite(uLng) && Number.isFinite(lat) && Number.isFinite(lng)) {
         const km = calculateDistance(uLat, uLng, lat, lng);
         if (Number.isFinite(km) && km > filters.maxDistance) return false;
       }
@@ -243,8 +255,9 @@ export default function Home() {
     const real = filteredAlerts || [];
     if (real.length > 0) return real;
 
-    const center = userLocation || [43.3619, -5.8494];
-    return buildDemoAlerts(center[0], center[1]);
+    const centerLat = Number(userLocation?.latitude) || 43.3619;
+    const centerLng = Number(userLocation?.longitude) || -5.8494;
+    return buildDemoAlerts(centerLat, centerLng);
   }, [mode, filteredAlerts, userLocation]);
 
   const createAlertMutation = useMutation({
@@ -326,7 +339,7 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
+          {/* HOME PRINCIPAL (logo + botones) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -379,7 +392,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
+          {/* DÓNDE QUIERES APARCAR (SIN SCROLL + arreglado click coche) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -391,7 +404,7 @@ export default function Home() {
               <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
-                  onAlertClick={setSelectedAlert}
+                  onAlertClick={(a) => setSelectedAlert(a)}
                   userLocation={userLocation}
                   selectedAlert={selectedAlert}
                   showRoute={!!selectedAlert}
@@ -432,8 +445,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
-              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
+              {/* SIN SCROLL */}
+              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-stretch">
                 <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
@@ -485,7 +498,7 @@ export default function Home() {
                 ¿ Dónde estas aparcado ?
               </h3>
 
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-stretch">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
