@@ -120,11 +120,11 @@ export default function ParkingMap({
   }, [userLocation]);
 
   const safeAlerts = useMemo(() => {
-    return (alerts || []).filter((a) => {
+    return (alerts || []).map((a) => {
       const lat = safeNum(a?.latitude);
       const lng = safeNum(a?.longitude);
-      return a && lat != null && lng != null;
-    });
+      return lat != null && lng != null ? { ...a, latitude: lat, longitude: lng } : null;
+    }).filter(Boolean);
   }, [alerts]);
 
   // Ruta (si hay selectedAlert + userLocation)
