@@ -120,11 +120,11 @@ export default function ParkingMap({
   }, [userLocation]);
 
   const safeAlerts = useMemo(() => {
-    return (alerts || []).map((a) => {
+    return (alerts || []).filter((a) => {
       const lat = safeNum(a?.latitude);
       const lng = safeNum(a?.longitude);
-      return lat != null && lng != null ? { ...a, latitude: lat, longitude: lng } : null;
-    }).filter(Boolean);
+      return a && lat != null && lng != null;
+    });
   }, [alerts]);
 
   // Ruta (si hay selectedAlert + userLocation)
@@ -193,7 +193,7 @@ export default function ParkingMap({
         ) : null}
 
         {isSelecting && selectedPosition?.lat != null && selectedPosition?.lng != null ? (
-          <Marker position={[selectedPosition.lat, selectedPosition.lng]} icon={createUserLocationIcon()} />
+          <Marker position={selectedPosition} icon={createUserLocationIcon()} />
         ) : null}
 
         {route ? (
@@ -206,7 +206,7 @@ export default function ParkingMap({
         {safeAlerts.map((alert) => (
           <Marker
             key={alert.id}
-            position={[alert.latitude, alert.longitude]}
+            position={[Number(alert.latitude), Number(alert.longitude)]}
             icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
             eventHandlers={{
               click: () => {
