@@ -1,3 +1,6 @@
+// ================================
+// FILE: src/components/cards/UserAlertCard.jsx
+// ================================
 import React, { useMemo } from 'react';
 import { MapPin, Clock, Navigation, MessageCircle, Phone, PhoneOff } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,6 +17,24 @@ export default function UserAlertCard({
   isEmpty = false,
   userLocation
 }) {
+  // Normaliza userLocation para evitar errores cuando llega como array u objeto
+  // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
+  const normalizedUserLocation = useMemo(() => {
+    if (!userLocation) return null;
+
+    if (Array.isArray(userLocation) && userLocation.length === 2) {
+      const lat = Number(userLocation[0]);
+      const lng = Number(userLocation[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { latitude: lat, longitude: lng };
+      return null;
+    }
+
+    const lat = Number(userLocation.latitude ?? userLocation.lat);
+    const lng = Number(userLocation.longitude ?? userLocation.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { latitude: lat, longitude: lng };
+    return null;
+  }, [userLocation]);
+
   // ===== Helpers (mismo look que la tarjeta de “Sofía” en Tus reservas) =====
   const toMs = (v) => {
     if (v == null) return null;
@@ -31,16 +52,22 @@ export default function UserAlertCard({
   };
 
   const calculateDistanceLabel = (lat, lng) => {
-    if (!lat || !lng || !userLocation) return null;
+    const nLat = Number(lat);
+    const nLng = Number(lng);
+    if (!Number.isFinite(nLat) || !Number.isFinite(nLng) || !normalizedUserLocation) return null;
+
     const R = 6371e3;
-    const φ1 = userLocation.latitude * (Math.PI / 180);
-    const φ2 = lat * (Math.PI / 180);
-    const Δφ = (lat - userLocation.latitude) * (Math.PI / 180);
-    const Δλ = (lng - userLocation.longitude) * (Math.PI / 180);
+    const φ1 = normalizedUserLocation.latitude * (Math.PI / 180);
+    const φ2 = nLat * (Math.PI / 180);
+    const Δφ = (nLat - normalizedUserLocation.latitude) * (Math.PI / 180);
+    const Δλ = (nLng - normalizedUserLocation.longitude) * (Math.PI / 180);
+
     const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const meters = R * c;
     const distanceKm = meters / 1000;
+
+    if (!Number.isFinite(distanceKm)) return null;
     return { value: distanceKm.toFixed(1), unit: 'km' };
   };
 
@@ -49,7 +76,11 @@ export default function UserAlertCard({
   const waitUntilTs = alert?.wait_until ? toMs(alert.wait_until) : null;
   const waitUntilLabel = useMemo(() => {
     if (!waitUntilTs) return '--:--';
-    return format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+    try {
+      return format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+    } catch {
+      return '--:--';
+    }
   }, [waitUntilTs]);
 
   const priceText = useMemo(() => {
@@ -73,7 +104,6 @@ export default function UserAlertCard({
 
   const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
 
-  // Componentes internos para licencia y header
   const PlateProfile = ({ plate }) => (
     <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8 w-24">
       <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
@@ -95,14 +125,15 @@ export default function UserAlertCard({
 
   const distanceLabel = useMemo(
     () => calculateDistanceLabel(alert?.latitude, alert?.longitude),
-    [alert?.latitude, alert?.longitude, userLocation]
+    [alert?.latitude, alert?.longitude, normalizedUserLocation]
   );
 
   const dateText = useMemo(() => {
     if (!alert?.created_date) return '';
     try {
-      const d = new Date(toMs(alert.created_date));
-      // Formato: "23 Enero - 16:22"
+      const ms = toMs(alert.created_date);
+      if (!ms) return '';
+      const d = new Date(ms);
       const datePart = format(d, "d MMMM", { locale: es });
       const timePart = format(d, "HH:mm", { locale: es });
       return `${datePart.charAt(0).toUpperCase() + datePart.slice(1)} - ${timePart}`;
@@ -113,7 +144,6 @@ export default function UserAlertCard({
 
   return (
     <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
-      {/* Header: Info usuario + Fecha + Distancia + Precio */}
       <CardHeaderRow
         left={
           <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-4 flex items-center justify-center text-center cursor-default select-none pointer-events-none">
@@ -138,7 +168,6 @@ export default function UserAlertCard({
 
       <div className="border-t border-gray-700/80 mb-2" />
 
-      {/* Contenido (idéntico al look de “Sofía”, pero con WaitMe abajo) */}
       <div className="flex gap-2.5">
         <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
           {alert?.user_photo ? (
@@ -191,7 +220,6 @@ export default function UserAlertCard({
         </div>
       </div>
 
-      {/* Footer: Chat + Llamar + WaitMe (en vez de contador) */}
       <div className="mt-2">
         <div className="flex gap-2">
           <Button
@@ -238,7 +266,6 @@ export default function UserAlertCard({
   );
 }
 
-// Funciones auxiliares para obtener color de vehículo (icono) – pueden estar definidas en otro módulo utilitario
 const carColors = {
   blanco: '#FFFFFF',
   negro: '#1a1a1a',
@@ -249,7 +276,6 @@ const carColors = {
 };
 const getCarFill = (colorName) => carColors[colorName] || '#CCCCCC';
 
-// Componente de icono de vehículo (coche/furgoneta) con color
 const CarIconProfile = ({ color, size = 'w-8 h-5' }) => (
   <svg viewBox="0 0 48 24" className={size} fill="none">
     <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill={color} stroke="white" strokeWidth="1.5" />
@@ -259,3 +285,134 @@ const CarIconProfile = ({ color, size = 'w-8 h-5' }) => (
     <rect x="40" y="18" width="6" height="2" fill="white" />
   </svg>
 );
+
+
+// ================================
+// FILE: src/lib/ErrorBoundary.jsx
+// ================================
+import React from 'react';
+
+export default class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('ErrorBoundary atrapó un error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+          <div className="max-w-sm w-full bg-gray-900/80 border border-purple-500/40 rounded-2xl p-5 text-center">
+            <p className="text-lg font-semibold">Se ha producido un error</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Prueba a recargar. Si vuelve a pasar, dime qué hiciste justo antes.
+            </p>
+            <button
+              className="mt-4 w-full h-10 rounded-xl bg-purple-600 hover:bg-purple-700 font-semibold"
+              onClick={() => window.location.reload()}
+            >
+              Recargar
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+
+// ================================
+// FILE: src/App.jsx
+// ================================
+import './App.css'
+import { Toaster } from "@/components/ui/toaster"
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClientInstance } from '@/lib/query-client'
+import VisualEditAgent from '@/lib/VisualEditAgent'
+import NavigationTracker from '@/lib/NavigationTracker'
+import { pagesConfig } from './pages.config'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import ErrorBoundary from '@/lib/ErrorBoundary';
+
+const { Pages, Layout, mainPage } = pagesConfig;
+const mainPageKey = mainPage ?? Object.keys(Pages)[0];
+const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+const LayoutWrapper = ({ children, currentPageName }) => Layout ?
+  <Layout currentPageName={currentPageName}>{children}</Layout>
+  : <>{children}</>;
+
+const AuthenticatedApp = () => {
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (authError) {
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
+    } else if (authError.type === 'auth_required') {
+      navigateToLogin();
+      return null;
+    }
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={
+        <LayoutWrapper currentPageName={mainPageKey}>
+          <MainPage />
+        </LayoutWrapper>
+      } />
+      {Object.entries(Pages).map(([path, Page]) => (
+        <Route
+          key={path}
+          path={`/${path}`}
+          element={
+            <LayoutWrapper currentPageName={path}>
+              <Page />
+            </LayoutWrapper>
+          }
+        />
+      ))}
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <ErrorBoundary>
+          <Router>
+            <NavigationTracker />
+            <AuthenticatedApp />
+          </Router>
+        </ErrorBoundary>
+        <Toaster />
+        <VisualEditAgent />
+      </QueryClientProvider>
+    </AuthProvider>
+  )
+}
+
+export default App
