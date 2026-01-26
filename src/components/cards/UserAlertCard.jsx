@@ -91,17 +91,6 @@ export default function UserAlertCard({
 
   const phoneEnabled = Boolean(alert?.phone && alert?.allow_phone_calls !== false);
 
-  if (isEmpty || !alert) {
-    return (
-      <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl px-4 py-4 border-2 border-purple-500/50 h-full flex items-center justify-center">
-        <div className="text-center text-gray-500">
-          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2.5} />
-          <p className="text-xs">Toca un coche en el mapa para ver sus datos</p>
-        </div>
-      </div>
-    );
-  }
-
   const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
 
   const PlateProfile = ({ plate }) => (
@@ -141,6 +130,17 @@ export default function UserAlertCard({
       return '';
     }
   }, [alert?.created_date]);
+
+  if (isEmpty || !alert) {
+    return (
+      <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl px-4 py-4 border-2 border-purple-500/50 h-full flex items-center justify-center">
+        <div className="text-center text-gray-500">
+          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2.5} />
+          <p className="text-xs">Toca un coche en el mapa para ver sus datos</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
