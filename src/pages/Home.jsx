@@ -11,8 +11,8 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
 import BottomNav from '@/components/BottomNav';
-import NotificationManager from '@/components/NotificationManager';
 import Header from '@/components/Header';
+import { useAuth } from '@/lib/AuthContext';
 
 function buildDemoAlerts(centerLat, centerLng) {
   const offsets = [
@@ -123,48 +123,54 @@ export default function Home() {
   const initialMode = urlParams.get('mode');
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
+  // Obtener usuario autenticado del contexto (evitamos múltiples fetch)
+  const { user } = useAuth();
 
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
   const [userLocation, setUserLocation] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
-  const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
-
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch {
-        // no auth
-      }
+    // Obtener ubicación actual al montar
+    const getCurrentLocation = () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          setSelectedPosition({ lat: latitude, lng: longitude });
+
+          // Obtener dirección aproximada a partir de coordenadas
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data?.address) {
+                const road = data.address.road || data.address.street || '';
+                const number = data.address.house_number || '';
+                setAddress(number ? `${road}, ${number}` : road);
+              }
+            })
+            .catch(() => {});
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
     };
-    fetchUser();
+    getCurrentLocation();
   }, []);
 
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['unreadMessages', user?.email],
-    queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
-      return messages.length;
-    },
-    enabled: !!user?.email,
-    refetchInterval: 5000
-  });
+  // Query para contar mensajes no leídos (se elimina el polling constante; NotificationManager maneja notificaciones)
+  // const { data: unreadCount = 0 } = useQuery({ ... });
 
+  // Obtener alertas de aparcamiento activas (solo en modo 'search'; sin refetchInterval continuo)
   const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    refetchInterval: mode === 'search' ? 5000 : false,
     enabled: mode === 'search'
   });
 
@@ -179,35 +185,6 @@ export default function Home() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
-
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
-        setSelectedPosition({ lat: latitude, lng: longitude });
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.address) {
-              const road = data.address.road || data.address.street || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          })
-          .catch(() => {});
-      },
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
-
-  useEffect(() => {
-    getCurrentLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
@@ -242,7 +219,6 @@ export default function Home() {
     if (mode !== 'search') return [];
     const real = filteredAlerts || [];
     if (real.length > 0) return real;
-
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
   }, [mode, filteredAlerts, userLocation]);
@@ -258,9 +234,14 @@ export default function Home() {
       };
       return base44.entities.ParkingAlert.create(payload);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+    onSuccess: (newAlert) => {
+      // Invalidate queries para refrescar conteo de alertas activas y listas
+      queryClient.invalidateQueries({ queryKey: ['userActiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
+      // Volver a pantalla principal después de crear alerta
       setMode(null);
+      setSelectedPosition(null);
+      // *Podríamos agregar un toast de éxito aquí si se desea*
     }
   });
 
@@ -286,12 +267,9 @@ export default function Home() {
       return tx;
     },
     onSuccess: () => {
-      setConfirmDialog({ open: false, alert: null });
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
-    },
-    onError: () => {
       setConfirmDialog({ open: false, alert: null });
-      setSelectedAlert(null);
+      setMode(null);
     }
   });
 
@@ -302,21 +280,21 @@ export default function Home() {
 
   const handleChat = (alert) => {
     if (alert?.is_demo) return;
-    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
+    window.location.href = createPageUrl(`Chat?conversationId=${alert.id}`);
   };
 
   const handleCall = (alert) => {
     if (alert?.is_demo) return;
-    if (alert.phone) window.location.href = `tel:${alert.phone}`;
+    // Llamar solo si permitido y no es el propio usuario
+    if (alert.phone && alert.user_email !== user?.email) {
+      window.location.href = `tel:${alert.phone}`;
+    }
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <NotificationManager user={user} />
-
       <Header
         title="WaitMe!"
-        unreadCount={unreadCount}
         showBackButton={!!mode}
         onBack={() => {
           setMode(null);
@@ -326,7 +304,7 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
+          {/* HOME PRINCIPAL (logo + botones) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -352,7 +330,7 @@ export default function Home() {
                   className="w-48 h-48 mb-0 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                  Aparca donde te <span className="text-purple-500">avisen</span><span className="text-purple-500">!</span>
                 </h1>
               </div>
 
@@ -365,7 +343,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  ¿ Dónde quieres aparcar ?
+                  ¿Dónde quieres aparcar?
                 </Button>
 
                 <Button
@@ -373,13 +351,13 @@ export default function Home() {
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   <Car className="w-14 h-14" strokeWidth={2.5} />
-                  ¡ Estoy aparcado aquí !
+                  ¡Estoy aparcado aquí!
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
+          {/* DÓNDE QUIERES APARCAR (modo búsqueda, sin scroll) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -432,7 +410,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
+              {/* Tarjeta de detalle del coche seleccionado (sin scroll, ocupa el resto) */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -449,7 +427,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
+          {/* ESTOY APARCADO AQUÍ (modo crear alerta, sin scroll) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -464,6 +442,7 @@ export default function Home() {
                   selectedPosition={selectedPosition}
                   setSelectedPosition={(pos) => {
                     setSelectedPosition(pos);
+                    // Actualizar dirección al seleccionar posición en el mapa
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
                       .then((res) => res.json())
                       .then((data) => {
@@ -482,7 +461,7 @@ export default function Home() {
               </div>
 
               <h3 className="text-white font-semibold text-center py-2 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
+                ¿Dónde estás aparcado?
               </h3>
 
               <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
@@ -490,7 +469,18 @@ export default function Home() {
                   <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
-                    onUseCurrentLocation={getCurrentLocation}
+                    onUseCurrentLocation={() => {
+                      // Reutilizamos getCurrentLocation para mover marcador al punto actual
+                      navigator.geolocation?.getCurrentPosition(
+                        ({ coords }) => {
+                          const { latitude, longitude } = coords;
+                          setSelectedPosition({ lat: latitude, lng: longitude });
+                          setUserLocation([latitude, longitude]);
+                        },
+                        () => {},
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                      );
+                    }}
                     onCreateAlert={(data) => createAlertMutation.mutate(data)}
                     isLoading={createAlertMutation.isPending}
                   />
@@ -502,7 +492,8 @@ export default function Home() {
       </main>
 
       <BottomNav />
-
+      
+      {/* Diálogo de confirmación de reserva */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
