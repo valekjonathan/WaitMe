@@ -1,61 +1,62 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 
-export default function NotificationManager({ user }) {
+export default function NotificationManager() {
+  const { user } = useAuth();
   const [permission, setPermission] = useState(Notification.permission);
   const [lastNotificationId, setLastNotificationId] = useState(null);
   const [lastMessageId, setLastMessageId] = useState(null);
 
-  // Solicitar permisos al cargar
+  // Solicitar permisos de notificación al cargar el componente
   useEffect(() => {
     if (permission === 'default') {
       Notification.requestPermission().then(setPermission);
     }
-  }, []);
+  }, [permission]);
 
-  // Monitorear notificaciones nuevas
+  // Monitorear notificaciones nuevas (sin leer)
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: () => base44.entities.Notification.filter({ 
       recipient_email: user?.email,
       read: false 
     }),
-    enabled: !!user?.email && permission === 'granted'
+    enabled: !!user?.email && permission === 'granted',
+    refetchInterval: 5000
   });
 
-  // Monitorear mensajes nuevos
+  // Monitorear mensajes nuevos (no leídos)
   const { data: messages = [] } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: () => base44.entities.ChatMessage.filter({ 
       receiver_id: user?.email,
       read: false 
     }),
-    enabled: !!user?.email && permission === 'granted'
+    enabled: !!user?.email && permission === 'granted',
+    refetchInterval: 5000
   });
 
-  // Notificar cuando hay nuevas notificaciones
+  // Notificar (push) cuando hay nuevas notificaciones en la base de datos
   useEffect(() => {
     if (notifications.length > 0 && permission === 'granted') {
       const latest = notifications[0];
       if (lastNotificationId !== latest.id) {
         setLastNotificationId(latest.id);
         
-        // Verificar preferencias del usuario
+        // Verificar preferencias del usuario antes de notificar
         if (user?.notifications_enabled === false) return;
-        
         const shouldNotify = 
           (latest.type === 'reservation_request' && user?.notify_reservations !== false) ||
           (latest.type === 'reservation_accepted' && user?.notify_reservations !== false) ||
           (latest.type === 'reservation_rejected' && user?.notify_reservations !== false) ||
           (latest.type === 'buyer_nearby' && user?.notify_proximity !== false) ||
           (latest.type === 'payment_completed' && user?.notify_payments !== false);
-        
         if (!shouldNotify) return;
         
         let title = 'WaitMe!';
         let body = '';
-        
         switch (latest.type) {
           case 'reservation_request':
             title = '🚗 Nueva solicitud de reserva';
@@ -78,7 +79,6 @@ export default function NotificationManager({ user }) {
             body = `Has recibido ${latest.amount}€`;
             break;
         }
-        
         new Notification(title, {
           body,
           icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png',
@@ -89,13 +89,12 @@ export default function NotificationManager({ user }) {
     }
   }, [notifications, permission, lastNotificationId, user]);
 
-  // Notificar cuando hay nuevos mensajes
+  // Notificar cuando hay nuevos mensajes sin leer
   useEffect(() => {
     if (messages.length > 0 && permission === 'granted') {
       const latest = messages[0];
       if (lastMessageId !== latest.id) {
         setLastMessageId(latest.id);
-        
         new Notification('💬 Nuevo mensaje', {
           body: `${latest.sender_name}: ${latest.message}`,
           icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png',
