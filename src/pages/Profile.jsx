@@ -11,187 +11,339 @@ import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import { useAuth } from '@/lib/AuthContext';
 
 const carColors = [
-  { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
-  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
-  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
-  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
-  { value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
-  { value: 'gris', label: 'Gris', fill: '#6b7280' }
-];
+{ value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
+{ value: 'negro', label: 'Negro', fill: '#1a1a1a' },
+{ value: 'rojo', label: 'Rojo', fill: '#ef4444' },
+{ value: 'azul', label: 'Azul', fill: '#3b82f6' },
+{ value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
+{ value: 'gris', label: 'Gris', fill: '#6b7280' }];
+
 
 export default function Profile() {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [initialValues, setInitialValues] = useState({});
   const navigate = useNavigate();
-
-  // Al montar o cuando el usuario esté disponible, inicializar formulario con sus datos
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    display_name: '',
+    car_brand: '',
+    car_model: '',
+    car_color: 'gris',
+    vehicle_type: 'car',
+    car_plate: '',
+    photo_url: '',
+    phone: '',
+    allow_phone_calls: false,
+    notifications_enabled: true,
+    email_notifications: true
+  });
   useEffect(() => {
-    if (user) {
-      setInitialValues({
-        display_name: user.display_name || user.full_name || '',
-        allow_phone_calls: user.allow_phone_calls ?? true,
-        car_brand: user.car_brand || '',
-        car_model: user.car_model || '',
-        car_plate: user.car_plate || '',
-        notifications_enabled: user.notifications_enabled ?? true,
-        notify_reservations: user.notify_reservations ?? true,
-        notify_proximity: user.notify_proximity ?? true,
-        notify_payments: user.notify_payments ?? true
-      });
-    }
-  }, [user]);
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        setFormData({
+          display_name: currentUser.display_name || currentUser.full_name?.split(' ')[0] || '',
+          car_brand: currentUser.car_brand || '',
+          car_model: currentUser.car_model || '',
+          car_color: currentUser.car_color || 'gris',
+          vehicle_type: currentUser.vehicle_type || 'car',
+          car_plate: currentUser.car_plate || '',
+          photo_url: currentUser.photo_url || '',
+          phone: currentUser.phone || '',
+          allow_phone_calls: currentUser.allow_phone_calls || false,
+          notifications_enabled: currentUser.notifications_enabled !== false,
+          email_notifications: currentUser.email_notifications !== false
+        });
+      } catch (error) {
+        console.log('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
-  const handleSave = async () => {
-    setLoading(true);
+  const autoSave = async (data) => {
     try {
-      // Lógica de guardado: actualizar perfil del usuario en la base de datos
-      // (Base44 podría requerir base44.auth.update o base44.entities.User.update)
-      // Por ejemplo:
-      // await base44.auth.update({...});
-      // Tras guardar, podríamos refrescar el contexto de usuario si es necesario.
-      alert('Perfil guardado correctamente (simulación)');
+      await base44.auth.updateMe(data);
     } catch (error) {
-      console.error('Error guardando perfil:', error);
-      alert('Hubo un error al guardar el perfil.');
-    } finally {
-      setLoading(false);
+      console.error('Error guardando:', error);
     }
   };
 
+  const updateField = (field, value) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    autoSave(newData);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        updateField('photo_url', file_url);
+      } catch (error) {
+        console.error('Error subiendo foto:', error);
+      }
+    }
+  };
+
+  const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
+
+  const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
+  <svg viewBox="0 0 48 24" className={size} fill="none">
+      {/* Cuerpo del coche - vista lateral */}
+      <path
+      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+      fill={color}
+      stroke="white"
+      strokeWidth="1.5" />
+
+      {/* Ventanas */}
+      <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+      {/* Rueda trasera */}
+      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="14" cy="18" r="2" fill="#666" />
+      {/* Rueda delantera */}
+      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="2" fill="#666" />
+    </svg>;
+
+
+  const CarIconSmall = ({ color }) =>
+  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>;
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-pulse text-purple-500">Cargando...</div>
+      </div>);
+
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header title="Tu Perfil" showBackButton={true} backTo="Home" />
-      <main className="pt-[60px] pb-24 px-4">
-        <div className="flex items-center justify-center mb-6">
-          <div className="relative">
-            <img
-              src={user?.photo_url || 'https://via.placeholder.com/100?text=Foto'}
-              alt="Foto de perfil"
-              className="w-28 h-28 rounded-full object-cover border-2 border-purple-500"
-            />
-            <Button size="icon" className="absolute bottom-0 right-0 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-2">
-              <Camera className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="display_name">Nombre</Label>
-            <Input
-              id="display_name"
-              value={initialValues.display_name || ''}
-              onChange={(e) => setInitialValues({ ...initialValues, display_name: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="phone">Teléfono</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={user?.phone || ''}
-              disabled
-            />
-            <p className="text-xs text-gray-500 mt-1">El teléfono se gestiona desde la app de autenticación.</p>
-          </div>
-          <div>
-            <Label htmlFor="car">Tu vehículo</Label>
-            <div className="flex gap-2">
-              <Input
-                id="car_brand"
-                placeholder="Marca"
-                value={initialValues.car_brand || ''}
-                onChange={(e) => setInitialValues({ ...initialValues, car_brand: e.target.value })}
-              />
-              <Input
-                id="car_model"
-                placeholder="Modelo"
-                value={initialValues.car_model || ''}
-                onChange={(e) => setInitialValues({ ...initialValues, car_model: e.target.value })}
-              />
-            </div>
-            <Input
-              id="car_plate"
-              placeholder="Matrícula"
-              className="mt-2"
-              value={initialValues.car_plate || ''}
-              onChange={(e) => setInitialValues({ ...initialValues, car_plate: e.target.value })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="car_color">Color del coche</Label>
-            <Select onValueChange={(val) => setInitialValues({ ...initialValues, car_color: val })} value={user?.car_color || ''}>
-              <SelectTrigger id="car_color">
-                <SelectValue placeholder="Selecciona un color" />
-              </SelectTrigger>
-              <SelectContent>
-                {carColors.map(color => (
-                  <SelectItem key={color.value} value={color.value}>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block w-4 h-4 rounded-full border border-gray-500" style={{ backgroundColor: color.fill }}></span>
-                      {color.label}
+    <div className="h-screen bg-black text-white overflow-hidden">
+      <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
+
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden h-screen">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4">
+
+          {/* Tarjeta tipo DNI */}
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
+            <div className="flex gap-4">
+              {/* Foto */}
+              <div className="relative">
+                <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
+                  {formData.photo_url ?
+                  <img
+                    src={formData.photo_url}
+                    alt="Perfil"
+                    className="w-full h-full object-cover" /> :
+
+
+                  <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
+                      👤
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <span className="text-sm">Permitir llamadas directas</span>
-            <Switch
-              checked={initialValues.allow_phone_calls}
-              onCheckedChange={(val) => setInitialValues({ ...initialValues, allow_phone_calls: val })}
-            />
-          </div>
-          <div className="mt-6">
-            <p className="text-lg font-semibold mb-2">Notificaciones</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Recibir notificaciones</span>
-                <Switch
-                  checked={initialValues.notifications_enabled}
-                  onCheckedChange={(val) => setInitialValues({ ...initialValues, notifications_enabled: val })}
-                />
+                  }
+                </div>
+                <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
+                  <Camera className="w-4 h-4" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload} />
+
+                </label>
               </div>
-              <div className="flex items-center justify-between pl-6">
-                <span className="text-sm">Reservas</span>
-                <Switch
-                  checked={initialValues.notify_reservations}
-                  onCheckedChange={(val) => setInitialValues({ ...initialValues, notify_reservations: val })}
-                  disabled={!initialValues.notifications_enabled}
-                />
-              </div>
-              <div className="flex items-center justify-between pl-6">
-                <span className="text-sm">Comprador cerca</span>
-                <Switch
-                  checked={initialValues.notify_proximity}
-                  onCheckedChange={(val) => setInitialValues({ ...initialValues, notify_proximity: val })}
-                  disabled={!initialValues.notifications_enabled}
-                />
-              </div>
-              <div className="flex items-center justify-between pl-6">
-                <span className="text-sm">Pagos recibidos</span>
-                <Switch
-                  checked={initialValues.notify_payments}
-                  onCheckedChange={(val) => setInitialValues({ ...initialValues, notify_payments: val })}
-                  disabled={!initialValues.notifications_enabled}
-                />
+
+              {/* Info */}
+              <div className="pl-3 flex-1 flex flex-col justify-between">
+                <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium text-sm">
+                      {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                    </p>
+                  </div>
+                  <CarIconProfile color={selectedColor?.fill} />
+                </div>
+
+                {/* Matrícula estilo placa */}
+                <div className="mt-2 flex items-center">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">E</span>
+                    </div>
+                    <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                      {formData.car_plate ? 
+                        `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : 
+                        '0000 XXX'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <Button 
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-6"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : 'Guardar cambios'}
-          </Button>
-        </div>
-      </main>
-      <BottomNav />
-    </div>
-  );
-}
+
+          {/* Formulario */}
+          <div className="space-y-3">
+            {/* Nombre y Teléfono en la misma fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Nombre</Label>
+                <Input
+                  value={formData.display_name}
+                  onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
+                  placeholder="Tu nombre"
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                  maxLength={15} />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Teléfono</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="+34 600 00 00"
+                  className="bg-gray-900 border-gray-700 text-white h-9 text-sm"
+                  type="tel"
+                />
+              </div>
+            </div>
+
+            {/* Permitir llamadas - compacto */}
+            <div className="bg-gray-900 rounded-lg p-2 border border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-purple-400" />
+                <p className="text-sm text-white">Permitir llamadas</p>
+              </div>
+              <Switch
+                checked={formData.allow_phone_calls}
+                onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Marca</Label>
+                <Input
+                  value={formData.car_brand}
+                  onChange={(e) => updateField('car_brand', e.target.value)}
+                  placeholder="Seat, Renault..."
+                  className="bg-gray-900 border-gray-700 text-white h-9" />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Modelo</Label>
+                <Input
+                  value={formData.car_model}
+                  onChange={(e) => updateField('car_model', e.target.value)}
+                  placeholder="Ibiza, Megane..."
+                  className="bg-gray-900 border-gray-700 text-white h-9" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Color</Label>
+                <Select
+                  value={formData.car_color}
+                  onValueChange={(value) => updateField('car_color', value)}>
+
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    {carColors.map((color) =>
+                    <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                        <div className="flex items-center gap-2">
+                          <CarIconSmall color={color.fill} />
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Vehículo</Label>
+                <Select
+                  value={formData.vehicle_type || 'car'}
+                  onValueChange={(value) => updateField('vehicle_type', value)}>
+
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-900 border-gray-700">
+                    <SelectItem value="car" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Coche normal
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="suv" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Coche voluminoso
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="van" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+                          <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                        </svg>
+                        Furgoneta
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-gray-400 text-sm">Matrícula</Label>
+              <Input
+                value={formData.car_plate}
+                onChange={(e) => updateField('car_plate', e.target.value.toUpperCase())}
+                placeholder="1234 ABC"
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
+                maxLength={7} />
+            </div>
+          </div>
+        </motion.div>
+        </main>
+
+        <BottomNav />
+        </div>);
+
+        }

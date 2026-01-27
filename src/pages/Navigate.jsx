@@ -7,37 +7,48 @@ import { ArrowLeft, Navigation, Phone, MessageCircle, AlertCircle } from 'lucide
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/lib/AuthContext';
 
 export default function Navigate() {
   const urlParams = new URLSearchParams(window.location.search);
   const alertId = urlParams.get('alertId');
   
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Obtener la alerta de parking en cuestión
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Error:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Obtener alerta
   const { data: alert } = useQuery({
     queryKey: ['navigationAlert', alertId],
     queryFn: async () => {
-      if (!alertId) return null;
       const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
       return alerts[0];
     },
     enabled: !!alertId
   });
 
-  // Mutation para actualizar la ubicación del comprador en tiempo real
+  // Mutation para actualizar ubicación
   const updateLocationMutation = useMutation({
     mutationFn: async ({ latitude, longitude, heading, speed }) => {
-      // Buscar si ya existe un registro de ubicación para este usuario y esta alerta
+      // Buscar si ya existe un registro de ubicación para este usuario y alerta
       const existing = await base44.entities.UserLocation.filter({ 
         user_id: user?.id, 
         alert_id: alertId 
       });
+
       if (existing.length > 0) {
         await base44.entities.UserLocation.update(existing[0].id, {
           latitude,
@@ -61,18 +72,21 @@ export default function Navigate() {
     }
   });
 
-  // Iniciar seguimiento de ubicación en tiempo real
+  // Iniciar seguimiento de ubicación
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert('Tu dispositivo no soporta geolocalización');
       return;
     }
+
     setIsTracking(true);
+    
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude, heading, speed } = position.coords;
         setUserLocation([latitude, longitude]);
-        // Actualizar ubicación en base de datos (envía coordenadas continuamente)
+        
+        // Actualizar ubicación en base de datos
         updateLocationMutation.mutate({
           latitude,
           longitude,
@@ -93,14 +107,15 @@ export default function Navigate() {
     );
   };
 
-  // Detener seguimiento de ubicación
+  // Detener seguimiento
   const stopTracking = async () => {
     if (watchIdRef.current) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
     setIsTracking(false);
-    // Marcar ubicación como inactiva en la BD
+
+    // Marcar como inactivo en base de datos
     if (user?.id && alertId) {
       const existing = await base44.entities.UserLocation.filter({ 
         user_id: user?.id, 
@@ -114,7 +129,7 @@ export default function Navigate() {
     }
   };
 
-  // Limpiar watchPosition al desmontar
+  // Limpiar al desmontar
   useEffect(() => {
     return () => {
       if (watchIdRef.current) {
@@ -123,9 +138,10 @@ export default function Navigate() {
     };
   }, []);
 
-  // Calcular distancia actual entre comprador y vendedor
+  // Calcular distancia
   const calculateDistance = () => {
     if (!userLocation || !alert?.latitude || !alert?.longitude) return null;
+    
     const R = 6371;
     const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
     const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
@@ -135,6 +151,7 @@ export default function Navigate() {
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distanceKm = R * c;
+    
     if (distanceKm < 1) {
       return { value: Math.round(distanceKm * 1000), unit: 'm' };
     }
@@ -153,7 +170,7 @@ export default function Navigate() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header de navegación */}
+      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('Notifications')}>
@@ -166,21 +183,21 @@ export default function Navigate() {
         </div>
       </header>
 
-      {/* Mapa con la ruta */}
+      {/* Mapa */}
       <div className="flex-1 pt-[60px]">
         <ParkingMap
           alerts={[alert]}
           userLocation={userLocation}
           selectedAlert={alert}
-          showRoute={isTracking && !!userLocation}
+          showRoute={isTracking && userLocation}
           zoomControl={true}
           className="h-full"
         />
       </div>
 
-      {/* Panel inferior con información y acciones */}
+      {/* Panel inferior */}
       <div className="bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3">
-        {/* Información del destino (vendedor) */}
+        {/* Info de destino */}
         <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -193,12 +210,13 @@ export default function Navigate() {
               </div>
             )}
           </div>
+          
           <div className="text-xs text-gray-500">
             {alert.address}
           </div>
         </div>
 
-        {/* Botones de acción */}
+        {/* Botones */}
         <div className="flex gap-2">
           {!isTracking ? (
             <Button
@@ -219,10 +237,11 @@ export default function Navigate() {
           )}
         </div>
 
+        {/* Botones de contacto */}
         <div className="flex gap-2">
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
-            onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${alertId}`)}
+            onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${alert.user_email || alert.user_id}`)}
           >
             <MessageCircle className="w-5 h-5 mr-2" />
             Chat
@@ -243,7 +262,9 @@ export default function Navigate() {
             animate={{ opacity: 1 }}
             className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center"
           >
-            <p className="text-xs text-blue-400">Tu ubicación se está compartiendo en tiempo real</p>
+            <p className="text-xs text-blue-400">
+              Tu ubicación se está compartiendo en tiempo real
+            </p>
           </motion.div>
         )}
       </div>
