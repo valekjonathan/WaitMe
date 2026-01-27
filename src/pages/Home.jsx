@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -120,19 +119,14 @@ function buildDemoAlerts(centerLat, centerLng) {
 }
 
 export default function Home() {
-  const location = useLocation();
-  const initialMode = new URLSearchParams(location.search).get('mode');
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialMode = urlParams.get('mode');
   const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const modeParam = params.get('mode');
-    if (modeParam === 'search' || modeParam === 'create') {
-      setMode(modeParam);
-    } else {
-      setMode(null);
-    }
-  }, [location.search]);
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('mode')) setMode(null);
+  }, [window.location.search]);
 
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -332,6 +326,7 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
+          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -384,6 +379,7 @@ export default function Home() {
             </motion.div>
           )}
 
+          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -436,6 +432,7 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -452,6 +449,7 @@ export default function Home() {
             </motion.div>
           )}
 
+          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
