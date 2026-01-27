@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
@@ -37,9 +38,6 @@ export default function BottomNav() {
   const baseBtn =
     "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
 
-  // 🔑 CLAVE: reset=1 fuerza Home limpio (logo + botones)
-  const homeResetUrl = createPageUrl('Home?reset=1');
-
   const badgeBase =
     "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
   const badgeGreen =
@@ -61,19 +59,18 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* ✅ MAPA: SIEMPRE vuelve al logo */}
-        <a
-          href={homeResetUrl}
+        {/* ✅ MAPA — SIN RECARGA, SIEMPRE LOGO */}
+        <button
+          type="button"
           className="flex-1 min-w-0"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = homeResetUrl;
+          onClick={() => {
+            navigate(createPageUrl('Home?reset=1'), { replace: true });
           }}
         >
           <Button variant="ghost" className={baseBtn}>
             <span className="text-[10px] font-bold">Mapa</span>
           </Button>
-        </a>
+        </button>
 
         <div className="w-px h-10 bg-gray-700" />
 
