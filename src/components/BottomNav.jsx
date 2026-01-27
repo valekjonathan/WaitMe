@@ -10,6 +10,11 @@ import { useAuth } from '@/lib/AuthContext';
 export default function BottomNav() {
   const { user } = useAuth();
 
+  const baseBtn = "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
+  const badgeBase = "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+  const badgeGreen = "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+
+  // Consulta de alertas activas del usuario (sin polling continuo)
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
     queryFn: async () => {
@@ -22,6 +27,7 @@ export default function BottomNav() {
     enabled: !!user?.email
   });
 
+  // Consulta de notificaciones no leídas (sin polling continuo)
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.email],
     queryFn: async () => {
@@ -34,15 +40,7 @@ export default function BottomNav() {
     enabled: !!user?.email
   });
 
-  const baseBtn =
-    "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
-
   const homeUrl = createPageUrl('Home');
-
-  const badgeBase =
-    "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
-  const badgeGreen =
-    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
@@ -54,7 +52,6 @@ export default function BottomNav() {
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
             </svg>
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
-
             {activeAlerts.length > 0 && (
               <span className={badgeGreen}>
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
@@ -71,7 +68,7 @@ export default function BottomNav() {
           className="flex-1 min-w-0"
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = homeUrl; // fuerza recarga y vuelve a los botones
+            window.location.href = homeUrl; // fuerza recarga y vuelve a la pantalla principal
           }}
         >
           <Button variant="ghost" className={baseBtn}>
@@ -88,7 +85,6 @@ export default function BottomNav() {
           <Button variant="ghost" className={baseBtn}>
             <Bell className="w-8 h-8" />
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Notificaciones</span>
-
             {unreadNotifications.length > 0 && (
               <span className={badgeBase}>
                 {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
