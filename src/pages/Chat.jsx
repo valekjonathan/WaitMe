@@ -208,8 +208,7 @@ export default function Chat() {
       
       return mockMessages;
     },
-    enabled: !!conversationId,
-    refetchInterval: 10000
+    enabled: !!conversationId
   });
 
   // Marcar mensajes como leídos
