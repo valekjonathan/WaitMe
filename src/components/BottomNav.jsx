@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +9,6 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const { data: activeAlerts = [] } = useQuery({
@@ -42,17 +41,8 @@ export default function BottomNav() {
   const badgeGreen =
     "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
-  const goToMap = () => {
-    const url = createPageUrl('Home?mode=search');
-
-    // SI ya estamos en Home → forzamos cambio de estado
-    if (location.pathname.includes('/Home')) {
-      navigate(url, { replace: true });
-      return;
-    }
-
-    // desde cualquier otra pantalla
-    navigate(url);
+  const goHome = () => {
+    navigate(createPageUrl('Home'), { replace: true });
   };
 
   return (
@@ -76,8 +66,8 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA – SIEMPRE RESPONDE */}
-        <button onClick={goToMap} className="flex-1 min-w-0">
+        {/* MAPA → SIEMPRE HOME PRINCIPAL */}
+        <button onClick={goHome} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
