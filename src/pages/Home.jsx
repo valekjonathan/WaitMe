@@ -1,125 +1,17 @@
-// FILE: src/components/BottomNav.jsx  (en Base44: Components > BottomNav)
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Bell, MessageCircle } from 'lucide-react';
-import { useAuth } from '@/components/AuthContext';
-
-export default function BottomNav() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const { data: activeAlerts = [] } = useQuery({
-    queryKey: ['userActiveAlerts', user?.email],
-    queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.filter({
-        user_email: user?.email,
-        status: 'active'
-      });
-      return alerts;
-    },
-    enabled: !!user?.email
-  });
-
-  const { data: unreadNotifications = [] } = useQuery({
-    queryKey: ['unreadNotifications', user?.email],
-    queryFn: async () => {
-      const notifs = await base44.entities.Notification.filter({
-        recipient_email: user?.email,
-        read: false
-      });
-      return notifs;
-    },
-    enabled: !!user?.email
-  });
-
-  const baseBtn =
-    "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
-
-  const homeUrl = createPageUrl('Home');
-
-  const goHome = () => {
-    // SPA navigation (sin pantalla blanca) + reset de Home al logo
-    navigate(homeUrl, { replace: true });
-    window.dispatchEvent(new Event('wm:goHome'));
-  };
-
-  const badgeBase =
-    "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
-  const badgeGreen =
-    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
-      <div className="flex items-center max-w-md mx-auto gap-0">
-        <Link to={createPageUrl('History')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
-            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-              <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
-              <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
-            </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
-
-            {activeAlerts.length > 0 && (
-              <span className={badgeGreen}>
-                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
-              </span>
-            )}
-          </Button>
-        </Link>
-
-        <div className="w-px h-10 bg-gray-700" />
-
-        {/* MAPA: SIEMPRE vuelve a Home (logo + 2 botones) SIN recargar */}
-        <div onClick={goHome} className="flex-1 min-w-0 cursor-pointer">
-          <Button variant="ghost" className={baseBtn} type="button">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Mapa</span>
-          </Button>
-        </div>
-
-        <div className="w-px h-10 bg-gray-700" />
-
-        <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
-            <Bell className="w-8 h-8" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Notificaciones</span>
-
-            {unreadNotifications.length > 0 && (
-              <span className={badgeBase}>
-                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
-              </span>
-            )}
-          </Button>
-        </Link>
-
-        <div className="w-px h-10 bg-gray-700" />
-
-        <Link to={createPageUrl('Chats')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
-            <MessageCircle className="w-8 h-8" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
-          </Button>
-        </Link>
-      </div>
-    </nav>
-  );
-}
-
-
-// FILE: src/pages/Home.jsx  (en Base44: Pages > Home)
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -252,35 +144,6 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
 
-  // --- Reset “Home” al logo (sin recargar) ---
-  const resetToLogo = () => {
-    setMode(null);
-    setSelectedAlert(null);
-    setSelectedPosition(null);
-    setShowFilters(false);
-    setConfirmDialog({ open: false, alert: null });
-  };
-
-  useEffect(() => {
-    const onGoHome = () => resetToLogo();
-    window.addEventListener('wm:goHome', onGoHome);
-    return () => window.removeEventListener('wm:goHome', onGoHome);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('reset') === '1') {
-      resetToLogo();
-      params.delete('reset');
-      params.delete('mode');
-      const qs = params.toString();
-      const nextUrl = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
-      window.history.replaceState({}, '', nextUrl);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -298,7 +161,10 @@ export default function Home() {
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
+      const messages = await base44.entities.ChatMessage.filter({
+        receiver_id: user?.email,
+        read: false
+      });
       return messages.length;
     },
     enabled: !!user?.email,
@@ -318,8 +184,10 @@ export default function Home() {
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -332,7 +200,9 @@ export default function Home() {
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
 
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+        fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        )
           .then((res) => res.json())
           .then((data) => {
             if (data?.address) {
@@ -496,7 +366,10 @@ export default function Home() {
                   className="w-48 h-48 mb-0 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                  Aparca donde te{' '}
+                  <span className="text-purple-500">
+                    avisen<span className="text-purple-500">!</span>
+                  </span>
                 </h1>
               </div>
 
@@ -505,9 +378,23 @@ export default function Home() {
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    className="w-28 h-28 text-purple-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                   ¿ Dónde quieres aparcar ?
                 </Button>
@@ -523,7 +410,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR */}
+          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -592,7 +479,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ */}
+          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -646,7 +533,10 @@ export default function Home() {
 
       <BottomNav />
 
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}
+      >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
@@ -672,7 +562,11 @@ export default function Home() {
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => setConfirmDialog({ open: false, alert: null })} className="flex-1 border-gray-700">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialog({ open: false, alert: null })}
+              className="flex-1 border-gray-700"
+            >
               Cancelar
             </Button>
             <Button
@@ -680,7 +574,11 @@ export default function Home() {
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               disabled={buyAlertMutation.isPending || confirmDialog.alert?.is_demo}
             >
-              {confirmDialog.alert?.is_demo ? 'Solo demo' : (buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud')}
+              {confirmDialog.alert?.is_demo
+                ? 'Solo demo'
+                : buyAlertMutation.isPending
+                ? 'Enviando...'
+                : 'Enviar solicitud'}
             </Button>
           </DialogFooter>
         </DialogContent>
