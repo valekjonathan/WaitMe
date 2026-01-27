@@ -30,7 +30,7 @@ export default function Navigate() {
     fetchUser();
   }, []);
 
-  // Obtener alerta (datos de la plaza de aparcamiento)
+  // Obtener alerta
   const { data: alert } = useQuery({
     queryKey: ['navigationAlert', alertId],
     queryFn: async () => {
@@ -40,7 +40,7 @@ export default function Navigate() {
     enabled: !!alertId
   });
 
-  // Mutation para actualizar ubicación en tiempo real
+  // Mutation para actualizar ubicación
   const updateLocationMutation = useMutation({
     mutationFn: async ({ latitude, longitude, heading, speed }) => {
       // Buscar si ya existe un registro de ubicación para este usuario y alerta
@@ -138,7 +138,7 @@ export default function Navigate() {
     };
   }, []);
 
-  // Calcular distancia al destino (en metros o km)
+  // Calcular distancia
   const calculateDistance = () => {
     if (!userLocation || !alert?.latitude || !alert?.longitude) return null;
     
@@ -160,6 +160,14 @@ export default function Navigate() {
 
   const distance = calculateDistance();
 
+  if (!alert) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -178,23 +186,23 @@ export default function Navigate() {
       {/* Mapa */}
       <div className="flex-1 pt-[60px]">
         <ParkingMap
-          alerts={alert ? [alert] : []}
+          alerts={[alert]}
           userLocation={userLocation}
-          selectedAlert={alert || null}
+          selectedAlert={alert}
           showRoute={isTracking && userLocation}
           zoomControl={true}
           className="h-full"
         />
       </div>
 
-      {/* Panel inferior con información de la alerta */}
+      {/* Panel inferior */}
       <div className="bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3">
-        {/* Info de destino (usuario y coche) */}
+        {/* Info de destino */}
         <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="font-semibold text-white">{alert?.user_name}</p>
-              <p className="text-sm text-gray-400">{alert?.car_brand} {alert?.car_model}</p>
+              <p className="font-semibold text-white">{alert.user_name}</p>
+              <p className="text-sm text-gray-400">{alert.car_brand} {alert.car_model}</p>
             </div>
             {distance && (
               <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2">
@@ -202,12 +210,13 @@ export default function Navigate() {
               </div>
             )}
           </div>
+          
           <div className="text-xs text-gray-500">
-            {alert?.address}
+            {alert.address}
           </div>
         </div>
 
-        {/* Botones de acción */}
+        {/* Botones */}
         <div className="flex gap-2">
           {!isTracking ? (
             <Button
@@ -228,24 +237,19 @@ export default function Navigate() {
           )}
         </div>
 
-        {/* Botones de contacto (Chat y Llamar) */}
+        {/* Botones de contacto */}
         <div className="flex gap-2">
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
-            disabled={!alert}
-            onClick={() => {
-              if (alert) {
-                window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${alert.user_email || alert.user_id}`);
-              }
-            }}
+            onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${alert.user_email || alert.user_id}`)}
           >
             <MessageCircle className="w-5 h-5 mr-2" />
             Chat
           </Button>
           <Button
             className="flex-1 bg-gray-700 hover:bg-gray-600 text-white h-10"
-            onClick={() => alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-            disabled={!alert?.allow_phone_calls || !alert?.phone}
+            onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+            disabled={!alert.allow_phone_calls || !alert.phone}
           >
             <Phone className="w-5 h-5 mr-2" />
             Llamar
