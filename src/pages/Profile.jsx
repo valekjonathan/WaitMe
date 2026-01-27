@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Camera, Car, Bell, Phone, Save, Settings, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, Camera, Car, Truck, Bus, Bell, Phone, Save, Settings, MessageCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,13 +13,13 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
 const carColors = [
-{ value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
-{ value: 'negro', label: 'Negro', fill: '#1a1a1a' },
-{ value: 'rojo', label: 'Rojo', fill: '#ef4444' },
-{ value: 'azul', label: 'Azul', fill: '#3b82f6' },
-{ value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
-{ value: 'gris', label: 'Gris', fill: '#6b7280' }];
-
+  { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
+  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
+  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
+  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
+  { value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
+  { value: 'gris', label: 'Gris', fill: '#6b7280' }
+];
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -38,6 +38,7 @@ export default function Profile() {
     notifications_enabled: true,
     email_notifications: true
   });
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -93,40 +94,53 @@ export default function Profile() {
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 
-  const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
-  <svg viewBox="0 0 48 24" className={size} fill="none">
-      {/* Cuerpo del coche - vista lateral */}
-      <path
-      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-      fill={color}
-      stroke="white"
-      strokeWidth="1.5" />
+  // ✅ ICONO PEQUEÑO DE ARRIBA: cambia en tiempo real y soporta ambos formatos guardados
+  const VehicleIconHeader = () => {
+    const vt = (formData.vehicle_type || '').toString().trim().toLowerCase();
 
-      {/* Ventanas */}
+    // Si Base44 guarda códigos:
+    if (vt === 'suv') return <Truck className="w-6 h-6 text-white" />;
+    if (vt === 'van') return <Bus className="w-6 h-6 text-white" />;
+    if (vt === 'car') return <Car className="w-6 h-6 text-white" />;
+
+    // Si Base44 guarda textos:
+    if (vt.includes('volum')) return <Truck className="w-6 h-6 text-white" />;
+    if (vt.includes('furgo')) return <Bus className="w-6 h-6 text-white" />;
+    if (vt.includes('coche')) return <Car className="w-6 h-6 text-white" />;
+
+    return <Car className="w-6 h-6 text-white" />;
+  };
+
+  const CarIconProfile = ({ color, size = "w-16 h-10" }) => (
+    <svg viewBox="0 0 48 24" className={size} fill="none">
+      <path
+        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+        fill={color}
+        stroke="white"
+        strokeWidth="1.5"
+      />
       <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
-      {/* Rueda trasera */}
       <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="14" cy="18" r="2" fill="#666" />
-      {/* Rueda delantera */}
       <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="36" cy="18" r="2" fill="#666" />
-    </svg>;
+    </svg>
+  );
 
-
-  const CarIconSmall = ({ color }) =>
-  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
       <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
       <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-    </svg>;
-
+    </svg>
+  );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>);
-
+      </div>
+    );
   }
 
   return (
@@ -134,10 +148,7 @@ export default function Profile() {
       <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden h-screen">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
           {/* Tarjeta tipo DNI */}
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -145,17 +156,17 @@ export default function Profile() {
               {/* Foto */}
               <div className="relative">
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
-                  {formData.photo_url ?
-                  <img
-                    src={formData.photo_url}
-                    alt="Perfil"
-                    className="w-full h-full object-cover" /> :
-
-
-                  <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
+                  {formData.photo_url ? (
+                    <img
+                      src={formData.photo_url}
+                      alt="Perfil"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
                       👤
                     </div>
-                  }
+                  )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
                   <Camera className="w-4 h-4" />
@@ -163,22 +174,26 @@ export default function Profile() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={handlePhotoUpload} />
-
+                    onChange={handlePhotoUpload}
+                  />
                 </label>
               </div>
 
               {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
-                <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
-                
+                <p className="text-xl font-bold text-white">
+                  {formData.display_name || user?.full_name?.split(' ')[0]}
+                </p>
+
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium text-sm">
                       {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
                     </p>
                   </div>
-                  <CarIconProfile color={selectedColor?.fill} />
+
+                  {/* ✅ ESTE ES EL ICONO PEQUEÑO QUE QUIERES */}
+                  <VehicleIconHeader />
                 </div>
 
                 {/* Matrícula estilo placa */}
@@ -188,9 +203,9 @@ export default function Profile() {
                       <span className="text-white text-[8px] font-bold">E</span>
                     </div>
                     <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                      {formData.car_plate ? 
-                        `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : 
-                        '0000 XXX'}
+                      {formData.car_plate
+                        ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim()
+                        : '0000 XXX'}
                     </span>
                   </div>
                 </div>
@@ -209,7 +224,8 @@ export default function Profile() {
                   onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
                   placeholder="Tu nombre"
                   className="bg-gray-900 border-gray-700 text-white h-9"
-                  maxLength={15} />
+                  maxLength={15}
+                />
               </div>
 
               <div className="space-y-2">
@@ -244,7 +260,8 @@ export default function Profile() {
                   value={formData.car_brand}
                   onChange={(e) => updateField('car_brand', e.target.value)}
                   placeholder="Seat, Renault..."
-                  className="bg-gray-900 border-gray-700 text-white h-9" />
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -253,7 +270,8 @@ export default function Profile() {
                   value={formData.car_model}
                   onChange={(e) => updateField('car_model', e.target.value)}
                   placeholder="Ibiza, Megane..."
-                  className="bg-gray-900 border-gray-700 text-white h-9" />
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
               </div>
             </div>
 
@@ -262,20 +280,20 @@ export default function Profile() {
                 <Label className="text-gray-400 text-sm">Color</Label>
                 <Select
                   value={formData.car_color}
-                  onValueChange={(value) => updateField('car_color', value)}>
-
+                  onValueChange={(value) => updateField('car_color', value)}
+                >
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-900 border-gray-700">
-                    {carColors.map((color) =>
-                    <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                    {carColors.map((color) => (
+                      <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
                         <div className="flex items-center gap-2">
                           <CarIconSmall color={color.fill} />
                           {color.label}
                         </div>
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -284,8 +302,8 @@ export default function Profile() {
                 <Label className="text-gray-400 text-sm">Vehículo</Label>
                 <Select
                   value={formData.vehicle_type || 'car'}
-                  onValueChange={(value) => updateField('vehicle_type', value)}>
-
+                  onValueChange={(value) => updateField('vehicle_type', value)}
+                >
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -300,6 +318,7 @@ export default function Profile() {
                         Coche normal
                       </div>
                     </SelectItem>
+
                     <SelectItem value="suv" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
@@ -312,6 +331,7 @@ export default function Profile() {
                         Coche voluminoso
                       </div>
                     </SelectItem>
+
                     <SelectItem value="van" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
@@ -337,13 +357,14 @@ export default function Profile() {
                 onChange={(e) => updateField('car_plate', e.target.value.toUpperCase())}
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
-                maxLength={7} />
+                maxLength={7}
+              />
             </div>
           </div>
         </motion.div>
-        </main>
+      </main>
 
-        <BottomNav />
-        </div>);
-
-        }
+      <BottomNav />
+    </div>
+  );
+}
