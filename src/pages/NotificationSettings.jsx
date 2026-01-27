@@ -8,10 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import { useAuth } from '@/lib/AuthContext';
 
 export default function NotificationSettings() {
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [masterToggle, setMasterToggle] = useState(true);
   const [settings, setSettings] = useState({
@@ -22,37 +21,51 @@ export default function NotificationSettings() {
   });
 
   useEffect(() => {
-    // Simular carga de configuraciones desde user (si estuviera disponible)
-    if (user) {
-      setSettings({
-        notify_reservations: user.notify_reservations ?? true,
-        notify_payments: user.notify_payments ?? true,
-        notify_proximity: user.notify_proximity ?? true,
-        notify_promotions: user.notify_promotions ?? true
-      });
-      setMasterToggle(user.notifications_enabled ?? true);
-    }
-    setLoading(false);
-  }, [user]);
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        
+        // Cargar preferencias guardadas
+        setMasterToggle(currentUser.notifications_enabled ?? true);
+        setSettings({
+          notify_reservations: currentUser.notify_reservations ?? true,
+          notify_payments: currentUser.notify_payments ?? true,
+          notify_proximity: currentUser.notify_proximity ?? true,
+          notify_promotions: currentUser.notify_promotions ?? true
+        });
+      } catch (error) {
+        console.log('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
-  const handleSave = async () => {
-    setLoading(true);
+  const updateMasterToggle = async (value) => {
+    setMasterToggle(value);
     try {
-      // Guardar preferencias en la base de datos, por ejemplo:
-      // await base44.entities.User.update(user.id, { ...settings, notifications_enabled: masterToggle });
-      alert('Preferencias de notificación guardadas (simulación)');
+      await base44.auth.updateMe({ notifications_enabled: value });
     } catch (error) {
-      console.error('Error guardando preferencias:', error);
-      alert('No se pudieron guardar los cambios.');
-    } finally {
-      setLoading(false);
+      console.log('Error guardando preferencia:', error);
+    }
+  };
+
+  const updateSetting = async (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    
+    try {
+      await base44.auth.updateMe({ [key]: value });
+    } catch (error) {
+      console.log('Error guardando preferencia:', error);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-gray-400">Cargando...</div>
+        <div className="text-gray-500">Cargando...</div>
       </div>
     );
   }
@@ -60,56 +73,106 @@ export default function NotificationSettings() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Notificaciones" showBackButton={true} backTo="Settings" />
-      <main className="pt-[60px] pb-24 px-4">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">Notificaciones activadas</span>
-            <Switch checked={masterToggle} onCheckedChange={(val) => setMasterToggle(val)} />
+
+      {/* Main Content */}
+      <main className="pt-20 pb-24 px-4 h-screen overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md mx-auto space-y-4"
+        >
+          {/* Master Toggle */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Permitir notificaciones:</h2>
+            <Switch
+              checked={masterToggle}
+              onCheckedChange={updateMasterToggle}
+              className={masterToggle ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500'}
+            />
           </div>
-          <div className="pl-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Reservas</span>
+
+          {/* Notificaciones de Reservas */}
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <Bell className="w-5 h-5 text-purple-500" />
+                </div>
+                <h3 className="font-semibold text-base">Reservas</h3>
+              </div>
               <Switch
                 checked={settings.notify_reservations}
-                onCheckedChange={(val) => setSettings({ ...settings, notify_reservations: val })}
+                onCheckedChange={(checked) => updateSetting('notify_reservations', checked)}
                 disabled={!masterToggle}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Pagos</span>
-              <Switch
-                checked={settings.notify_payments}
-                onCheckedChange={(val) => setSettings({ ...settings, notify_payments: val })}
-                disabled={!masterToggle}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Comprador cerca</span>
-              <Switch
-                checked={settings.notify_proximity}
-                onCheckedChange={(val) => setSettings({ ...settings, notify_proximity: val })}
-                disabled={!masterToggle}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Promociones</span>
-              <Switch
-                checked={settings.notify_promotions}
-                onCheckedChange={(val) => setSettings({ ...settings, notify_promotions: val })}
-                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
               />
             </div>
           </div>
-          <Button 
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-4"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            {loading ? 'Guardando...' : 'Guardar cambios'}
-          </Button>
-        </div>
+
+          {/* Notificaciones de Pago */}
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-5 h-5 text-purple-500" />
+                </div>
+                <h3 className="font-semibold text-base">Pagos</h3>
+              </div>
+              <Switch
+                checked={settings.notify_payments}
+                onCheckedChange={(checked) => updateSetting('notify_payments', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
+              />
+            </div>
+          </div>
+
+          {/* Alertas de Proximidad */}
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-purple-500" />
+                </div>
+                <h3 className="font-semibold text-base">Proximidad</h3>
+              </div>
+              <Switch
+                checked={settings.notify_proximity}
+                onCheckedChange={(checked) => updateSetting('notify_proximity', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
+              />
+            </div>
+          </div>
+
+          {/* Novedades */}
+          <div className="bg-gray-900 rounded-2xl border-2 border-purple-500/30 px-4 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-600/20 p-2 rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                  <Megaphone className="w-5 h-5 text-purple-500" />
+                </div>
+                <h3 className="font-semibold text-base">Novedades</h3>
+              </div>
+              <Switch
+                checked={settings.notify_promotions}
+                onCheckedChange={(checked) => updateSetting('notify_promotions', checked)}
+                disabled={!masterToggle}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500 flex-shrink-0"
+              />
+            </div>
+          </div>
+
+          {/* Info adicional */}
+          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 text-center">
+            <p className="text-xs text-gray-500">
+              Las notificaciones push requieren permisos del navegador. Si no las recibes, revisa tu configuración.
+            </p>
+          </div>
+        </motion.div>
       </main>
+
       <BottomNav />
     </div>
   );
-}
+} 
