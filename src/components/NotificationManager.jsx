@@ -21,8 +21,7 @@ export default function NotificationManager({ user }) {
       recipient_email: user?.email,
       read: false 
     }),
-    enabled: !!user?.email && permission === 'granted',
-    refetchInterval: 5000
+    enabled: !!user?.email && permission === 'granted'
   });
 
   // Monitorear mensajes nuevos
@@ -32,8 +31,7 @@ export default function NotificationManager({ user }) {
       receiver_id: user?.email,
       read: false 
     }),
-    enabled: !!user?.email && permission === 'granted',
-    refetchInterval: 5000
+    enabled: !!user?.email && permission === 'granted'
   });
 
   // Notificar cuando hay nuevas notificaciones
