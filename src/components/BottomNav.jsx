@@ -1,16 +1,14 @@
-// FILE: src/components/BottomNav.jsx  (en Base44: Components > BottomNav)
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Bell, MessageCircle } from 'lucide-react';
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.email],
@@ -41,12 +39,6 @@ export default function BottomNav() {
 
   const homeUrl = createPageUrl('Home');
 
-  const goHome = () => {
-    // SPA navigation (sin pantalla blanca) + reset de Home al logo
-    navigate(homeUrl, { replace: true });
-    window.dispatchEvent(new Event('wm:goHome'));
-  };
-
   const badgeBase =
     "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
   const badgeGreen =
@@ -56,7 +48,7 @@ export default function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       <div className="flex items-center max-w-md mx-auto gap-0">
         <Link to={createPageUrl('History')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
+          <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
@@ -73,20 +65,27 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA: SIEMPRE vuelve a Home (logo + 2 botones) SIN recargar */}
-        <div onClick={goHome} className="flex-1 min-w-0 cursor-pointer">
-          <Button variant="ghost" className={baseBtn} type="button">
+        {/* MAPA: RECARGA SIEMPRE LA HOME PRINCIPAL (botones) */}
+        <a
+          href={homeUrl}
+          className="flex-1 min-w-0"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = homeUrl; // fuerza recarga y vuelve a los botones
+          }}
+        >
+          <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Mapa</span>
           </Button>
-        </div>
+        </a>
 
         <div className="w-px h-10 bg-gray-700" />
 
         <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
+          <Button variant="ghost" className={baseBtn}>
             <Bell className="w-8 h-8" />
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Notificaciones</span>
 
@@ -101,7 +100,7 @@ export default function BottomNav() {
         <div className="w-px h-10 bg-gray-700" />
 
         <Link to={createPageUrl('Chats')} className="flex-1 min-w-0">
-          <Button variant="ghost" className={baseBtn} type="button">
+          <Button variant="ghost" className={baseBtn}>
             <MessageCircle className="w-8 h-8" />
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
           </Button>

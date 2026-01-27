@@ -4,14 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -161,10 +154,7 @@ export default function Home() {
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({
-        receiver_id: user?.email,
-        read: false
-      });
+      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
       return messages.length;
     },
     enabled: !!user?.email,
@@ -184,10 +174,8 @@ export default function Home() {
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -200,9 +188,7 @@ export default function Home() {
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
 
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-        )
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
           .then((res) => res.json())
           .then((data) => {
             if (data?.address) {
@@ -340,7 +326,7 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL */}
+          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -366,10 +352,7 @@ export default function Home() {
                   className="w-48 h-48 mb-0 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te{' '}
-                  <span className="text-purple-500">
-                    avisen<span className="text-purple-500">!</span>
-                  </span>
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
                 </h1>
               </div>
 
@@ -378,23 +361,9 @@ export default function Home() {
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg
-                    className="w-28 h-28 text-purple-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
+                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   ¿ Dónde quieres aparcar ?
                 </Button>
@@ -463,6 +432,7 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -533,10 +503,7 @@ export default function Home() {
 
       <BottomNav />
 
-      <Dialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}
-      >
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>
@@ -562,11 +529,7 @@ export default function Home() {
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialog({ open: false, alert: null })}
-              className="flex-1 border-gray-700"
-            >
+            <Button variant="outline" onClick={() => setConfirmDialog({ open: false, alert: null })} className="flex-1 border-gray-700">
               Cancelar
             </Button>
             <Button
@@ -574,11 +537,7 @@ export default function Home() {
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               disabled={buyAlertMutation.isPending || confirmDialog.alert?.is_demo}
             >
-              {confirmDialog.alert?.is_demo
-                ? 'Solo demo'
-                : buyAlertMutation.isPending
-                ? 'Enviando...'
-                : 'Enviar solicitud'}
+              {confirmDialog.alert?.is_demo ? 'Solo demo' : (buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud')}
             </Button>
           </DialogFooter>
         </DialogContent>
