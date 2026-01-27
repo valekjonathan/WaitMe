@@ -19,8 +19,7 @@ export default function BottomNav() {
       });
       return alerts;
     },
-    enabled: !!user?.email,
-    refetchInterval: 20000
+    enabled: !!user?.email
   });
 
   const { data: unreadNotifications = [] } = useQuery({
@@ -32,8 +31,7 @@ export default function BottomNav() {
       });
       return notifs;
     },
-    enabled: !!user?.email,
-    refetchInterval: 20000
+    enabled: !!user?.email
   });
 
   const baseBtn =

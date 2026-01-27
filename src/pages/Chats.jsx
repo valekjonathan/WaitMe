@@ -126,8 +126,7 @@ export default function Chats() {
       new Date(b.last_message_at || b.updated_date || b.created_date) -
       new Date(a.last_message_at || a.updated_date || a.created_date)
       );
-    },
-    refetchInterval: 15000
+    }
   });
 
   // Obtener usuarios para resolver datos completos
