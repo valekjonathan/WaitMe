@@ -12,8 +12,9 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { useAuth } from '@/lib/AuthContext';
 
-// Componente contador de cuenta atrás
+// Componente contador de cuenta atrás para tiempo de espera
 function CountdownTimer({ availableInMinutes }) {
   const [timeLeft, setTimeLeft] = useState('');
 
@@ -38,27 +39,17 @@ function CountdownTimer({ availableInMinutes }) {
   return (
     <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
+    </div>
+  );
 }
 
 export default function Chats() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
-    fetchUser();
-
-    // Obtener ubicación del usuario
+    // Obtener ubicación del usuario (para calcular distancias en cada tarjeta de chat)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -72,15 +63,14 @@ export default function Chats() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
-      // Obtener TODAS las conversaciones ordenadas por más reciente
+      // Obtener todas las conversaciones (ordenadas por más reciente)
       const allConversations = await base44.entities.Conversation.list();
-      
-      // Datos mock para demostración
+      // Datos de ejemplo (mock) para demostración
       const mockConversations = [
         {
           id: 'mock1',
           participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
+          participant1_name: 'Tú',
           participant1_photo: user?.photo_url,
           participant2_id: 'user2',
           participant2_name: 'Laura',
@@ -94,7 +84,7 @@ export default function Chats() {
         {
           id: 'mock2',
           participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
+          participant1_name: 'Tú',
           participant1_photo: user?.photo_url,
           participant2_id: 'user3',
           participant2_name: 'Marta',
@@ -108,7 +98,7 @@ export default function Chats() {
         {
           id: 'mock3',
           participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
+          participant1_name: 'Tú',
           participant1_photo: user?.photo_url,
           participant2_id: 'user4',
           participant2_name: 'Carlos',
@@ -123,13 +113,14 @@ export default function Chats() {
 
       const combined = [...mockConversations, ...allConversations];
       return combined.sort((a, b) =>
-      new Date(b.last_message_at || b.updated_date || b.created_date) -
-      new Date(a.last_message_at || a.updated_date || a.created_date)
+        new Date(b.last_message_at || b.updated_date || b.created_date) -
+        new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     }
+    // Eliminamos refetchInterval para evitar errores SSE; actualizará al volver a la pantalla
   });
 
-  // Obtener usuarios para resolver datos completos
+  // Obtener todos los usuarios (para mapear nombres/fotos completos en chats)
   const { data: users = [] } = useQuery({
     queryKey: ['usersForChats'],
     queryFn: () => base44.entities.User.list(),
@@ -142,13 +133,12 @@ export default function Chats() {
     return map;
   }, [users]);
 
-  // Obtener alertas para mostrar info
+  // Obtener alertas para mostrar info de vehículo/ubicación en los chats
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats'],
     queryFn: async () => {
       const realAlerts = await base44.entities.ParkingAlert.list();
-      
-      // Datos mock de alertas
+      // Datos de ejemplo de alertas (coinciden con mocks arriba)
       const mockAlerts = [
         {
           id: 'alert1',
@@ -196,7 +186,6 @@ export default function Chats() {
           phone: '+34698765432'
         }
       ];
-      
       return [...mockAlerts, ...realAlerts];
     },
     enabled: !!user?.id
@@ -208,7 +197,7 @@ export default function Chats() {
     return map;
   }, [alerts]);
 
-  // Calcular total de no leídos
+  // Calcular total de mensajes no leídos en todas las conversaciones
   const totalUnread = React.useMemo(() => {
     return conversations.reduce((sum, conv) => {
       const isP1 = conv.participant1_id === user?.id;
@@ -217,24 +206,18 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
+  // Filtrar conversaciones por búsqueda y ordenar colocando primero las con mensajes no leídos
   const filteredConversations = React.useMemo(() => {
     let filtered = conversations;
-
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
+        const otherUserName = conv.participant1_id === user?.id ? conv.participant2_name : conv.participant1_name;
         const lastMessage = conv.last_message_text || '';
-
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
+        return otherUserName?.toLowerCase().includes(query) || lastMessage.toLowerCase().includes(query);
       });
     }
-
-    // Ordenar sin leer primero
+    // Ordenar: primero las conversaciones con mensajes sin leer
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
@@ -242,21 +225,18 @@ export default function Chats() {
     });
   }, [conversations, searchQuery, user?.id]);
 
-  // Función para calcular minutos desde el último mensaje
+  // Función auxiliar para obtener minutos desde último mensaje (para mostrar "hace X min")
   const getMinutesSince = (timestamp) => {
     if (!timestamp) return 1;
     const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
     return Math.max(1, minutes);
   };
 
-
-
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
-
       <main className="pt-[60px] pb-24">
-        {/* Buscador justo debajo del header */}
+        {/* Buscador de conversaciones */}
         <div className="px-4 pt-2 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -264,27 +244,25 @@ export default function Chats() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar conversaciones..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white" />
-
-            {searchQuery &&
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7">
-
+              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+              >
                 <X className="w-4 h-4" />
               </Button>
-            }
+            )}
           </div>
         </div>
 
-        {isLoading ?
-        <div className="text-center py-12 text-gray-500">
-            Cargando conversaciones...
-          </div> :
-        filteredConversations.length === 0 ?
-        <div className="text-center py-20 text-gray-500">
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">Cargando conversaciones...</div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="text-center py-20 text-gray-500">
             <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-lg mb-2">
               {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
@@ -292,65 +270,57 @@ export default function Chats() {
             <p className="text-sm">
               {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
             </p>
-          </div> :
-
-        <div className="px-4 space-y-3">
+          </div>
+        ) : (
+          <div className="px-4 space-y-3">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
-            const isP1 = conv.participant1_id === user?.id;
-            const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const alert = alertsMap.get(conv.alert_id);
+              const isP1 = conv.participant1_id === user?.id;
+              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
+              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+              const alert = alertsMap.get(conv.alert_id);
+              // Borde brillante solo si hay mensajes no leídos
+              const hasUnread = unreadCount > 0;
+              // Resolver datos del otro usuario
+              const otherUserData = usersMap.get(otherUserId);
+              const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+              const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+              const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
+              const allowCalls = otherUserData?.allow_phone_calls ?? false;
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
+              const otherUser = {
+                name: otherUserName,
+                photo: otherUserPhoto,
+                phone: otherUserPhone,
+                allowCalls: allowCalls,
+                initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
+              };
 
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+              // Calcular distancia a la ubicación de la alerta (metros o km)
+              const calculateDistance = () => {
+                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+                const R = 6371;
+                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) ** 2 +
+                  Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceKm = R * c;
+                const meters = Math.round(distanceKm * 1000);
+                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              };
+              const distanceText = calculateDistance();
 
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
-
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-            };
-            const distanceText = calculateDistance();
-
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all
-                  ${hasUnread ?
-                'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
-                'border-2 border-purple-500'}
-                `}>
-
+              return (
+                <motion.div
+                  key={conv.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all ${hasUnread ? 'border-2 border-purple-500 shadow-lg shadow-purple-500/20' : 'border-2 border-purple-500'}`}>
                     <div className="flex flex-col h-full">
-                      {/* Header: "Info del usuario:" + distancia + precio */}
+                      {/* Cabecera: info del usuario y distancia/precio */}
                       <div className="flex justify-between items-center mb-1.5">
                         <p className="text-[13px] text-purple-400">Info del usuario:</p>
                         <div className="flex items-center gap-1.5">
@@ -366,7 +336,7 @@ export default function Chats() {
                         </div>
                       </div>
 
-                      {/* Tarjeta de usuario */}
+                      {/* Tarjeta del usuario (foto y datos) */}
                       <div className="flex gap-2.5 mb-1.5 flex-1">
                         <div className="flex flex-col gap-1.5">
                           <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
@@ -374,22 +344,17 @@ export default function Chats() {
                               {otherUser.photo ? (
                                 <img src={otherUser.photo} className="w-full h-full object-cover" alt={otherUser.name} />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">
-                                  👤
-                                </div>
+                                <div className="w-full h-full flex items-center justify-center text-3xl text-gray-500">👤</div>
                               )}
                             </div>
                           </Link>
                         </div>
-
                         <div className="flex-1 flex flex-col justify-between">
                           <p className="font-bold text-xl text-white mb-1.5">{otherUserName?.split(' ')[0]}</p>
-
                           <div className="flex items-center justify-between -mt-2.5 mb-1.5">
                             <p className="text-sm font-medium text-white">{alert.car_brand} {alert.car_model}</p>
                             <Car className="w-5 h-5" style={{ color: '#6b7280' }} />
                           </div>
-
                           <div className="-mt-[7px] bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
                             <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
                               <span className="text-[9px] font-bold text-white">E</span>
@@ -401,7 +366,7 @@ export default function Chats() {
                         </div>
                       </div>
 
-                      {/* Información de ubicación */}
+                      {/* Información de la ubicación y tiempo */}
                       <div className="space-y-1.5 pt-1.5 border-t border-gray-700">
                         {alert?.address && (
                           <div className="flex items-start gap-1.5 text-gray-400 text-xs">
@@ -409,37 +374,34 @@ export default function Chats() {
                             <span className="line-clamp-1">{alert.address}</span>
                           </div>
                         )}
-                        
                         {alert?.available_in_minutes !== undefined && (
                           <div className="flex items-center gap-1 text-gray-500 text-[10px]">
                             <Clock className="w-3.5 h-3.5" />
                             <span>Se va en {alert.available_in_minutes} min</span>
-                            <span className="text-purple-400">
-                              • Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
-                            </span>
+                            <span className="text-purple-400">• Te espera hasta las {format(new Date(Date.now() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</span>
                           </div>
                         )}
-                        
-                        {/* Botones de acción */}
+                        {/* Botones de acción (chat, llamada, temporizador) */}
                         <div className="mt-4">
                           <div className="flex gap-2">
                             <div>
                               <Link to={createPageUrl(`Chat?conversationId=${conv.id}`)}>
                                 <Button
                                   size="icon"
-                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]">
+                                  className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px]"
+                                >
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
                               </Link>
                             </div>
-                            
                             <div>
                               <Button
                                 variant="outline"
                                 size="icon"
                                 className={`border-gray-700 h-8 w-[42px] ${alert.allow_phone_calls ? 'hover:bg-gray-800' : 'opacity-40 cursor-not-allowed'}`}
-                                onClick={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                                disabled={!alert.allow_phone_calls}>
+                                onClick={() => alert.allow_phone_calls && alert.phone && (window.location.href = `tel:${alert.phone}`)}
+                                disabled={!alert.allow_phone_calls}
+                              >
                                 {alert.allow_phone_calls ? (
                                   <Phone className="w-4 h-4 text-green-400" />
                                 ) : (
@@ -447,7 +409,6 @@ export default function Chats() {
                                 )}
                               </Button>
                             </div>
-
                             <div className="flex-1">
                               <CountdownTimer availableInMinutes={alert.available_in_minutes} />
                             </div>
@@ -455,15 +416,14 @@ export default function Chats() {
                         </div>
                       </div>
                     </div>
-                </div>
-              </motion.div>);
-
-          })}
-                      </div>
-        }
-                      </main>
-
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </main>
       <BottomNav />
-    </div>);
-
+    </div>
+  );
 }
