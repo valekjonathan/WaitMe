@@ -5,13 +5,28 @@ import { base44 } from "@/api/base44Client";
 export default function Profile() {
   const [user, setUser] = useState(null);
 
+  // 🔴 ESTE es el estado que manda SIEMPRE
   const [vehicleType, setVehicleType] = useState("car");
 
-  // icono dinámico según tipo de vehículo
-  const VehicleIcon = () => {
+  useEffect(() => {
+    const loadUser = async () => {
+      const me = await base44.auth.me();
+      setUser(me);
+      setVehicleType(me?.vehicle_type || "car");
+    };
+    loadUser();
+  }, []);
+
+  const saveProfile = async (field, value) => {
+    if (!user) return;
+    await base44.entities.User.update(user.id, {
+      [field]: value,
+    });
+  };
+
+  // 🔥 icono basado SOLO en vehicleType
+  const renderVehicleIcon = () => {
     switch (vehicleType) {
-      case "car":
-        return <Car className="w-6 h-6 text-white" />;
       case "big":
         return <Truck className="w-6 h-6 text-white" />;
       case "van":
@@ -23,29 +38,11 @@ export default function Profile() {
     }
   };
 
-  // cargar usuario SOLO una vez
-  useEffect(() => {
-    const loadUser = async () => {
-      const me = await base44.auth.me();
-      setUser(me);
-      setVehicleType(me?.vehicle_type || "car");
-    };
-    loadUser();
-  }, []);
-
-  // guardar cambios sin romper UI
-  const saveProfile = async (field, value) => {
-    if (!user) return;
-    await base44.entities.User.update(user.id, {
-      [field]: value,
-    });
-  };
-
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-black text-white px-4 pt-6 pb-24">
-      {/* TARJETA SUPERIOR – NO SE TOCA ESTÉTICA */}
+      {/* TARJETA SUPERIOR — MISMO DISEÑO */}
       <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 flex items-center gap-4">
         <img
           src={user.photo_url}
@@ -60,7 +57,9 @@ export default function Profile() {
           </p>
 
           <div className="flex items-center gap-2 mt-2">
-            <VehicleIcon />
+            {/* 🔥 AQUÍ CAMBIA EN TIEMPO REAL */}
+            {renderVehicleIcon()}
+
             <div className="bg-white rounded-md flex items-center overflow-hidden border h-7">
               <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
                 <span className="text-[9px] font-bold text-white">E</span>
@@ -73,7 +72,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* FORMULARIO – MISMA DISPOSICIÓN */}
+      {/* FORMULARIO — MISMA DISPOSICIÓN */}
       <div className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <input
@@ -97,12 +96,14 @@ export default function Profile() {
           />
         </div>
 
+        {/* 🔥 SELECT QUE MANDA */}
         <select
           className="bg-gray-900 rounded-xl p-3 w-full"
           value={vehicleType}
           onChange={(e) => {
-            setVehicleType(e.target.value);
-            saveProfile("vehicle_type", e.target.value);
+            const value = e.target.value;
+            setVehicleType(value);           // cambia icono AL INSTANTE
+            saveProfile("vehicle_type", value);
           }}
         >
           <option value="car">Coche</option>
