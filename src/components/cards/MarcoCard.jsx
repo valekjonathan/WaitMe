@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, MessageCircle, Phone, PhoneOff } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, PhoneOff, X, Send } from 'lucide-react';
 
 export default function MarcoCard({
   photoUrl,
