@@ -486,6 +486,8 @@ export default function Chat() {
     return cleaned;
   };
 
+  const fileInputRef = useRef(null);
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header showBackButton={true} backTo="Chats" />
@@ -563,7 +565,7 @@ export default function Chat() {
             <form onSubmit={handleSendMessage} className="flex gap-2">
               <input
                 type="file"
-                ref={useRef(null)}
+                ref={fileInputRef}
                 onChange={handleFileSelect}
                 multiple
                 className="hidden"
@@ -571,7 +573,7 @@ export default function Chat() {
               />
               <button
                 type="button"
-                onClick={() => document.querySelector('input[type="file"]')?.click()}
+                onClick={() => fileInputRef.current?.click()}
                 className="text-purple-400 hover:text-purple-300 p-2"
               >
                 📎
