@@ -295,7 +295,7 @@ export default function MarcoCard({
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && newMessage.trim()) {
-                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
+                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage, timestamp: new Date() }]);
                     setNewMessage('');
                   }
                 }}
