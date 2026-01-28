@@ -256,7 +256,7 @@ export default function Home() {
       const futureTime = new Date(now.getTime() + data.available_in_minutes * 60 * 1000);
 
       const payload = {
-        user_id: currentUser?.email,
+        user_id: currentUser?.id,
         user_email: currentUser?.email || currentUser?.id || '',
         created_by: currentUser?.email || currentUser?.id || '',
         latitude: data.latitude,
