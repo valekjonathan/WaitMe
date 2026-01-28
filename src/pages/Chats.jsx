@@ -344,11 +344,7 @@ export default function Chats() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}>
 
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all
-                  ${hasUnread ?
-                'border-2 border-purple-500 shadow-lg shadow-purple-500/20' :
-                'border-2 border-purple-500'}
-                `}>
+                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50`}>
 
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
