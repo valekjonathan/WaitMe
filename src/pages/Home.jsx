@@ -290,23 +290,23 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      const futureTime = new Date(Date.now() + data.available_in_minutes * 60 * 1000);
+      const futureTime = new Date(Date.now() + data.minutes * 60 * 1000);
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
-        user_name: data.user_name,
-        user_photo: data.user_photo,
+        user_name: user?.full_name?.split(' ')[0] || user?.email || 'Usuario',
+        user_photo: user?.photo_url || '',
         latitude: data.latitude,
         longitude: data.longitude,
         address: data.address,
         price: data.price,
-        available_in_minutes: data.available_in_minutes,
+        available_in_minutes: data.minutes,
         car_brand: data.car_brand || '',
         car_model: data.car_model || '',
         car_color: data.car_color || '',
         car_plate: data.car_plate || '',
-        phone: data.phone,
-        allow_phone_calls: data.allow_phone_calls,
+        phone: data.phone || '',
+        allow_phone_calls: data.allow_phone_calls || false,
         wait_until: futureTime.toISOString(),
         status: 'active'
       });
