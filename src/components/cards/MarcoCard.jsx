@@ -235,134 +235,26 @@ export default function MarcoCard({
 
       <div className="border-t border-gray-700/80 mt-2 pt-1.5">
         <div 
-          onClick={() => setShowChat(true)}
+          onClick={() => {
+            if (conversationId) {
+              const params = new URLSearchParams({
+                conversationId,
+                ...(isDemo && { demo: 'true', userName: demoUserName, userPhoto: encodeURIComponent(demoUserPhoto), alertId: demoAlertId })
+              });
+              navigate(`${createPageUrl('Chat')}?${params.toString()}`);
+            }
+          }}
           className="flex items-start justify-between gap-2 cursor-pointer hover:opacity-80 transition-opacity"
         >
           <div className="text-xs flex-1 flex flex-col gap-1">
             <span className="text-purple-400 font-bold">Ultimo mensaje:</span>
-            <span className="text-white" style={{ maxWidth: '40ch' }}>{messages[messages.length - 1]?.text || 'No hay mensajes'}</span>
+            <span className="text-white" style={{ maxWidth: '40ch' }}>Carga desde la conversación</span>
           </div>
           <div className="bg-red-500/20 border border-red-500/30 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
             <span className="text-red-400 text-xs font-bold">2</span>
           </div>
         </div>
       </div>
-
-      {showChat && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-2xl h-[75vh] flex flex-col border-t-2 border-purple-500/50 overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-700/80">
-              <div className="flex items-center gap-2">
-                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-lg object-cover border-2 border-purple-500" />}
-                <span className="text-white font-bold">{(name || '').split(' ')[0]}</span>
-              </div>
-              <button
-                onClick={() => setShowChat(false)}
-                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
-              {messages.map((msg) => (
-                <div key={msg.id} className="flex flex-col w-full">
-                  <span className="text-xs text-gray-500 mb-1 text-center">
-                      {format(msg.timestamp, 'dd MMM - HH:mm', { locale: es }).replace(/^(\d{2} )([a-z])/, (match, p1, p2) => p1 + p2.toUpperCase())}
-                    </span>
-                  <div className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
-                        msg.sender === 'you'
-                          ? 'bg-purple-800/40 text-white'
-                          : 'bg-gray-800 text-gray-100'
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Input */}
-            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10 -top-[80px]">
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-              />
-              <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-              />
-              <div className="relative">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-purple-400 hover:text-purple-300 flex-shrink-0"
-                  onClick={() => setShowMediaMenu(!showMediaMenu)}
-                >
-                  <Paperclip className="w-5 h-5" />
-                </Button>
-                {showMediaMenu && (
-                  <div className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-50">
-                    <button
-                      onClick={() => {
-                        cameraInputRef.current?.click();
-                        setShowMediaMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap"
-                    >
-                      📷 Hacer foto
-                    </button>
-                    <button
-                      onClick={() => {
-                        galleryInputRef.current?.click();
-                        setShowMediaMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap border-t border-gray-700"
-                    >
-                      🖼️ Subir foto
-                    </button>
-                  </div>
-                )}
-              </div>
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && newMessage.trim()) {
-                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage, timestamp: new Date() }]);
-                    setNewMessage('');
-                  }
-                }}
-                placeholder="Escribe un mensaje..."
-                className="flex-1 bg-purple-900/30 border-2 border-purple-600/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 focus:border-2"
-              />
-              <Button
-                size="icon"
-                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-10 px-5 relative top-0"
-                onClick={() => {
-                  if (newMessage.trim()) {
-                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage, timestamp: new Date() }]);
-                    setNewMessage('');
-                  }
-                }}
-              >
-                <Send className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
