@@ -658,9 +658,8 @@ export default function History() {
 
       return true;
     });
-    // Solo mostrar alertas reales publicadas, no mocks
-    return dbAlerts;
-  }, [myAlerts, user?.id]);
+    return [...dbAlerts, ...mockMyActiveAlerts];
+  }, [myAlerts, user?.id, mockMyActiveAlerts]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
