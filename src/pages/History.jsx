@@ -479,7 +479,9 @@ export default function History() {
   const { data: myAlerts = [], isLoading: loadingAlerts } = useQuery({
     queryKey: ['myAlerts', user?.id],
     queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 3000,
+    refetchInterval: false
   });
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
@@ -491,25 +493,58 @@ export default function History() {
       ]);
       return [...asSeller, ...asBuyer];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 5000,
+    refetchInterval: false
   });
 
-  // Activas (tuyas)
-  const myActiveAlerts = myAlerts.filter(
-    (a) => a.user_id === user?.id && (a.status === 'active' || a.status === 'reserved')
-  );
+  // Activas (tuyas) - SOLO si NO han expirado
+  const myActiveAlerts = useMemo(() => {
+    return myAlerts.filter((a) => {
+      if (a.user_id !== user?.id) return false;
+      if (a.status !== 'active' && a.status !== 'reserved') return false;
+      
+      // Verificar si ha expirado
+      const waitUntilTs = getWaitUntilTs(a);
+      if (waitUntilTs && waitUntilTs < nowTs) return false;
+      
+      return true;
+    });
+  }, [myAlerts, user?.id, nowTs]);
 
   // Finalizadas tuyas como alertas
-  const myFinalizedAlerts = myAlerts.filter(
-    (a) =>
-      a.user_id === user?.id &&
-      (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed')
-  );
+  const myFinalizedAlerts = useMemo(() => {
+    return myAlerts.filter((a) => {
+      if (a.user_id !== user?.id) return false;
+      
+      // Incluir si el status indica finalizada
+      if (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed') {
+        return true;
+      }
+      
+      // También incluir si está "activa" pero ha expirado por tiempo
+      if (a.status === 'active' || a.status === 'reserved') {
+        const waitUntilTs = getWaitUntilTs(a);
+        if (waitUntilTs && waitUntilTs < nowTs) return true;
+      }
+      
+      return false;
+    });
+  }, [myAlerts, user?.id, nowTs]);
 
   // Reservas (tuyas como comprador)
-  const myReservationsReal = myAlerts.filter(
-    (a) => a.reserved_by_id === user?.id && a.status === 'reserved'
-  );
+  const myReservationsReal = useMemo(() => {
+    return myAlerts.filter((a) => {
+      if (a.reserved_by_id !== user?.id) return false;
+      if (a.status !== 'reserved') return false;
+      
+      // Verificar si ha expirado
+      const waitUntilTs = getWaitUntilTs(a);
+      if (waitUntilTs && waitUntilTs < nowTs) return false;
+      
+      return true;
+    });
+  }, [myAlerts, user?.id, nowTs]);
 
   // ====== MOCKS (ESTABLES: NO se regeneran con cada tick) ======
   const mockReservationsActive = useMemo(() => {
@@ -817,14 +852,16 @@ export default function History() {
                           : '--:--';
 
                         if (
-                          alert.status === 'active' &&
+                          (alert.status === 'active' || alert.status === 'reserved') &&
                           hasExpiry &&
                           remainingMs <= 0 &&
                           !autoFinalizedRef.current.has(alert.id) &&
                           !expireAlertMutation.isPending
                         ) {
                           autoFinalizedRef.current.add(alert.id);
-                          expireAlertMutation.mutate(alert.id);
+                          setTimeout(() => {
+                            expireAlertMutation.mutate(alert.id);
+                          }, 100);
                         }
 
                         const countdownText =

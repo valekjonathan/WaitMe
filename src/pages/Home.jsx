@@ -265,13 +265,8 @@ export default function Home() {
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['userActiveAlerts'] });
-      
-      setTimeout(() => {
-        window.location.href = createPageUrl('History');
-      }, 300);
+      // Redirigir inmediatamente
+      window.location.href = createPageUrl('History');
     }
   });
 
