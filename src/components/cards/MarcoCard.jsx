@@ -285,7 +285,8 @@ export default function MarcoCard({
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter' && newMessage.trim()) {
-                    handleSendMessage();
+                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
+                    setNewMessage('');
                   }
                 }}
                 placeholder="Escribe un mensaje..."
@@ -294,14 +295,14 @@ export default function MarcoCard({
               <Button
                 size="icon"
                 className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
-                onClick={handleSendMessage}
-                disabled={sendMessageMutation.isPending || !newMessage.trim()}
+                onClick={() => {
+                  if (newMessage.trim()) {
+                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
+                    setNewMessage('');
+                  }
+                }}
               >
-                {sendMessageMutation.isPending ? (
-                  <Loader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
+                <Send className="w-4 h-4" />
               </Button>
             </div>
           </div>
