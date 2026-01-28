@@ -162,24 +162,22 @@ export default function History() {
   };
 
   const getWaitUntilTs = (alert) => {
-    const createdTs = getCreatedTs(alert);
-    if (!createdTs) return null;
-
+    // Primero intentar usar wait_until si existe
     const dateFields = [
       alert.wait_until,
       alert.waitUntil,
       alert.expires_at,
-      alert.expiresAt,
-      alert.ends_at,
-      alert.endsAt,
-      alert.available_until,
-      alert.availableUntil
+      alert.expiresAt
     ].filter(Boolean);
 
     for (const v of dateFields) {
       const t = toMs(v);
       if (typeof t === 'number' && t > 0) return t;
     }
+
+    // Si no hay wait_until, calcularlo desde created_date + minutes
+    const createdTs = getCreatedTs(alert);
+    if (!createdTs) return null;
 
     const mins =
       Number(alert.available_in_minutes) ||
@@ -471,7 +469,8 @@ export default function History() {
         () => {}
       );
     }
-    const t = setInterval(() => setNowTs(Date.now()), 1000);
+    // Actualizar cada 5 segundos en lugar de cada segundo
+    const t = setInterval(() => setNowTs(Date.now()), 5000);
     return () => clearInterval(t);
   }, []);
 
@@ -504,33 +503,23 @@ export default function History() {
       if (a.user_id !== user?.id) return false;
       if (a.status !== 'active' && a.status !== 'reserved') return false;
       
-      // Verificar si ha expirado
-      const waitUntilTs = getWaitUntilTs(a);
-      if (waitUntilTs && waitUntilTs < nowTs) return false;
-      
       return true;
     });
-  }, [myAlerts, user?.id, nowTs]);
+  }, [myAlerts, user?.id]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
     return myAlerts.filter((a) => {
       if (a.user_id !== user?.id) return false;
       
-      // Incluir si el status indica finalizada
+      // SOLO incluir si el status indica finalizada
       if (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed') {
         return true;
       }
       
-      // También incluir si está "activa" pero ha expirado por tiempo
-      if (a.status === 'active' || a.status === 'reserved') {
-        const waitUntilTs = getWaitUntilTs(a);
-        if (waitUntilTs && waitUntilTs < nowTs) return true;
-      }
-      
       return false;
     });
-  }, [myAlerts, user?.id, nowTs]);
+  }, [myAlerts, user?.id]);
 
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
@@ -538,13 +527,9 @@ export default function History() {
       if (a.reserved_by_id !== user?.id) return false;
       if (a.status !== 'reserved') return false;
       
-      // Verificar si ha expirado
-      const waitUntilTs = getWaitUntilTs(a);
-      if (waitUntilTs && waitUntilTs < nowTs) return false;
-      
       return true;
     });
-  }, [myAlerts, user?.id, nowTs]);
+  }, [myAlerts, user?.id]);
 
   // ====== MOCKS (ESTABLES: NO se regeneran con cada tick) ======
   const mockReservationsActive = useMemo(() => {
@@ -851,17 +836,16 @@ export default function History() {
                           ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
                           : '--:--';
 
+                        // Auto-expirar SOLO si han pasado los minutos configurados
                         if (
-                          (alert.status === 'active' || alert.status === 'reserved') &&
+                          alert.status === 'active' &&
                           hasExpiry &&
+                          remainingMs !== null &&
                           remainingMs <= 0 &&
-                          !autoFinalizedRef.current.has(alert.id) &&
-                          !expireAlertMutation.isPending
+                          !autoFinalizedRef.current.has(alert.id)
                         ) {
                           autoFinalizedRef.current.add(alert.id);
-                          setTimeout(() => {
-                            expireAlertMutation.mutate(alert.id);
-                          }, 100);
+                          expireAlertMutation.mutate(alert.id);
                         }
 
                         const countdownText =
