@@ -1246,7 +1246,7 @@ export default function History() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-[10px]">
                     {reservationsActiveAll.map((alert, index) => {
                       const createdTs = getCreatedTs(alert) || nowTs;
                       const waitUntilTs = getWaitUntilTs(alert);
