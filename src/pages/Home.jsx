@@ -248,20 +248,30 @@ export default function Home() {
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
+      
+      const now = new Date();
+      const waitUntil = new Date(now.getTime() + data.available_in_minutes * 60000);
+      
       const payload = {
         ...data,
         status: 'active',
         user_id: currentUser?.id,
         user_email: currentUser?.email || currentUser?.id || '',
-        created_by: currentUser?.email || currentUser?.id || ''
+        created_by: currentUser?.email || currentUser?.id || '',
+        wait_until: waitUntil.toISOString(),
+        created_date: now.toISOString()
       };
+      
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['userActiveAlerts'] });
-      window.location.href = createPageUrl('History');
+      
+      setTimeout(() => {
+        window.location.href = createPageUrl('History');
+      }, 300);
     }
   });
 
@@ -545,7 +555,31 @@ export default function Home() {
                     address={address}
                     onAddressChange={setAddress}
                     onUseCurrentLocation={getCurrentLocation}
-                    onCreateAlert={(data) => createAlertMutation.mutate(data)}
+                    onCreateAlert={(data) => {
+                      if (!selectedPosition || !address) {
+                        alert('Por favor, selecciona una ubicación en el mapa');
+                        return;
+                      }
+                      
+                      const currentUser = user;
+                      const payload = {
+                        latitude: selectedPosition.lat,
+                        longitude: selectedPosition.lng,
+                        address: address,
+                        price: data.price,
+                        available_in_minutes: data.minutes,
+                        user_name: currentUser?.full_name?.split(' ')[0] || currentUser?.display_name || 'Usuario',
+                        user_photo: currentUser?.photo_url || null,
+                        car_brand: currentUser?.car_brand || 'Sin marca',
+                        car_model: currentUser?.car_model || 'Sin modelo',
+                        car_color: currentUser?.car_color || 'gris',
+                        car_plate: currentUser?.car_plate || '0000XXX',
+                        phone: currentUser?.phone || null,
+                        allow_phone_calls: currentUser?.allow_phone_calls || false
+                      };
+                      
+                      createAlertMutation.mutate(payload);
+                    }}
                     isLoading={createAlertMutation.isPending}
                   />
                 </div>
