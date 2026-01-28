@@ -87,21 +87,17 @@ export default function Notifications() {
 
   const rejectMutation = useMutation({
     mutationFn: async (notification) => {
-      await base44.entities.Notification.update(notification.id, {
-        status: 'rejected',
-        read: true
-      });
-
-      // Notificar al comprador
-      await base44.entities.Notification.create({
-        type: 'reservation_rejected',
-        recipient_id: notification.sender_id,
-        recipient_email: notification.sender_id,
-        sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
-        alert_id: notification.alert_id,
-        status: 'completed'
-      });
+      return Promise.all([
+        base44.entities.Notification.update(notification.id, { status: 'rejected', read: true }),
+        base44.entities.Notification.create({
+          type: 'reservation_rejected',
+          recipient_id: notification.sender_id,
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+          alert_id: notification.alert_id,
+          status: 'completed'
+        })
+      ]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
