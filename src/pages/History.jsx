@@ -1593,6 +1593,10 @@ export default function History() {
         .map((alert) => (
           <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
         ))}
+
+      <script>
+      {`if (window.location.hash === '#refresh') { window.location.hash = ''; window.location.reload(); }`}
+      </script>
     </div>
   );
 }
