@@ -452,14 +452,12 @@ export default function Chat() {
       {/* Header del chat */}
       <div className="pt-16 flex items-center justify-between px-4 py-4 border-b border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gray-700 overflow-hidden">
-            {otherUserPhoto && (
-              <img src={otherUserPhoto} alt={otherUserName} className="w-full h-full object-cover" />
-            )}
-          </div>
-          <div>
-            <h2 className="text-white font-semibold">{otherUserName}</h2>
-          </div>
+          <img 
+            src={otherUserPhoto} 
+            alt={otherUserName} 
+            className="w-12 h-12 rounded-xl object-cover" 
+          />
+          <h2 className="text-white font-semibold">{otherUserName}</h2>
         </div>
       </div>
 
