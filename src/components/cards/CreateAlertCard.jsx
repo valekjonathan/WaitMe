@@ -64,13 +64,13 @@ export default function CreateAlertCard({
         <div className="space-y-1">
           <Label className="text-white flex items-center gap-2 text-sm font-medium">
             <Euro className="w-4 h-4 text-purple-400" />
-            Precio: <span className="text-purple-400 font-bold">{price}€</span>
-            <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)}€)</span>
+            Precio: <span className="text-purple-400 font-bold">{price} €</span>
+            <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)} €)</span>
           </Label>
           <Slider
             value={[price]}
             onValueChange={(v) => setPrice(v[0])}
-            min={1}
+            min={3}
             max={15}
             step={1}
             className="py-1 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
