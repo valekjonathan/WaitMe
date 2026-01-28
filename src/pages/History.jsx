@@ -677,12 +677,12 @@ export default function History() {
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
     return myAlerts.filter((a) => {
-      if (a.reserved_by_id !== user?.id) return false;
+      if (a.reserved_by_id !== user?.email) return false;
       if (a.status !== 'reserved') return false;
-      
+
       return true;
     });
-  }, [myAlerts, user?.id]);
+  }, [myAlerts, user?.email]);
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
