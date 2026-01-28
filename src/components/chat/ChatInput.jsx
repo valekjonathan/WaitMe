@@ -21,7 +21,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="fixed bottom-24 left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
+    <div className="fixed bottom-[72px] left-0 right-0 bg-black/90 backdrop-blur-sm border-t-2 border-gray-700 p-4">
       <div>
         {attachments.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
