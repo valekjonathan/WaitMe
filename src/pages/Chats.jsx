@@ -352,13 +352,13 @@ export default function Chats() {
                         <p className="text-[13px] text-purple-300 font-semibold">Info del usuario:</p>
                         <div className="flex items-center gap-1.5">
                           {distanceText && (
-                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
-                              <Navigation className="w-3 h-3 text-purple-400" />
-                              <span className="text-white font-bold text-xs">{distanceText}</span>
-                            </div>
+                           <div className="bg-purple-600/40 backdrop-blur-sm border border-purple-400/50 rounded-full px-2 py-0.5 flex items-center gap-1">
+                             <Navigation className="w-3 h-3 text-purple-300" />
+                             <span className="text-white font-bold text-xs">{distanceText}</span>
+                           </div>
                           )}
-                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
-                            <span className="text-purple-400 font-bold text-xs">{Math.round(alert.price)}€</span>
+                          <div className="bg-purple-600/40 border border-purple-400/50 rounded-full px-2 py-0.5 flex items-center gap-1">
+                           <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
                           </div>
                         </div>
                       </div>
