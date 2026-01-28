@@ -1053,7 +1053,7 @@ export default function History() {
                     <p>No tienes alertas finalizadas</p>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-[10px]">
                     {myFinalizedAll.map((item, index) => {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
