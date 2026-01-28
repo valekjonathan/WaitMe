@@ -658,8 +658,8 @@ export default function History() {
 
       return true;
     });
-    return [...dbAlerts];
-  }, [myAlerts, user?.id]);
+    return [...dbAlerts, ...mockMyActiveAlerts];
+  }, [myAlerts, user?.id, mockMyActiveAlerts]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
