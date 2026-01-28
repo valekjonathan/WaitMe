@@ -49,48 +49,35 @@ export default function Notifications() {
 
   const acceptMutation = useMutation({
     mutationFn: async (notification) => {
-      // Actualizar notificación
-      await base44.entities.Notification.update(notification.id, {
-        status: 'accepted',
-        read: true
-      });
-
-      // Actualizar alerta a "reservada"
-      const alert = await base44.entities.ParkingAlert.filter({ id: notification.alert_id });
-      if (alert[0]) {
-        await base44.entities.ParkingAlert.update(alert[0].id, {
+      return Promise.all([
+        base44.entities.Notification.update(notification.id, { status: 'accepted', read: true }),
+        base44.entities.ParkingAlert.update(notification.alert_id, {
           status: 'reserved',
           reserved_by_id: notification.sender_id,
-          reserved_by_email: notification.sender_id,
           reserved_by_name: notification.sender_name
-        });
-      }
-
-      // Crear transacción pendiente
-      await base44.entities.Transaction.create({
-        alert_id: notification.alert_id,
-        seller_id: user?.id,
-        seller_name: user?.display_name || user?.full_name?.split(' ')[0],
-        buyer_id: notification.sender_id,
-        buyer_name: notification.sender_name,
-        amount: notification.amount,
-        seller_earnings: notification.amount * 0.8,
-        platform_fee: notification.amount * 0.2,
-        status: 'pending'
-      });
-
-      // Notificar al comprador
-      await base44.entities.Notification.create({
-        type: 'reservation_accepted',
-        recipient_id: notification.sender_id,
-        recipient_email: notification.sender_id,
-        sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
-        sender_photo: user?.photo_url,
-        alert_id: notification.alert_id,
-        amount: notification.amount,
-        status: 'completed'
-      });
+        }),
+        base44.entities.Transaction.create({
+          alert_id: notification.alert_id,
+          seller_id: user?.id,
+          seller_name: user?.display_name || user?.full_name?.split(' ')[0],
+          buyer_id: notification.sender_id,
+          buyer_name: notification.sender_name,
+          amount: notification.amount,
+          seller_earnings: notification.amount * 0.8,
+          platform_fee: notification.amount * 0.2,
+          status: 'pending'
+        }),
+        base44.entities.Notification.create({
+          type: 'reservation_accepted',
+          recipient_id: notification.sender_id,
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+          sender_photo: user?.photo_url,
+          alert_id: notification.alert_id,
+          amount: notification.amount,
+          status: 'completed'
+        })
+      ]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
