@@ -1128,7 +1128,7 @@ export default function History() {
                       }
 
                       const tx = item.data;
-                      const isSeller = tx.seller_id === user?.id;
+                      const isSeller = tx.seller_id === user?.email;
 
                       const buyerName = tx.buyer_name || 'Usuario';
                       const buyerPhoto = tx.buyer_photo_url || tx.buyerPhotoUrl || '';
