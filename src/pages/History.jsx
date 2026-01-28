@@ -211,12 +211,12 @@ export default function History() {
       variant="outline"
       disabled
       className={[
-        'w-full h-10 flex items-center justify-center font-mono font-extrabold text-lg',
+        'w-full h-9 flex items-center justify-center font-mono font-extrabold text-sm',
         'pointer-events-none cursor-default',
         dimmed
           ? '!border-purple-500/30 !bg-purple-600/10 !text-gray-400/70 !shadow-none !opacity-80 hover:!bg-purple-600/10'
-          : '!border-purple-400 !bg-purple-600/30 !text-purple-50 hover:!bg-purple-600/30 hover:!text-purple-50 ' +
-            '!shadow-[0_0_8px_rgba(168,85,247,0.5),0_0_20px_rgba(168,85,247,0.3),inset_0_0_15px_rgba(168,85,247,0.2)]'
+          : '!border-purple-400/70 !bg-purple-600/25 !text-purple-100 hover:!bg-purple-600/25 hover:!text-purple-100 ' +
+            '!shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]'
       ].join(' ')}
     >
       {text}
