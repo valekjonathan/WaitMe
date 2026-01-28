@@ -841,8 +841,28 @@ export default function History() {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                   >
-                    <div className="h-[160px] flex items-center justify-center">
-                      <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa</p>
+                    <CardHeaderRow
+                      left={
+                        <Badge
+                          className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                        >
+                          Activa
+                        </Badge>
+                      }
+                      dateText="--"
+                      dateClassName="text-white"
+                      right={
+                        <MoneyChip
+                          mode="neutral"
+                          amountText="--€"
+                        />
+                      }
+                    />
+
+                    <div className="border-t border-gray-700/80 mb-2" />
+
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-gray-500 font-semibold text-center">No tienes ninguna alerta activa</p>
                     </div>
                   </motion.div>
                 ) : (
