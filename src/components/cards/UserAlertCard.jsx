@@ -204,7 +204,7 @@ export default function UserAlertCard({
             </div>
 
             <div className="flex-1 flex justify-center">
-              <div className="flex-shrink-0 relative -top-[1px]">
+              <div className="flex-shrink-0 relative top-[2px]">
                 <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
                   <path
                     d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
