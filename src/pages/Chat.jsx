@@ -502,39 +502,38 @@ export default function Chat() {
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-20 left-0 right-0 bg-black border-t border-gray-700 p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-2 max-w-full">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            multiple
-            className="hidden"
-            accept="image/*,.pdf,.doc,.docx"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-purple-400 hover:text-purple-300 p-2"
-          >
-            📎
-          </button>
-          <input
-            value={newMessage}
-            onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
-            onKeyPress={handleKeyPress}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
-            disabled={sendMessageMutation.isPending}
-          />
-          <button
-            type="submit"
-            disabled={(!newMessage.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-            className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-2 rounded-lg"
-          >
-            ➤
-          </button>
-        </form>
+      <div className="fixed bottom-20 left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          multiple
+          className="hidden"
+          accept="image/*,.pdf,.doc,.docx"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+        >
+          📎
+        </button>
+        <input
+          value={newMessage}
+          onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
+          onKeyPress={handleKeyPress}
+          placeholder="Escribe un mensaje..."
+          className="flex-1 bg-purple-900/30 border-2 border-purple-600/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 focus:border-2"
+          disabled={sendMessageMutation.isPending}
+        />
+        <button
+          type="submit"
+          onClick={handleSendMessage}
+          disabled={(!newMessage.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white flex-shrink-0 h-10 px-5"
+        >
+          ➤
+        </button>
       </div>
 
       <BottomNav />
