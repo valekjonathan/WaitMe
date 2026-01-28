@@ -663,7 +663,7 @@ export default function History() {
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
     return myAlerts.filter((a) => {
-      if (a.user_id !== user?.email) return false;
+      if (a.user_id !== user?.id) return false;
 
       // SOLO incluir si el status indica finalizada
       if (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed') {
@@ -672,7 +672,7 @@ export default function History() {
 
       return false;
     });
-  }, [myAlerts, user?.email]);
+  }, [myAlerts, user?.id]);
 
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
