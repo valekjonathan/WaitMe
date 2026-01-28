@@ -222,7 +222,10 @@ export default function MarcoCard({
       </div>
 
       <div className="border-t border-gray-700/80 mt-2 pt-1.5">
-        <div className="flex items-start justify-between gap-2">
+        <div 
+          onClick={() => setShowChat(true)}
+          className="flex items-start justify-between gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <div className="text-xs flex-1 flex flex-col gap-1">
             <span className="text-purple-400 font-bold">Ultimo mensaje:</span>
             <span className="text-white truncate" style={{ maxWidth: '40ch' }}>Vale, aguanto aquí. Av...</span>
@@ -232,6 +235,77 @@ export default function MarcoCard({
           </div>
         </div>
       </div>
+
+      {showChat && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
+          <div className="w-full bg-gray-900 rounded-t-2xl h-[80vh] flex flex-col border-t-2 border-purple-500/50">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700/80">
+              <div className="flex items-center gap-2">
+                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />}
+                <span className="text-white font-bold">{(name || '').split(' ')[0]}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowChat(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
+                      msg.sender === 'you'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-100'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Input */}
+            <div className="p-4 border-t border-gray-700/80 flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && newMessage.trim()) {
+                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
+                    setNewMessage('');
+                  }
+                }}
+                placeholder="Escribe un mensaje..."
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+              />
+              <Button
+                size="icon"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                onClick={() => {
+                  if (newMessage.trim()) {
+                    setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
+                    setNewMessage('');
+                  }
+                }}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
