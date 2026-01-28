@@ -375,7 +375,7 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <Header showBackButton={true} backTo="Profile" />
+      <Header showBackButton={true} backTo="Chats" />
       <ChatMessages messages={messages} user={user} />
       <ChatInput
         newMessage={newMessage}
