@@ -284,7 +284,7 @@ export default function MarcoCard({
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
+            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 w-full">
               <input
                 type="text"
                 value={newMessage}
