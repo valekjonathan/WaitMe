@@ -187,7 +187,11 @@ export default function MarcoCard({
             className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
             onClick={() => {
               if (conversationId) {
-                setShowChat(true);
+                const params = new URLSearchParams({
+                  conversationId,
+                  ...(isDemo && { demo: 'true', userName: demoUserName, userPhoto: encodeURIComponent(demoUserPhoto), alertId: demoAlertId })
+                });
+                navigate(`${createPageUrl('Chat')}?${params.toString()}`);
               } else {
                 onChat?.();
               }
