@@ -19,7 +19,7 @@ export default function MarcoCard({
   bright = false,
   conversationId
 }) {
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(!!conversationId);
   const [messages, setMessages] = useState([
     { id: 1, sender: 'other', text: 'Vale, aguanto aquí' },
     { id: 2, sender: 'other', text: 'Avisame cuando llegues' },
