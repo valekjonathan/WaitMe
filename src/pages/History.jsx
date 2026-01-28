@@ -736,7 +736,7 @@ export default function History() {
 
   const reservationsFinalAllBase = [
     ...myAlerts
-      .filter((a) => a.reserved_by_id === user?.email && a.status !== 'reserved')
+      .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
       .map((a) => ({
         type: 'alert',
         id: `res-final-alert-${a.id}`,
@@ -744,7 +744,7 @@ export default function History() {
         data: a
       })),
     ...transactions
-      .filter((t) => t.buyer_id === user?.email)
+      .filter((t) => t.buyer_id === user?.id)
       .map((t) => ({
         type: 'transaction',
         id: `res-final-tx-${t.id}`,
