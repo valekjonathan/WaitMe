@@ -844,7 +844,7 @@ export default function History() {
                     <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
                   </motion.div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-[10px]">
                     {myActiveAlerts
                        .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
                        .map((alert, index) => {
