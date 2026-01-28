@@ -844,20 +844,34 @@ export default function History() {
                 ) : (
                   <div className="space-y-1.5">
                     {myActiveAlerts
-                      .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
-                      .map((alert, index) => {
-                        const createdTs = getCreatedTs(alert);
-                        const waitUntilTs = getWaitUntilTs(alert);
-                        
-                        // Si no podemos calcular los timestamps, skip esta alerta
-                        if (!createdTs || !waitUntilTs) {
-                          console.warn('Alert sin timestamps válidos:', alert.id);
-                          return null;
-                        }
+                       .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
+                       .map((alert, index) => {
+                         const createdTs = getCreatedTs(alert);
+                         const waitUntilTs = getWaitUntilTs(alert);
 
-                        const remainingMs = Math.max(0, waitUntilTs - nowTs);
-                        const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
-                        const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
+                         // Si no podemos calcular los timestamps, skip esta alerta
+                         if (!createdTs || !waitUntilTs) {
+                           console.warn('Alert sin timestamps válidos:', alert.id);
+                           return null;
+                         }
+
+                         const remainingMs = Math.max(0, waitUntilTs - nowTs);
+                         const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
+
+                         // Auto-finalizar si expiró
+                         if (remainingMs <= 0 && alert.status === 'active') {
+                           const isMock = String(alert.id).startsWith('mock-');
+                           if (!isMock && !autoFinalizedRef.current.has(alert.id)) {
+                             autoFinalizedRef.current.add(alert.id);
+                             base44.entities.ParkingAlert
+                               .update(alert.id, { status: 'expired' })
+                               .finally(() => {
+                                 queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                               });
+                           }
+                           return null;
+                         }
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
