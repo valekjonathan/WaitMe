@@ -379,6 +379,7 @@ export default function Chats() {
                          statusText={format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
                          phoneEnabled={alert.allow_phone_calls}
                          onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                         conversationId={conv.id}
                        />
                       </div>
                     </div>
