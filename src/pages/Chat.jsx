@@ -325,26 +325,19 @@ export default function Chat() {
 
   // Marcar mensajes como leídos
   useEffect(() => {
-    if (!messages.length || !user?.id) return;
+    if (!messages.length || !user?.id || isDemo) return;
     
     const unreadMessages = messages.filter(m => m.receiver_id === user.id && !m.read);
     if (unreadMessages.length > 0) {
-      unreadMessages.forEach(async (msg) => {
-        await base44.entities.ChatMessage.update(msg.id, { read: true });
+      Promise.all(unreadMessages.map(msg => base44.entities.ChatMessage.update(msg.id, { read: true }))).then(() => {
+        if (conversation) {
+          const isP1 = conversation.participant1_id === user.id;
+          base44.entities.Conversation.update(conversation.id, isP1 ? { unread_count_p1: 0 } : { unread_count_p2: 0 });
+        }
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
       });
-      
-      // Actualizar contador en conversación
-      if (conversation) {
-        const isP1 = conversation.participant1_id === user.id;
-        const updateData = isP1 
-          ? { unread_count_p1: 0 }
-          : { unread_count_p2: 0 };
-        base44.entities.Conversation.update(conversation.id, updateData);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     }
-  }, [messages, user?.id, conversation, queryClient]);
+  }, [messages, user?.id, conversation, queryClient, isDemo]);
 
 
 
