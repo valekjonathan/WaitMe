@@ -298,9 +298,44 @@ export default function Home() {
     setConfirmDialog({ open: true, alert });
   };
 
-  const handleChat = (alert) => {
+  const handleChat = async (alert) => {
     if (alert?.is_demo) return;
-    window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.user_email || alert.created_by}`);
+    
+    try {
+      const currentUser = await base44.auth.me();
+      const otherUserId = alert.user_id || alert.user_email || alert.created_by;
+      
+      // Buscar conversación existente
+      const conversations = await base44.entities.Conversation.filter({});
+      const existingConv = conversations.find(c => 
+        (c.participant1_id === currentUser.id && c.participant2_id === otherUserId) ||
+        (c.participant2_id === currentUser.id && c.participant1_id === otherUserId)
+      );
+      
+      if (existingConv) {
+        window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
+        return;
+      }
+      
+      // Crear nueva conversación
+      const newConv = await base44.entities.Conversation.create({
+        participant1_id: currentUser.id,
+        participant1_name: currentUser.display_name || currentUser.full_name?.split(' ')[0] || 'Tú',
+        participant1_photo: currentUser.photo_url,
+        participant2_id: otherUserId,
+        participant2_name: alert.user_name,
+        participant2_photo: alert.user_photo,
+        alert_id: alert.id,
+        last_message_text: '',
+        last_message_at: new Date().toISOString(),
+        unread_count_p1: 0,
+        unread_count_p2: 0
+      });
+      
+      window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
+    } catch (error) {
+      console.error('Error al abrir chat:', error);
+    }
   };
 
   const handleCall = (alert) => {
