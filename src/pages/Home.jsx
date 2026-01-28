@@ -314,40 +314,35 @@ export default function Home() {
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
-      // Si es demo, simular delay
       if (alert?.is_demo) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return { success: true, demo: true };
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { demo: true };
       }
       
-      const currentUser = await base44.auth.me();
-      const tx = await base44.entities.Transaction.create({
-        alert_id: alert.id,
-        buyer_id: currentUser?.email || currentUser?.id || '',
-        seller_id: alert.user_email || alert.created_by || '',
-        amount: Number(alert.price) || 0,
-        status: 'pending'
-      });
-
-      await base44.entities.ChatMessage.create({
-        alert_id: alert.id,
-        sender_id: currentUser?.email || currentUser?.id || '',
-        receiver_id: alert.user_email || alert.created_by || '',
-        message: `Solicitud de reserva enviada (${Number(alert.price || 0).toFixed(2)}€).`,
-        read: false
-      });
-
-      return tx;
+      return Promise.all([
+        base44.entities.Transaction.create({
+          alert_id: alert.id,
+          buyer_id: user?.id,
+          seller_id: alert.user_id || alert.created_by,
+          amount: Number(alert.price) || 0,
+          status: 'pending'
+        }),
+        base44.entities.ChatMessage.create({
+          conversation_id: `conv_${alert.id}_${user?.id}`,
+          alert_id: alert.id,
+          sender_id: user?.id,
+          receiver_id: alert.user_id || alert.created_by,
+          message: `Solicitud de reserva enviada (${Number(alert.price || 0).toFixed(2)}€).`,
+          read: false
+        })
+      ]);
     },
     onSuccess: (data, alert) => {
       setConfirmDialog({ open: false, alert: null });
       
       if (alert?.is_demo) {
-        // Mostrar mensaje de éxito para demo
         const demoConvId = `demo_conv_${alert.id}`;
         window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
       }
     },
     onError: () => {
