@@ -532,7 +532,7 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-4 text-sm flex-shrink-0">
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
                 ¿ Dónde estas aparcado ?
               </h3>
 
