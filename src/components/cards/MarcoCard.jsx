@@ -350,7 +350,7 @@ export default function MarcoCard({
               />
               <Button
                 size="icon"
-                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-9 w-9"
+                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-9 w-9 relative top-[2px]"
                 onClick={() => {
                   if (newMessage.trim()) {
                     setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage, timestamp: new Date() }]);
