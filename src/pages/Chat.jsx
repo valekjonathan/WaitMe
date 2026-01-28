@@ -507,7 +507,7 @@ export default function Chat() {
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
+      <div className="fixed bottom-[-70px] left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
         <input
           type="file"
           ref={cameraInputRef}
