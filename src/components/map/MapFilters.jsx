@@ -64,14 +64,14 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Distancia máxima */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <Navigation className="w-4 h-4 text-purple-400 inline-block mr-1" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance} km</span>
+            <Navigation className="w-4 h-4 text-purple-400 inline-block mr-1" /> Distancia máxima: <span className="text-purple-400 font-bold">{filters.maxDistance < 1 ? `${Math.round(filters.maxDistance * 1000)} m` : `${filters.maxDistance} km`}</span>
           </label>
           <Slider
             value={[filters.maxDistance]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxDistance: value })}
-            max={5}
+            max={1}
             min={0}
-            step={0.5}
+            step={0.1}
             className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
