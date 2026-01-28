@@ -131,11 +131,15 @@ export default function Home() {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
   const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
   const queryClient = useQueryClient();
 
