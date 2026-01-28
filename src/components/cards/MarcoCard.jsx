@@ -170,6 +170,13 @@ export default function MarcoCard({
         </div>
       </div>
 
+      <div className="border-t border-gray-700/80 mt-2 pt-1.5 mb-2">
+        <div className="text-xs">
+          <span className="text-purple-400 font-bold">Último mensaje:</span>{' '}
+          <span className="text-white">Vale, aguanto aquí. Avísame cuando llegues</span>
+        </div>
+      </div>
+
       <div className="mt-2">
         <div className="flex gap-2">
           <Button
