@@ -493,42 +493,29 @@ export default function History() {
     refetchInterval: false
   });
 
-  // Activas (tuyas) - SOLO si NO han expirado
-  const myActiveAlerts = useMemo(() => {
-    const dbAlerts = myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
-      if (a.status !== 'active' && a.status !== 'reserved') return false;
-      
-      return true;
-    });
-    return [...dbAlerts, ...mockMyActiveAlerts];
-  }, [myAlerts, user?.id, mockMyActiveAlerts]);
-
-  // Finalizadas tuyas como alertas
-  const myFinalizedAlerts = useMemo(() => {
-    return myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
-      
-      // SOLO incluir si el status indica finalizada
-      if (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed') {
-        return true;
-      }
-      
-      return false;
-    });
-  }, [myAlerts, user?.id]);
-
-  // Reservas (tuyas como comprador)
-  const myReservationsReal = useMemo(() => {
-    return myAlerts.filter((a) => {
-      if (a.reserved_by_id !== user?.id) return false;
-      if (a.status !== 'reserved') return false;
-      
-      return true;
-    });
-  }, [myAlerts, user?.id]);
-
   // ====== MOCKS (ESTABLES: NO se regeneran con cada tick) ======
+  // Mock para "Tus alertas" activas
+  const mockMyActiveAlerts = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-my-active-1',
+        status: 'active',
+        user_id: user?.id,
+        user_email: 'test@test.com',
+        user_name: 'Tu',
+        address: 'Calle Campoamor, m3, Oviedo',
+        car_brand: 'Seat',
+        car_model: 'León',
+        car_color: 'rojo',
+        car_plate: '5555ABC',
+        available_in_minutes: 15,
+        price: 3.0,
+        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString()
+      }
+    ];
+  }, [user?.id]);
+
   const mockReservationsActive = useMemo(() => {
     const baseNow = Date.now();
     return [
