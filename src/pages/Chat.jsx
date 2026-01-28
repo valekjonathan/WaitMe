@@ -17,11 +17,14 @@ export default function Chat() {
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [showMediaMenu, setShowMediaMenu] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [autoReplyEnabled, setAutoReplyEnabled] = useState(true);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
+  const messageIdRef = useRef(1000);
 
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
