@@ -260,8 +260,74 @@ export default function Chat() {
       console.error('Conversation o user no disponibles');
       return;
     }
+
+    // Agregar el mensaje del usuario localmente
+    const userMsg = {
+      id: `user_${messageIdRef.current++}`,
+      conversation_id: conversationId,
+      sender_id: user?.id,
+      sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+      message: newMessage,
+      read: true,
+      message_type: 'user',
+      created_date: new Date().toISOString()
+    };
+    
+    setMessages(prev => [...prev, userMsg]);
     sendMessageMutation.mutate({ text: newMessage, attachments });
+    setNewMessage('');
     setAttachments([]);
+
+    // Simular respuesta automática de Marta después de 2-3 segundos
+    if (autoReplyEnabled) {
+      const autoReplies = {
+        'hola': ['¡Hola! ¿Cómo estás? 😊', '¡Hey! ¿Qué tal tu día?'],
+        'gracias': ['¡De nada! Estoy para ayudarte 💜', 'Por supuesto, cualquier cosa que necesites'],
+        'ok': ['Perfecto, te dejo el lugar listo 👍', 'Claro, sin problema'],
+        'sí': ['Excelente, te espero aquí 🎉', 'Perfecto, vamos con eso'],
+        'no': ['Entendido, sin problema 😊', 'Okey, no hay prisa'],
+        'dónde': ['Estoy en la calle Principal, esquina con Mayor. Frente al bar "El Rincón" 📍', 'Justo aquí en la zona azul, muy fácil de encontrar'],
+        'cuándo': ['Me voy en 15 minutos más o menos ⏰', 'En unos 20 minutos tengo que irme'],
+        'cuánto': ['Son 3€, muy buen precio para la zona 💸', 'Son 3.50€, zona azul así que está muy bien'],
+        'placa': ['Mi matrícula es 1234 BCD, Honda blanco 🚗', 'Es 1234 BCD, no tiene pérdida'],
+      };
+
+      const messageLower = newMessage.toLowerCase();
+      let reply = '';
+      
+      for (const [keyword, replies] of Object.entries(autoReplies)) {
+        if (messageLower.includes(keyword)) {
+          reply = replies[Math.floor(Math.random() * replies.length)];
+          break;
+        }
+      }
+
+      if (!reply) {
+        const genericReplies = [
+          'Te entiendo perfectamente 😊',
+          'Claro, totalmente de acuerdo contigo 👍',
+          'Sí, tiene sentido lo que dices',
+          'Buena pregunta, déjame pensar...',
+          'Exacto, eso es lo que yo también pienso'
+        ];
+        reply = genericReplies[Math.floor(Math.random() * genericReplies.length)];
+      }
+
+      setTimeout(() => {
+        const martaMsg = {
+          id: `marta_${messageIdRef.current++}`,
+          conversation_id: conversationId,
+          sender_id: 'marta_id',
+          sender_name: 'Marta',
+          sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          message: reply,
+          read: true,
+          message_type: 'user',
+          created_date: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, martaMsg]);
+      }, 2000 + Math.random() * 1500);
+    }
   };
 
   const handleKeyPress = (e) => {
