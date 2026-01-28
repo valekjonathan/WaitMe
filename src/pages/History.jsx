@@ -815,10 +815,10 @@ export default function History() {
           {/* FIX: sin borde negro debajo */}
           <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
-              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600">
+              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
               </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600">
+              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus reservas
               </TabsTrigger>
             </TabsList>
