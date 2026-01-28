@@ -146,7 +146,7 @@ export default function UserAlertCard({
     <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
       <CardHeaderRow
         left={
-          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-4 flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+          <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
             Info usuario
           </Badge>
         }
@@ -159,7 +159,7 @@ export default function UserAlertCard({
                 <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
               </div>
             ) : null}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+            <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
               <span className="text-purple-300 font-bold text-xs">{priceText}</span>
             </div>
           </div>
