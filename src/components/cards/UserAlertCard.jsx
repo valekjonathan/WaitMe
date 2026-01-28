@@ -99,15 +99,13 @@ export default function UserAlertCard({
 
   const isDemo = Boolean(alert?.is_demo);
   const handleChat = () => {
-    if (isDemo) return;
     onChat?.(alert);
   };
   const handleCall = () => {
-    if (isDemo) return;
     onCall?.(alert);
   };
   const handleBuy = () => {
-    if (isDemo || isLoading) return;
+    if (isLoading) return;
     onBuyAlert?.(alert);
   };
 

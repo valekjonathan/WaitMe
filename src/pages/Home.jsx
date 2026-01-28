@@ -264,6 +264,12 @@ export default function Home() {
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
+      // Si es demo, simular delay
+      if (alert?.is_demo) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+        return { success: true, demo: true };
+      }
+      
       const currentUser = await base44.auth.me();
       const tx = await base44.entities.Transaction.create({
         alert_id: alert.id,
@@ -283,9 +289,16 @@ export default function Home() {
 
       return tx;
     },
-    onSuccess: () => {
+    onSuccess: (data, alert) => {
       setConfirmDialog({ open: false, alert: null });
-      queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      
+      if (alert?.is_demo) {
+        // Mostrar mensaje de éxito para demo
+        const demoConvId = `demo_conv_${alert.id}`;
+        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      }
     },
     onError: () => {
       setConfirmDialog({ open: false, alert: null });
@@ -294,15 +307,20 @@ export default function Home() {
   });
 
   const handleBuyAlert = (alert) => {
-    if (alert?.is_demo) return;
     setConfirmDialog({ open: true, alert });
   };
 
   const handleChat = async (alert) => {
-    if (alert?.is_demo) return;
-    
     try {
       const currentUser = await base44.auth.me();
+      
+      // Si es demo, ir a conversación demo
+      if (alert?.is_demo) {
+        const demoConvId = `demo_conv_${alert.id}`;
+        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
+        return;
+      }
+      
       const otherUserId = alert.user_id || alert.user_email || alert.created_by;
       
       // Buscar conversación existente
@@ -339,8 +357,8 @@ export default function Home() {
   };
 
   const handleCall = (alert) => {
-    if (alert?.is_demo) return;
-    if (alert.phone) window.location.href = `tel:${alert.phone}`;
+    const phone = alert?.phone || '+34612345678';
+    window.location.href = `tel:${phone}`;
   };
 
   return (
@@ -568,9 +586,9 @@ export default function Home() {
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending || confirmDialog.alert?.is_demo}
+              disabled={buyAlertMutation.isPending}
             >
-              {confirmDialog.alert?.is_demo ? 'Solo demo' : (buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud')}
+              {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -11,6 +11,11 @@ import ChatInput from '@/components/chat/ChatInput';
 export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
+  const isDemo = urlParams.get('demo') === 'true';
+  const demoUserName = urlParams.get('userName');
+  const demoUserPhoto = urlParams.get('userPhoto');
+  const demoAlertId = urlParams.get('alertId');
+  const justReserved = urlParams.get('justReserved') === 'true';
   
   const [user, setUser] = useState(null);
   const [newMessage, setNewMessage] = useState('');
@@ -33,9 +38,28 @@ export default function Chat() {
 
   // Obtener conversación
   const { data: conversation } = useQuery({
-    queryKey: ['conversation', conversationId],
+    queryKey: ['conversation', conversationId, isDemo],
     queryFn: async () => {
       if (!conversationId) return null;
+      
+      // Si es demo, retornar conversación demo directamente
+      if (isDemo) {
+        return {
+          id: conversationId,
+          participant1_id: user?.id || 'user1',
+          participant1_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'demo_user',
+          participant2_name: demoUserName || 'Usuario Demo',
+          participant2_photo: decodeURIComponent(demoUserPhoto || ''),
+          alert_id: demoAlertId,
+          last_message_text: 'Conversación demo',
+          last_message_at: new Date().toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0
+        };
+      }
+      
       try {
         const convs = await base44.entities.Conversation.filter({ id: conversationId });
         if (convs[0]) return convs[0];
@@ -97,9 +121,90 @@ export default function Chat() {
 
   // Obtener mensajes
   const { data: messages = [] } = useQuery({
-    queryKey: ['chatMessages', conversationId, conversation?.id],
+    queryKey: ['chatMessages', conversationId, conversation?.id, isDemo, justReserved],
     queryFn: async () => {
       if (!conversationId) return [];
+      
+      // Si es demo, crear mensajes demo específicos
+      if (isDemo) {
+        const baseMessages = [
+          {
+            id: 'demo1',
+            conversation_id: conversationId,
+            sender_id: conversation?.participant2_id || 'demo_user',
+            sender_name: demoUserName || 'Usuario',
+            message: `¡Hola! Vi tu búsqueda de parking. Tengo una plaza disponible muy cerca 🚗`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 8 * 60000).toISOString()
+          },
+          {
+            id: 'demo2',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+            message: `¡Perfecto! ¿Dónde exactamente?`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 7 * 60000).toISOString()
+          },
+          {
+            id: 'demo3',
+            conversation_id: conversationId,
+            sender_id: conversation?.participant2_id || 'demo_user',
+            sender_name: demoUserName || 'Usuario',
+            message: `Es en la zona que buscas. Mi coche es un Volkswagen Golf negro. Me voy en 10 minutos`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 6 * 60000).toISOString()
+          },
+          {
+            id: 'demo4',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+            message: `Genial, me interesa. ¿Cuánto cuesta?`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 5 * 60000).toISOString()
+          },
+          {
+            id: 'demo5',
+            conversation_id: conversationId,
+            sender_id: conversation?.participant2_id || 'demo_user',
+            sender_name: demoUserName || 'Usuario',
+            message: `Son 5€. Es zona azul, así que está bastante bien 👍`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 4 * 60000).toISOString()
+          },
+          {
+            id: 'demo6',
+            conversation_id: conversationId,
+            sender_id: user?.id,
+            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+            message: `Vale, voy para allá. Estoy a unos minutos`,
+            read: true,
+            message_type: 'user',
+            created_date: new Date(Date.now() - 2 * 60000).toISOString()
+          }
+        ];
+        
+        if (justReserved) {
+          baseMessages.push({
+            id: 'demo_reserved',
+            conversation_id: conversationId,
+            sender_id: 'system',
+            sender_name: 'Sistema',
+            message: `✅ Solicitud de reserva enviada correctamente. ${demoUserName} recibirá tu petición.`,
+            read: true,
+            message_type: 'system',
+            created_date: new Date(Date.now() - 1000).toISOString()
+          });
+        }
+        
+        return baseMessages;
+      }
       
       try {
         const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId });
@@ -242,6 +347,12 @@ export default function Chat() {
       if (!conversation || !user?.id) {
         throw new Error('Conversation o user no disponibles');
       }
+      
+      // Si es demo, solo simular
+      if (isDemo) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { demo: true };
+      }
 
       const otherUserId = conversation.participant1_id === user?.id 
         ? conversation.participant2_id 
@@ -272,8 +383,10 @@ export default function Chat() {
     onSuccess: () => {
       setNewMessage('');
       setAttachments([]);
-      queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      }
     },
     onError: (error) => {
       console.error('Error enviando mensaje:', error);
