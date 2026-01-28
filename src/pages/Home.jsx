@@ -419,7 +419,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-2 flex-shrink-0">
+              <div className="px-4 py-0.5 flex-shrink-0">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
