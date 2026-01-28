@@ -475,7 +475,7 @@ export default function History() {
     queryKey: ['myAlerts', user?.id],
     queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
     enabled: !!user?.id,
-    staleTime: 3000,
+    staleTime: 0,
     refetchInterval: false
   });
 
