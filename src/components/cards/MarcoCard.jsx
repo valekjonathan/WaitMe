@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, MessageCircle, Phone, PhoneOff, X, Send } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, PhoneOff, X, Send, Loader } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function MarcoCard({
   photoUrl,
@@ -19,13 +22,55 @@ export default function MarcoCard({
   bright = false,
   conversationId
 }) {
+  const { user } = useAuth();
   const [showChat, setShowChat] = useState(false);
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'other', text: 'Vale, aguanto aquí' },
-    { id: 2, sender: 'other', text: 'Avisame cuando llegues' },
-    { id: 3, sender: 'you', text: 'Perfecto, gracias!' }
-  ]);
   const [newMessage, setNewMessage] = useState('');
+  const messagesEndRef = useRef(null);
+  const queryClient = useQueryClient();
+
+  // Obtener mensajes de la BD
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ['chatMessages', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return [];
+      const msgs = await base44.entities.ChatMessage.filter({
+        conversation_id: conversationId
+      }, '-created_date', 100);
+      return msgs.map(msg => ({
+        id: msg.id,
+        sender: msg.sender_id === user?.id ? 'you' : 'other',
+        text: msg.message,
+        timestamp: msg.created_date
+      }));
+    },
+    enabled: !!conversationId && !!user?.id
+  });
+
+  // Enviar mensaje
+  const sendMessageMutation = useMutation({
+    mutationFn: async (text) => {
+      return base44.entities.ChatMessage.create({
+        conversation_id: conversationId,
+        sender_id: user?.id,
+        receiver_id: 'placeholder',
+        message: text
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+    }
+  });
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      sendMessageMutation.mutate(newMessage);
+      setNewMessage('');
+    }
+  };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
   const stUpper = String(statusText || '').trim().toUpperCase();
   const isCountdownLike =
     typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
