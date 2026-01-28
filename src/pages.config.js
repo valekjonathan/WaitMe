@@ -47,7 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Chat from './pages/Chat';
 import Chats from './pages/Chats';
 import Navigate from './pages/Navigate';
 import NotificationSettings from './pages/NotificationSettings';
@@ -56,11 +55,11 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import History from './pages/History';
 import Home from './pages/Home';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Chat": Chat,
     "Chats": Chats,
     "Navigate": Navigate,
     "NotificationSettings": NotificationSettings,
@@ -69,6 +68,7 @@ export const PAGES = {
     "Settings": Settings,
     "History": History,
     "Home": Home,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {
