@@ -291,7 +291,7 @@ export default function MarcoCard({
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10 -top-[100px]">
+            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10 -top-[80px]">
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -305,22 +305,38 @@ export default function MarcoCard({
                 accept="image/*"
                 className="hidden"
               />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-purple-400 hover:text-purple-300 flex-shrink-0"
-                onClick={() => cameraInputRef.current?.click()}
-              >
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-purple-400 hover:text-purple-300 flex-shrink-0"
-                onClick={() => galleryInputRef.current?.click()}
-              >
-                <MessageCircle className="w-5 h-5" />
-              </Button>
+              <div className="relative">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+                  onClick={() => setShowMediaMenu(!showMediaMenu)}
+                >
+                  <Paperclip className="w-5 h-5" />
+                </Button>
+                {showMediaMenu && (
+                  <div className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-50">
+                    <button
+                      onClick={() => {
+                        cameraInputRef.current?.click();
+                        setShowMediaMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap"
+                    >
+                      📷 Hacer foto
+                    </button>
+                    <button
+                      onClick={() => {
+                        galleryInputRef.current?.click();
+                        setShowMediaMenu(false);
+                      }}
+                      className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap border-t border-gray-700"
+                    >
+                      🖼️ Subir foto
+                    </button>
+                  </div>
+                )}
+              </div>
               <input
                 type="text"
                 value={newMessage}
