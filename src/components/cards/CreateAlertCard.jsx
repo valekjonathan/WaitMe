@@ -14,9 +14,24 @@ export default function CreateAlertCard({
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
+  const [carBrand, setCarBrand] = useState('');
+  const [carModel, setCarModel] = useState('');
+  const [carColor, setCarColor] = useState('blanco');
+  const [carPlate, setCarPlate] = useState('');
+  const [phone, setPhone] = useState('');
+  const [allowPhoneCalls, setAllowPhoneCalls] = useState(false);
 
   const handleCreate = () => {
-    onCreateAlert({ price, minutes });
+    onCreateAlert({ 
+      price, 
+      minutes,
+      car_brand: carBrand,
+      car_model: carModel,
+      car_color: carColor,
+      car_plate: carPlate,
+      phone,
+      allow_phone_calls: allowPhoneCalls
+    });
   };
 
   return (
