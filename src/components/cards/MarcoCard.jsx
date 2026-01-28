@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, MessageCircle, Phone, PhoneOff, X, Send } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function MarcoCard({
   photoUrl,
