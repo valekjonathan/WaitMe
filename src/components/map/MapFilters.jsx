@@ -28,6 +28,8 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         </Button>
       </div>
 
+      <div className="border-t border-gray-700 my-4" />
+
       <div className="space-y-5">
         {/* Precio máximo */}
         <div>
