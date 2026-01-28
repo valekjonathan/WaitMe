@@ -1393,7 +1393,7 @@ export default function History() {
                     <p>No tienes reservas finalizadas</p>
                   </div>
                 ) : (
-                  <div className="space-y-[10px]">
+                  <div className="space-y-[20px]">
                     {reservationsFinalAll.map((item, index) => {
                       const key = item.id;
                       if (hiddenKeys.has(key)) return null;
