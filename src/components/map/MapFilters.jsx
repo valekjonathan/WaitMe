@@ -40,7 +40,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             value={[filters.maxPrice]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxPrice: value })}
             max={30}
-            min={1}
+            min={3}
             step={1}
             className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
@@ -70,7 +70,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             value={[filters.maxDistance]}
             onValueChange={([value]) => onFilterChange({ ...filters, maxDistance: value })}
             max={5}
-            min={0.5}
+            min={0}
             step={0.5}
             className="w-full [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
