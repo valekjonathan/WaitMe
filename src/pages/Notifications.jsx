@@ -50,8 +50,7 @@ export default function Notifications() {
       );
       return notifsWithAlerts;
     },
-    enabled: !!user?.email,
-    refetchInterval: 5000
+    enabled: !!user?.email
   });
 
   const acceptMutation = useMutation({
@@ -444,4 +443,4 @@ export default function Notifications() {
       </Dialog>
     </div>
   );
-} 
+}

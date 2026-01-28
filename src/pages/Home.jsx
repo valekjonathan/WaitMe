@@ -157,14 +157,12 @@ export default function Home() {
       const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
       return messages.length;
     },
-    enabled: !!user?.email,
-    refetchInterval: 5000
+    enabled: !!user?.email
   });
 
   const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    refetchInterval: mode === 'search' ? 5000 : false,
     enabled: mode === 'search'
   });
 
