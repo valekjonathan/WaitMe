@@ -255,14 +255,13 @@ export default function MarcoCard({
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700/80">
               <div className="flex items-center gap-2">
-                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-full object-cover" />}
+                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-lg object-cover" />}
                 <span className="text-white font-bold">{(name || '').split(' ')[0]}</span>
               </div>
               <Button
-                variant="ghost"
                 size="icon"
                 onClick={() => setShowChat(false)}
-                className="text-gray-400 hover:text-white"
+                className="bg-red-500 hover:bg-red-600 text-white"
               >
                 <X className="w-5 h-5" />
               </Button>
