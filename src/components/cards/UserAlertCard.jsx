@@ -253,8 +253,8 @@ export default function UserAlertCard({
       <div className="mt-2">
         <div className="flex gap-2">
           <Button
-            size="icon" className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 shadow bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-
+            size="icon"
+            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-[0_0_15px_rgba(34,197,94,0.6)]"
             onClick={() => onChat(alert)}
             disabled={Boolean(alert?.is_demo)}>
 
@@ -283,7 +283,7 @@ export default function UserAlertCard({
 
           <div className="flex-1">
             <Button
-              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
+              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
               onClick={() => onBuyAlert(alert)}
               disabled={isLoading || Boolean(alert?.is_demo)}>
 
