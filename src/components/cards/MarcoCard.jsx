@@ -160,7 +160,7 @@ export default function MarcoCard({
               {isTimeObj ? (
                 <span className={lineTextCls}>
                   {timeLine.main}{' '}
-                  <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
+                  <span className="text-purple-400">{timeLine.accent}</span>
                 </span>
               ) : (
                 <span className={lineTextCls}>{timeLine}</span>
