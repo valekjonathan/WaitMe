@@ -19,10 +19,9 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
             Filtros
           </div>
         </div>
-        <Button
-          size="icon"
+        <button
           onClick={onClose}
-          className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+          className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
         >
           <X className="w-4 h-4" strokeWidth={3} />
         </Button>
