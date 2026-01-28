@@ -349,7 +349,7 @@ export default function Chats() {
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-2">
-                        <Badge className="bg-purple-600 text-white border border-purple-500 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
                           Info usuario
                         </Badge>
                         <div className="flex items-center gap-1">
@@ -359,8 +359,8 @@ export default function Chats() {
                               <span className="text-white font-bold text-xs">{distanceText}</span>
                             </div>
                           )}
-                          <div className="bg-purple-600 border border-purple-500 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                            <span className="text-white font-bold text-xs">{Math.round(alert.price)}€</span>
+                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
                           </div>
                         </div>
                       </div>
