@@ -2,10 +2,7 @@ import React from 'react';
 
 export default function ChatHeader({ otherUserPhoto, otherUserName }) {
   return (
-    <div className="pt-16 flex items-center justify-between px-4 py-4 border-b border-gray-700">
-      <ChatAvatar photo={otherUserPhoto} name={otherUserName} />
-      <div />
-    </div>
+
   );
 }
 
