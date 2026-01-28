@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
+import ChatHeader from '@/components/chat/ChatHeader';
 
 export default function Chat() {
   const [user, setUser] = useState(null);
