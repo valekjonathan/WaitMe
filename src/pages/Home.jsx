@@ -220,7 +220,7 @@ export default function Home() {
     clearTimeout(searchTimeout);
     const timeout = setTimeout(() => {
       fetchStreetSuggestions(value);
-    }, 300);
+    }, 100);
     setSearchTimeout(timeout);
   };
 
