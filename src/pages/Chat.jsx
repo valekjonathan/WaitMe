@@ -447,7 +447,7 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col pb-20">
-      <Header showBackButton={true} backTo="Chats" />
+      <Header title="Chat" showBackButton={true} backTo="Chats" />
       
       {/* Header del chat */}
       <div className="pt-16 flex items-center justify-between px-4 py-4 border-b border-gray-700">
