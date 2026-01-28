@@ -71,7 +71,13 @@ export default function UserAlertCard({
     return { value: distanceKm.toFixed(1), unit: 'km' };
   };
 
-  const formatPlate = (plate) => String(plate || '').toUpperCase().replace(/\s/g, '');
+  const formatPlate = (plate) => {
+    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
+    if (!p) return '0000 XXX';
+    const a = p.slice(0, 4);
+    const b = p.slice(4);
+    return `${a} ${b}`.trim();
+  };
 
   const waitUntilTs = alert?.wait_until ? toMs(alert.wait_until) : null;
   const waitUntilLabel = useMemo(() => {
@@ -187,12 +193,36 @@ export default function UserAlertCard({
 
           <div className="flex items-end gap-2 mt-1 min-h-[28px]">
             <div className="flex-shrink-0">
-              <PlateProfile plate={alert?.car_plate} />
+              <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                  <span className="text-white text-[8px] font-bold">E</span>
+                </div>
+                <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                  {formatPlate(alert?.car_plate)}
+                </span>
+              </div>
             </div>
 
             <div className="flex-1 flex justify-center">
               <div className="flex-shrink-0 relative -top-[1px]">
-                <CarIconProfile color={getCarFill(alert?.car_color)} size="w-16 h-10" />
+                <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
+                  <path
+                    d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                    fill={getCarFill(alert?.car_color)}
+                    stroke="white"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M16 9 L18 12 L30 12 L32 9 Z"
+                    fill="rgba(255,255,255,0.3)"
+                    stroke="white"
+                    strokeWidth="0.5"
+                  />
+                  <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                  <circle cx="14" cy="18" r="2" fill="#666" />
+                  <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                  <circle cx="36" cy="18" r="2" fill="#666" />
+                </svg>
               </div>
             </div>
           </div>
