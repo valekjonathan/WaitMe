@@ -24,7 +24,7 @@ export default function CreateAlertCard({
       {/* Dirección */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
@@ -47,7 +47,7 @@ export default function CreateAlertCard({
         {/* Tiempo */}
         <div className="space-y-1">
           <Label className="text-white flex items-center gap-2 text-sm font-medium">
-            <Clock className="w-4 h-4" />
+            <Clock className="w-4 h-4 text-purple-400" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
@@ -63,7 +63,7 @@ export default function CreateAlertCard({
         {/* Precio */}
         <div className="space-y-1">
           <Label className="text-white flex items-center gap-2 text-sm font-medium">
-            <Euro className="w-4 h-4" />
+            <Euro className="w-4 h-4 text-purple-400" />
             Precio: <span className="text-purple-400 font-bold">{price}€</span>
             <span className="text-green-400 text-xs ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)}€)</span>
           </Label>
