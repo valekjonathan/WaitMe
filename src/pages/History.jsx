@@ -508,14 +508,15 @@ export default function History() {
         user_id: user?.id,
         user_email: 'test@test.com',
         user_name: 'Tu',
-        address: 'Calle Campoamor, m3, Oviedo',
+        address: 'Calle Campoamor, n3, Oviedo',
         car_brand: 'Seat',
         car_model: 'León',
         car_color: 'rojo',
         car_plate: '5555ABC',
-        available_in_minutes: 0.2,
+        available_in_minutes: 15,
         price: 3.0,
-        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString()
+        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString(),
+        wait_until: new Date(baseNow + 1000 * 60 * 13).toISOString()
       }
     ];
   }, [user?.id]);
