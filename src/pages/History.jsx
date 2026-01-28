@@ -1,46 +1,46 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { useAlerts } from '../hooks/useAlerts';
 
 export default function History() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { myAlerts, refetchMyAlerts } = useAlerts();
+  const { myAlerts, refetchMyAlerts, user } = useAlerts();
 
   useEffect(() => {
     refetchMyAlerts();
-  }, []);
+  }, [refetchMyAlerts]);
 
   const myActiveAlerts = useMemo(() => {
-    const dbAlerts = myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
+    return myAlerts.filter((a) => {
+      if (!user || a.user_id !== user.id) return false;
 
-      // 🔴 AQUÍ ESTABA EL PROBLEMA
       if (
         a.status !== 'active' &&
         a.status !== 'reserved' &&
         a.status !== 'created'
-      )
+      ) {
         return false;
+      }
 
       return true;
     });
-
-    return [...dbAlerts];
-  }, [myAlerts, user?.id]);
+  }, [myAlerts, user]);
 
   const myFinishedAlerts = useMemo(() => {
-    const dbAlerts = myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
-      if (a.status === 'active') return false;
-      if (a.status === 'reserved') return false;
-      if (a.status === 'created') return false;
+    return myAlerts.filter((a) => {
+      if (!user || a.user_id !== user.id) return false;
+
+      if (
+        a.status === 'active' ||
+        a.status === 'reserved' ||
+        a.status === 'created'
+      ) {
+        return false;
+      }
+
       return true;
     });
-
-    return [...dbAlerts];
-  }, [myAlerts, user?.id]);
+  }, [myAlerts, user]);
 
   return (
     <div className="history-page">
@@ -48,8 +48,9 @@ export default function History() {
 
       <div className="alerts-section">
         <h2>Activas</h2>
+
         {myActiveAlerts.length === 0 && (
-          <p>No tienes alertas activas</p>
+          <p>No tienes ninguna alerta activa.</p>
         )}
 
         {myActiveAlerts.map((alert) => (
@@ -78,4 +79,4 @@ export default function History() {
       </div>
     </div>
   );
-} 
+}
