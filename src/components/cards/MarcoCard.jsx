@@ -277,7 +277,7 @@ export default function MarcoCard({
                     <div
                       className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
                         msg.sender === 'you'
-                          ? 'bg-purple-600 text-white'
+                          ? 'bg-purple-800/40 text-white'
                           : 'bg-gray-800 text-gray-100'
                       }`}
                     >
@@ -350,7 +350,7 @@ export default function MarcoCard({
               />
               <Button
                 size="icon"
-                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-9 w-9 relative top-[2px]"
+                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-10 px-3 relative top-[2px]"
                 onClick={() => {
                   if (newMessage.trim()) {
                     setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage, timestamp: new Date() }]);
