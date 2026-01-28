@@ -256,8 +256,8 @@ export default function Chats() {
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
-      <main className="pt-[60px] pb-24 overflow-hidden">
-         <div className="px-3 space-y-2 max-h-[calc(100vh-140px)] overflow-y-auto">
+      <main className="pt-[60px] pb-24">
+         <div className="px-4 space-y-3">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
@@ -306,24 +306,29 @@ export default function Chats() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}>
 
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-2 transition-all border-2 border-purple-500/50`}>
+                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50`}>
 
-                    <div className="flex flex-col gap-1.5">
-                      {/* Header: distancia + precio */}
-                      <div className="flex items-center justify-between gap-1">
-                        {distanceText && (
-                          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-0.5 h-6">
-                            <Navigation className="w-2.5 h-2.5 text-purple-400" />
-                            <span className="text-white font-bold text-xs">{distanceText}</span>
+                    <div className="flex flex-col h-full">
+                      {/* Header: "Info del usuario:" + distancia + precio */}
+                      <div className="flex justify-between items-center mb-2">
+                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+                          Info usuario
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                              <Navigation className="w-3 h-3 text-purple-400" />
+                              <span className="text-white font-bold text-xs">{distanceText}</span>
+                            </div>
+                          )}
+                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
                           </div>
-                        )}
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-6">
-                          <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
                         </div>
                       </div>
 
-                      {/* Tarjeta de usuario con MarcoCard comprimida */}
-                      <div className="bg-gray-900/50 rounded-lg p-1.5">
+                      {/* Tarjeta de usuario con MarcoCard */}
+                      <div className="border-t border-gray-700/80 mb-1.5 pt-2">
                        <MarcoCard
                          photoUrl={otherUser.photo}
                          name={otherUserName}
@@ -331,7 +336,7 @@ export default function Chats() {
                          plate={alert.car_plate}
                          carColor={alert.car_color || 'gris'}
                          address={alert.address}
-                         timeLine={<span className="text-white text-xs">Se va en {alert.available_in_minutes} min</span>}
+                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</>}
                          onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
                          statusText={format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
                          phoneEnabled={alert.allow_phone_calls}
@@ -339,16 +344,17 @@ export default function Chats() {
                        />
                       </div>
 
-                      {/* Ultimos mensajes comprimido */}
-                      <div className="cursor-pointer hover:opacity-80 transition-opacity text-xs" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                        <div className="flex justify-between items-center gap-1">
-                          <p className="font-bold text-purple-400 truncate flex-1">Últimos: {conv.last_message_text?.substring(0, 30) || 'Sin mensajes'}</p>
+                      {/* Ultimos mensajes */}
+                      <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
                           {unreadCount > 0 && (
-                            <div className="w-5 h-5 bg-red-500/20 border border-red-500/30 rounded-full flex items-center justify-center flex-shrink-0">
+                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
                         </div>
+                        <p className="text-xs text-gray-300 mt-1">{conv.last_message_text || 'Sin mensajes'}</p>
                       </div>
                     </div>
                 </div>
