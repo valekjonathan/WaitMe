@@ -12,6 +12,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import MarcoCard from '@/components/cards/MarcoCard';
 
 // Componente contador de cuenta atrás
 function CountdownTimer({ availableInMinutes }) {
