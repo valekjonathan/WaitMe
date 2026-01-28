@@ -487,8 +487,6 @@ export default function Chat() {
     return cleaned;
   };
 
-  const fileInputRef = useRef(null);
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header showBackButton={true} backTo="Chats" />
