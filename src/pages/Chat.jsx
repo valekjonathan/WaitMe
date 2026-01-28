@@ -27,7 +27,7 @@ export default function Chat() {
   const messageIdRef = useRef(1000);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const conversationId = urlParams.get('conversationId');
+  const conversationId = urlParams.get('conversationId') || 'demo_conv_1';
   const isDemo = urlParams.get('demo') === 'true';
   const demoUserName = urlParams.get('userName');
   const demoUserPhoto = urlParams.get('userPhoto');
