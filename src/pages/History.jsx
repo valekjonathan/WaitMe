@@ -837,7 +837,7 @@ export default function History() {
 
                 {myActiveAlerts.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
-                    <div className="h-[280px] flex items-center justify-center">
+                    <div className="h-[200px] flex items-center justify-center">
                       <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa</p>
                     </div>
                   </div>
