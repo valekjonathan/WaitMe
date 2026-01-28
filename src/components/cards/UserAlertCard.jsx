@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, MessageCircle, Phone, X } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function UserAlertCard({
@@ -19,9 +19,9 @@ export default function UserAlertCard({
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-3 flex flex-col gap-2 h-full">
+    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-4 flex flex-col h-full">
       {/* CABECERA */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded-full">
           Info usuario
         </span>
@@ -34,11 +34,11 @@ export default function UserAlertCard({
       </div>
 
       {/* USUARIO */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-2">
         <img
           src={alert?.avatar}
           alt="avatar"
-          className="w-12 h-12 rounded-lg object-cover"
+          className="w-14 h-14 rounded-lg object-cover"
         />
         <div className="flex-1">
           <p className="text-white font-semibold leading-tight">
@@ -54,7 +54,7 @@ export default function UserAlertCard({
       </div>
 
       {/* DIRECCIÓN */}
-      <div className="flex items-start gap-2 text-xs text-gray-300">
+      <div className="flex items-start gap-2 text-xs text-gray-300 mb-1">
         <MapPin size={14} className="mt-0.5 shrink-0" />
         <span className="leading-tight">
           {alert?.address}
@@ -62,35 +62,35 @@ export default function UserAlertCard({
       </div>
 
       {/* TIEMPO */}
-      <div className="flex items-center gap-2 text-xs text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
         <Clock size={14} />
         <span className="leading-tight">
           Se va en {alert?.minutes || '10'} min · Te espera hasta las ----
         </span>
       </div>
 
-      {/* ACCIONES */}
+      {/* ACCIONES (MISMA DISTRIBUCIÓN, MISMO TAMAÑO) */}
       <div className="flex gap-2 mt-auto">
         <Button
           variant="outline"
           size="icon"
-          className="border-gray-700 h-9 w-9"
+          className="border-gray-700"
           onClick={onChat}
         >
-          <MessageCircle size={16} />
+          <MessageCircle size={18} />
         </Button>
 
         <Button
           variant="outline"
           size="icon"
-          className="border-gray-700 h-9 w-9"
+          className="border-gray-700"
           onClick={onCall}
         >
-          <Phone size={16} />
+          <Phone size={18} />
         </Button>
 
         <Button
-          className="flex-1 h-9 bg-green-600 hover:bg-green-700"
+          className="flex-1 bg-green-600 hover:bg-green-700"
           onClick={onBuyAlert}
           disabled={isLoading}
         >
