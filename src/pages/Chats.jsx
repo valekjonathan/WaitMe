@@ -257,7 +257,7 @@ export default function Chats() {
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
-         <div className="px-4 space-y-3">
+         <div className="px-4 space-y-3 pt-2.5">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
