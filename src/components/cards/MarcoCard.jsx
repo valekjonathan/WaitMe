@@ -276,7 +276,7 @@ export default function MarcoCard({
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-700/80 flex gap-2">
+            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0">
               <input
                 type="text"
                 value={newMessage}
@@ -288,11 +288,11 @@ export default function MarcoCard({
                   }
                 }}
                 placeholder="Escribe un mensaje..."
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
+                className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
               />
               <Button
                 size="icon"
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
                 onClick={() => {
                   if (newMessage.trim()) {
                     setMessages([...messages, { id: messages.length + 1, sender: 'you', text: newMessage }]);
