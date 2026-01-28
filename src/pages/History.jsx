@@ -484,15 +484,15 @@ export default function History() {
   }, []);
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-    queryKey: ['myTransactions', user?.id],
+    queryKey: ['myTransactions', user?.email],
     queryFn: async () => {
       const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.id }),
-        base44.entities.Transaction.filter({ buyer_id: user?.id })
+        base44.entities.Transaction.filter({ seller_id: user?.email }),
+        base44.entities.Transaction.filter({ buyer_id: user?.email })
       ]);
       return [...asSeller, ...asBuyer];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.email,
     staleTime: 5000,
     refetchInterval: false
   });
