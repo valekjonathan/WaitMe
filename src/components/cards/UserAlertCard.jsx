@@ -1,12 +1,10 @@
 // ================================
 // FILE: src/components/cards/UserAlertCard.jsx
 // ================================
-import React, { useMemo } from 'react';
-import { MapPin, Clock, Navigation, MessageCircle, Phone, PhoneOff } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { MessageCircle, Phone, PhoneOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function UserAlertCard({
   alert,
@@ -14,15 +12,8 @@ export default function UserAlertCard({
   onChat,
   onCall,
   isLoading = false,
-  isEmpty = false,
-  userLocation
+  isEmpty = false
 }) {
-  const toMs = (v) => {
-    if (!v) return null;
-    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
-    return new Date(v).getTime();
-  };
-
   if (isEmpty || !alert) {
     return (
       <div className="bg-gray-900/80 rounded-xl p-4 border-2 border-purple-500/50 flex items-center justify-center">
@@ -40,10 +31,7 @@ export default function UserAlertCard({
           Info usuario
         </Badge>
 
-        <div className="flex-1 text-center text-xs text-white">
-          {alert.created_date &&
-            format(new Date(toMs(alert.created_date)), 'd MMMM - HH:mm', { locale: es })}
-        </div>
+        <div className="flex-1" />
 
         <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 h-7 flex items-center">
           <span className="text-xs text-purple-300 font-bold">
@@ -57,7 +45,7 @@ export default function UserAlertCard({
       {/* BOTONES */}
       <div className="flex gap-2 mt-2">
 
-        {/* CHAT – ENCENDIDO REAL COMO SOFÍA */}
+        {/* CHAT – ENCENDIDO REAL, AISLADO */}
         <button
           onClick={() => onChat(alert)}
           disabled={alert?.is_demo}
@@ -66,11 +54,15 @@ export default function UserAlertCard({
             height: 32,
             borderRadius: 8,
             backgroundColor: '#22c55e',
-            boxShadow: '0 0 18px rgba(34,197,94,0.9)',
+            boxShadow: '0 0 22px rgba(34,197,94,1)',
+            opacity: 1,
+            filter: 'none',
+            isolation: 'isolate',
+            position: 'relative',
+            zIndex: 50,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: alert?.is_demo ? 0.4 : 1,
             cursor: alert?.is_demo ? 'not-allowed' : 'pointer'
           }}
         >
