@@ -354,15 +354,15 @@ export default function Chats() {
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-sm text-white font-medium">Info del usuario:</p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {distanceText && (
-                            <div className="bg-black/60 border-2 border-purple-500/40 rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                              <Navigation className="w-3.5 h-3.5 text-purple-400" />
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                              <Navigation className="w-3 h-3 text-purple-400" />
                               <span className="text-white font-bold text-xs">{distanceText}</span>
                             </div>
                           )}
-                          <div className="bg-purple-600/25 border-2 border-purple-500/50 rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                            <span className="text-white font-bold text-xs">{Math.round(alert.price)}€</span>
+                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
                           </div>
                         </div>
                       </div>
