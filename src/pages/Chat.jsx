@@ -487,6 +487,14 @@ export default function Chat() {
     return cleaned;
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-gray-500">Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header showBackButton={true} backTo="Chats" />
