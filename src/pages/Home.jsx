@@ -372,49 +372,41 @@ export default function Home() {
   };
 
   const handleChat = async (alert) => {
-    try {
-      const currentUser = await base44.auth.me();
-      
-      // Si es demo, ir a conversación demo
-      if (alert?.is_demo) {
-        const demoConvId = `demo_conv_${alert.id}`;
-        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
-        return;
-      }
-      
-      const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-      
-      // Buscar conversación existente
-      const conversations = await base44.entities.Conversation.filter({});
-      const existingConv = conversations.find(c => 
-        (c.participant1_id === currentUser.id && c.participant2_id === otherUserId) ||
-        (c.participant2_id === currentUser.id && c.participant1_id === otherUserId)
-      );
-      
-      if (existingConv) {
-        window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
-        return;
-      }
-      
-      // Crear nueva conversación
-      const newConv = await base44.entities.Conversation.create({
-        participant1_id: currentUser.id,
-        participant1_name: currentUser.display_name || currentUser.full_name?.split(' ')[0] || 'Tú',
-        participant1_photo: currentUser.photo_url,
-        participant2_id: otherUserId,
-        participant2_name: alert.user_name,
-        participant2_photo: alert.user_photo,
-        alert_id: alert.id,
-        last_message_text: '',
-        last_message_at: new Date().toISOString(),
-        unread_count_p1: 0,
-        unread_count_p2: 0
-      });
-      
-      window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
-    } catch (error) {
-      console.error('Error al abrir chat:', error);
+    // Si es demo, ir a conversación demo
+    if (alert?.is_demo) {
+      const demoConvId = `demo_conv_${alert.id}`;
+      window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
+      return;
     }
+    
+    const otherUserId = alert.user_id || alert.user_email || alert.created_by;
+    
+    // Buscar conversación existente rápidamente
+    const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
+    const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
+                        (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
+    
+    if (existingConv) {
+      window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
+      return;
+    }
+    
+    // Crear nueva conversación
+    const newConv = await base44.entities.Conversation.create({
+      participant1_id: user.id,
+      participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
+      participant1_photo: user.photo_url,
+      participant2_id: otherUserId,
+      participant2_name: alert.user_name,
+      participant2_photo: alert.user_photo,
+      alert_id: alert.id,
+      last_message_text: '',
+      last_message_at: new Date().toISOString(),
+      unread_count_p1: 0,
+      unread_count_p2: 0
+    });
+    
+    window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
   };
 
   const handleCall = (alert) => {
