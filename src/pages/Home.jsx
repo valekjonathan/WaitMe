@@ -29,7 +29,7 @@ function buildDemoAlerts(centerLat, centerLng) {
 
 export default function Home() {
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
+  const [mode, setMode] = useState(null); // null, 'search', 'create'
   // ... resto de estados y hooks
 
   const [userLocation, setUserLocation] = useState(null);
