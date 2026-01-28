@@ -9,6 +9,14 @@ import ChatMessages from '@/components/chat/ChatMessages';
 import ChatInput from '@/components/chat/ChatInput';
 
 export default function Chat() {
+  const [user, setUser] = useState(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const fileInputRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const queryClient = useQueryClient();
+
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
   const isDemo = urlParams.get('demo') === 'true';
@@ -16,13 +24,6 @@ export default function Chat() {
   const demoUserPhoto = urlParams.get('userPhoto');
   const demoAlertId = urlParams.get('alertId');
   const justReserved = urlParams.get('justReserved') === 'true';
-  
-  const [user, setUser] = useState(null);
-  const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [attachments, setAttachments] = useState([]);
-  const queryClient = useQueryClient();
-  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     const fetchUser = async () => {
