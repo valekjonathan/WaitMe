@@ -82,6 +82,14 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
           </p>
         </div>
 
+        {/* Aplicar filtros */}
+        <Button
+          onClick={onClose}
+          className="w-full bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/50 transition-colors"
+        >
+          Aplicar filtros
+        </Button>
+
         {/* Reset */}
         <Button
           onClick={() => onFilterChange({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 })}
