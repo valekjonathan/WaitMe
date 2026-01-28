@@ -206,21 +206,18 @@ export default function History() {
 
   // ====== Countdown (apagable para Finalizadas) ======
   const CountdownButton = ({ text, dimmed = false }) => (
-    <Button
-      type="button"
-      variant="outline"
-      disabled
+    <div
       className={[
-        'w-full h-9 flex items-center justify-center font-mono font-extrabold text-sm',
-        'pointer-events-none cursor-default',
+        'w-full h-9 rounded-lg border-2 flex items-center justify-center px-3',
         dimmed
-          ? '!border-purple-500/30 !bg-purple-600/10 !text-gray-400/70 !shadow-none !opacity-80 hover:!bg-purple-600/10'
-          : '!border-purple-400/70 !bg-purple-600/25 !text-purple-100 hover:!bg-purple-600/25 hover:!text-purple-100 ' +
-            '!shadow-[0_0_0_1px_rgba(168,85,247,0.25),0_0_18px_rgba(168,85,247,0.12)]'
+          ? 'border-purple-500/30 bg-purple-600/10'
+          : 'border-purple-400/70 bg-purple-600/25'
       ].join(' ')}
     >
-      {text}
-    </Button>
+      <span className={`text-sm font-mono font-extrabold ${dimmed ? 'text-gray-400/70' : 'text-purple-100'}`}>
+        {text}
+      </span>
+    </div>
   );
 
   // ====== Secciones "Activas / Finalizadas" centradas ======
