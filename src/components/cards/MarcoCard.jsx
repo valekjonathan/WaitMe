@@ -158,7 +158,7 @@ export default function MarcoCard({
           {address ? (
             <div className="flex items-start gap-1.5 text-xs">
               <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-white leading-5 line-clamp-1">{address || 'Calle del Paseo, 25, Oviedo'}</span>
+              <span className="text-white leading-5 line-clamp-1">{address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}</span>
             </div>
           ) : null}
 
