@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
 import UserAlertCard from '@/components/cards/UserAlertCard';
-import ParkingMap from '@/components/map/ParkingMap';
+import ParkingMap from '@/components/maps/ParkingMap';
 
 export default function Home() {
   const [selectedAlert, setSelectedAlert] = useState(null);
