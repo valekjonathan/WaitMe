@@ -17,8 +17,7 @@ export default function MarcoCard({
   onCall,
   statusEnabled = false,
   bright = false,
-  conversationId,
-  isSellerView = false
+  conversationId
 }) {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([
@@ -164,20 +163,17 @@ export default function MarcoCard({
           ) : null}
 
           {timeLine ? (
-           <div className="flex items-start gap-1.5 text-xs">
-             <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-             {isTimeObj ? (
-               <span className={lineTextCls}>
-                 {timeLine.main}{' '}
-                 <span className="text-purple-400">{timeLine.accent}</span>
-               </span>
-             ) : (
-               <span className="text-purple-400 font-medium">
-                 {isSellerView ? 'Debes esperarle hasta ' : 'Te espera hasta '}
-                 <span className="font-bold">{timeLine}</span>
-               </span>
-             )}
-           </div>
+            <div className="flex items-start gap-1.5 text-xs">
+              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              {isTimeObj ? (
+                <span className={lineTextCls}>
+                  {timeLine.main}{' '}
+                  <span className="text-purple-400">{timeLine.accent}</span>
+                </span>
+              ) : (
+                <span className={lineTextCls}>{timeLine}</span>
+              )}
+            </div>
           ) : null}
         </div>
       </div>
