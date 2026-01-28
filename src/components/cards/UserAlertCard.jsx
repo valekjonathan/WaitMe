@@ -252,34 +252,38 @@ export default function UserAlertCard({
 
       <div className="mt-2">
         <div className="flex gap-2">
-          <Button
-            size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-[0_0_15px_rgba(34,197,94,0.6)]"
-            onClick={() => onChat(alert)}
-            disabled={Boolean(alert?.is_demo)}
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-
-          {phoneEnabled ? (
+          <div>
             <Button
               size="icon"
-              className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-              onClick={() => onCall(alert)}
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-[0_0_15px_rgba(34,197,94,0.6)]"
+              onClick={() => onChat(alert)}
               disabled={Boolean(alert?.is_demo)}
             >
-              <Phone className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4" />
             </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-              disabled
-            >
-              <PhoneOff className="w-4 h-4 text-white" />
-            </Button>
-          )}
+          </div>
+
+          <div>
+            {phoneEnabled ? (
+              <Button
+                size="icon"
+                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                onClick={() => onCall(alert)}
+                disabled={Boolean(alert?.is_demo)}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+                disabled
+              >
+                <PhoneOff className="w-4 h-4 text-white" />
+              </Button>
+            )}
+          </div>
 
           <div className="flex-1">
             <Button
