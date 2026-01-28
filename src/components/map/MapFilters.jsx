@@ -20,12 +20,11 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
           </div>
         </div>
         <Button
-          variant="ghost"
           size="icon"
           onClick={onClose}
-          className="text-gray-400 hover:text-white h-8 w-8"
+          className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" strokeWidth={3} />
         </Button>
       </div>
 
