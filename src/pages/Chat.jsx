@@ -62,12 +62,12 @@ export default function Chat() {
 
   // Inicializar mensajes con Marta
   useEffect(() => {
-    if (!conversationId || messages.length > 0) return;
+    if (messages.length > 0) return;
     
     const martaMessages = [
       {
         id: 'marta1',
-        conversation_id: conversationId,
+        conversation_id: 'demo_conv_1',
         sender_id: 'marta_id',
         sender_name: 'Marta',
         sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -78,7 +78,7 @@ export default function Chat() {
       },
       {
         id: 'marta2',
-        conversation_id: conversationId,
+        conversation_id: 'demo_conv_1',
         sender_id: 'marta_id',
         sender_name: 'Marta',
         sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -89,7 +89,7 @@ export default function Chat() {
       },
       {
         id: 'marta3',
-        conversation_id: conversationId,
+        conversation_id: 'demo_conv_1',
         sender_id: 'marta_id',
         sender_name: 'Marta',
         sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -100,7 +100,7 @@ export default function Chat() {
       },
       {
         id: 'marta4',
-        conversation_id: conversationId,
+        conversation_id: 'demo_conv_1',
         sender_id: 'marta_id',
         sender_name: 'Marta',
         sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -112,7 +112,7 @@ export default function Chat() {
     ];
     
     setMessages(martaMessages);
-  }, [conversationId]);
+  }, []);
 
   // Auto-scroll al último mensaje
   useEffect(() => {
