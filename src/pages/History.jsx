@@ -645,7 +645,7 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  // Activas (tuyas) - SOLO si NO han expirado con mocks
+  // Activas (tuyas) - SOLO si NO han expirado
   const myActiveAlerts = useMemo(() => {
     const dbAlerts = myAlerts.filter((a) => {
       if (a.user_id !== user?.id) return false;
@@ -653,8 +653,8 @@ export default function History() {
       
       return true;
     });
-    return [...dbAlerts, ...mockMyActiveAlerts];
-  }, [myAlerts, user?.id, mockMyActiveAlerts]);
+    return [...dbAlerts];
+  }, [myAlerts, user?.id]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
