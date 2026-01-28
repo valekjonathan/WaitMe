@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ChatMessages from '@/components/chat/ChatMessages';
@@ -526,14 +528,14 @@ export default function Chat() {
           className="flex-1 bg-purple-900/30 border-2 border-purple-600/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 focus:border-2"
           disabled={sendMessageMutation.isPending}
         />
-        <button
-          type="submit"
+        <Button
+          size="icon"
           onClick={handleSendMessage}
           disabled={(!newMessage.trim() && attachments.length === 0) || sendMessageMutation.isPending}
-          className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white flex-shrink-0 h-10 px-5"
+          className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0 h-10 px-5"
         >
-          ➤
-        </button>
+          <Send className="w-5 h-5" />
+        </Button>
       </div>
 
       <BottomNav />
