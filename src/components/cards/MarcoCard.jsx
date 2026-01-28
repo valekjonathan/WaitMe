@@ -17,7 +17,8 @@ export default function MarcoCard({
   onCall,
   statusEnabled = false,
   bright = false,
-  conversationId
+  conversationId,
+  isSellerView = false
 }) {
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState([
