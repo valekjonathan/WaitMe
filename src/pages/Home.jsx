@@ -251,18 +251,25 @@ export default function Home() {
     mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
       
-      // Obtener hora actual en milisegundos (UTC)
-      const nowMs = Date.now();
-      const waitUntilMs = nowMs + (data.available_in_minutes * 60 * 1000);
+      // Crear alerta con timestamps correctos
+      const now = new Date();
+      const futureTime = new Date(now.getTime() + data.available_in_minutes * 60 * 1000);
       
       const payload = {
-        ...data,
-        status: 'active',
         user_id: currentUser?.id,
         user_email: currentUser?.email || currentUser?.id || '',
         created_by: currentUser?.email || currentUser?.id || '',
-        wait_until: waitUntilMs,
-        created_date: nowMs
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address,
+        price: data.price,
+        available_in_minutes: data.available_in_minutes,
+        car_brand: data.car_brand || '',
+        car_model: data.car_model || '',
+        car_color: data.car_color || '',
+        car_plate: data.car_plate || '',
+        wait_until: futureTime.toISOString(),
+        status: 'active'
       };
       
       return base44.entities.ParkingAlert.create(payload);

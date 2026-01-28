@@ -170,15 +170,8 @@ export default function History() {
 
   const getWaitUntilTs = (alert) => {
     // Primero intentar usar wait_until si existe
-    const dateFields = [
-      alert.wait_until,
-      alert.waitUntil,
-      alert.expires_at,
-      alert.expiresAt
-    ].filter(Boolean);
-
-    for (const v of dateFields) {
-      const t = toMs(v);
+    if (alert.wait_until) {
+      const t = toMs(alert.wait_until);
       if (typeof t === 'number' && t > 0) return t;
     }
 
@@ -186,13 +179,9 @@ export default function History() {
     const createdTs = getCreatedTs(alert);
     if (!createdTs) return null;
 
-    const mins =
-      Number(alert.available_in_minutes) ||
-      Number(alert.availableInMinutes) ||
-      Number(alert.duration_minutes) ||
-      Number(alert.durationMinutes);
-
+    const mins = Number(alert.available_in_minutes);
     if (Number.isFinite(mins) && mins > 0) return createdTs + mins * 60000;
+    
     return null;
   };
 
