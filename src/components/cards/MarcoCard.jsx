@@ -171,7 +171,7 @@ export default function MarcoCard({
                   <span className="text-purple-400">{timeLine.accent}</span>
                 </span>
               ) : (
-                <span className={lineTextCls}>{timeLine}</span>
+                <span className={`${lineTextCls} text-purple-400`}>{timeLine}</span>
               )}
             </div>
           ) : null}
