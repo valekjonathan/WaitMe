@@ -217,7 +217,7 @@ export default function MarcoCard({
         <div className="flex items-start justify-between gap-2">
           <div className="text-xs flex-1 flex flex-col gap-1">
             <span className="text-purple-400 font-bold">Ultimo mensaje:</span>
-            <span className="text-white truncate" style={{ maxWidth: '30ch' }}>Vale, aguanto aquí. Av...</span>
+            <span className="text-white truncate" style={{ maxWidth: '40ch' }}>Vale, aguanto aquí. Av...</span>
           </div>
           <div className="bg-red-500/20 border border-red-500/30 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
             <span className="text-red-400 text-xs font-bold">2</span>
