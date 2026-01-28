@@ -330,7 +330,7 @@ export default function Chat() {
                   )}
                   <div className={`max-w-xs ${isMine ? 'bg-purple-800 text-white' : 'bg-gray-800 text-white'} rounded-2xl px-4 py-2`}>
                     <p className="text-sm break-words">{msg.message}</p>
-                    {msg.attachments && typeof msg.attachments === 'string' && JSON.parse(msg.attachments).map((att, idx) => (
+                    {msg.attachments && JSON.parse(msg.attachments).map((att, idx) => (
                       <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="block mt-2">
                         {att.type.includes('image') ? (
                           <img src={att.url} alt={att.name} className="max-w-[120px] rounded" />
