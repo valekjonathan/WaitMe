@@ -1,46 +1,38 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAlerts } from '../hooks/useAlerts';
 
 export default function History() {
   const navigate = useNavigate();
-  const { myAlerts, refetchMyAlerts, user } = useAlerts();
 
-  useEffect(() => {
-    refetchMyAlerts();
-  }, [refetchMyAlerts]);
+  // Base44 inyecta los datos globales en window
+  const alerts = window?.base44?.data?.alerts || [];
+  const user = window?.base44?.auth?.user || null;
 
   const myActiveAlerts = useMemo(() => {
-    return myAlerts.filter((a) => {
+    return alerts.filter((a) => {
       if (!user || a.user_id !== user.id) return false;
-
       if (
         a.status !== 'active' &&
         a.status !== 'reserved' &&
         a.status !== 'created'
-      ) {
+      )
         return false;
-      }
-
       return true;
     });
-  }, [myAlerts, user]);
+  }, [alerts, user]);
 
   const myFinishedAlerts = useMemo(() => {
-    return myAlerts.filter((a) => {
+    return alerts.filter((a) => {
       if (!user || a.user_id !== user.id) return false;
-
       if (
         a.status === 'active' ||
         a.status === 'reserved' ||
         a.status === 'created'
-      ) {
+      )
         return false;
-      }
-
       return true;
     });
-  }, [myAlerts, user]);
+  }, [alerts, user]);
 
   return (
     <div className="history-page">
