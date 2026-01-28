@@ -11,27 +11,17 @@ export default function BottomNav() {
   const { user } = useAuth();
 
   const { data: activeAlerts = [] } = useQuery({
-    queryKey: ['userActiveAlerts', user?.email],
-    queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.filter({
-        user_email: user?.email,
-        status: 'active'
-      });
-      return alerts;
-    },
-    enabled: !!user?.email
+    queryKey: ['userActiveAlerts', user?.id],
+    queryFn: async () => base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
+    enabled: !!user?.id,
+    staleTime: 30000
   });
 
   const { data: unreadNotifications = [] } = useQuery({
-    queryKey: ['unreadNotifications', user?.email],
-    queryFn: async () => {
-      const notifs = await base44.entities.Notification.filter({
-        recipient_email: user?.email,
-        read: false
-      });
-      return notifs;
-    },
-    enabled: !!user?.email
+    queryKey: ['unreadNotifications', user?.id],
+    queryFn: async () => base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
+    enabled: !!user?.id,
+    staleTime: 20000
   });
 
   const baseBtn =
