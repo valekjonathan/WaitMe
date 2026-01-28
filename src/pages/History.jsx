@@ -1002,14 +1002,14 @@ export default function History() {
 
                                 <div className="flex items-start gap-1.5 text-xs mb-2">
                                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">
+                                  <span className="text-white leading-5">
                                     {formatAddress(alert.address) || 'Ubicación marcada'}
                                   </span>
                                 </div>
 
                                 <div className="flex items-start gap-1.5 text-xs">
                                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-500 leading-5">
+                                  <span className="text-white leading-5">
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
                                   <span className="text-purple-400 leading-5">
