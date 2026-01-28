@@ -343,6 +343,15 @@ export default function Chats() {
                          onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                        />
                       </div>
+
+                      {/* Últimos mensajes */}
+                      <div className="border-t border-gray-700/80 mt-2 pt-2">
+                        <p className="text-xs font-bold text-gray-400 mb-1.5">Últimos mensajes:</p>
+                        <div className="bg-black/30 rounded-lg p-2.5 text-xs text-gray-300">
+                          <p className="text-gray-400 italic">{conv.last_message_text || 'Sin mensajes'}</p>
+                          <p className="text-gray-500 mt-1 text-[10px]">{getMinutesSince(conv.last_message_at)} min.</p>
+                        </div>
+                      </div>
                     </div>
                 </div>
               </motion.div>);
