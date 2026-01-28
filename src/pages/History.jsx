@@ -645,7 +645,7 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  // Activas (tuyas) - SOLO si NO han expirado
+  // Activas (tuyas) - SOLO si NO han expirado con mocks
   const myActiveAlerts = useMemo(() => {
     const dbAlerts = myAlerts.filter((a) => {
       if (a.user_id !== user?.id) return false;
