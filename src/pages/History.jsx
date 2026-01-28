@@ -169,18 +169,21 @@ export default function History() {
   };
 
   const getWaitUntilTs = (alert) => {
-    // Primero intentar usar wait_until si existe
+    // Intentar usar wait_until si existe
     if (alert.wait_until) {
       const t = toMs(alert.wait_until);
-      if (typeof t === 'number' && t > 0) return t;
+      if (typeof t === 'number' && t > 0) {
+        return t;
+      }
     }
 
-    // Si no hay wait_until, calcularlo desde created_date + minutes
+    // Si no hay wait_until válido, SIEMPRE calcularlo desde created_date + minutes
     const createdTs = getCreatedTs(alert);
-    if (!createdTs) return null;
-
     const mins = Number(alert.available_in_minutes);
-    if (Number.isFinite(mins) && mins > 0) return createdTs + mins * 60000;
+    
+    if (createdTs && Number.isFinite(mins) && mins > 0) {
+      return createdTs + (mins * 60 * 1000);
+    }
     
     return null;
   };
@@ -823,21 +826,18 @@ export default function History() {
                     {myActiveAlerts
                       .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
                       .map((alert, index) => {
-                        const createdTs = getCreatedTs(alert) || nowTs;
+                        const createdTs = getCreatedTs(alert);
                         const waitUntilTs = getWaitUntilTs(alert);
-                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+                        
+                        // Si no podemos calcular los timestamps, skip esta alerta
+                        if (!createdTs || !waitUntilTs) {
+                          console.warn('Alert sin timestamps válidos:', alert.id);
+                          return null;
+                        }
 
-                        const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
-                        const waitUntilLabel = hasExpiry
-                          ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
-                          : '--:--';
-
-                        const countdownText =
-                          remainingMs === null
-                            ? '--:--'
-                            : remainingMs > 0
-                            ? formatRemaining(remainingMs)
-                            : 'EXPIRADA';
+                        const remainingMs = Math.max(0, waitUntilTs - nowTs);
+                        const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+                        const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
