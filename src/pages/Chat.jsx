@@ -297,7 +297,7 @@ export default function Chat() {
       {/* Foto prominente */}
       {otherUserPhoto && (
         <div className="flex justify-center py-6 px-4">
-          <img src={otherUserPhoto} alt={otherUserName} className="w-32 h-32 rounded-full border-4 border-purple-500/50 object-cover" />
+          <img src={otherUserPhoto} alt={otherUserName} className="w-32 h-32 rounded-lg border-4 border-purple-500/50 object-cover" />
         </div>
       )}
 
