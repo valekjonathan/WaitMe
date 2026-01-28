@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send } from 'lucide-react';
+import { Send, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
@@ -15,7 +15,10 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [showMediaMenu, setShowMediaMenu] = useState(false);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -504,22 +507,52 @@ export default function Chat() {
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0">
+      <div className="fixed bottom-20 left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
         <input
           type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          multiple
+          ref={cameraInputRef}
+          accept="image/*"
+          capture="environment"
           className="hidden"
-          accept="image/*,.pdf,.doc,.docx"
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="text-purple-400 hover:text-purple-300 flex-shrink-0"
-        >
-          📎
-        </button>
+        <input
+          type="file"
+          ref={galleryInputRef}
+          accept="image/*"
+          className="hidden"
+        />
+        <div className="relative">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+            onClick={() => setShowMediaMenu(!showMediaMenu)}
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
+          {showMediaMenu && (
+            <div className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden z-50">
+              <button
+                onClick={() => {
+                  cameraInputRef.current?.click();
+                  setShowMediaMenu(false);
+                }}
+                className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap"
+              >
+                📷 Hacer foto
+              </button>
+              <button
+                onClick={() => {
+                  galleryInputRef.current?.click();
+                  setShowMediaMenu(false);
+                }}
+                className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2 whitespace-nowrap border-t border-gray-700"
+              >
+                🖼️ Subir foto
+              </button>
+            </div>
+          )}
+        </div>
         <input
           value={newMessage}
           onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
