@@ -191,22 +191,9 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', España')}&countrycodes=es&limit=5`
-      );
-      const data = await response.json();
-      const formatted = data.map(item => {
-        const parts = item.display_name.split(',').map(p => p.trim());
-        const street = parts[0] || '';
-        const city = parts.slice(-3).find(p => p && !['España', 'E'].includes(p)) || '';
-        return {
-          display_name: `${street}${city ? ', ' + city : ''}`,
-          full_name: item.display_name,
-          lat: parseFloat(item.lat),
-          lng: parseFloat(item.lon)
-        };
-      });
-      setSuggestions(formatted);
+      const { base44 } = await import('@/api/base44Client');
+      const result = await base44.functions.call('searchGooglePlaces', { query });
+      setSuggestions(result.suggestions || []);
     } catch (error) {
       setSuggestions([]);
     }
