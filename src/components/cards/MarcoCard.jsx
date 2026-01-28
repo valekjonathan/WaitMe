@@ -271,7 +271,7 @@ export default function MarcoCard({
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
               {messages.map((msg) => (
-                <div key={msg.id} className="flex flex-col items-center">
+                <div key={msg.id} className="flex flex-col w-full">
                   <span className="text-xs text-gray-500 mb-1 text-center">
                     {format(msg.timestamp, 'dd MMM HH:mm', { locale: es })}
                   </span>
