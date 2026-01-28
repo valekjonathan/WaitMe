@@ -436,64 +436,9 @@ export default function Chat() {
     typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 2000);
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-gray-500">Cargando...</div>
-      </div>
-    );
-  }
-
   const isP1 = conversation?.participant1_id === user?.id;
   const otherUserName = isP1 ? conversation?.participant2_name : conversation?.participant1_name;
   const otherUserPhoto = isP1 ? conversation?.participant2_photo : conversation?.participant1_photo;
-
-  // Calcular distancia
-  const calculateDistance = () => {
-    if (!alert?.latitude || !alert?.longitude) return null;
-    
-    const userLoc = user?.user_location;
-    if (!userLoc) return null;
-    
-    const userLat = userLoc.latitude || userLoc.lat;
-    const userLon = userLoc.longitude || userLoc.lng;
-    
-    if (!userLat || !userLon) return null;
-
-    const R = 6371;
-    const dLat = (alert.latitude - userLat) * Math.PI / 180;
-    const dLon = (alert.longitude - userLon) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLat * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
-    
-    if (distanceKm < 1) {
-      return `${Math.round(distanceKm * 1000)}m`;
-    }
-    return `${distanceKm.toFixed(1)}km`;
-  };
-
-  const distance = calculateDistance();
-
-  const formatPlate = (plate) => {
-    if (!plate) return 'XXXX XXX';
-    const cleaned = plate.replace(/\s/g, '').toUpperCase();
-    if (cleaned.length >= 4) {
-      return `${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
-    }
-    return cleaned;
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-gray-500">Cargando...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col pb-20">
