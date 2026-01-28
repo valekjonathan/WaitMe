@@ -171,9 +171,14 @@ export default function MarcoCard({
       </div>
 
       <div className="border-t border-gray-700/80 mt-2 pt-1.5 mb-2">
-        <div className="text-xs">
-          <span className="text-purple-400 font-bold">Último mensaje:</span>{' '}
-          <span className="text-white">Vale, aguanto aquí. Avísame cuando llegues</span>
+        <div className="flex items-center justify-between">
+          <div className="text-xs flex-1">
+            <span className="text-purple-400 font-bold">Último mensaje:</span>{' '}
+            <span className="text-white truncate">Vale, aguanto aquí. Av...</span>
+          </div>
+          <div className="bg-red-500/20 border border-red-500/30 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 ml-2">
+            <span className="text-red-400 text-xs font-bold">2</span>
+          </div>
         </div>
       </div>
 
