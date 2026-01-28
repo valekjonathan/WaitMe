@@ -163,7 +163,9 @@ export default function Home() {
   const { data: rawAlerts = [] } = useQuery({
     queryKey: ['parkingAlerts'],
     queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    enabled: mode === 'search'
+    enabled: mode === 'search',
+    staleTime: 5000,
+    refetchInterval: false
   });
 
   function calculateDistance(lat1, lon1, lat2, lon2) {
