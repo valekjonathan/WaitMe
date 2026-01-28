@@ -336,7 +336,7 @@ export default function Chats() {
                          plate={alert.car_plate}
                          carColor={alert.car_color || 'gris'}
                          address={alert.address}
-                         timeLine={`Se va en ${alert.available_in_minutes} min · Te espera hasta las ${format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}`}
+                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</>}
                          onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
                          statusText={format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
                          phoneEnabled={alert.allow_phone_calls}
@@ -347,7 +347,7 @@ export default function Chats() {
                       {/* Ultimos mensajes */}
                       <div className="border-t border-gray-700/80 mt-2 pt-2">
                         <div className="flex justify-between items-center">
-                          <p className="text-xs font-bold text-purple-400">Ultimos mensajes</p>
+                          <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
                           {unreadCount > 0 && (
                             <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
