@@ -641,6 +641,28 @@ export default function History() {
     ];
   }, [user?.id]);
 
+  // Mock para "Tus alertas" activas
+  const mockMyActiveAlerts = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-my-active-1',
+        status: 'active',
+        user_id: user?.id,
+        user_email: 'test@test.com',
+        user_name: 'Tu',
+        address: 'Calle Campoamor, m3, Oviedo',
+        car_brand: 'Seat',
+        car_model: 'León',
+        car_color: 'rojo',
+        car_plate: '5555ABC',
+        available_in_minutes: 15,
+        price: 3.0,
+        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString()
+      }
+    ];
+  }, [user?.id]);
+
   // Mock extra para ver una tarjeta CANCELADA en "Tus alertas"
   const mockMyFinalizedAlerts = useMemo(() => {
     const baseNow = Date.now();
