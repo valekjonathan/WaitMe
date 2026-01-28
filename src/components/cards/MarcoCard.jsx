@@ -290,7 +290,36 @@ export default function MarcoCard({
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10 -top-[50px]">
+            <div className="p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10 -top-[100px]">
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-purple-400 hover:text-purple-300 flex-shrink-0"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <MessageCircle className="w-5 h-5" />
+              </Button>
               <input
                 type="text"
                 value={newMessage}
