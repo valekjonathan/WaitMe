@@ -685,7 +685,7 @@ export default function History() {
   }, [myAlerts, user?.email]);
 
   const myFinalizedAsSellerTx = [
-    ...transactions.filter((t) => t.seller_id === user?.id),
+    ...transactions.filter((t) => t.seller_id === user?.email),
     ...mockTransactions
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
