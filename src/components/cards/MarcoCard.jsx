@@ -25,24 +25,16 @@ export default function MarcoCard({
   const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
   const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
 
-  const photoCls = bright
-    ? 'w-full h-full object-cover'
-    : 'w-full h-full object-cover opacity-40 grayscale';
+  const photoCls = 'w-full h-full object-cover';
 
-  const nameCls = bright
-    ? 'font-bold text-xl text-white leading-none min-h-[22px]'
-    : 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]';
+  const nameCls = 'font-bold text-xl text-white leading-none min-h-[22px]';
 
-  const carCls = bright
-    ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]'
-    : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]';
+  const carCls = 'text-sm font-medium text-white leading-none flex-1 flex items-center truncate relative top-[6px]';
 
-  const plateWrapCls = bright ? 'flex-shrink-0' : 'opacity-45 flex-shrink-0';
-  const carIconWrapCls = bright
-    ? 'flex-shrink-0 relative -top-[1px]'
-    : 'opacity-45 flex-shrink-0 relative -top-[1px]';
+  const plateWrapCls = 'flex-shrink-0';
+  const carIconWrapCls = 'flex-shrink-0 relative -top-[1px]';
 
-  const lineTextCls = bright ? 'text-gray-200 leading-5' : 'text-gray-300 leading-5';
+  const lineTextCls = 'text-white leading-5';
 
   const isTimeObj =
     timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
