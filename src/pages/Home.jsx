@@ -251,6 +251,7 @@ export default function Home() {
       const payload = {
         ...data,
         status: 'active',
+        user_id: currentUser?.id,
         user_email: currentUser?.email || currentUser?.id || '',
         created_by: currentUser?.email || currentUser?.id || ''
       };
