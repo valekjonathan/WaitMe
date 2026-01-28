@@ -184,6 +184,48 @@ export default function Home() {
     return R * c;
   }
 
+  const fetchStreetSuggestions = async (query) => {
+    if (!query || query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', España')}&countrycodes=es&limit=5`
+      );
+      const data = await response.json();
+      const formatted = data.map(item => ({
+        display_name: item.display_name,
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon)
+      }));
+      setSuggestions(formatted);
+    } catch (error) {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    setShowSuggestions(true);
+
+    clearTimeout(searchTimeout);
+    const timeout = setTimeout(() => {
+      fetchStreetSuggestions(value);
+    }, 300);
+    setSearchTimeout(timeout);
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    setAddress(suggestion.display_name);
+    setSearchInput(suggestion.display_name);
+    setSelectedPosition({ lat: suggestion.lat, lng: suggestion.lng });
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
