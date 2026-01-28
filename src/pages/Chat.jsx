@@ -450,8 +450,7 @@ export default function Chat() {
     <div className="min-h-screen bg-black text-white flex flex-col pb-20">
       <Header title="Chat" showBackButton={true} backTo="Chats" />
       
-      {/* Header del chat */}
-      <div className="pt-16 flex items-center justify-between px-4 py-4 border-b border-gray-700">
+      <ChatHeader otherUserPhoto={otherUserPhoto} otherUserName={otherUserName} />
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center flex-shrink-0 overflow-hidden border border-purple-500">
             {otherUserPhoto && (
