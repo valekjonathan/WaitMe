@@ -251,8 +251,9 @@ export default function Home() {
     mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
       
-      const now = new Date();
-      const waitUntil = new Date(now.getTime() + data.available_in_minutes * 60000);
+      // Obtener hora actual en milisegundos (UTC)
+      const nowMs = Date.now();
+      const waitUntilMs = nowMs + (data.available_in_minutes * 60 * 1000);
       
       const payload = {
         ...data,
@@ -260,14 +261,13 @@ export default function Home() {
         user_id: currentUser?.id,
         user_email: currentUser?.email || currentUser?.id || '',
         created_by: currentUser?.email || currentUser?.id || '',
-        wait_until: waitUntil.toISOString(),
-        created_date: now.toISOString()
+        wait_until: waitUntilMs,
+        created_date: nowMs
       };
       
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
-      // Redirigir inmediatamente
       window.location.href = createPageUrl('History');
     }
   });

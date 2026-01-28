@@ -133,13 +133,20 @@ export default function History() {
   const toMs = (v) => {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
-    if (typeof v === 'number') return v < 1e12 ? v * 1000 : v;
+    if (typeof v === 'number') {
+      // Si ya es timestamp en milisegundos (>= 1e12), devolverlo tal cual
+      if (v >= 1e12) return v;
+      // Si es timestamp en segundos (< 1e12), convertir a ms
+      return v * 1000;
+    }
 
     if (typeof v === 'string') {
       const s = v.trim();
       if (!s) return null;
       const n = Number(s);
-      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) return n < 1e12 ? n * 1000 : n;
+      if (!Number.isNaN(n) && /^\d+(?:\.\d+)?$/.test(s)) {
+        return n >= 1e12 ? n : n * 1000;
+      }
       const t = new Date(s).getTime();
       return Number.isNaN(t) ? null : t;
     }
@@ -469,8 +476,8 @@ export default function History() {
         () => {}
       );
     }
-    // Actualizar cada 5 segundos en lugar de cada segundo
-    const t = setInterval(() => setNowTs(Date.now()), 5000);
+    // Actualizar cada segundo para countdown preciso
+    const t = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
