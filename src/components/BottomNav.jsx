@@ -25,7 +25,7 @@ export default function BottomNav() {
   });
 
   const baseBtn =
-    "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
+    "w-full relative flex flex-col items-center justify-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-16 py-2 px-3 rounded-lg";
 
   const homeUrl = createPageUrl('Home');
 
