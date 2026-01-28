@@ -260,8 +260,8 @@ export default function MarcoCard({
               </div>
               <Button
                 size="icon"
+                variant="destructive"
                 onClick={() => setShowChat(false)}
-                className="bg-red-500 hover:bg-red-600 text-white"
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -272,8 +272,8 @@ export default function MarcoCard({
               {messages.map((msg) => (
                 <div key={msg.id} className="flex flex-col w-full">
                   <span className="text-xs text-gray-500 mb-1 text-center">
-                    {format(msg.timestamp, 'dd MMM HH:mm', { locale: es })}
-                  </span>
+                      {format(msg.timestamp, 'dd MMM - HH:mm', { locale: es })}
+                    </span>
                   <div className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}>
                     <div
                       className={`px-3 py-2 rounded-lg max-w-xs text-sm ${
