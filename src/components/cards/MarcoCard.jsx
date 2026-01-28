@@ -167,7 +167,7 @@ export default function MarcoCard({
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
               {isTimeObj ? (
                 <span className={lineTextCls}>
-                  {timeLine.main}{' '}
+                  <span className="text-white">{timeLine.main}</span>
                   <span className="text-purple-400">{timeLine.accent}</span>
                 </span>
               ) : (
