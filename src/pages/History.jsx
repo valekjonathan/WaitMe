@@ -23,7 +23,7 @@ import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/components/AuthContext';
 
 export default function History() {
   const { user } = useAuth();

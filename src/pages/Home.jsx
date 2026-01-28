@@ -259,6 +259,8 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['userActiveAlerts'] });
       setMode(null);
     }
   });
