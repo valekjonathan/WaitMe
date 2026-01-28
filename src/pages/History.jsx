@@ -513,10 +513,10 @@ export default function History() {
         car_model: 'León',
         car_color: 'rojo',
         car_plate: '5555ABC',
-        available_in_minutes: 15,
+        available_in_minutes: 25,
         price: 3.0,
-        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString(),
-        wait_until: new Date(baseNow + 1000 * 60 * 13).toISOString()
+        created_date: new Date(baseNow).toISOString(),
+        wait_until: new Date(baseNow + 1000 * 60 * 25).toISOString()
       }
     ];
   }, [user?.id]);
