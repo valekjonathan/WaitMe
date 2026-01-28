@@ -28,6 +28,7 @@ export default function MarcoCard({
     { id: 3, sender: 'you', text: 'Perfecto, gracias!', timestamp: new Date() }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [showMediaMenu, setShowMediaMenu] = useState(false);
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
   const stUpper = String(statusText || '').trim().toUpperCase();
