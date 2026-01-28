@@ -471,13 +471,17 @@ export default function History() {
   }, []);
 
   // ====== Data ======
-  const { data: myAlerts = [], isLoading: loadingAlerts } = useQuery({
+  const { data: myAlerts = [], isLoading: loadingAlerts, refetch } = useQuery({
     queryKey: ['myAlerts', user?.id],
     queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
     enabled: !!user?.id,
     staleTime: 0,
     refetchInterval: false
   });
+
+  useEffect(() => {
+    refetch();
+  }, [user?.id, refetch]);
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.id],
