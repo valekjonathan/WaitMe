@@ -489,19 +489,132 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <Header showBackButton={true} backTo="Chats" />
-      <ChatMessages messages={messages} user={user} />
-      <ChatInput
-        newMessage={newMessage}
-        setNewMessage={setNewMessage}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        onSendMessage={handleSendMessage}
-        onFileSelect={handleFileSelect}
-        isPending={sendMessageMutation.isPending}
-        handleTyping={handleTyping}
-        handleKeyPress={handleKeyPress}
-      />
       <BottomNav />
+      
+      {/* Chat Modal - Floating Card */}
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="w-full max-w-sm bg-black/95 border-2 border-purple-500 rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden backdrop-blur-lg">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
+                {otherUserPhoto && (
+                  <img src={otherUserPhoto} alt={otherUserName} className="w-full h-full object-cover" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h2 className="text-white font-semibold">{otherUserName}</h2>
+              </div>
+            </div>
+            <button
+              onClick={() => window.location.href = '/Chats'}
+              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+            >
+              <span className="text-lg">×</span>
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+            {messages.map((msg, index) => {
+              const isMine = msg.sender_id === user?.id;
+              const isSystem = msg.message_type === 'system';
+              const showTimestamp = index === 0 || 
+                (new Date(msg.created_date).getTime() - new Date(messages[index - 1].created_date).getTime() > 300000);
+
+              return (
+                <div key={msg.id}>
+                  {showTimestamp && (
+                    <div className="text-center text-xs text-gray-500 my-3">
+                      {format(new Date(msg.created_date), "d 'Ene' - HH:mm", { locale: es })}
+                    </div>
+                  )}
+                  
+                  {isSystem ? (
+                    <div className="flex justify-center">
+                      <div className="bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-2 text-xs text-gray-400 text-center">
+                        {msg.message}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs ${isMine ? 'bg-purple-600 text-white' : 'bg-gray-800 text-white'} rounded-2xl px-4 py-2`}>
+                        <p className="text-sm break-words">{msg.message}</p>
+                        {msg.attachments && JSON.parse(msg.attachments).map((att, idx) => (
+                          <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                            {att.type.includes('image') ? (
+                              <img src={att.url} alt={att.name} className="max-w-[120px] rounded" />
+                            ) : (
+                              <div className="text-xs flex items-center gap-1">📎 {att.name}</div>
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t border-gray-700 p-4">
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <input
+                type="file"
+                ref={useRef(null)}
+                onChange={handleFileSelect}
+                multiple
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <button
+                type="button"
+                onClick={() => document.querySelector('input[type="file"]')?.click()}
+                className="text-purple-400 hover:text-purple-300 p-2"
+              >
+                📎
+              </button>
+              <input
+                value={newMessage}
+                onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
+                onKeyPress={handleKeyPress}
+                placeholder="Escribe un mensaje..."
+                className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                disabled={sendMessageMutation.isPending}
+              />
+              <button
+                type="submit"
+                disabled={(!newMessage.trim() && attachments.length === 0) || sendMessageMutation.isPending}
+                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white p-2 rounded-lg"
+              >
+                ➤
+              </button>
+            </form>
+          </div>
+
+          {/* Bottom Nav Icons */}
+          <div className="border-t border-gray-700 px-4 py-3 flex justify-around text-xs text-gray-500">
+            <button className="flex flex-col items-center gap-1 hover:text-purple-400">
+              <span>🔔</span>
+              <span>Alertas</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 hover:text-purple-400">
+              <span>🗺️</span>
+              <span>Mapa</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 hover:text-purple-400">
+              <span>🔔</span>
+              <span>Notificaciones</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 hover:text-purple-400">
+              <span>💬</span>
+              <span>Chats</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
