@@ -294,6 +294,8 @@ export default function Home() {
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
+        user_name: data.user_name,
+        user_photo: data.user_photo,
         latitude: data.latitude,
         longitude: data.longitude,
         address: data.address,
@@ -303,12 +305,17 @@ export default function Home() {
         car_model: data.car_model || '',
         car_color: data.car_color || '',
         car_plate: data.car_plate || '',
+        phone: data.phone,
+        allow_phone_calls: data.allow_phone_calls,
         wait_until: futureTime.toISOString(),
         status: 'active'
       });
     },
     onSuccess: () => {
-      window.location.href = createPageUrl('History');
+      queryClient.invalidateQueries({ queryKey: ['myAlerts', user?.id] });
+      setTimeout(() => {
+        window.location.href = createPageUrl('History');
+      }, 500);
     }
   });
 
