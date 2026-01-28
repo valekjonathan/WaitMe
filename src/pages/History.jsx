@@ -476,12 +476,12 @@ export default function History() {
     queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
     enabled: !!user?.id,
     staleTime: 0,
-    refetchInterval: false
+    refetchInterval: 2000
   });
 
   useEffect(() => {
     refetch();
-  }, [user?.id, refetch]);
+  }, []);
 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.id],
