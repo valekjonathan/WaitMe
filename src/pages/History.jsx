@@ -98,7 +98,7 @@ export default function History() {
   };
 
   const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
-    <svg viewBox="0 0 48 24" className={size} fill="none">
+    <svg viewBox="0 0 48 24" className={size} fill="none" style={{ transform: 'translateY(3px)' }}>
       <path
         d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
         fill={color}
