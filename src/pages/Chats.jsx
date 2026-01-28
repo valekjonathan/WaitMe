@@ -345,7 +345,7 @@ export default function Chats() {
                       </div>
 
                       {/* Ultimos mensajes */}
-                      <div className="border-t border-gray-700/80 mt-2 pt-2">
+                      <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
                         <div className="flex justify-between items-center">
                           <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
                           {unreadCount > 0 && (
