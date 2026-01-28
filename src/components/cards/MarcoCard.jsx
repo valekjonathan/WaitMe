@@ -245,8 +245,8 @@ export default function MarcoCard({
       </div>
 
       {showChat && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[999] flex items-end">
-          <div className="w-full bg-gray-900 rounded-t-2xl h-[75vh] flex flex-col border-t-2 border-purple-500/50 overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end pointer-events-none">
+          <div className="w-full bg-gray-900 rounded-t-2xl h-[80vh] flex flex-col border-t-2 border-purple-500/50 overflow-hidden pointer-events-auto max-h-screen">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700/80">
               <div className="flex items-center gap-2">
