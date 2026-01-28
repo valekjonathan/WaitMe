@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function History() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Base44 inyecta los datos globales en window
-  const alerts = window?.base44?.data?.alerts || [];
-  const user = window?.base44?.auth?.user || null;
+  // Datos recibidos desde Home
+  const { alerts = [], user = null } = location.state || {};
 
   const myActiveAlerts = useMemo(() => {
     return alerts.filter((a) => {
@@ -15,8 +15,9 @@ export default function History() {
         a.status !== 'active' &&
         a.status !== 'reserved' &&
         a.status !== 'created'
-      )
+      ) {
         return false;
+      }
       return true;
     });
   }, [alerts, user]);
@@ -28,8 +29,9 @@ export default function History() {
         a.status === 'active' ||
         a.status === 'reserved' ||
         a.status === 'created'
-      )
+      ) {
         return false;
+      }
       return true;
     });
   }, [alerts, user]);
@@ -40,11 +42,9 @@ export default function History() {
 
       <div className="alerts-section">
         <h2>Activas</h2>
-
         {myActiveAlerts.length === 0 && (
           <p>No tienes ninguna alerta activa.</p>
         )}
-
         {myActiveAlerts.map((alert) => (
           <div
             key={alert.id}
@@ -58,7 +58,6 @@ export default function History() {
 
       <div className="alerts-section">
         <h2>Finalizadas</h2>
-
         {myFinishedAlerts.map((alert) => (
           <div
             key={alert.id}
