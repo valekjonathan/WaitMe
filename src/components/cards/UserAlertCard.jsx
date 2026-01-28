@@ -254,7 +254,7 @@ export default function UserAlertCard({
         <div className="flex gap-2">
           <Button
             size="icon"
-            className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-8 w-[42px] shadow-lg shadow-green-500/50"
+            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-[0_0_15px_rgba(34,197,94,0.6)]"
             onClick={() => onChat(alert)}
             disabled={Boolean(alert?.is_demo)}
           >
