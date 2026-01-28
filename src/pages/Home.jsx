@@ -250,13 +250,13 @@ export default function Home() {
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
-      
+
       // Crear alerta con timestamps correctos
       const now = new Date();
       const futureTime = new Date(now.getTime() + data.available_in_minutes * 60 * 1000);
-      
+
       const payload = {
-        user_id: currentUser?.id,
+        user_id: currentUser?.email,
         user_email: currentUser?.email || currentUser?.id || '',
         created_by: currentUser?.email || currentUser?.id || '',
         latitude: data.latitude,
@@ -271,7 +271,7 @@ export default function Home() {
         wait_until: futureTime.toISOString(),
         status: 'active'
       };
-      
+
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
