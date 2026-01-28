@@ -129,202 +129,59 @@ export default function Chat() {
     enabled: !!conversation?.alert_id
   });
 
-  // Obtener mensajes
-  const { data: messages = [] } = useQuery({
-    queryKey: ['chatMessages', conversationId, conversation?.id, isDemo, justReserved],
-    queryFn: async () => {
-      if (!conversationId) return [];
-      
-      // Si es demo, crear mensajes demo específicos
-      if (isDemo) {
-        const baseMessages = [
-          {
-            id: 'demo1',
-            conversation_id: conversationId,
-            sender_id: conversation?.participant2_id || 'demo_user',
-            sender_name: demoUserName || 'Usuario',
-            message: `¡Hola! Vi tu búsqueda de parking. Tengo una plaza disponible muy cerca 🚗`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 8 * 60000).toISOString()
-          },
-          {
-            id: 'demo2',
-            conversation_id: conversationId,
-            sender_id: user?.id,
-            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-            message: `¡Perfecto! ¿Dónde exactamente?`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 7 * 60000).toISOString()
-          },
-          {
-            id: 'demo3',
-            conversation_id: conversationId,
-            sender_id: conversation?.participant2_id || 'demo_user',
-            sender_name: demoUserName || 'Usuario',
-            message: `Es en la zona que buscas. Mi coche es un Volkswagen Golf negro. Me voy en 10 minutos`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 6 * 60000).toISOString()
-          },
-          {
-            id: 'demo4',
-            conversation_id: conversationId,
-            sender_id: user?.id,
-            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-            message: `Genial, me interesa. ¿Cuánto cuesta?`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 5 * 60000).toISOString()
-          },
-          {
-            id: 'demo5',
-            conversation_id: conversationId,
-            sender_id: conversation?.participant2_id || 'demo_user',
-            sender_name: demoUserName || 'Usuario',
-            message: `Son 5€. Es zona azul, así que está bastante bien 👍`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 4 * 60000).toISOString()
-          },
-          {
-            id: 'demo6',
-            conversation_id: conversationId,
-            sender_id: user?.id,
-            sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-            message: `Vale, voy para allá. Estoy a unos minutos`,
-            read: true,
-            message_type: 'user',
-            created_date: new Date(Date.now() - 2 * 60000).toISOString()
-          }
-        ];
-        
-        if (justReserved) {
-          baseMessages.push({
-            id: 'demo_reserved',
-            conversation_id: conversationId,
-            sender_id: 'system',
-            sender_name: 'Sistema',
-            message: `✅ Solicitud de reserva enviada correctamente. ${demoUserName} recibirá tu petición.`,
-            read: true,
-            message_type: 'system',
-            created_date: new Date(Date.now() - 1000).toISOString()
-          });
-        }
-        
-        return baseMessages;
+  // Inicializar mensajes con Marta
+  useEffect(() => {
+    if (!conversationId || messages.length > 0) return;
+    
+    const martaMessages = [
+      {
+        id: 'marta1',
+        conversation_id: conversationId,
+        sender_id: 'marta_id',
+        sender_name: 'Marta',
+        sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        message: `¡Hola! He visto que buscas parking en la zona 🚗`,
+        read: true,
+        message_type: 'user',
+        created_date: new Date(Date.now() - 15 * 60000).toISOString()
+      },
+      {
+        id: 'marta2',
+        conversation_id: conversationId,
+        sender_id: 'marta_id',
+        sender_name: 'Marta',
+        sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        message: `Tengo un sitio perfecto en la calle Principal, zona azul 💜`,
+        read: true,
+        message_type: 'user',
+        created_date: new Date(Date.now() - 14 * 60000).toISOString()
+      },
+      {
+        id: 'marta3',
+        conversation_id: conversationId,
+        sender_id: 'marta_id',
+        sender_name: 'Marta',
+        sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        message: `Mi coche es un Honda Civic blanco, me voy en 20 minutos. ¿Te interesa?`,
+        read: true,
+        message_type: 'user',
+        created_date: new Date(Date.now() - 13 * 60000).toISOString()
+      },
+      {
+        id: 'marta4',
+        conversation_id: conversationId,
+        sender_id: 'marta_id',
+        sender_name: 'Marta',
+        sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+        message: `Son 3€, es muy buen precio para la zona 😊`,
+        read: true,
+        message_type: 'user',
+        created_date: new Date(Date.now() - 12 * 60000).toISOString()
       }
-      
-      try {
-        const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversationId });
-        
-        // Si hay mensajes, devolverlos ordenados
-        if (msgs.length > 0) {
-          return msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-        }
-      } catch (error) {
-        console.log('Error fetching messages:', error);
-      }
-      
-      // Si no hay mensajes, crear conversación simulada
-      const mockMessages = [
-        {
-          id: 'mock1',
-          conversation_id: conversationId,
-          sender_id: conversation?.participant2_id || 'user2',
-          sender_name: conversation?.participant2_name || 'Laura',
-          message: `¡Hola! Vi tu anuncio de búsqueda de parking`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 5 * 60000).toISOString()
-        },
-        {
-          id: 'mock2',
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          message: `¡Hola! Sí, necesito un parking por aquí urgentemente`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 4 * 60000).toISOString()
-        },
-        {
-          id: 'mock3',
-          conversation_id: conversationId,
-          sender_id: conversation?.participant2_id || 'user2',
-          sender_name: conversation?.participant2_name || 'Laura',
-          message: `Perfecto, tengo uno disponible en Paseo de la Castellana. Son 4€ y me voy en 28 minutos`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 3.5 * 60000).toISOString()
-        },
-        {
-          id: 'mock4',
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          message: `Genial, ¿cuál es exactamente la dirección?`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 3 * 60000).toISOString()
-        },
-        {
-          id: 'mock5',
-          conversation_id: conversationId,
-          sender_id: conversation?.participant2_id || 'user2',
-          sender_name: conversation?.participant2_name || 'Laura',
-          message: `Paseo de la Castellana, 42, zona azul. Mi coche es un Opel Corsa gris, matrícula 9812 GHJ`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 2.5 * 60000).toISOString()
-        },
-        {
-          id: 'mock6',
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          message: `Perfecto, estoy a 250 metros. Llego en 3 minutos`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 2 * 60000).toISOString()
-        },
-        {
-          id: 'mock7',
-          conversation_id: conversationId,
-          sender_id: conversation?.participant2_id || 'user2',
-          sender_name: conversation?.participant2_name || 'Laura',
-          message: `Vale, aguanto aquí. Avísame cuando llegues`,
-          read: true,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 1.5 * 60000).toISOString()
-        },
-        {
-          id: 'mock8',
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          message: `Ya estoy aquí, veo tu coche. Voy a hacer la reserva 👍`,
-          read: false,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 30000).toISOString()
-        },
-        {
-          id: 'mock9',
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          message: `hola`,
-          read: false,
-          message_type: 'user',
-          created_date: new Date(Date.now() - 5000).toISOString()
-        }
-        ];
-      
-      return mockMessages;
-    },
-    enabled: !!conversationId
-  });
+    ];
+    
+    setMessages(martaMessages);
+  }, [conversationId]);
 
   // Marcar mensajes como leídos
   useEffect(() => {
