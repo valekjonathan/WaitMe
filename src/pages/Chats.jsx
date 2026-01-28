@@ -353,7 +353,9 @@ export default function Chats() {
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm text-white font-medium">Info del usuario:</p>
+                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+                          Info usuario
+                        </Badge>
                         <div className="flex items-center gap-1">
                           {distanceText && (
                             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
