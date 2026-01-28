@@ -290,16 +290,10 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      const currentUser = await base44.auth.me();
-
-      // Crear alerta con timestamps correctos
-      const now = new Date();
-      const futureTime = new Date(now.getTime() + data.available_in_minutes * 60 * 1000);
-
-      const payload = {
-        user_id: currentUser?.id,
-        user_email: currentUser?.email || currentUser?.id || '',
-        created_by: currentUser?.email || currentUser?.id || '',
+      const futureTime = new Date(Date.now() + data.available_in_minutes * 60 * 1000);
+      return base44.entities.ParkingAlert.create({
+        user_id: user?.id,
+        user_email: user?.email,
         latitude: data.latitude,
         longitude: data.longitude,
         address: data.address,
@@ -311,15 +305,10 @@ export default function Home() {
         car_plate: data.car_plate || '',
         wait_until: futureTime.toISOString(),
         status: 'active'
-      };
-
-      return base44.entities.ParkingAlert.create(payload);
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts', user?.id] });
-      setTimeout(() => {
-        window.location.href = createPageUrl('History');
-      }, 300);
+      window.location.href = createPageUrl('History');
     }
   });
 
