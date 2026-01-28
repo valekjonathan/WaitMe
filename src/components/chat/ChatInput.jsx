@@ -21,7 +21,7 @@ export default function ChatInput({
   };
 
   return (
-    <div className="fixed bottom-[72px] left-0 right-0 bg-black border-t-2 border-gray-700 p-4 z-40">
+    <div className="fixed bottom-[72px] left-0 right-0 bg-gray-800/50 border-t border-gray-700/80 p-4 z-40">
       <div className="max-w-md mx-auto">
         {attachments.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
@@ -54,18 +54,19 @@ export default function ChatInput({
           >
             <Paperclip className="w-5 h-5" />
           </Button>
-          <Input
+          <input
+            type="text"
             value={newMessage}
             onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
             onKeyPress={handleKeyPress}
             placeholder="Escribe un mensaje..."
-            className="flex-1 bg-gray-900 border-gray-800 text-white"
+            className="flex-1 bg-purple-900/30 border-2 border-purple-600/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500"
             disabled={isPending}
           />
           <Button
             type="submit"
             size="icon"
-            className="bg-purple-600 hover:bg-purple-700 flex-shrink-0"
+            className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
             disabled={(!newMessage.trim() && attachments.length === 0) || isPending}
           >
             <Send className="w-5 h-5" />
