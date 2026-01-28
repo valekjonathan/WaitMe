@@ -289,7 +289,7 @@ export default function Chat() {
   const otherUserPhoto = isP1 ? conversation?.participant2_photo : conversation?.participant1_photo;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col pb-20">
+    <div className="min-h-screen bg-black text-white flex flex-col pb-20 overflow-hidden">
       <Header title="Chat" showBackButton={true} backTo="Chats" />
       
       <ChatHeader otherUserPhoto={otherUserPhoto} otherUserName={otherUserName} />
