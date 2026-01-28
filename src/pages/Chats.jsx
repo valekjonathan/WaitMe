@@ -349,7 +349,7 @@ export default function Chats() {
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-1.5">
-                        <p className="text-[13px] text-purple-400">Info del usuario:</p>
+                        <p className="text-[13px] text-purple-300 font-semibold">Info del usuario:</p>
                         <div className="flex items-center gap-1.5">
                           {distanceText && (
                             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
