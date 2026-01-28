@@ -836,11 +836,15 @@ export default function History() {
                 <SectionTag variant="green" text="Activas" />
 
                 {myActiveAlerts.length === 0 ? (
-                  <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
-                    <div className="h-[200px] flex items-center justify-center">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                  >
+                    <div className="h-[160px] flex items-center justify-center">
                       <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ) : (
                   <div className="space-y-1.5">
                     {myActiveAlerts
