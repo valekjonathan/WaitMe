@@ -509,7 +509,7 @@ export default function History() {
         car_model: 'León',
         car_color: 'rojo',
         car_plate: '5555ABC',
-        available_in_minutes: 15,
+        available_in_minutes: 0.2,
         price: 3.0,
         created_date: new Date(baseNow - 1000 * 60 * 2).toISOString()
       }
