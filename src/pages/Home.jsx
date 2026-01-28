@@ -261,7 +261,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['parkingAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['userActiveAlerts'] });
-      setMode(null);
+      window.location.href = createPageUrl('History');
     }
   });
 
