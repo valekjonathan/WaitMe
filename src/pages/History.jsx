@@ -472,12 +472,12 @@ export default function History() {
 
   // ====== Data ======
   const { data: myAlerts = [], isLoading: loadingAlerts, refetch } = useQuery({
-    queryKey: ['myAlerts', user?.email],
-    queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.email }),
-    enabled: !!user?.email,
-    staleTime: 0,
-    refetchInterval: 2000
-  });
+        queryKey: ['myAlerts', user?.id],
+        queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
+        enabled: !!user?.id,
+        staleTime: 0,
+        refetchInterval: 1000
+      });
 
   useEffect(() => {
     refetch();
