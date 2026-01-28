@@ -257,45 +257,7 @@ export default function Chats() {
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
-        {/* Buscador justo debajo del header */}
-        <div className="px-4 pt-2 pb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar conversaciones..."
-              className="pl-10 pr-10 bg-gray-900 border-gray-800 text-white" />
-
-            {searchQuery &&
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7">
-
-                <X className="w-4 h-4" />
-              </Button>
-            }
-          </div>
-        </div>
-
-        {isLoading ?
-        <div className="text-center py-12 text-gray-500">
-            Cargando conversaciones...
-          </div> :
-        filteredConversations.length === 0 ?
-        <div className="text-center py-20 text-gray-500">
-            <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg mb-2">
-              {searchQuery ? 'No se encontraron conversaciones' : 'Sin conversaciones'}
-            </p>
-            <p className="text-sm">
-              {searchQuery ? 'Intenta con otra búsqueda' : 'Cuando reserves o alguien reserve tu plaza, podrás chatear aquí'}
-            </p>
-          </div> :
-
-        <div className="px-4 space-y-3">
+         <div className="px-4 space-y-3">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
