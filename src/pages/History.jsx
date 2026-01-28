@@ -832,18 +832,6 @@ export default function History() {
                           ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
                           : '--:--';
 
-                        // Auto-expirar SOLO si han pasado los minutos configurados
-                        if (
-                          alert.status === 'active' &&
-                          hasExpiry &&
-                          remainingMs !== null &&
-                          remainingMs <= 0 &&
-                          !autoFinalizedRef.current.has(alert.id)
-                        ) {
-                          autoFinalizedRef.current.add(alert.id);
-                          expireAlertMutation.mutate(alert.id);
-                        }
-
                         const countdownText =
                           remainingMs === null
                             ? '--:--'
