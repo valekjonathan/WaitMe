@@ -344,13 +344,17 @@ export default function Chats() {
                        />
                       </div>
 
-                      {/* Últimos mensajes */}
+                      {/* Ultimos mensajes */}
                       <div className="border-t border-gray-700/80 mt-2 pt-2">
-                        <p className="text-xs font-bold text-gray-400 mb-1.5">Últimos mensajes:</p>
-                        <div className="bg-black/30 rounded-lg p-2.5 text-xs text-gray-300">
-                          <p className="text-gray-400 italic">{conv.last_message_text || 'Sin mensajes'}</p>
-                          <p className="text-gray-500 mt-1 text-[10px]">{getMinutesSince(conv.last_message_at)} min.</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs font-bold text-purple-400">Ultimos mensajes</p>
+                          {unreadCount > 0 && (
+                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
+                              <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                            </div>
+                          )}
                         </div>
+                        <p className="text-xs text-gray-300 mt-1">{conv.last_message_text || 'Sin mensajes'}</p>
                       </div>
                     </div>
                 </div>
