@@ -495,13 +495,14 @@ export default function History() {
 
   // Activas (tuyas) - SOLO si NO han expirado
   const myActiveAlerts = useMemo(() => {
-    return myAlerts.filter((a) => {
+    const dbAlerts = myAlerts.filter((a) => {
       if (a.user_id !== user?.id) return false;
       if (a.status !== 'active' && a.status !== 'reserved') return false;
       
       return true;
     });
-  }, [myAlerts, user?.id]);
+    return [...dbAlerts, ...mockMyActiveAlerts];
+  }, [myAlerts, user?.id, mockMyActiveAlerts]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
