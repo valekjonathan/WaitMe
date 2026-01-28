@@ -371,7 +371,7 @@ export default function Chat() {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="messages-container flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messages.map((msg, index) => {
           const isMine = msg.sender_id === user?.id;
           const isSystem = msg.message_type === 'system';
