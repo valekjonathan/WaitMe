@@ -91,6 +91,63 @@ export default function CreateAlertCard({
             className="py-1 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
           />
         </div>
+
+        {/* Datos del coche */}
+        <div className="space-y-1 pt-2 border-t border-gray-700">
+          <Label className="text-white text-sm font-medium">Mi coche:</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              value={carBrand}
+              onChange={(e) => setCarBrand(e.target.value)}
+              placeholder="Marca (ej: Seat)"
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 text-xs h-7"
+            />
+            <Input
+              value={carModel}
+              onChange={(e) => setCarModel(e.target.value)}
+              placeholder="Modelo (ej: León)"
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 text-xs h-7"
+            />
+            <Input
+              value={carPlate}
+              onChange={(e) => setCarPlate(e.target.value)}
+              placeholder="Matrícula (ej: 1234ABC)"
+              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 text-xs h-7"
+            />
+            <select
+              value={carColor}
+              onChange={(e) => setCarColor(e.target.value)}
+              className="bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 text-xs h-7 rounded-md px-2"
+            >
+              <option value="blanco">Blanco</option>
+              <option value="negro">Negro</option>
+              <option value="rojo">Rojo</option>
+              <option value="azul">Azul</option>
+              <option value="gris">Gris</option>
+              <option value="amarillo">Amarillo</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Contacto */}
+        <div className="space-y-1 pt-2 border-t border-gray-700">
+          <Input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Teléfono (opcional)"
+            type="tel"
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 text-xs h-7"
+          />
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-400">
+            <input
+              type="checkbox"
+              checked={allowPhoneCalls}
+              onChange={(e) => setAllowPhoneCalls(e.target.checked)}
+              className="rounded"
+            />
+            Permitir llamadas
+          </label>
+        </div>
       </div>
 
       <Button
