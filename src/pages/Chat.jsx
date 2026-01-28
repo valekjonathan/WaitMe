@@ -46,88 +46,19 @@ export default function Chat() {
     fetchUser();
   }, []);
 
-  // Obtener conversación
-  const { data: conversation } = useQuery({
-    queryKey: ['conversation', conversationId, isDemo],
-    queryFn: async () => {
-      if (!conversationId) return null;
-      
-      // Si es demo, retornar conversación demo directamente
-      if (isDemo) {
-        return {
-          id: conversationId,
-          participant1_id: user?.id || 'user1',
-          participant1_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'demo_user',
-          participant2_name: demoUserName || 'Usuario Demo',
-          participant2_photo: decodeURIComponent(demoUserPhoto || ''),
-          alert_id: demoAlertId,
-          last_message_text: 'Conversación demo',
-          last_message_at: new Date().toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0
-        };
-      }
-      
-      try {
-        const convs = await base44.entities.Conversation.filter({ id: conversationId });
-        if (convs[0]) return convs[0];
-      } catch (error) {
-        console.log('Error fetching conversation:', error);
-      }
-      
-      // Mock conversación si no existe
-      return {
-        id: conversationId,
-        participant1_id: user?.id || 'user1',
-        participant1_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
-        participant1_photo: user?.photo_url,
-        participant2_id: 'user2',
-        participant2_name: 'Laura',
-        participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-        alert_id: 'alert1',
-        last_message_text: 'Ya estoy aquí, veo tu coche. Voy a hacer la reserva 👍',
-        last_message_at: new Date().toISOString(),
-        unread_count_p1: 0,
-        unread_count_p2: 0
-      };
-    },
-    enabled: !!conversationId
-  });
-
-  // Obtener alerta relacionada
-  const { data: alert } = useQuery({
-    queryKey: ['alertInChat', conversation?.alert_id],
-    queryFn: async () => {
-      if (!conversation?.alert_id) return null;
-      try {
-        const alerts = await base44.entities.ParkingAlert.filter({ id: conversation.alert_id });
-        if (alerts[0]) return alerts[0];
-      } catch (error) {
-        console.log('Error fetching alert:', error);
-      }
-      
-      // Mock alerta si no existe
-      return {
-        id: conversation?.alert_id,
-        user_name: 'Laura',
-        user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-        car_brand: 'Opel',
-        car_model: 'Corsa',
-        car_color: 'gris',
-        car_plate: '9812 GHJ',
-        price: 4,
-        available_in_minutes: 28,
-        address: 'Paseo de la Castellana, 42',
-        latitude: 40.464667,
-        longitude: -3.632623,
-        allow_phone_calls: true,
-        phone: '+34612345678'
-      };
-    },
-    enabled: !!conversation?.alert_id
-  });
+  // Obtener conversación simplificada
+  const conversation = {
+    id: conversationId,
+    participant1_id: user?.id || 'user1',
+    participant1_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Tú',
+    participant1_photo: user?.photo_url,
+    participant2_id: 'marta_id',
+    participant2_name: 'Marta',
+    participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+    alert_id: 'alert1',
+    last_message_text: '',
+    last_message_at: new Date().toISOString()
+  };
 
   // Inicializar mensajes con Marta
   useEffect(() => {
