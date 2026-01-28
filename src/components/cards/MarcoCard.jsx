@@ -21,12 +21,7 @@ export default function MarcoCard({
   bright = false,
   conversationId
 }) {
-  const [showChat, setShowChat] = useState(!!conversationId);
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'other', text: 'Vale, aguanto aquí', timestamp: new Date(Date.now() - 600000) },
-    { id: 2, sender: 'other', text: 'Avisame cuando llegues', timestamp: new Date(Date.now() - 300000) },
-    { id: 3, sender: 'you', text: 'Perfecto, gracias!', timestamp: new Date() }
-  ]);
+  const [showChat, setShowChat] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const cameraInputRef = useRef(null);
