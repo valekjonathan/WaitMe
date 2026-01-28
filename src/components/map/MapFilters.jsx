@@ -34,7 +34,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
         {/* Precio máximo */}
         <div>
           <label className="text-sm text-white mb-2 block font-medium">
-            <Euro className="w-4 h-4 text-purple-400 inline-block mr-1" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)}€</span>
+            <Euro className="w-4 h-4 text-purple-400 inline-block mr-1" /> Precio máximo: <span className="text-purple-400 font-bold">{Math.round(filters.maxPrice)} €</span>
           </label>
           <Slider
             value={[filters.maxPrice]}
