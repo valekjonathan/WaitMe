@@ -15,14 +15,34 @@ export default async function searchGooglePlaces({ query }, { base44 }) {
       return { suggestions: [] };
     }
 
-    const suggestions = data.predictions.map(prediction => ({
-      display_name: prediction.main_text + (prediction.secondary_text ? ', ' + prediction.secondary_text : ''),
-      place_id: prediction.place_id,
-      lat: null,
-      lng: null
-    }));
+    const suggestionsWithCoords = await Promise.all(
+      data.predictions.slice(0, 5).map(async (prediction) => {
+        try {
+          const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${prediction.place_id}&fields=geometry&key=${GOOGLE_MAPS_API_KEY}`;
+          const detailsResponse = await fetch(detailsUrl);
+          const detailsData = await detailsResponse.json();
+          
+          const lat = detailsData.result?.geometry?.location?.lat || null;
+          const lng = detailsData.result?.geometry?.location?.lng || null;
 
-    return { suggestions };
+          return {
+            display_name: prediction.main_text + (prediction.secondary_text ? ', ' + prediction.secondary_text : ''),
+            place_id: prediction.place_id,
+            lat,
+            lng
+          };
+        } catch {
+          return {
+            display_name: prediction.main_text + (prediction.secondary_text ? ', ' + prediction.secondary_text : ''),
+            place_id: prediction.place_id,
+            lat: null,
+            lng: null
+          };
+        }
+      })
+    );
+
+    return { suggestions: suggestionsWithCoords };
   } catch (error) {
     return { suggestions: [], error: error.message };
   }
