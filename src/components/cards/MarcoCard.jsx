@@ -255,16 +255,15 @@ export default function MarcoCard({
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700/80">
               <div className="flex items-center gap-2">
-                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-lg object-cover" />}
+                {photoUrl && <img src={photoUrl} alt={name} className="w-8 h-8 rounded-lg object-cover border-2 border-purple-500" />}
                 <span className="text-white font-bold">{(name || '').split(' ')[0]}</span>
               </div>
-              <Button
-                size="icon"
-                variant="destructive"
+              <button
                 onClick={() => setShowChat(false)}
+                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
               >
                 <X className="w-5 h-5" />
-              </Button>
+              </button>
             </div>
 
             {/* Messages */}
@@ -272,7 +271,7 @@ export default function MarcoCard({
               {messages.map((msg) => (
                 <div key={msg.id} className="flex flex-col w-full">
                   <span className="text-xs text-gray-500 mb-1 text-center">
-                      {format(msg.timestamp, 'dd MMM - HH:mm', { locale: es })}
+                      {format(msg.timestamp, 'dd MMM - HH:mm', { locale: es }).replace(/^(\d{2} )([a-z])/, (match, p1, p2) => p1 + p2.toUpperCase())}
                     </span>
                   <div className={`flex ${msg.sender === 'you' ? 'justify-end' : 'justify-start'}`}>
                     <div
@@ -347,7 +346,7 @@ export default function MarcoCard({
                   }
                 }}
                 placeholder="Escribe un mensaje..."
-                className="flex-1 bg-gray-700 border-2 border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 focus:border-2"
+                className="flex-1 bg-purple-900/30 border-2 border-purple-600/40 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500 focus:border-2"
               />
               <Button
                 size="icon"
