@@ -254,7 +254,7 @@ export default function UserAlertCard({
         <div className="flex gap-2">
           <Button
             size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-[0_0_15px_rgba(34,197,94,0.6)]"
+            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px] shadow-lg shadow-green-500/50"
             onClick={() => onChat(alert)}
             disabled={Boolean(alert?.is_demo)}>
 
@@ -283,7 +283,7 @@ export default function UserAlertCard({
 
           <div className="flex-1">
             <Button
-              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40 shadow-lg shadow-purple-500/50"
               onClick={() => onBuyAlert(alert)}
               disabled={isLoading || Boolean(alert?.is_demo)}>
 
