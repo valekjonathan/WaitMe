@@ -16,8 +16,16 @@ export default function MarcoCard({
   phoneEnabled = false,
   onCall,
   statusEnabled = false,
-  bright = false
+  bright = false,
+  conversationId
 }) {
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'other', text: 'Vale, aguanto aquí' },
+    { id: 2, sender: 'other', text: 'Avisame cuando llegues' },
+    { id: 3, sender: 'you', text: 'Perfecto, gracias!' }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
   const stUpper = String(statusText || '').trim().toUpperCase();
   const isCountdownLike =
     typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
