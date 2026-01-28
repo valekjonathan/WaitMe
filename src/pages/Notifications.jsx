@@ -31,26 +31,20 @@ export default function Notifications() {
   }, []);
 
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['notifications', user?.email],
+    queryKey: ['notifications', user?.id],
     queryFn: async () => {
-      const notifs = await base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date');
-      // Para las notificaciones aceptadas y solicitudes, obtener datos de la alerta
-      const notifsWithAlerts = await Promise.all(
-        notifs.map(async (notif) => {
-          if (notif.type === 'reservation_accepted' || notif.type === 'reservation_request') {
-            try {
-              const alerts = await base44.entities.ParkingAlert.filter({ id: notif.alert_id });
-              return { ...notif, alert: alerts[0] || null };
-            } catch (error) {
-              return { ...notif, alert: null };
-            }
-          }
-          return notif;
-        })
-      );
-      return notifsWithAlerts;
+      const notifs = await base44.entities.Notification.filter({ recipient_id: user?.id }, '-created_date');
+      const alertIds = [...new Set(notifs.map(n => n.alert_id).filter(Boolean))];
+      const alerts = alertIds.length > 0 ? await base44.entities.ParkingAlert.filter({ id: { $in: alertIds } }) : [];
+      const alertsMap = new Map(alerts.map(a => [a.id, a]));
+      
+      return notifs.map(notif => ({
+        ...notif,
+        alert: alertsMap.get(notif.alert_id) || null
+      }));
     },
-    enabled: !!user?.email
+    enabled: !!user?.id,
+    staleTime: 10000
   });
 
   const acceptMutation = useMutation({
