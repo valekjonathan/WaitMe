@@ -302,7 +302,7 @@ export default function Chat() {
       )}
 
       {/* Messages */}
-      <div className="messages-container flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="messages-container flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
         {messages.map((msg, index) => {
           const isMine = msg.sender_id === user?.id;
           const isSystem = msg.message_type === 'system';
@@ -312,7 +312,7 @@ export default function Chat() {
           return (
             <div key={msg.id}>
               {showTimestamp && (
-                <div className="text-center text-xs text-gray-500 my-3">
+                <div className="text-center text-xs text-gray-500 my-2">
                   {format(new Date(msg.created_date), "d 'Ene' - HH:mm", { locale: es })}
                 </div>
               )}
@@ -324,8 +324,11 @@ export default function Chat() {
                   </div>
                 </div>
               ) : (
-                <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-xs ${isMine ? 'bg-purple-600 text-white' : 'bg-gray-800 text-white'} rounded-2xl px-4 py-2`}>
+                <div className={`flex gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                  {!isMine && (
+                    <img src={msg.sender_photo || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop'} alt={msg.sender_name} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                  )}
+                  <div className={`max-w-xs ${isMine ? 'bg-purple-800 text-white' : 'bg-gray-800 text-white'} rounded-2xl px-4 py-2`}>
                     <p className="text-sm break-words">{msg.message}</p>
                     {msg.attachments && JSON.parse(msg.attachments).map((att, idx) => (
                       <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer" className="block mt-2">
@@ -337,6 +340,9 @@ export default function Chat() {
                       </a>
                     ))}
                   </div>
+                  {isMine && (
+                    <img src={user?.photo_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'} alt="Tú" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                  )}
                 </div>
               )}
             </div>
