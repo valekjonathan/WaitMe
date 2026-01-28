@@ -156,12 +156,14 @@ export default function Home() {
   }, []);
 
   const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['unreadMessages', user?.email],
+    queryKey: ['unreadMessages', user?.id],
     queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.email, read: false });
+      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.id, read: false });
       return messages.length;
     },
-    enabled: !!user?.email
+    enabled: !!user?.id,
+    staleTime: 30000,
+    refetchInterval: 60000
   });
 
   const { data: rawAlerts = [] } = useQuery({
