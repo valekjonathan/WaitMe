@@ -625,8 +625,10 @@ const {
     ];
   }, [user?.id]);
 
+
+
 const myActiveAlerts = useMemo(() => {
-  return myAlerts.filter(a => {
+  return myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -635,7 +637,10 @@ const myActiveAlerts = useMemo(() => {
 
     if (!isMine) return false;
 
-    return !['expired', 'cancelled', 'completed'].includes(a.status);
+    // ACTIVA mientras no esté finalizada por status
+    return !['cancelled', 'completed', 'expired'].includes(
+      String(a.status || '').toLowerCase()
+    );
   });
 }, [myAlerts, user?.id, user?.email]);
 const myFinalizedAlerts = useMemo(() => {
@@ -648,10 +653,8 @@ const myFinalizedAlerts = useMemo(() => {
 
     if (!isMine) return false;
 
-    return (
-      a.status === 'expired' ||
-      a.status === 'cancelled' ||
-      a.status === 'completed'
+    return ['cancelled', 'completed', 'expired'].includes(
+      String(a.status || '').toLowerCase()
     );
   });
 }, [myAlerts, user?.id, user?.email]);
