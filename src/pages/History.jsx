@@ -630,7 +630,7 @@ const myActiveAlerts = useMemo(() => {
     if (!createdTs || !waitUntilTs) return true;
 
     // 🔑 SOLO FINALIZA CUANDO SE CUMPLE EL TIEMPO REAL
-    return Date.now() < waitUntilTs;
+    return !waitUntilTs || Date.now() < waitUntilTs;
   });
 }, [myAlerts, user?.id, user?.email, nowTs]);
 const myFinalizedAlerts = useMemo(() => {
@@ -671,12 +671,7 @@ const myFinalizedAlerts = useMemo(() => {
       created_date: a.created_date,
       data: a
     })),
-    ...mockMyFinalizedAlerts.map((a) => ({
-      type: 'alert',
-      id: `final-mock-alert-${a.id}`,
-      created_date: a.created_date,
-      data: a
-    })),
+   
     ...myFinalizedAsSellerTx.map((t) => ({
       type: 'transaction',
       id: `final-tx-${t.id}`,
