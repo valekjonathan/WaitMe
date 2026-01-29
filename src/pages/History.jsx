@@ -916,7 +916,7 @@ const myFinalizedAlerts = useMemo(() => {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
+                                  <CountdownButton text={countdownText} dimmed={false} />
                                 </div>
                               </>
                             ) : (
