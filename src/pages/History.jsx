@@ -1383,6 +1383,17 @@ export default function History() {
                             phoneEnabled={phoneEnabled}
                             onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
                           />
+
+                          {/* Línea horizontal y botón de navegación */}
+                          <div className="border-t border-gray-700/80 mt-2 pt-2">
+                            <Button
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
+                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
+                            >
+                              IR
+                              <Navigation className="w-5 h-5" />
+                            </Button>
+                          </div>
                         </motion.div>
                       );
                     })}
