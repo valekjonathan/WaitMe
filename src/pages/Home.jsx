@@ -12,7 +12,7 @@ import ParkingMap from '@/components/map/ParkingMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
-import NotificationManager from '@/components/notifications/NotificationManager';
+import NotificationManager from '@/components/NotificationManager';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
