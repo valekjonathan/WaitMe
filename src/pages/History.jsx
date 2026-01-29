@@ -625,8 +625,8 @@ const {
     ];
   }, [user?.id]);
 
-  const myActiveAlerts = useMemo(() => {
-  return myAlerts.filter((a) => {
+const myActiveAlerts = useMemo(() => {
+  return myAlerts.filter(a => {
     if (!a) return false;
 
     const isMine =
@@ -635,8 +635,7 @@ const {
 
     if (!isMine) return false;
 
-    if (!a.status) return true;
-    return a.status === 'active' || a.status === 'reserved';
+    return !['expired', 'cancelled', 'completed'].includes(a.status);
   });
 }, [myAlerts, user?.id, user?.email]);
 const myFinalizedAlerts = useMemo(() => {
