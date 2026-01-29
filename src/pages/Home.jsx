@@ -281,12 +281,9 @@ export default function Home() {
 
   const searchAlerts = useMemo(() => {
     if (mode !== 'search') return [];
-    const real = filteredAlerts || [];
-    if (real.length > 0) return real;
-
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [mode, filteredAlerts, userLocation]);
+  }, [mode, userLocation]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -348,8 +345,7 @@ export default function Home() {
       setConfirmDialog({ open: false, alert: null });
       
       if (alert?.is_demo) {
-        const demoConvId = `demo_conv_${alert.id}`;
-        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
+        window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`);
       }
     },
     onError: () => {
