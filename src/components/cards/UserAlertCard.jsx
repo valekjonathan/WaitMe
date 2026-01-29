@@ -241,7 +241,7 @@ export default function UserAlertCard({
         </div>
       </div>
 
-      <div className="pt-1.5 border-t border-gray-700/80 mt-2">
+      <div className="border-t border-gray-700/80">
         <div className="space-y-1.5">
           {alert?.address ? (
             <div className="flex items-start gap-1.5 text-xs">
