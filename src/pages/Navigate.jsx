@@ -210,7 +210,7 @@ export default function Navigate() {
       </header>
 
       {/* Mapa */}
-      <div className="flex-1 pt-[60px]">
+      <div className="flex-1 pt-[60px] pb-[280px]">
         <ParkingMap
           alerts={[alert]}
           userLocation={userLocation}
