@@ -34,42 +34,45 @@ export default function Navigate() {
     fetchUser();
   }, []);
 
-  // Obtener alerta - OPTIMIZADO
-  const { data: alert, isLoading: alertLoading } = useQuery({
-    queryKey: ['navigationAlert', alertId],
-    queryFn: async () => {
-      // Si es mock, devolver inmediatamente
-      if (alertId === 'mock-res-1') {
-        return {
-          id: 'mock-res-1',
-          user_name: 'Sofía',
-          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          user_id: 'seller-1',
-          user_email: 'seller1@test.com',
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_color: 'rojo',
-          car_plate: '7780KLP',
-          address: 'Calle Gran Vía, 1, Oviedo',
-          latitude: 43.3620,
-          longitude: -5.8490,
-          phone: '600123123',
-          allow_phone_calls: true,
-          price: 2.5,
-          available_in_minutes: 6
-        };
+  // Obtener alerta - INSTANTÁNEO
+  const [alert, setAlert] = useState(null);
+  
+  useEffect(() => {
+    // Mock data inmediata para desarrollo
+    if (alertId === 'mock-res-1') {
+      setAlert({
+        id: 'mock-res-1',
+        user_name: 'Sofía',
+        user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+        user_id: 'seller-1',
+        user_email: 'seller1@test.com',
+        car_brand: 'Seat',
+        car_model: 'Ibiza',
+        car_color: 'rojo',
+        car_plate: '7780KLP',
+        address: 'Calle Gran Vía, 1, Oviedo',
+        latitude: 43.3620,
+        longitude: -5.8490,
+        phone: '600123123',
+        allow_phone_calls: true,
+        price: 2.5,
+        available_in_minutes: 6
+      });
+      return;
+    }
+    
+    // Buscar alerta real en BD
+    const fetchAlert = async () => {
+      try {
+        const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
+        if (alerts.length > 0) setAlert(alerts[0]);
+      } catch (err) {
+        console.error('Error fetching alert:', err);
       }
-      
-      // Buscar en BD
-      const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
-      if (alerts.length > 0) return alerts[0];
-      
-      return null;
-    },
-    enabled: !!alertId,
-    refetchInterval: false,
-    staleTime: 30000
-  });
+    };
+    
+    if (alertId) fetchAlert();
+  }, [alertId]);
 
   // Mutation para actualizar ubicación
   const updateLocationMutation = useMutation({
@@ -169,30 +172,12 @@ export default function Navigate() {
     };
   }, []);
 
-  // Obtener ubicación del vendedor en tiempo real
-  const { data: sellerLocationData } = useQuery({
-    queryKey: ['sellerLocation', alert?.user_id, alertId],
-    queryFn: async () => {
-      const locations = await base44.entities.UserLocation.filter({ 
-        user_id: alert?.user_id, 
-        alert_id: alertId,
-        is_active: true
-      });
-      return locations[0];
-    },
-    enabled: !!alert?.user_id && !!alertId && isTracking,
-    refetchInterval: 3000,
-    staleTime: 2000
-  });
-
-  // Actualizar seller location cuando cambie
+  // Ubicación del vendedor desde la alerta (sin query)
   useEffect(() => {
-    if (sellerLocationData?.latitude && sellerLocationData?.longitude) {
-      setSellerLocation([sellerLocationData.latitude, sellerLocationData.longitude]);
-    } else if (alert?.latitude && alert?.longitude) {
+    if (alert?.latitude && alert?.longitude) {
       setSellerLocation([alert.latitude, alert.longitude]);
     }
-  }, [sellerLocationData, alert]);
+  }, [alert]);
 
   // Calcular distancia entre comprador y vendedor
   const calculateDistanceBetweenUsers = () => {
