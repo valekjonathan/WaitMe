@@ -159,6 +159,7 @@ export default function ParkingMap({
   userLocation,
   selectedAlert,
   showRoute = false,
+  sellerLocation,
   className = '',
   zoomControl = true,
   buyerLocations = []
@@ -176,9 +177,18 @@ export default function ParkingMap({
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
-    if (showRoute && selectedAlert && normalizedUserLocation) {
+    if (showRoute && normalizedUserLocation) {
+      // Usar sellerLocation si está disponible, sino usar selectedAlert
+      const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
+      
+      if (!targetLocation) {
+        setRoute(null);
+        setRouteDistance(null);
+        return;
+      }
+
       const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
-      const end = { lat: selectedAlert.latitude, lng: selectedAlert.longitude };
+      const end = { lat: targetLocation[0], lng: targetLocation[1] };
 
       // Usar OSRM para calcular la ruta
       fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
@@ -195,7 +205,7 @@ export default function ParkingMap({
       setRoute(null);
       setRouteDistance(null);
     }
-  }, [showRoute, selectedAlert, normalizedUserLocation]);
+  }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
 
   return (
     <div className={`relative ${className}`}>
@@ -307,6 +317,48 @@ export default function ParkingMap({
             <Popup>Usuario en camino</Popup>
           </Marker>
         ))}
+
+        {/* Seller location actualizada en tiempo real */}
+        {sellerLocation && showRoute && sellerLocation !== normalizedUserLocation && (
+          <Marker 
+            position={sellerLocation}
+            icon={L.divIcon({
+              className: 'custom-seller-icon',
+              html: `
+                <style>
+                  @keyframes pulse-seller {
+                    0%, 100% { 
+                      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+                    }
+                    50% { 
+                      box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+                    }
+                  }
+                </style>
+                <div style="
+                  width: 40px; 
+                  height: 40px; 
+                  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                  border: 4px solid white;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  animation: pulse-seller 2s infinite;
+                ">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+              `,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20]
+            })}
+            zIndexOffset={2000}
+          >
+            <Popup>Vendedor: {selectedAlert?.user_name}</Popup>
+          </Marker>
+        )}
 
         {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
         <Marker
