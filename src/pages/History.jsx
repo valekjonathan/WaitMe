@@ -658,6 +658,7 @@ const myFinalizedAlerts = useMemo(() => {
       return true;
     });
   }, [myAlerts, user?.id]);
+  const reservationsActiveAll = myReservationsReal;
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
