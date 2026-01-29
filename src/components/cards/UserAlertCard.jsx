@@ -184,7 +184,7 @@ export default function UserAlertCard({
         }
       />
 
-      <div className="border-t border-gray-700/80 mb-2" />
+      <div className="border-t border-gray-700/80 mb-1" />
 
       <div className="flex gap-2.5">
         <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
