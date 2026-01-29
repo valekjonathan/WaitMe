@@ -269,7 +269,7 @@ export default function Home() {
         car_plate: data.car_plate || '',
         phone: data.phone,
         allow_phone_calls: data.allow_phone_calls,
-        wait_until: futureTime.toISOString(),
+        expires_at: futureTime.toISOString(),
         status: 'active'
       });
     },
