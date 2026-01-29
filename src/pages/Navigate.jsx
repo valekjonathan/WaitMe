@@ -41,26 +41,119 @@ export default function Navigate() {
   const [alert, setAlert] = useState(null);
   
   useEffect(() => {
-    // Mock data inmediata para desarrollo
-    if (alertId === 'mock-res-1') {
-      setAlert({
-        id: 'mock-res-1',
+    const demoAlerts = {
+      'demo_1': {
+        id: 'demo_1',
         user_name: 'Sofía',
-        user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+        user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
         user_id: 'seller-1',
         user_email: 'seller1@test.com',
-        car_brand: 'Seat',
+        car_brand: 'SEAT',
         car_model: 'Ibiza',
-        car_color: 'rojo',
-        car_plate: '7780KLP',
-        address: 'Calle Gran Vía, 1, Oviedo',
-        latitude: 43.3620,
-        longitude: -5.8490,
+        car_color: 'blanco',
+        car_plate: '1234 KLM',
+        address: 'Calle Uría, Oviedo',
+        latitude: 43.3629,
+        longitude: -5.8488,
         phone: '600123123',
         allow_phone_calls: true,
-        price: 2.5,
+        price: 3,
         available_in_minutes: 6
-      });
+      },
+      'demo_2': {
+        id: 'demo_2',
+        user_name: 'Marco',
+        user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+        user_id: 'seller-2',
+        user_email: 'seller2@test.com',
+        car_brand: 'Volkswagen',
+        car_model: 'Golf',
+        car_color: 'negro',
+        car_plate: '5678 HJP',
+        address: 'Calle Fray Ceferino, Oviedo',
+        latitude: 43.3612,
+        longitude: -5.8502,
+        phone: '600456789',
+        allow_phone_calls: true,
+        price: 5,
+        available_in_minutes: 10
+      },
+      'demo_3': {
+        id: 'demo_3',
+        user_name: 'Nerea',
+        user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+        user_id: 'seller-3',
+        user_email: 'seller3@test.com',
+        car_brand: 'Toyota',
+        car_model: 'RAV4',
+        car_color: 'azul',
+        car_plate: '9012 LSR',
+        address: 'Calle Campoamor, Oviedo',
+        latitude: 43.363,
+        longitude: -5.8489,
+        phone: '600789012',
+        allow_phone_calls: true,
+        price: 7,
+        available_in_minutes: 14
+      },
+      'demo_4': {
+        id: 'demo_4',
+        user_name: 'David',
+        user_photo: 'https://randomuser.me/api/portraits/men/19.jpg',
+        user_id: 'seller-4',
+        user_email: 'seller4@test.com',
+        car_brand: 'Renault',
+        car_model: 'Trafic',
+        car_color: 'gris',
+        car_plate: '3456 JTZ',
+        address: 'Plaza de la Escandalera, Oviedo',
+        latitude: 43.3609,
+        longitude: -5.8501,
+        phone: '600234567',
+        allow_phone_calls: true,
+        price: 4,
+        available_in_minutes: 4
+      },
+      'demo_5': {
+        id: 'demo_5',
+        user_name: 'Lucía',
+        user_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
+        user_id: 'seller-5',
+        user_email: 'seller5@test.com',
+        car_brand: 'Peugeot',
+        car_model: '208',
+        car_color: 'rojo',
+        car_plate: '7788 MNB',
+        address: 'Calle Rosal, Oviedo',
+        latitude: 43.3623,
+        longitude: -5.8483,
+        phone: '600345678',
+        allow_phone_calls: true,
+        price: 2,
+        available_in_minutes: 3
+      },
+      'demo_6': {
+        id: 'demo_6',
+        user_name: 'Álvaro',
+        user_photo: 'https://randomuser.me/api/portraits/men/61.jpg',
+        user_id: 'seller-6',
+        user_email: 'seller6@test.com',
+        car_brand: 'Kia',
+        car_model: 'Sportage',
+        car_color: 'verde',
+        car_plate: '2468 GHT',
+        address: 'Calle Jovellanos, Oviedo',
+        latitude: 43.3615,
+        longitude: -5.8505,
+        phone: '600567890',
+        allow_phone_calls: true,
+        price: 6,
+        available_in_minutes: 18
+      }
+    };
+
+    if (demoAlerts[alertId]) {
+      setAlert(demoAlerts[alertId]);
       return;
     }
     
@@ -217,9 +310,9 @@ export default function Navigate() {
     const releasePayment = async () => {
       hasReleasedPaymentRef.current = true;
       
-      const isMock = String(alert.id).startsWith('mock-');
+      const isDemo = String(alert.id).startsWith('demo_');
       
-      if (!isMock) {
+      if (!isDemo) {
         // Actualizar alerta a completada
         await base44.entities.ParkingAlert.update(alert.id, { status: 'completed' });
         
@@ -270,25 +363,7 @@ export default function Navigate() {
 
   // Ya no necesitamos pedir ubicación real - usamos ficticias
 
-  // MOSTRAR INMEDIATAMENTE aunque alert aún no esté listo
-  const displayAlert = alert || (alertId === 'mock-res-1' ? {
-    id: 'mock-res-1',
-    user_name: 'Sofía',
-    user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-    user_id: 'seller-1',
-    user_email: 'seller1@test.com',
-    car_brand: 'Seat',
-    car_model: 'Ibiza',
-    car_color: 'rojo',
-    car_plate: '7780KLP',
-    address: 'Calle Gran Vía, 1, Oviedo',
-    latitude: 43.3620,
-    longitude: -5.8490,
-    phone: '600123123',
-    allow_phone_calls: true,
-    price: 2.5,
-    available_in_minutes: 6
-  } : null);
+  const displayAlert = alert;
   
   // Ubicación por defecto si no hay alert
   const defaultLat = 43.3620;
