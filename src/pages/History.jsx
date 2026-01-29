@@ -485,19 +485,27 @@ export default function History() {
     return () => clearInterval(t);
   }, []);
 
-  // ====== Data ======
-  const { data: myAlerts = [], isLoading: loadingAlerts, refetch } = useQuery({
-        queryKey: ['myAlerts', user?.id],
-        queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
-        enabled: !!user?.id,
-        staleTime: 5000,
-        refetchInterval: false
-      });
+const {
+  data: myAlerts = [],
+  isLoading: loadingAlerts,
+  refetch: refetchMyAlerts
+} = useQuery({
+  queryKey: ['myAlerts', user?.id, user?.email],
+  enabled: !!user?.id || !!user?.email,
+  staleTime: 0,
+  queryFn: async () => {
+    const res = await base44.entities.ParkingAlert.list();
+    const list = Array.isArray(res) ? res : (res?.data || []);
 
-  useEffect(() => {
-    refetch();
-  }, []);
-
+    return list.filter(a => {
+      if (!a) return false;
+      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
+      if (user?.email && a.user_email === user.email) return true;
+      return false;
+    });
+  }
+});
+ 
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.email],
     queryFn: async () => {
@@ -617,31 +625,38 @@ export default function History() {
     ];
   }, [user?.id]);
 
-  // Activas (tuyas) - SOLO si NO han expirado
   const myActiveAlerts = useMemo(() => {
-  const dbAlerts = myAlerts.filter((a) => {
-    if (a.user_id !== user?.id) return false;
-    if (a.status !== 'active' && a.status !== 'reserved') return false;
-    return true;
+  return myAlerts.filter((a) => {
+    if (!a) return false;
+
+    const isMine =
+      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+      (user?.email && a.user_email === user.email);
+
+    if (!isMine) return false;
+
+    if (!a.status) return true;
+    return a.status === 'active' || a.status === 'reserved';
   });
+}, [myAlerts, user?.id, user?.email]);
+const myFinalizedAlerts = useMemo(() => {
+  return myAlerts.filter((a) => {
+    if (!a) return false;
 
-  return dbAlerts;
-}, [myAlerts, user?.id]);
+    const isMine =
+      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+      (user?.email && a.user_email === user.email);
 
-  // Finalizadas tuyas como alertas
-  const myFinalizedAlerts = useMemo(() => {
-    return myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
+    if (!isMine) return false;
 
-      // SOLO incluir si el status indica finalizada
-      if (a.status === 'expired' || a.status === 'cancelled' || a.status === 'completed') {
-        return true;
-      }
-
-      return false;
-    });
-  }, [myAlerts, user?.id]);
-
+    return (
+      a.status === 'expired' ||
+      a.status === 'cancelled' ||
+      a.status === 'completed'
+    );
+  });
+}, [myAlerts, user?.id, user?.email]);
+    
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
     return myAlerts.filter((a) => {
