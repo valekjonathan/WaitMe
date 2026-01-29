@@ -177,22 +177,13 @@ export default function History() {
 const getCreatedTs = (alert) => {
   if (!alert) return null;
 
-  const candidates = [
-    alert.created_date,
-    alert.createdDate,
-    alert.created_at,
-    alert.createdAt,
-    alert.created,
-    alert.published_at,
-    alert.updated_at
-  ];
+  const t =
+    toMs(alert.created_at) ??
+    toMs(alert.created_date) ??
+    toMs(alert.createdAt) ??
+    toMs(alert.created);
 
-  for (const v of candidates) {
-    const t = toMs(v);
-    if (typeof t === 'number' && t > 0) return t;
-  }
-
-  return null;
+  return typeof t === 'number' && t > 0 ? t : null;
 };
  
 
