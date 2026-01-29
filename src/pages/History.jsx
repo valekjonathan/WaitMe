@@ -358,7 +358,7 @@ export default function History() {
                   </Button>
                   <Button className="w-12 bg-black/40 border border-gray-700 hover:bg-black/60" onClick={() => {}}>
                     <Phone className="w-4 h-4" />
-                  </Button�
+                  </Button
                 </div>
 
                 <div className="mt-2">
