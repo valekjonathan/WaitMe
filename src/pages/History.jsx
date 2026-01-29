@@ -678,7 +678,7 @@ export default function History() {
     }))
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  const reservationsActiveAll = [...myReservationsReal, ...mockReservationsActive].sort(
+  const reservationsActiveAll = [...myReservationsReal].sort(
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
