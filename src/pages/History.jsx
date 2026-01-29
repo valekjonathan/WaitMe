@@ -174,31 +174,10 @@ export default function History() {
     }
     return null;
   };
-const getCreatedTs = (alert) => {
-  if (!alert) return null;
-
-  // Base44 usa published_at como timestamp real
-  const t =
-    toMs(alert.published_at) ??
-    toMs(alert.created_at) ??
-    toMs(alert.created_date);
-
-  return typeof t === 'number' && t > 0 ? t : null;
+const getExpiresTs = (alert) => {
+  return toMs(alert?.expires_at);
 };
- 
-
-const getWaitUntilTs = (alert) => {
-  if (!alert) return null;
-
-  const createdTs = getCreatedTs(alert);
-  const mins = Number(alert.available_in_minutes);
-
-  if (createdTs && Number.isFinite(mins) && mins > 0) {
-    return createdTs + mins * 60 * 1000;
-  }
-
-  return null;
-};
+  
     
 
   const formatRemaining = (ms) => {
