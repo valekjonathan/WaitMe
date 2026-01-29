@@ -614,7 +614,7 @@ const {
 
 
 const myActiveAlerts = useMemo(() => {
-  return myAlerts.filter((a) => {
+  const filtered = myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -625,9 +625,15 @@ const myActiveAlerts = useMemo(() => {
 
     const status = String(a.status || '').toLowerCase();
 
-    return status === 'active';
+    return status === 'active' || status === 'reserved';
   });
-}, [myAlerts, user?.id, user?.email]);
+  
+  // Solo mostrar la última alerta activa (la más reciente)
+  if (filtered.length === 0) return [];
+  
+  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  return [sorted[0]];
+}, [myAlerts, user?.id, user?.email, nowTs]);
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -798,14 +804,14 @@ const myFinalizedAlerts = useMemo(() => {
                          const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
-                         const remainingMs = Math.max(0, waitUntilTs - nowTs);
-                         const waitUntilLabel = new Date(waitUntilTs).toLocaleString('es-ES', { 
+                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
                            minute: '2-digit', 
                            hour12: false 
-                         });
-                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
+                         }) : '--:--';
+                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
 
 
                         const cardKey = `active-${alert.id}`;
@@ -967,13 +973,14 @@ const myFinalizedAlerts = useMemo(() => {
                                 </div>
 
                                 <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={countdownText === 'EXPIRADA'} />
+                                  <CountdownButton text={countdownText} dimmed={false} />
                                 </div>
                               </>
                             )}
                           </motion.div>
                         );
-                      })}
+                      })
+                      .slice(0, 1)}
                   </div>
                 )}
 
