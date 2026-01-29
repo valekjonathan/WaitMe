@@ -684,31 +684,29 @@ const myFinalizedAlerts = useMemo(() => {
     
 
   const reservationsFinalAllBase = [
-    ...myAlerts
-      .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
-      .map((a) => ({
-        type: 'alert',
-        id: `res-final-alert-${a.id}`,
-        created_date: a.created_date,
-        data: a
-      })),
-    ...transactions
-      .filter((t) => t.buyer_id === user?.id)
-      .map((t) => ({
-        type: 'transaction',
-        id: `res-final-tx-${t.id}`,
-        created_date: t.created_date,
-        data: t
-      })),
-    ...mockReservationsFinal.map((a) => ({
+  ...myAlerts
+    .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
+    .map((a) => ({
       type: 'alert',
-      id: `res-final-mock-${a.id}`,
+      id: `res-final-alert-${a.id}`,
       created_date: a.created_date,
       data: a
     })),
-    ...mockExpiredFromActive
-  ];
-
+  ...transactions
+    .filter((t) => t.buyer_id === user?.id)
+    .map((t) => ({
+      type: 'transaction',
+      id: `res-final-tx-${t.id}`,
+      created_date: t.created_date,
+      data: t
+    })),
+  ...mockReservationsFinal.map((a) => ({
+    type: 'alert',
+    id: `res-final-mock-${a.id}`,
+    created_date: a.created_date,
+    data: a
+  }))
+];
   const reservationsFinalAll = reservationsFinalAllBase.sort(
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
