@@ -20,7 +20,6 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { formatCardDateMadrid } from '@/utils/timeUtils';
 import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
@@ -50,7 +49,26 @@ export default function History() {
 
   // ====== Fecha: "19 Enero - 21:05" en hora de Madrid ======
   const formatCardDate = (ts) => {
-    return formatCardDateMadrid(ts);
+    if (!ts) return '--';
+    const date = new Date(ts);
+    const madridDateStr = date.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const formatted = madridDateStr
+      .replace(' de ', ' ')
+      .replace(',', ' -')
+      .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
+        const cap = month.charAt(0).toUpperCase() + month.slice(1);
+        return `${day} ${cap}`;
+      });
+    
+    return formatted;
   };
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
