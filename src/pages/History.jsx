@@ -854,20 +854,11 @@ const myFinalizedAlerts = useMemo(() => {
                            hour12: false 
                          });
                          const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
-
-                         // Auto-finalizar si expiró
-                         if (remainingMs <= 0 && alert.status === 'active') {
-                           const isMock = String(alert.id).startsWith('mock-');
-                           if (!isMock && !autoFinalizedRef.current.has(alert.id)) {
-                             autoFinalizedRef.current.add(alert.id);
-                             base44.entities.ParkingAlert
-                               .update(alert.id, { status: 'expired' })
-                               .finally(() => {
-                                 queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                               });
-                           }
-                           return null;
-                         }
+// Si expiró, NO cambies estado en BD aquí. Solo muéstrala como expirada en Finalizadas al recargar.
+// (Evita que se “auto-expire” instantáneo por timestamps raros)
+if (remainingMs <= 0) {
+  return null;
+}
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
