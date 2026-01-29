@@ -623,15 +623,19 @@ const myActiveAlerts = useMemo(() => {
 
     if (!isMine) return false;
 
+    // ❌ UNA ALERTA RESERVADA NO ES ACTIVA DEL CREADOR
+    if (String(a.status).toLowerCase() === 'reserved') return false;
+
     const createdTs = getCreatedTs(a);
     const waitUntilTs = getWaitUntilTs(a);
 
-    // 🔑 SI NO HAY TIEMPOS TODAVÍA → ES ACTIVA
+    // 🟢 si no hay tiempos todavía, sigue activa
     if (!createdTs || !waitUntilTs) return true;
 
-    // 🔑 SOLO FINALIZA CUANDO SE CUMPLE EL TIEMPO REAL
-    return !waitUntilTs || Date.now() < waitUntilTs;
+    // 🔴 solo expira cuando se cumple el tiempo real
+    return Date.now() < waitUntilTs;
   });
+
 }, [myAlerts, user?.id, user?.email, nowTs]);
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
