@@ -253,7 +253,7 @@ export default function Home() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
       setTimeout(() => {
         window.location.href = createPageUrl('History');
       }, 500);
