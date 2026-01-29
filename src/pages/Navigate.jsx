@@ -270,37 +270,51 @@ export default function Navigate() {
     releasePayment();
   }, [distanceMeters, alert, user, paymentReleased, queryClient]);
 
-  // Obtener ubicación inicial del usuario inmediatamente
+  // Obtener ubicación INMEDIATAMENTE al cargar
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation([position.coords.latitude, position.coords.longitude]);
-          // Auto-iniciar tracking después de obtener ubicación
-          if (alert && !isTracking) {
-            setTimeout(() => startTracking(), 100);
-          }
+          // Auto-iniciar tracking
+          setTimeout(() => startTracking(), 200);
         },
         (error) => {
-          console.log('Error obteniendo ubicación inicial:', error);
-          // Aunque falle, seguir mostrando el mapa
+          console.log('Error ubicación:', error);
+          // Usar ubicación de alerta como fallback
+          if (alert?.latitude && alert?.longitude) {
+            setUserLocation([alert.latitude + 0.005, alert.longitude + 0.005]);
+          }
         },
-        { enableHighAccuracy: false, timeout: 2000, maximumAge: 30000 }
+        { enableHighAccuracy: true, timeout: 1500, maximumAge: 10000 }
       );
     }
-  }, [alert]);
+  }, []);
 
-  // No bloquear renderizado - mostrar siempre el contenido
-  if (!alert) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-gray-400">Cargando...</div>
-        </div>
-      </div>
-    );
-  }
+  // MOSTRAR INMEDIATAMENTE aunque alert aún no esté listo
+  const displayAlert = alert || (alertId === 'mock-res-1' ? {
+    id: 'mock-res-1',
+    user_name: 'Sofía',
+    user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+    user_id: 'seller-1',
+    user_email: 'seller1@test.com',
+    car_brand: 'Seat',
+    car_model: 'Ibiza',
+    car_color: 'rojo',
+    car_plate: '7780KLP',
+    address: 'Calle Gran Vía, 1, Oviedo',
+    latitude: 43.3620,
+    longitude: -5.8490,
+    phone: '600123123',
+    allow_phone_calls: true,
+    price: 2.5,
+    available_in_minutes: 6
+  } : null);
+  
+  // Ubicación por defecto si no hay alert
+  const defaultLat = 43.3620;
+  const defaultLon = -5.8490;
+  const mapCenter = displayAlert ? [displayAlert.latitude, displayAlert.longitude] : [defaultLat, defaultLon];
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -344,58 +358,58 @@ export default function Navigate() {
         </div>
       </header>
 
-      {/* Mapa */}
+      {/* Mapa - RENDERIZA SIEMPRE */}
       <div className="flex-1 pt-[60px] pb-[340px]">
-        {alert && (
-          <ParkingMap
-            alerts={[alert]}
-            userLocation={userLocation || [alert.latitude, alert.longitude]}
-            selectedAlert={alert}
-            showRoute={isTracking && userLocation && sellerLocation}
-            sellerLocation={sellerLocation}
-            zoomControl={true}
-            className="h-full"
-          />
-        )}
+        <ParkingMap
+          alerts={displayAlert ? [displayAlert] : []}
+          userLocation={userLocation || mapCenter}
+          selectedAlert={displayAlert}
+          showRoute={isTracking && userLocation && sellerLocation}
+          sellerLocation={sellerLocation || mapCenter}
+          zoomControl={true}
+          className="h-full"
+        />
       </div>
 
       {/* Panel inferior */}
       <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-50">
         {/* Info de destino */}
-        <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <p className="font-semibold text-white">{alert.user_name}</p>
-              <p className="text-sm text-gray-400">{alert.car_brand} {alert.car_model}</p>
-              <p className="text-xs text-gray-500 mt-1">{alert.car_plate}</p>
+        {displayAlert && (
+          <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-semibold text-white">{displayAlert.user_name}</p>
+                <p className="text-sm text-gray-400">{displayAlert.car_brand} {displayAlert.car_model}</p>
+                <p className="text-xs text-gray-500 mt-1">{displayAlert.car_plate}</p>
+              </div>
+              <div className="text-right">
+                {distance && (
+                  <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
+                    <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
+                  </div>
+                )}
+                {distanceMeters !== null && distanceMeters <= 50 && (
+                  <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="text-right">
-              {distance && (
-                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
-                  <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
-                </div>
-              )}
-              {distanceMeters !== null && distanceMeters <= 50 && (
-                <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
-                  {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
-                </div>
-              )}
+            
+            <div className="text-xs text-gray-500">
+              {displayAlert.address}
             </div>
-          </div>
-          
-          <div className="text-xs text-gray-500">
-            {alert.address}
-          </div>
 
-          {/* Indicador de pago retenido */}
-          {!paymentReleased && (
-            <div className="mt-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
-              <p className="text-xs text-yellow-400 text-center">
-                💰 Pago retenido: {alert.price.toFixed(2)}€ · Se liberará a menos de 10m
-              </p>
-            </div>
-          )}
-        </div>
+            {/* Indicador de pago retenido */}
+            {!paymentReleased && (
+              <div className="mt-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
+                <p className="text-xs text-yellow-400 text-center">
+                  💰 Pago retenido: {displayAlert.price.toFixed(2)}€ · Se liberará a menos de 10m
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Botones */}
         <div className="flex gap-2">
@@ -422,15 +436,16 @@ export default function Navigate() {
         <div className="flex gap-2">
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
-            onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${alert.user_email || alert.user_id}`)}
+            onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
+            disabled={!displayAlert}
           >
             <MessageCircle className="w-5 h-5 mr-2" />
             Chat
           </Button>
           <Button
             className="flex-1 bg-gray-700 hover:bg-gray-600 text-white h-10"
-            onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
-            disabled={!alert.allow_phone_calls || !alert.phone}
+            onClick={() => displayAlert?.phone && (window.location.href = `tel:${displayAlert.phone}`)}
+            disabled={!displayAlert?.allow_phone_calls || !displayAlert?.phone}
           >
             <Phone className="w-5 h-5 mr-2" />
             Llamar
