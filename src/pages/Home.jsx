@@ -2,230 +2,171 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MapPin, Car, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
+import Header from '@/components/layout/Header';
+import BottomNav from '@/components/layout/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
-import UserAlertCard from '@/components/cards/UserAlertCard';
-import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import MapFilters from '@/components/map/MapFilters';
-import BottomNav from '@/components/BottomNav';
-import NotificationManager from '@/components/NotificationManager';
-import Header from '@/components/Header';
+import CreateAlertCard from '@/components/cards/CreateAlertCard';
+import UserAlertCard from '@/components/cards/UserAlertCard';
+import NotificationManager from '@/components/notifications/NotificationManager';
 
-function buildDemoAlerts(centerLat, centerLng) {
-  const offsets = [
-    [0.0009, 0.0006],
-    [-0.0007, 0.0008],
-    [0.0011, -0.0005],
-    [-0.0010, -0.0007],
-    [0.0004, -0.0011],
-    [-0.0004, 0.0012]
-  ];
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
-  const base = [
+const buildDemoAlerts = (lat, lng) => {
+  const baseLat = lat ?? 43.3619;
+  const baseLng = lng ?? -5.8494;
+
+  return [
     {
       id: 'demo_1',
-      user_name: 'Sofía',
-      user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
-      car_brand: 'SEAT',
+      is_demo: true,
+      user_name: 'SOFIA',
+      user_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
+      car_brand: 'Seat',
       car_model: 'Ibiza',
-      car_color: 'blanco',
-      car_plate: '1234 KLM',
-      vehicle_type: 'car',
-      price: 3,
-      available_in_minutes: 6,
-      address: 'Calle Uría, Oviedo'
+      car_color: 'azul',
+      car_plate: '1234ABC',
+      price: 3.0,
+      available_in_minutes: 5,
+      latitude: baseLat + 0.002,
+      longitude: baseLng + 0.001,
+      address: 'Calle Uría, Oviedo',
+      phone: '+34612345678',
+      allow_phone_calls: true
     },
     {
       id: 'demo_2',
-      user_name: 'Marco',
-      user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-      car_brand: 'Volkswagen',
-      car_model: 'Golf',
+      is_demo: true,
+      user_name: 'MARCO',
+      user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      car_brand: 'BMW',
+      car_model: 'Serie 1',
       car_color: 'negro',
-      car_plate: '5678 HJP',
-      vehicle_type: 'car',
-      price: 5,
-      available_in_minutes: 10,
-      address: 'Calle Fray Ceferino, Oviedo'
+      car_plate: '5678DEF',
+      price: 4.0,
+      available_in_minutes: 12,
+      latitude: baseLat - 0.001,
+      longitude: baseLng - 0.002,
+      address: 'Calle Campoamor, Oviedo',
+      phone: '+34623456789',
+      allow_phone_calls: false
     },
     {
       id: 'demo_3',
-      user_name: 'Nerea',
-      user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-      car_brand: 'Toyota',
-      car_model: 'RAV4',
-      car_color: 'azul',
-      car_plate: '9012 LSR',
-      vehicle_type: 'suv',
-      price: 7,
-      available_in_minutes: 14,
-      address: 'Calle Campoamor, Oviedo'
-    },
-    {
-      id: 'demo_4',
-      user_name: 'David',
-      user_photo: 'https://randomuser.me/api/portraits/men/19.jpg',
-      car_brand: 'Renault',
-      car_model: 'Trafic',
-      car_color: 'gris',
-      car_plate: '3456 JTZ',
-      vehicle_type: 'van',
-      price: 4,
-      available_in_minutes: 4,
-      address: 'Plaza de la Escandalera, Oviedo'
-    },
-    {
-      id: 'demo_5',
-      user_name: 'Lucía',
-      user_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
-      car_brand: 'Peugeot',
-      car_model: '208',
-      car_color: 'rojo',
-      car_plate: '7788 MNB',
-      vehicle_type: 'car',
-      price: 2,
-      available_in_minutes: 3,
-      address: 'Calle Rosal, Oviedo'
-    },
-    {
-      id: 'demo_6',
-      user_name: 'Álvaro',
-      user_photo: 'https://randomuser.me/api/portraits/men/61.jpg',
-      car_brand: 'Kia',
-      car_model: 'Sportage',
-      car_color: 'verde',
-      car_plate: '2468 GHT',
-      vehicle_type: 'suv',
-      price: 6,
-      available_in_minutes: 18,
-      address: 'Calle Jovellanos, Oviedo'
+      is_demo: true,
+      user_name: 'DIEGO',
+      user_photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop',
+      car_brand: 'Volkswagen',
+      car_model: 'Golf',
+      car_color: 'blanco',
+      car_plate: '9012GHI',
+      price: 2.5,
+      available_in_minutes: 20,
+      latitude: baseLat + 0.001,
+      longitude: baseLng - 0.001,
+      address: 'Plaza de la Escandalera, Oviedo',
+      phone: '+34634567890',
+      allow_phone_calls: true
     }
   ];
-
-  return base.map((a, i) => {
-    const [dLat, dLng] = offsets[i] || [0, 0];
-    return {
-      ...a,
-      latitude: centerLat + dLat,
-      longitude: centerLng + dLng,
-      allow_phone_calls: false,
-      phone: null,
-      is_demo: true
-    };
-  });
-}
+};
 
 export default function Home() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const initialMode = urlParams.get('mode');
-  const [mode, setMode] = useState(initialMode || null); // null, 'search', 'create'
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has('mode')) setMode(null);
-  }, [window.location.search]);
-
+  const queryClient = useQueryClient();
+  const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
-  const [user, setUser] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ maxPrice: 7, maxMinutes: 25, maxDistance: 1 });
-  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
-  const queryClient = useQueryClient();
+  const [filters, setFilters] = useState({
+    maxPrice: 10,
+    maxMinutes: 30,
+    maxDistance: 10
+  });
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch {
-        // no auth
-      }
-    };
-    fetchUser();
-  }, []);
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.getUser()
+  });
 
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ['unreadMessages', user?.id],
-    queryFn: async () => {
-      const messages = await base44.entities.ChatMessage.filter({ receiver_id: user?.id, read: false });
-      return messages.length;
-    },
+  const { data: unreadCount } = useQuery({
+    queryKey: ['unreadCount', user?.id],
     enabled: !!user?.id,
-    staleTime: 30000,
-    refetchInterval: 60000
+    queryFn: async () => {
+      const notifications = await base44.entities.Notification.filter({
+        user_id: user.id,
+        read: false
+      });
+      return notifications?.length || 0;
+    }
   });
 
-  const { data: rawAlerts = [] } = useQuery({
-    queryKey: ['parkingAlerts'],
-    queryFn: () => base44.entities.ParkingAlert.filter({ status: 'active' }),
-    enabled: mode === 'search',
-    staleTime: 5000,
-    refetchInterval: false
+  const { data: rawAlerts } = useQuery({
+    queryKey: ['alerts'],
+    queryFn: async () => {
+      const alerts = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+      return list.filter(a => (a?.status || 'active') === 'active');
+    }
   });
 
-  function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
+  const handleSearchInputChange = async (e) => {
+    const val = e.target.value;
+    setSearchInput(val);
 
-  const fetchStreetSuggestions = async (query) => {
-    if (!query || query.length < 2) {
+    if (!val || val.trim().length < 3) {
       setSuggestions([]);
       return;
     }
 
     try {
-      const { base44 } = await import('@/api/base44Client');
-      const result = await base44.functions.call('searchGooglePlaces', { query });
-      setSuggestions(result.suggestions || []);
-    } catch (error) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
+      const data = await res.json();
+      setSuggestions(data || []);
+      setShowSuggestions(true);
+    } catch {
       setSuggestions([]);
     }
   };
 
-  const handleSearchInputChange = (e) => {
-    const value = e.target.value;
-    setSearchInput(value);
-    setShowSuggestions(true);
-
-    clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => {
-      fetchStreetSuggestions(value);
-    }, 300);
-    setSearchTimeout(timeout);
-  };
-
   const handleSelectSuggestion = (suggestion) => {
-    setAddress(suggestion.display_name);
     setSearchInput(suggestion.display_name);
-    setSelectedPosition({ lat: suggestion.lat, lng: suggestion.lng });
-    setSuggestions([]);
     setShowSuggestions(false);
+
+    const lat = parseFloat(suggestion.lat);
+    const lng = parseFloat(suggestion.lon);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    setUserLocation([lat, lng]);
   };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
 
@@ -281,9 +222,12 @@ export default function Home() {
 
   const searchAlerts = useMemo(() => {
     if (mode !== 'search') return [];
+    const real = filteredAlerts || [];
+    if (real.length > 0) return real;
+
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [mode, userLocation]);
+  }, [mode, filteredAlerts, userLocation]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -322,8 +266,28 @@ export default function Home() {
         await new Promise(resolve => setTimeout(resolve, 500));
         return { demo: true };
       }
-      
+
+      const buyerName = user?.full_name || user?.display_name || 'Usuario';
+      const buyerCarBrand = user?.car_brand || '';
+      const buyerCarModel = user?.car_model || '';
+      const buyerCarColor = user?.car_color || 'gris';
+      const buyerPlate = user?.car_plate || '';
+      const buyerVehicleType = user?.vehicle_type || 'car';
+
+      // 1) Marcar la alerta como RESERVADA (para que en "Tus alertas" aparezca como Reservado por...)
+      // 2) Guardar datos del comprador para pintar la tarjeta sin depender de otras tablas
+      // 3) Crear transacción + mensaje
       return Promise.all([
+        base44.entities.ParkingAlert.update(alert.id, {
+          status: 'reserved',
+          reserved_by_id: user?.id,
+          reserved_by_email: user?.email,
+          reserved_by_name: buyerName,
+          reserved_by_car: `${buyerCarBrand} ${buyerCarModel}`.trim(),
+          reserved_by_car_color: buyerCarColor,
+          reserved_by_plate: buyerPlate,
+          reserved_by_vehicle_type: buyerVehicleType
+        }),
         base44.entities.Transaction.create({
           alert_id: alert.id,
           buyer_id: user?.id,
@@ -345,7 +309,8 @@ export default function Home() {
       setConfirmDialog({ open: false, alert: null });
       
       if (alert?.is_demo) {
-        window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`);
+        const demoConvId = `demo_conv_${alert.id}`;
+        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
       }
     },
     onError: () => {
