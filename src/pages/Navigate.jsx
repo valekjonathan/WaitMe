@@ -14,9 +14,13 @@ export default function Navigate() {
   
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [sellerLocation, setSellerLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [paymentReleased, setPaymentReleased] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
+  const hasReleasedPaymentRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -164,58 +168,186 @@ export default function Navigate() {
     };
   }, []);
 
-  // Calcular distancia
-  const calculateDistance = () => {
-    if (!userLocation || !alert?.latitude || !alert?.longitude) return null;
+  // Obtener ubicación del vendedor en tiempo real
+  const { data: sellerLocationData } = useQuery({
+    queryKey: ['sellerLocation', alert?.user_id, alertId],
+    queryFn: async () => {
+      const locations = await base44.entities.UserLocation.filter({ 
+        user_id: alert?.user_id, 
+        alert_id: alertId,
+        is_active: true
+      });
+      return locations[0];
+    },
+    enabled: !!alert?.user_id && !!alertId,
+    refetchInterval: 2000
+  });
+
+  // Actualizar seller location cuando cambie
+  useEffect(() => {
+    if (sellerLocationData?.latitude && sellerLocationData?.longitude) {
+      setSellerLocation([sellerLocationData.latitude, sellerLocationData.longitude]);
+    } else if (alert?.latitude && alert?.longitude) {
+      setSellerLocation([alert.latitude, alert.longitude]);
+    }
+  }, [sellerLocationData, alert]);
+
+  // Calcular distancia entre comprador y vendedor
+  const calculateDistanceBetweenUsers = () => {
+    if (!userLocation || !sellerLocation) return null;
     
-    const R = 6371;
-    const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-    const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+    const R = 6371000; // Radio de la Tierra en metros
+    const lat1 = userLocation[0] * Math.PI / 180;
+    const lat2 = sellerLocation[0] * Math.PI / 180;
+    const dLat = (sellerLocation[0] - userLocation[0]) * Math.PI / 180;
+    const dLon = (sellerLocation[1] - userLocation[1]) * Math.PI / 180;
+    
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
+      Math.cos(lat1) * Math.cos(lat2) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
+    const distanceMeters = R * c;
     
-    if (distanceKm < 1) {
-      return { value: Math.round(distanceKm * 1000), unit: 'm' };
-    }
-    return { value: distanceKm.toFixed(1), unit: 'km' };
+    return distanceMeters;
   };
 
-  const distance = calculateDistance();
+  const distanceMeters = calculateDistanceBetweenUsers();
+
+  // Calcular distancia para mostrar
+  const distance = (() => {
+    if (distanceMeters === null) return null;
+    if (distanceMeters < 1000) {
+      return { value: Math.round(distanceMeters), unit: 'm' };
+    }
+    return { value: (distanceMeters / 1000).toFixed(1), unit: 'km' };
+  })();
+
+  // Liberar pago cuando estén a menos de 10 metros
+  useEffect(() => {
+    if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
+    if (distanceMeters === null || distanceMeters > 10) return;
+    
+    // Usuarios están a menos de 10 metros - liberar pago
+    const releasePayment = async () => {
+      hasReleasedPaymentRef.current = true;
+      
+      const isMock = String(alert.id).startsWith('mock-');
+      
+      if (!isMock) {
+        // Actualizar alerta a completada
+        await base44.entities.ParkingAlert.update(alert.id, { status: 'completed' });
+        
+        // Crear transacción
+        const sellerEarnings = alert.price * 0.8;
+        const platformFee = alert.price * 0.2;
+        
+        await base44.entities.Transaction.create({
+          alert_id: alert.id,
+          seller_id: alert.user_email || alert.user_id,
+          seller_name: alert.user_name,
+          buyer_id: user.id,
+          buyer_name: user.display_name || user.full_name?.split(' ')[0] || 'Usuario',
+          amount: alert.price,
+          seller_earnings: sellerEarnings,
+          platform_fee: platformFee,
+          status: 'completed',
+          address: alert.address
+        });
+        
+        // Enviar mensaje de sistema
+        await base44.entities.ChatMessage.create({
+          conversation_id: `${alert.user_id}_${user.id}`,
+          alert_id: alert.id,
+          sender_id: 'system',
+          sender_name: 'Sistema',
+          receiver_id: alert.user_id,
+          message: `✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`,
+          read: false,
+          message_type: 'system'
+        });
+      }
+      
+      setPaymentReleased(true);
+      setShowPaymentSuccess(true);
+      
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['navigationAlert'] });
+      
+      // Redirigir a History después de 3 segundos
+      setTimeout(() => {
+        window.location.href = createPageUrl('History');
+      }, 3000);
+    };
+    
+    releasePayment();
+  }, [distanceMeters, alert, user, paymentReleased, queryClient]);
+
+  // Auto-iniciar tracking cuando carga
+  useEffect(() => {
+    if (alert && !isTracking && !watchIdRef.current) {
+      startTracking();
+    }
+  }, [alert]);
 
   if (!alert) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-gray-500">Cargando...</div>
+        <div className="text-gray-500">Cargando ubicación del parking...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Modal de éxito de pago */}
+      {showPaymentSuccess && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 mx-4 text-center shadow-2xl border-2 border-green-400"
+          >
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-5xl">✅</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">¡Pago liberado!</h2>
+            <p className="text-green-100 mb-4">
+              Has llegado al destino
+            </p>
+            <div className="bg-white/20 rounded-lg p-3">
+              <p className="text-white font-bold text-lg">{alert.price.toFixed(2)}€</p>
+              <p className="text-green-100 text-sm">Transacción completada</p>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
-          <Link to={createPageUrl('Notifications')}>
+          <Link to={createPageUrl('History')}>
             <Button variant="ghost" size="icon" className="text-white">
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </Link>
-          <h1 className="text-lg font-semibold">Navegación</h1>
+          <h1 className="text-lg font-semibold">Navegación a parking</h1>
           <div className="w-10"></div>
         </div>
       </header>
 
       {/* Mapa */}
-      <div className="flex-1 pt-[60px] pb-[280px]">
+      <div className="flex-1 pt-[60px] pb-[340px]">
         <ParkingMap
           alerts={[alert]}
           userLocation={userLocation}
           selectedAlert={alert}
           showRoute={isTracking && userLocation}
+          sellerLocation={sellerLocation}
           zoomControl={true}
           className="h-full"
         />
@@ -229,17 +361,34 @@ export default function Navigate() {
             <div>
               <p className="font-semibold text-white">{alert.user_name}</p>
               <p className="text-sm text-gray-400">{alert.car_brand} {alert.car_model}</p>
+              <p className="text-xs text-gray-500 mt-1">{alert.car_plate}</p>
             </div>
-            {distance && (
-              <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2">
-                <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
-              </div>
-            )}
+            <div className="text-right">
+              {distance && (
+                <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
+                  <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
+                </div>
+              )}
+              {distanceMeters !== null && distanceMeters <= 50 && (
+                <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
+                  {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="text-xs text-gray-500">
             {alert.address}
           </div>
+
+          {/* Indicador de pago retenido */}
+          {!paymentReleased && (
+            <div className="mt-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
+              <p className="text-xs text-yellow-400 text-center">
+                💰 Pago retenido: {alert.price.toFixed(2)}€ · Se liberará a menos de 10m
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Botones */}
@@ -282,15 +431,20 @@ export default function Navigate() {
           </Button>
         </div>
 
-        {isTracking && (
+        {isTracking && !paymentReleased && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center"
           >
             <p className="text-xs text-blue-400">
-              Tu ubicación se está compartiendo en tiempo real
+              📍 Navegando en tiempo real hacia el parking
             </p>
+            {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 10 && (
+              <p className="text-xs text-yellow-400 mt-1 font-bold">
+                ¡Muy cerca! {Math.round(distanceMeters)}m hasta liberar el pago
+              </p>
+            )}
           </motion.div>
         )}
       </div>
