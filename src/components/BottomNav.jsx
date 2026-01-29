@@ -18,6 +18,14 @@ export default function BottomNav() {
     refetchInterval: false
   });
 
+  const { data: reservedAlerts = [] } = useQuery({
+    queryKey: ['userReservedAlerts', user?.id],
+    queryFn: async () => base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
+    enabled: !!user?.id,
+    staleTime: 60000,
+    refetchInterval: false
+  });
+
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () => base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
@@ -34,7 +42,9 @@ export default function BottomNav() {
   const badgeBase =
     "absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
   const badgeGreen =
-    "absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+    "absolute top-1 left-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
+  const badgePurple =
+    "absolute top-1 right-2 bg-purple-500/20 border-2 border-purple-500/30 text-purple-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
@@ -50,6 +60,12 @@ export default function BottomNav() {
             {activeAlerts.length > 0 && (
               <span className={badgeGreen}>
                 {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
+              </span>
+            )}
+
+            {reservedAlerts.length > 0 && (
+              <span className={badgePurple}>
+                {reservedAlerts.length > 9 ? '9+' : reservedAlerts.length}
               </span>
             )}
           </Button>
