@@ -637,12 +637,16 @@ const myActiveAlerts = useMemo(() => {
 
     if (!isMine) return false;
 
-    // ACTIVA mientras no esté finalizada por status
-    return !['cancelled', 'completed', 'expired'].includes(
-      String(a.status || '').toLowerCase()
-    );
+    const createdTs = getCreatedTs(a);
+    const waitUntilTs = getWaitUntilTs(a);
+
+    // 🔑 SI NO HAY TIEMPOS TODAVÍA → ES ACTIVA
+    if (!createdTs || !waitUntilTs) return true;
+
+    // 🔑 SOLO FINALIZA CUANDO SE CUMPLE EL TIEMPO REAL
+    return Date.now() < waitUntilTs;
   });
-}, [myAlerts, user?.id, user?.email]);
+}, [myAlerts, user?.id, user?.email, nowTs]);
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
