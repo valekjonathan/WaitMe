@@ -29,6 +29,12 @@ import { useAuth } from '@/components/AuthContext';
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
+  const [nowTs, setNowTs] = useState(Date.now());
+
+useEffect(() => {
+  const i = setInterval(() => setNowTs(Date.now()), 1000);
+  return () => clearInterval(i);
+}, []);
   
 
   // ====== UI helpers ======
