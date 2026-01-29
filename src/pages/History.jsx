@@ -476,8 +476,8 @@ export default function History() {
         queryKey: ['myAlerts', user?.id],
         queryFn: () => base44.entities.ParkingAlert.filter({ user_id: user?.id }),
         enabled: !!user?.id,
-        staleTime: 0,
-        refetchInterval: 1000
+        staleTime: 5000,
+        refetchInterval: false
       });
 
   useEffect(() => {
@@ -494,7 +494,7 @@ export default function History() {
       return [...asSeller, ...asBuyer];
     },
     enabled: !!user?.email,
-    staleTime: 5000,
+    staleTime: 30000,
     refetchInterval: false
   });
 

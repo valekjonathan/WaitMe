@@ -14,14 +14,16 @@ export default function BottomNav() {
     queryKey: ['userActiveAlerts', user?.id],
     queryFn: async () => base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id,
-    staleTime: 30000
+    staleTime: 60000,
+    refetchInterval: false
   });
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () => base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
     enabled: !!user?.id,
-    staleTime: 20000
+    staleTime: 60000,
+    refetchInterval: false
   });
 
   const baseBtn =

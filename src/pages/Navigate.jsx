@@ -34,15 +34,11 @@ export default function Navigate() {
     fetchUser();
   }, []);
 
-  // Obtener alerta
-  const { data: alert } = useQuery({
+  // Obtener alerta - OPTIMIZADO
+  const { data: alert, isLoading: alertLoading } = useQuery({
     queryKey: ['navigationAlert', alertId],
     queryFn: async () => {
-      // Primero intentar buscar en BD
-      const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
-      if (alerts.length > 0) return alerts[0];
-      
-      // Si no existe, devolver mock de Sofía
+      // Si es mock, devolver inmediatamente
       if (alertId === 'mock-res-1') {
         return {
           id: 'mock-res-1',
@@ -64,10 +60,15 @@ export default function Navigate() {
         };
       }
       
+      // Buscar en BD
+      const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
+      if (alerts.length > 0) return alerts[0];
+      
       return null;
     },
     enabled: !!alertId,
-    refetchInterval: 5000
+    refetchInterval: false,
+    staleTime: 30000
   });
 
   // Mutation para actualizar ubicación
@@ -179,8 +180,9 @@ export default function Navigate() {
       });
       return locations[0];
     },
-    enabled: !!alert?.user_id && !!alertId,
-    refetchInterval: 2000
+    enabled: !!alert?.user_id && !!alertId && isTracking,
+    refetchInterval: 3000,
+    staleTime: 2000
   });
 
   // Actualizar seller location cuando cambie
@@ -283,17 +285,33 @@ export default function Navigate() {
     releasePayment();
   }, [distanceMeters, alert, user, paymentReleased, queryClient]);
 
+  // Obtener ubicación inicial del usuario inmediatamente
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => console.log('Error obteniendo ubicación inicial:', error),
+        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+      );
+    }
+  }, []);
+
   // Auto-iniciar tracking cuando carga
   useEffect(() => {
-    if (alert && !isTracking && !watchIdRef.current) {
+    if (alert && !isTracking && !watchIdRef.current && userLocation) {
       startTracking();
     }
-  }, [alert]);
+  }, [alert, userLocation]);
 
-  if (!alert) {
+  if (alertLoading || !alert) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-gray-500">Cargando ubicación del parking...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-gray-400">Iniciando navegación...</div>
+        </div>
       </div>
     );
   }
