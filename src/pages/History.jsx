@@ -826,7 +826,7 @@ const myFinalizedAlerts = useMemo(() => {
                             transition={{ delay: index * 0.05 }}
                             className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                           >
-                            {alert.status === 'reserved' ? (
+                            {alert.status === 'reserved' && alert.reserved_by_name ? (
                               <>
                                 <CardHeaderRow
                                   left={
