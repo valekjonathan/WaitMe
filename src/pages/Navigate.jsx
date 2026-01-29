@@ -222,7 +222,7 @@ export default function Navigate() {
       </div>
 
       {/* Panel inferior */}
-      <div className="bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-50">
         {/* Info de destino */}
         <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
           <div className="flex items-center justify-between mb-2">
