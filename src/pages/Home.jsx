@@ -130,6 +130,20 @@ export default function Home() {
     }
   });
 
+  const { data: myActiveAlerts = [] } = useQuery({
+    queryKey: ['myActiveAlerts', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const alerts = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+      return list.filter(a => {
+        const isMine = a.user_id === user?.id || a.created_by === user?.id;
+        const isActive = a.status === 'active' || a.status === 'reserved';
+        return isMine && isActive;
+      });
+    }
+  });
+
   const handleSearchInputChange = async (e) => {
     const val = e.target.value;
     setSearchInput(val);
@@ -231,7 +245,14 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      const futureTime = new Date(Date.now() + data.available_in_minutes * 60 * 1000);
+      // Validar que el usuario no tenga otra alerta activa
+      if (myActiveAlerts && myActiveAlerts.length > 0) {
+        throw new Error('ALREADY_HAS_ALERT');
+      }
+
+      const now = Date.now();
+      const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+      
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -254,9 +275,14 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      setTimeout(() => {
-        window.location.href = createPageUrl('History');
-      }, 500);
+      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      window.location.href = createPageUrl('History');
+    },
+    onError: (error) => {
+      if (error.message === 'ALREADY_HAS_ALERT') {
+        alert('Solo puedes tener 1 alerta activa');
+      }
     }
   });
 
