@@ -174,7 +174,26 @@ export default function History() {
     }
     return null;
   };
+const getCreatedTs = (alert) => {
+  if (!alert) return null;
 
+  const candidates = [
+    alert.created_date,
+    alert.createdDate,
+    alert.created_at,
+    alert.createdAt,
+    alert.created,
+    alert.published_at,
+    alert.updated_at
+  ];
+
+  for (const v of candidates) {
+    const t = toMs(v);
+    if (typeof t === 'number' && t > 0) return t;
+  }
+
+  return null;
+};
  
 
   const getWaitUntilTs = (alert) => {
