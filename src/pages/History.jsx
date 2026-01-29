@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatCardDateMadrid } from '@/utils/timeUtils';
 import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
@@ -47,14 +48,9 @@ export default function History() {
   };
   const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
 
-  // ====== Fecha: "19 Enero - 21:05" ======
+  // ====== Fecha: "19 Enero - 21:05" en hora de Madrid ======
   const formatCardDate = (ts) => {
-    if (!ts) return '--';
-    const raw = format(new Date(ts), 'd MMMM - HH:mm', { locale: es });
-    return raw.replace(/^\d+\s+([a-záéíóúñ]+)/i, (m, mon) => {
-      const cap = mon.charAt(0).toUpperCase() + mon.slice(1);
-      return m.replace(mon, cap);
-    });
+    return formatCardDateMadrid(ts);
   };
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
@@ -864,7 +860,12 @@ export default function History() {
                          }
 
                          const remainingMs = Math.max(0, waitUntilTs - nowTs);
-                         const waitUntilLabel = format(new Date(waitUntilTs), 'HH:mm', { locale: es });
+                         const waitUntilLabel = new Date(waitUntilTs).toLocaleString('es-ES', { 
+                           timeZone: 'Europe/Madrid', 
+                           hour: '2-digit', 
+                           minute: '2-digit', 
+                           hour12: false 
+                         });
                          const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
 
                          // Auto-finalizar si expiró
@@ -1260,8 +1261,8 @@ export default function History() {
 
                       const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                       const waitUntilLabel = hasExpiry
-                        ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
-                        : '--:--';
+                       ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                       : '--:--';
 
                       const countdownText =
                         remainingMs === null
@@ -1426,8 +1427,8 @@ export default function History() {
                         const waitUntilTs = getWaitUntilTs(a);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
                         const waitUntilLabel = hasExpiry
-                          ? format(new Date(waitUntilTs), 'HH:mm', { locale: es })
-                          : '--:--';
+                         ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                         : '--:--';
 
                         const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
                         const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
@@ -1578,7 +1579,7 @@ export default function History() {
                             carColor={sellerColor}
                             address={tx.address}
                             timeLine={`Transacción completada · ${
-                              ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                              ts ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
                             }`}
                             onChat={() =>
                               (window.location.href = createPageUrl(

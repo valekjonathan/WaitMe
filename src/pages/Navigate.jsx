@@ -291,26 +291,27 @@ export default function Navigate() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation([position.coords.latitude, position.coords.longitude]);
+          // Auto-iniciar tracking después de obtener ubicación
+          if (alert && !isTracking) {
+            setTimeout(() => startTracking(), 100);
+          }
         },
-        (error) => console.log('Error obteniendo ubicación inicial:', error),
-        { enableHighAccuracy: false, timeout: 3000, maximumAge: 60000 }
+        (error) => {
+          console.log('Error obteniendo ubicación inicial:', error);
+          // Aunque falle, seguir mostrando el mapa
+        },
+        { enableHighAccuracy: false, timeout: 2000, maximumAge: 30000 }
       );
     }
-  }, []);
+  }, [alert]);
 
-  // Auto-iniciar tracking cuando carga
-  useEffect(() => {
-    if (alert && !isTracking && !watchIdRef.current && userLocation) {
-      startTracking();
-    }
-  }, [alert, userLocation]);
-
-  if (alertLoading || !alert) {
+  // No bloquear renderizado - mostrar siempre el contenido
+  if (!alert) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-gray-400">Iniciando navegación...</div>
+          <div className="text-gray-400">Cargando...</div>
         </div>
       </div>
     );
@@ -360,15 +361,17 @@ export default function Navigate() {
 
       {/* Mapa */}
       <div className="flex-1 pt-[60px] pb-[340px]">
-        <ParkingMap
-          alerts={[alert]}
-          userLocation={userLocation}
-          selectedAlert={alert}
-          showRoute={isTracking && userLocation}
-          sellerLocation={sellerLocation}
-          zoomControl={true}
-          className="h-full"
-        />
+        {alert && (
+          <ParkingMap
+            alerts={[alert]}
+            userLocation={userLocation || [alert.latitude, alert.longitude]}
+            selectedAlert={alert}
+            showRoute={isTracking && userLocation && sellerLocation}
+            sellerLocation={sellerLocation}
+            zoomControl={true}
+            className="h-full"
+          />
+        )}
       </div>
 
       {/* Panel inferior */}

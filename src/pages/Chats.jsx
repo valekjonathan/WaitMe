@@ -74,7 +74,7 @@ export default function Chats() {
     queryKey: ['conversations'],
     queryFn: async () => {
       // Obtener TODAS las conversaciones ordenadas por más reciente
-      const allConversations = await base44.entities.Conversation.list();
+      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
       
       // Datos mock para demostración
       const mockConversations = [
@@ -127,14 +127,18 @@ export default function Chats() {
       new Date(b.last_message_at || b.updated_date || b.created_date) -
       new Date(a.last_message_at || a.updated_date || a.created_date)
       );
-    }
+    },
+    staleTime: 10000,
+    refetchInterval: false
   });
 
   // Obtener usuarios para resolver datos completos
   const { data: users = [] } = useQuery({
     queryKey: ['usersForChats'],
     queryFn: () => base44.entities.User.list(),
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 60000,
+    refetchInterval: false
   });
 
   const usersMap = React.useMemo(() => {
@@ -147,7 +151,7 @@ export default function Chats() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats'],
     queryFn: async () => {
-      const realAlerts = await base44.entities.ParkingAlert.list();
+      const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
       
       // Datos mock de alertas
       const mockAlerts = [
@@ -200,7 +204,9 @@ export default function Chats() {
       
       return [...mockAlerts, ...realAlerts];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 30000,
+    refetchInterval: false
   });
 
   const alertsMap = React.useMemo(() => {
@@ -336,9 +342,9 @@ export default function Chats() {
                          plate={alert.car_plate}
                          carColor={alert.car_color || 'gris'}
                          address={alert.address}
-                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}</>}
+                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
                          onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                         statusText={format(new Date(new Date().getTime() + alert.available_in_minutes * 60000), 'HH:mm', { locale: es })}
+                         statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
                          phoneEnabled={alert.allow_phone_calls}
                          onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                        />
