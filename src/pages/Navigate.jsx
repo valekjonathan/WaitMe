@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Navigation, Phone, MessageCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
+import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
 
 export default function Navigate() {
@@ -13,14 +14,16 @@ export default function Navigate() {
   const alertId = urlParams.get('alertId');
   
   const [user, setUser] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [sellerLocation, setSellerLocation] = useState(null);
+  // UBICACIONES FICTICIAS PARA DEMO - Usuario está a 500m del vendedor
+  const [userLocation, setUserLocation] = useState([43.3670, -5.8440]); // 500m al norte
+  const [sellerLocation, setSellerLocation] = useState([43.3620, -5.8490]); // Ubicación de Sofía
   const [isTracking, setIsTracking] = useState(false);
   const [paymentReleased, setPaymentReleased] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
   const hasReleasedPaymentRef = useRef(false);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -106,68 +109,63 @@ export default function Navigate() {
     }
   });
 
-  // Iniciar seguimiento de ubicación
+  // Simulación de movimiento tipo Uber - el usuario se mueve gradualmente hacia el vendedor
   const startTracking = () => {
-    if (!navigator.geolocation) {
-      alert('Tu dispositivo no soporta geolocalización');
-      return;
-    }
-
     setIsTracking(true);
     
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude, heading, speed } = position.coords;
-        setUserLocation([latitude, longitude]);
+    // Simular movimiento hacia el vendedor (mover usuario poco a poco)
+    const moveTowardsDestination = () => {
+      setUserLocation(prevLoc => {
+        if (!prevLoc || !sellerLocation) return prevLoc;
         
-        // Actualizar ubicación en base de datos
-        updateLocationMutation.mutate({
-          latitude,
-          longitude,
-          heading: heading || 0,
-          speed: speed || 0
-        });
-      },
-      (error) => {
-        console.error('Error obteniendo ubicación:', error);
-        alert('No se pudo obtener tu ubicación. Verifica los permisos.');
-        stopTracking();
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-      }
-    );
+        const lat1 = prevLoc[0];
+        const lon1 = prevLoc[1];
+        const lat2 = sellerLocation[0];
+        const lon2 = sellerLocation[1];
+        
+        // Calcular distancia
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distM = R * c;
+        
+        // Si está muy cerca, ya no mover más
+        if (distM < 5) return prevLoc;
+        
+        // Mover 20 metros por segundo hacia el destino
+        const stepSize = 20 / R;
+        const fraction = Math.min(stepSize / (distM / R), 1);
+        
+        const newLat = lat1 + (lat2 - lat1) * fraction;
+        const newLon = lon1 + (lon2 - lon1) * fraction;
+        
+        return [newLat, newLon];
+      });
+    };
+    
+    // Mover cada segundo
+    animationRef.current = setInterval(moveTowardsDestination, 1000);
   };
 
   // Detener seguimiento
-  const stopTracking = async () => {
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
+  const stopTracking = () => {
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+      animationRef.current = null;
     }
     setIsTracking(false);
-
-    // Marcar como inactivo en base de datos
-    if (user?.id && alertId) {
-      const existing = await base44.entities.UserLocation.filter({ 
-        user_id: user?.id, 
-        alert_id: alertId 
-      });
-      if (existing.length > 0) {
-        await base44.entities.UserLocation.update(existing[0].id, {
-          is_active: false
-        });
-      }
-    }
   };
 
   // Limpiar al desmontar
   useEffect(() => {
     return () => {
-      if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
       }
     };
   }, []);
@@ -270,26 +268,7 @@ export default function Navigate() {
     releasePayment();
   }, [distanceMeters, alert, user, paymentReleased, queryClient]);
 
-  // Obtener ubicación INMEDIATAMENTE al cargar
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
-          // Auto-iniciar tracking
-          setTimeout(() => startTracking(), 200);
-        },
-        (error) => {
-          console.log('Error ubicación:', error);
-          // Usar ubicación de alerta como fallback
-          if (alert?.latitude && alert?.longitude) {
-            setUserLocation([alert.latitude + 0.005, alert.longitude + 0.005]);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 1500, maximumAge: 10000 }
-      );
-    }
-  }, []);
+  // Ya no necesitamos pedir ubicación real - usamos ficticias
 
   // MOSTRAR INMEDIATAMENTE aunque alert aún no esté listo
   const displayAlert = alert || (alertId === 'mock-res-1' ? {
@@ -345,6 +324,9 @@ export default function Navigate() {
         </motion.div>
       )}
 
+      {/* Header simplificado sin BottomNav */}
+      <div className="pb-20">
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
@@ -358,14 +340,14 @@ export default function Navigate() {
         </div>
       </header>
 
-      {/* Mapa - RENDERIZA SIEMPRE */}
-      <div className="flex-1 pt-[60px] pb-[340px]">
+      {/* Mapa - SIEMPRE VISIBLE */}
+      <div className="flex-1 pt-[60px] pb-[420px]">
         <ParkingMap
           alerts={displayAlert ? [displayAlert] : []}
-          userLocation={userLocation || mapCenter}
+          userLocation={userLocation}
           selectedAlert={displayAlert}
-          showRoute={isTracking && userLocation && sellerLocation}
-          sellerLocation={sellerLocation || mapCenter}
+          showRoute={isTracking}
+          sellerLocation={sellerLocation}
           zoomControl={true}
           className="h-full"
         />
