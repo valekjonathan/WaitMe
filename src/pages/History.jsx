@@ -619,14 +619,14 @@ export default function History() {
 
   // Activas (tuyas) - SOLO si NO han expirado
   const myActiveAlerts = useMemo(() => {
-    const dbAlerts = myAlerts.filter((a) => {
-      if (a.user_id !== user?.id) return false;
-      if (a.status !== 'active' && a.status !== 'reserved') return false;
+  const dbAlerts = myAlerts.filter((a) => {
+    if (a.user_id !== user?.id) return false;
+    if (a.status !== 'active' && a.status !== 'reserved') return false;
+    return true;
+  });
 
-      return true;
-    });
-    return [...dbAlerts, ...mockMyActiveAlerts];
-  }, [myAlerts, user?.id, mockMyActiveAlerts]);
+  return dbAlerts;
+}, [myAlerts, user?.id]);
 
   // Finalizadas tuyas como alertas
   const myFinalizedAlerts = useMemo(() => {
