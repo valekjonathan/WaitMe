@@ -352,14 +352,21 @@ export default function History() {
                 <div className="mt-2 text-sm text-gray-200 font-semibold">{a.address}</div>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <Button className="flex-1 bg-green-600 hover:bg-green-500 font-extrabold" onClick={() => {}}>
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Chat
-                  </Button>
-                  <Button className="w-12 bg-black/40 border border-gray-700 hover:bg-black/60" onClick={() => {}}>
-                    <Phone className="w-4 h-4" />
-                  </Button
-                </div>
+  <Button
+    className="flex-1 bg-green-600 hover:bg-green-500 font-extrabold"
+    onClick={() => {}}
+  >
+    <MessageCircle className="w-4 h-4 mr-2" />
+    <span>Chat</span>
+  </Button>
+
+  <Button
+    className="w-12 bg-black/40 border border-gray-700 hover:bg-black/60"
+    onClick={() => {}}
+  >
+    <Phone className="w-4 h-4" />
+  </Button>
+</div>
 
                 <div className="mt-2">
                   <Button className="w-full bg-blue-600 hover:bg-blue-500 font-extrabold" onClick={() => {}}>
