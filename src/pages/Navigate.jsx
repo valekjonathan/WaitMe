@@ -324,9 +324,6 @@ export default function Navigate() {
         </motion.div>
       )}
 
-      {/* Header simplificado sin BottomNav */}
-      <div className="pb-20">
-
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
@@ -354,7 +351,7 @@ export default function Navigate() {
       </div>
 
       {/* Panel inferior */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-50">
+      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
         {/* Info de destino */}
         {displayAlert && (
           <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
@@ -452,7 +449,6 @@ export default function Navigate() {
         )}
       </div>
 
-      </div>
       <BottomNav />
     </div>
   );
