@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import BottomNav from '@/components/layout/BottomNav';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
-import NotificationManager from '@/components/notifications/NotificationManager';
+import NotificationManager from '@/components/NotificationManager';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -106,7 +106,7 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => base44.auth.getUser()
+    queryFn: () => base44.auth.me()
   });
 
   const { data: unreadCount } = useQuery({
