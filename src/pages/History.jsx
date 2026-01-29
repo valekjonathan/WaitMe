@@ -196,25 +196,19 @@ const getCreatedTs = (alert) => {
 };
  
 
-  const getWaitUntilTs = (alert) => {
-    // Intentar usar wait_until si existe
-    if (alert.wait_until) {
-      const t = toMs(alert.wait_until);
-      if (typeof t === 'number' && t > 0) {
-        return t;
-      }
-    }
+const getWaitUntilTs = (alert) => {
+  if (!alert) return null;
 
-    // Si no hay wait_until válido, SIEMPRE calcularlo desde created_date + minutes
-    const createdTs = getCreatedTs(alert);
-    const mins = Number(alert.available_in_minutes);
+  const createdTs = getCreatedTs(alert);
+  const mins = Number(alert.available_in_minutes);
+
+  if (createdTs && Number.isFinite(mins) && mins > 0) {
+    return createdTs + mins * 60 * 1000;
+  }
+
+  return null;
+};
     
-    if (createdTs && Number.isFinite(mins) && mins > 0) {
-      return createdTs + (mins * 60 * 1000);
-    }
-    
-    return null;
-  };
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
