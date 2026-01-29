@@ -451,6 +451,9 @@ export default function Navigate() {
           </motion.div>
         )}
       </div>
+
+      </div>
+      <BottomNav />
     </div>
   );
 }
