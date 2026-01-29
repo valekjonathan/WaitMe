@@ -34,10 +34,36 @@ export default function Navigate() {
   const { data: alert } = useQuery({
     queryKey: ['navigationAlert', alertId],
     queryFn: async () => {
+      // Primero intentar buscar en BD
       const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
-      return alerts[0];
+      if (alerts.length > 0) return alerts[0];
+      
+      // Si no existe, devolver mock de Sofía
+      if (alertId === 'mock-res-1') {
+        return {
+          id: 'mock-res-1',
+          user_name: 'Sofía',
+          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          user_id: 'seller-1',
+          user_email: 'seller1@test.com',
+          car_brand: 'Seat',
+          car_model: 'Ibiza',
+          car_color: 'rojo',
+          car_plate: '7780KLP',
+          address: 'Calle Gran Vía, 1, Oviedo',
+          latitude: 43.3620,
+          longitude: -5.8490,
+          phone: '600123123',
+          allow_phone_calls: true,
+          price: 2.5,
+          available_in_minutes: 6
+        };
+      }
+      
+      return null;
     },
-    enabled: !!alertId
+    enabled: !!alertId,
+    refetchInterval: 5000
   });
 
   // Mutation para actualizar ubicación
