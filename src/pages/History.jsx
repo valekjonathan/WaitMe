@@ -844,12 +844,6 @@ const myFinalizedAlerts = useMemo(() => {
                          const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
-                         // Si no podemos calcular los timestamps, skip esta alerta
-                         if (!createdTs || !waitUntilTs) {
-                           console.warn('Alert sin timestamps válidos:', alert.id);
-                           return null;
-                         }
-
                          const remainingMs = Math.max(0, waitUntilTs - nowTs);
                          const waitUntilLabel = new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
