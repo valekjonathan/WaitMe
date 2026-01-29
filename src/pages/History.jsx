@@ -858,11 +858,7 @@ const myFinalizedAlerts = useMemo(() => {
                            hour12: false 
                          });
                          const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : 'EXPIRADA';
-// Si expiró, NO cambies estado en BD aquí. Solo muéstrala como expirada en Finalizadas al recargar.
-// (Evita que se “auto-expire” instantáneo por timestamps raros)
-if (remainingMs <= 0) {
-  return null;
-}
+
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
