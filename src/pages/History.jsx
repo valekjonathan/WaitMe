@@ -175,20 +175,7 @@ export default function History() {
     return null;
   };
 
-  const getCreatedTs = (alert) => {
-    const candidates = [
-      alert?.created_date,
-      alert?.createdDate,
-      alert?.created_at,
-      alert?.createdAt,
-      alert?.created
-    ];
-    for (const v of candidates) {
-      const t = toMs(v);
-      if (typeof t === 'number' && t > 0) return t;
-    }
-    return null;
-  };
+ 
 
   const getWaitUntilTs = (alert) => {
     // Intentar usar wait_until si existe
