@@ -609,21 +609,7 @@ const {
     ];
   }, [user?.id]);
 
-  // Mock extra para ver una tarjeta CANCELADA en "Tus alertas"
-  const mockMyFinalizedAlerts = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-my-fin-cancel-1',
-        status: 'cancelled',
-        user_id: user?.id,
-        address: 'Calle Uría, 10',
-        available_in_minutes: 12,
-        price: 3.0,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 4).toISOString()
-      }
-    ];
-  }, [user?.id]);
+ 
 
 
 
@@ -699,29 +685,8 @@ const myFinalizedAlerts = useMemo(() => {
     }))
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  const reservationsActiveAll = [...myReservationsReal].sort(
-    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
-  );
-
-  // mocks caducadas (para que pasen a Finalizadas sin tocar BD)
-  const mockExpiredFromActive = reservationsActiveAll
-    .filter((a) => String(a.id).startsWith('mock-'))
-    .map((a) => {
-      const createdTs = getCreatedTs(a) || nowTs;
-      const waitUntilTs = getWaitUntilTs(a);
-      const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
-      const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
-      if (!hasExpiry || remainingMs === null) return null;
-      if (remainingMs > 0) return null;
-
-      return {
-        type: 'alert',
-        id: `res-final-mock-expired-${a.id}`,
-        created_date: a.created_date,
-        data: { ...a, status: 'expired' }
-      };
-    })
-    .filter(Boolean);
+ 
+    
 
   const reservationsFinalAllBase = [
     ...myAlerts
