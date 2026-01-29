@@ -512,55 +512,7 @@ export default function History() {
     refetchInterval: false
   });
 
-  // ====== MOCKS (ESTABLES: NO se regeneran con cada tick) ======
-  // Mock para "Tus alertas" activas
-  const mockMyActiveAlerts = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-my-active-1',
-        status: 'active',
-        user_id: user?.id,
-        user_email: 'test@test.com',
-        user_name: 'Tu',
-        address: 'Calle Campoamor, n3, Oviedo',
-        car_brand: 'Seat',
-        car_model: 'León',
-        car_color: 'rojo',
-        car_plate: '5555ABC',
-        available_in_minutes: 25,
-        price: 3.0,
-        created_date: new Date(baseNow).toISOString(),
-        wait_until: new Date(baseNow + 1000 * 60 * 25).toISOString()
-      }
-    ];
-  }, [user?.id]);
 
-  const mockReservationsActive = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-res-1',
-        status: 'reserved',
-        reserved_by_id: user?.id,
-        user_id: 'seller-1',
-        user_email: 'seller1@test.com',
-        user_name: 'Sofía',
-        user_photo: avatarFor('Sofía'),
-        car_brand: 'Seat',
-        car_model: 'Ibiza',
-        car_color: 'rojo',
-        car_plate: '7780KLP',
-        address: 'Calle Gran Vía, 1',
-        available_in_minutes: 6,
-        price: 2.5,
-        phone: '600123123',
-        allow_phone_calls: true,
-        created_date: new Date(baseNow - 1000 * 60 * 2).toISOString(),
-        wait_until: new Date(baseNow + 1000 * 60 * 10).toISOString()
-      }
-    ];
-  }, [user?.id]);
 
   const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
