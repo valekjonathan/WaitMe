@@ -177,11 +177,11 @@ export default function History() {
 const getCreatedTs = (alert) => {
   if (!alert) return null;
 
+  // Base44 usa published_at como timestamp real
   const t =
+    toMs(alert.published_at) ??
     toMs(alert.created_at) ??
-    toMs(alert.created_date) ??
-    toMs(alert.createdAt) ??
-    toMs(alert.created);
+    toMs(alert.created_date);
 
   return typeof t === 'number' && t > 0 ? t : null;
 };
