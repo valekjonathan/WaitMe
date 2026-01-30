@@ -812,11 +812,14 @@ const myFinalizedAlerts = useMemo(() => {
                          const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
-// ⏱ Auto-expirar cuando llega a 0
+
+
+                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
 if (
   waitUntilTs &&
   remainingMs === 0 &&
-  alert.status === 'active' &&
+  String(alert.status || '').toLowerCase() === 'active' &&
   !autoFinalizedRef.current.has(alert.id)
 ) {
   autoFinalizedRef.current.add(alert.id);
@@ -827,7 +830,6 @@ if (
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     });
 }
-                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
