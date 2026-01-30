@@ -30,7 +30,15 @@ export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
-  const queryClient = useQueryClient();
+
+useEffect(() => {
+  const id = setInterval(() => {
+    setNowTs(Date.now());
+  }, 1000);
+  return () => clearInterval(id);
+}, []);
+
+const queryClient = useQueryClient();
 
   // ====== UI helpers ======
   const labelNoClick = 'cursor-default select-none pointer-events-none';
