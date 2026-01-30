@@ -1014,9 +1014,8 @@ if (
                                         showUpIcon
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
-                                      <Button
-                                        size="icon"
-                                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                      <button
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                         onClick={() => {
   hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
   cancelAlertMutation.mutate(alert.id, {
