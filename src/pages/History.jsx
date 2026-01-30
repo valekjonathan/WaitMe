@@ -184,11 +184,16 @@ const queryClient = useQueryClient();
 };
 
   const createdFallbackRef = useRef(new Map());
-
 const getCreatedTs = (alert) => {
   if (!alert?.id) return Date.now();
 
-  // 1. Usar fechas reales si existen
+  const key = `alert-created-${alert.id}`;
+
+  // 1. Si ya existe en localStorage, usarlo SIEMPRE
+  const stored = localStorage.getItem(key);
+  if (stored) return Number(stored);
+
+  // 2. Guardar SOLO la primera vez
   const candidates = [
     alert?.created_date,
     alert?.created_at,
@@ -200,17 +205,14 @@ const getCreatedTs = (alert) => {
   for (const v of candidates) {
     const t = toMs(v);
     if (typeof t === 'number' && t > 0) {
-      localStorage.setItem(`alert-created-${alert.id}`, String(t));
+      localStorage.setItem(key, String(t));
       return t;
     }
   }
 
-  // 2. Fallback persistente (NO se reinicia al entrar)
-  const stored = localStorage.getItem(`alert-created-${alert.id}`);
-  if (stored) return Number(stored);
-
+  // 3. Último fallback (una sola vez)
   const now = Date.now();
-  localStorage.setItem(`alert-created-${alert.id}`, String(now));
+  localStorage.setItem(key, String(now));
   return now;
 };
 
