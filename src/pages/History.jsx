@@ -25,11 +25,13 @@ import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/components/AuthContext';
+import ReservationRequestModal from '@/components/ReservationRequestModal';
 
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
+  const [processingNotification, setProcessingNotification] = useState(false);
 
 useEffect(() => {
   const id = setInterval(() => {
@@ -526,6 +528,61 @@ const {
     });
   }
 });
+
+// Notificaciones de reserva pendientes
+const { data: pendingNotifications = [] } = useQuery({
+  queryKey: ['pendingReservationNotifications', user?.id, user?.email],
+  enabled: !!user?.id || !!user?.email,
+  staleTime: 3000,
+  refetchInterval: 3000,
+  queryFn: async () => {
+    try {
+      const allNotifications = await base44.entities.Notification.filter({
+        recipient_id: user?.email || user?.id,
+        type: 'reservation_request',
+        status: 'pending'
+      });
+      return allNotifications || [];
+    } catch (e) {
+      return [];
+    }
+  }
+});
+
+// Crear notificación mock después de 3 segundos si hay alertas activas
+const [mockNotificationCreated, setMockNotificationCreated] = useState(false);
+useEffect(() => {
+  if (!user?.id || mockNotificationCreated) return;
+  
+  const hasActiveAlerts = myActiveAlerts.some(a => a.status === 'active');
+  if (!hasActiveAlerts) return;
+
+  const timer = setTimeout(() => {
+    const mockNotif = {
+      id: 'mock-notif-1',
+      type: 'reservation_request',
+      recipient_id: user?.email || user?.id,
+      sender_id: 'mock-buyer-hugo',
+      sender_name: 'Hugo',
+      sender_photo: avatarFor('Hugo'),
+      alert_id: myActiveAlerts[0]?.id,
+      alert_address: myActiveAlerts[0]?.address || 'Calle Gran Vía, 25',
+      amount: myActiveAlerts[0]?.price || 5.0,
+      buyer_car: 'BMW Serie 1',
+      buyer_plate: '2847BNM',
+      buyer_car_color: 'gris',
+      status: 'pending',
+      created_date: new Date().toISOString()
+    };
+    
+    pendingNotifications.push(mockNotif);
+    setMockNotificationCreated(true);
+  }, 3000);
+
+  return () => clearTimeout(timer);
+}, [user?.id, myActiveAlerts, mockNotificationCreated]);
+
+const currentNotification = pendingNotifications[0] || null;
  
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.email],
@@ -793,6 +850,85 @@ const myFinalizedAlerts = useMemo(() => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
+
+  const acceptReservationMutation = useMutation({
+    mutationFn: async ({ notificationId, alertId, buyerData }) => {
+      // Actualizar la alerta con los datos del comprador
+      await base44.entities.ParkingAlert.update(alertId, {
+        status: 'reserved',
+        reserved_by_id: buyerData.buyer_id,
+        reserved_by_email: buyerData.buyer_email,
+        reserved_by_name: buyerData.buyer_name,
+        reserved_by_car: buyerData.buyer_car,
+        reserved_by_plate: buyerData.buyer_plate,
+        reserved_by_vehicle_type: 'car'
+      });
+
+      // Actualizar la notificación como aceptada (si no es mock)
+      if (!String(notificationId).startsWith('mock-')) {
+        await base44.entities.Notification.update(notificationId, { 
+          status: 'accepted' 
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
+      setProcessingNotification(false);
+    }
+  });
+
+  const rejectReservationMutation = useMutation({
+    mutationFn: async (notificationId) => {
+      // Actualizar la notificación como rechazada (si no es mock)
+      if (!String(notificationId).startsWith('mock-')) {
+        await base44.entities.Notification.update(notificationId, { 
+          status: 'rejected' 
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
+      setProcessingNotification(false);
+    }
+  });
+
+  const handleAcceptReservation = () => {
+    if (!currentNotification) return;
+    
+    setProcessingNotification(true);
+    
+    acceptReservationMutation.mutate({
+      notificationId: currentNotification.id,
+      alertId: currentNotification.alert_id,
+      buyerData: {
+        buyer_id: currentNotification.sender_id,
+        buyer_email: currentNotification.sender_id,
+        buyer_name: currentNotification.sender_name,
+        buyer_car: currentNotification.buyer_car,
+        buyer_plate: currentNotification.buyer_plate
+      }
+    });
+
+    // Remover mock de la lista
+    if (String(currentNotification.id).startsWith('mock-')) {
+      const idx = pendingNotifications.findIndex(n => n.id === currentNotification.id);
+      if (idx !== -1) pendingNotifications.splice(idx, 1);
+    }
+  };
+
+  const handleRejectReservation = () => {
+    if (!currentNotification) return;
+    
+    setProcessingNotification(true);
+    rejectReservationMutation.mutate(currentNotification.id);
+
+    // Remover mock de la lista
+    if (String(currentNotification.id).startsWith('mock-')) {
+      const idx = pendingNotifications.findIndex(n => n.id === currentNotification.id);
+      if (idx !== -1) pendingNotifications.splice(idx, 1);
+    }
+  };
 
   // ====== Badge ancho igual que la foto (95px) ======
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
@@ -1595,7 +1731,15 @@ if (
           <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
         ))}
 
-      
+      {/* Modal de solicitud de reserva */}
+      {currentNotification && (
+        <ReservationRequestModal
+          notification={currentNotification}
+          onAccept={handleAcceptReservation}
+          onReject={handleRejectReservation}
+          isProcessing={processingNotification}
+        />
+      )}
     </div>
   );
 }
