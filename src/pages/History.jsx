@@ -1310,7 +1310,32 @@ if (
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                <MoneyChip
+                                  mode="green"
+                                  showUpIcon
+                                  amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                />
+                                <button
+                                  onClick={() => hideKey(key)}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
