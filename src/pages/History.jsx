@@ -444,7 +444,7 @@ const getCreatedTs = (alert) => {
               onClick={onChat}
             >
               <MessageCircle className="w-4 h-4" />
-            </Button>
+            </button>
 
             {phoneEnabled ? (
               <Button
@@ -453,7 +453,7 @@ const getCreatedTs = (alert) => {
                 onClick={onCall}
               >
                 <Phone className="w-4 h-4" />
-              </Button>
+              </button>
             ) : (
               <Button
                 variant="outline"
@@ -462,7 +462,7 @@ const getCreatedTs = (alert) => {
                 disabled
               >
                 <PhoneOff className="w-4 h-4 text-white" />
-              </Button>
+              </button>
             )}
 
             <div className="flex-1">
@@ -1215,7 +1215,7 @@ if (
                                   onClick={() => hideKey(key)}
                                 >
                                   <X className="w-4 h-4" />
-                                </Button>
+                                </button>
                               </div>
                             }
                           />
@@ -1412,7 +1412,7 @@ if (
                             >
                               IR
                               <Navigation className="w-5 h-5" />
-                            </Button>
+                            </button>
                           </div>
                         </motion.div>
                       );
@@ -1585,7 +1585,7 @@ if (
                                   onClick={() => hideKey(key)}
                                 >
                                   <X className="w-4 h-4" />
-                                </Button>
+                                </button>
                               </div>
                             }
                           />
