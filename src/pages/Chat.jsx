@@ -66,34 +66,67 @@ export default function Chat() {
   
   useEffect(() => {
     if (isDemo && demoMessages.length === 0) {
+      const now = Date.now();
       setDemoMessages([
         {
           id: '1',
           sender_id: 'marta',
           sender_name: 'Marta',
-          sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
           message: '¡Hola! He visto que buscas parking 🚗',
-          created_date: new Date(Date.now() - 300000).toISOString()
+          created_date: new Date(now - 300000).toISOString()
         },
         {
           id: '2',
           sender_id: 'marta',
           sender_name: 'Marta',
-          sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
           message: 'Tengo un sitio perfecto en la calle Principal 💜',
-          created_date: new Date(Date.now() - 240000).toISOString()
+          created_date: new Date(now - 240000).toISOString()
         },
         {
           id: '3',
           sender_id: 'marta',
           sender_name: 'Marta',
-          sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
           message: 'Me voy en 20 minutos. ¿Te interesa? Son 3€',
-          created_date: new Date(Date.now() - 180000).toISOString()
+          created_date: new Date(now - 180000).toISOString()
+        },
+        {
+          id: '4',
+          sender_id: user?.id || 'you',
+          sender_name: user?.display_name || 'Tú',
+          sender_photo: user?.photo_url,
+          message: '¡Me interesa! ¿Dónde exactamente?',
+          created_date: new Date(now - 170000).toISOString()
+        },
+        {
+          id: '5',
+          sender_id: 'marta',
+          sender_name: 'Marta',
+          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
+          message: 'En Calle Gran Vía, número 25. Es justo al lado del banco 🏦',
+          created_date: new Date(now - 160000).toISOString()
+        },
+        {
+          id: '6',
+          sender_id: user?.id || 'you',
+          sender_name: user?.display_name || 'Tú',
+          sender_photo: user?.photo_url,
+          message: 'Perfecto, voy para allá ahora mismo',
+          created_date: new Date(now - 150000).toISOString()
+        },
+        {
+          id: '7',
+          sender_id: 'marta',
+          sender_name: 'Marta',
+          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
+          message: '¡Genial! Te espero 😊',
+          created_date: new Date(now - 140000).toISOString()
         }
       ]);
     }
-  }, [isDemo]);
+  }, [isDemo, user]);
 
   const displayMessages = isDemo ? demoMessages : messages;
 
@@ -137,13 +170,13 @@ export default function Chat() {
             'Vale, sin problema 👍',
             'Entendido, nos vemos pronto',
             'Claro, cuando quieras',
-            'Genial, aquí estaré'
+            'Genial, aquí estaré 🚗'
           ];
           const reply = {
             id: (Date.now() + 1).toString(),
             sender_id: 'marta',
             sender_name: 'Marta',
-            sender_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+            sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
             message: replies[Math.floor(Math.random() * replies.length)],
             created_date: new Date().toISOString()
           };
@@ -211,7 +244,7 @@ export default function Chat() {
   // Datos del otro usuario
   const isP1 = conversation?.participant1_id === user?.id;
   const otherUser = isDemo 
-    ? { name: 'Marta', photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400' }
+    ? { name: 'Marta', photo: 'https://randomuser.me/api/portraits/women/65.jpg' }
     : {
         name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
         photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
@@ -422,7 +455,7 @@ export default function Chat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
               placeholder="Escribe un mensaje..."
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-md px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-500"
+              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400"
             />
 
             <Button
