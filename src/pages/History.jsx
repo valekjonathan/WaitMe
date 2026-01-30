@@ -176,19 +176,23 @@ export default function History() {
 };
 
   const getCreatedTs = (alert) => {
-    const candidates = [
-      alert?.created_date,
-      alert?.createdDate,
-      alert?.created_at,
-      alert?.createdAt,
-      alert?.created
-    ];
-    for (const v of candidates) {
-      const t = toMs(v);
-      if (typeof t === 'number' && t > 0) return t;
-    }
-    return null;
-  };
+  const candidates = [
+    alert?.created_date,
+    alert?.createdDate,
+    alert?.created_at,
+    alert?.createdAt,
+    alert?.created
+  ];
+
+  for (const v of candidates) {
+    const t = toMs(v);
+    if (typeof t === 'number' && t > 0) return t;
+  }
+
+  // 🔴 CLAVE ABSOLUTA:
+  // si backend no manda fecha válida, usar la hora REAL del dispositivo (Mac / iPhone)
+  return Date.now();
+};
 
   const getWaitUntilTs = (alert) => {
   const created = getCreatedTs(alert);
