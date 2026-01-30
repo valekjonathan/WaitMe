@@ -35,11 +35,11 @@ export default function BottomNav() {
   });
 
   const baseBtn =
-    'w-full h-[64px] flex flex-col items-center justify-center gap-[2px] text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 rounded-lg';
+    'w-full h-[64px] flex flex-col items-center justify-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 rounded-lg';
 
-  const iconCls = 'w-7 h-7 shrink-0';
+  const iconCls = 'w-8 h-8 shrink-0';
   const textCls =
-    'text-[10px] font-bold leading-[10px] whitespace-nowrap truncate';
+    'text-[10px] font-bold leading-none whitespace-nowrap truncate';
 
   const badgeBase =
     'absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center';
@@ -119,4 +119,4 @@ export default function BottomNav() {
       </div>
     </nav>
   );
-} 
+}
