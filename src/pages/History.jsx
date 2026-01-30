@@ -923,17 +923,16 @@ if (
                                         showUpIcon
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
-                                      <Button
-                                        size="icon"
-                                        className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                      <button
                                         onClick={() => {
                                           hideKey(cardKey);
                                           cancelAlertMutation.mutate(alert.id);
                                         }}
                                         disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
-                                        <X className="w-4 h-4" strokeWidth={3} />
-                                      </Button>
+                                        <X className="w-4 h-4" />
+                                      </button>
                                     </div>
                                   }
                                 />
@@ -1027,9 +1026,10 @@ if (
   });
 }}
                                         disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
-                                        <X className="w-4 h-4" strokeWidth={3} />
-                                      </Button>
+                                        <X className="w-4 h-4" />
+                                      </button>
                                     </div>
                                   }
                                 />
@@ -1069,10 +1069,14 @@ if (
                   <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {myFinalizedAll.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <p>No tienes alertas finalizadas</p>
-                  </div>
+                {myFinalizedAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta finalizada.</p>
+                  </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
                     {myFinalizedAll.map((item, index) => {
@@ -1113,17 +1117,16 @@ if (
                                     mode="neutral"
                                     amountText={`${((a.price ?? 0) * 1).toFixed(2)}€`}
                                   />
-                                  <Button
-                                    size="icon"
-                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  <button
                                     onClick={async () => {
                                       hideKey(key);
                                       await deleteAlertSafe(a.id);
                                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                     }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                   >
-                                    <X className="w-4 h-4" strokeWidth={3} />
-                                  </Button>
+                                    <X className="w-4 h-4" />
+                                  </button>
                                 </div>
                               }
                             />
@@ -1351,9 +1354,7 @@ if (
                                   />
                                 )}
 
-                                <Button
-                                  size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                <button
                                   onClick={async () => {
                                     hideKey(key);
                                     if (isMock) return;
@@ -1371,9 +1372,10 @@ if (
 
                                     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                   }}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                 >
-                                  <X className="w-4 h-4" strokeWidth={3} />
-                                </Button>
+                                  <X className="w-4 h-4" />
+                                </button>
                               </div>
                             }
                           />
@@ -1423,10 +1425,14 @@ if (
                   <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {reservationsFinalAll.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <p>No tienes reservas finalizadas</p>
-                  </div>
+                {reservationsFinalAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta finalizada.</p>
+                  </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
                     {reservationsFinalAll.map((item, index) => {
@@ -1482,9 +1488,7 @@ if (
                                     <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
                                   )}
 
-                                  <Button
-                                    size="icon"
-                                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  <button
                                     onClick={async () => {
                                       hideKey(key);
                                       const isMock = String(a.id).startsWith('mock-');
@@ -1493,9 +1497,10 @@ if (
                                         queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                       }
                                     }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                   >
-                                    <X className="w-4 h-4" strokeWidth={3} />
-                                  </Button>
+                                    <X className="w-4 h-4" />
+                                  </button>
                                 </div>
                               }
                             />
