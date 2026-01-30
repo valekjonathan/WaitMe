@@ -26,7 +26,8 @@ export default function Chat() {
   const conversationId = urlParams.get('conversationId');
   const alertId = urlParams.get('alertId');
   const userId = urlParams.get('userId');
-  const isDemo = urlParams.get('demo') === 'true';
+  // Activar modo demo si no hay conversación real
+  const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
   // Usuario actual
   const { data: user } = useQuery({
@@ -65,7 +66,7 @@ export default function Chat() {
   const [demoMessages, setDemoMessages] = useState([]);
   
   useEffect(() => {
-    if (isDemo && demoMessages.length === 0) {
+    if (isDemo) {
       const now = Date.now();
       setDemoMessages([
         {
@@ -126,7 +127,7 @@ export default function Chat() {
         }
       ]);
     }
-  }, [isDemo, user]);
+  }, [isDemo]);
 
   const displayMessages = isDemo ? demoMessages : messages;
 
