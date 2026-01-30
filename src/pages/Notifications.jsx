@@ -45,7 +45,8 @@ export default function Notifications() {
       }));
     },
     enabled: !!user?.id,
-    staleTime: 10000
+    staleTime: 30000,
+cacheTime: 300000,
   });
 
   const acceptMutation = useMutation({
