@@ -186,28 +186,32 @@ const queryClient = useQueryClient();
   const createdFallbackRef = useRef(new Map());
 
 const getCreatedTs = (alert) => {
+  if (!alert?.id) return Date.now();
+
+  // 1. Usar fechas reales si existen
   const candidates = [
-    alert?.finalized_date,
-    alert?.updated_date,
     alert?.created_date,
     alert?.created_at,
     alert?.createdAt,
-    alert?.created
+    alert?.created,
+    alert?.updated_date
   ];
 
   for (const v of candidates) {
     const t = toMs(v);
-    if (typeof t === 'number' && t > 0) return t;
-  }
-
-  if (alert?.id) {
-    if (!createdFallbackRef.current.has(alert.id)) {
-      createdFallbackRef.current.set(alert.id, Date.now());
+    if (typeof t === 'number' && t > 0) {
+      localStorage.setItem(`alert-created-${alert.id}`, String(t));
+      return t;
     }
-    return createdFallbackRef.current.get(alert.id);
   }
 
-  return Date.now();
+  // 2. Fallback persistente (NO se reinicia al entrar)
+  const stored = localStorage.getItem(`alert-created-${alert.id}`);
+  if (stored) return Number(stored);
+
+  const now = Date.now();
+  localStorage.setItem(`alert-created-${alert.id}`, String(now));
+  return now;
 };
 
   const getWaitUntilTs = (alert) => {
