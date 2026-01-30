@@ -225,7 +225,7 @@ export default function Chat() {
             variant="ghost"
             size="icon"
             onClick={() => navigate(createPageUrl('Chats'))}
-            className="text-white hover:bg-gray-800"
+            className="text-white hover:bg-gray-800 rounded-md"
           >
             <ArrowLeft className="w-6 h-6" />
           </Button>
@@ -255,7 +255,7 @@ export default function Chat() {
           <Button
             variant="ghost"
             size="icon"
-            className="text-purple-400 hover:bg-gray-800"
+            className="text-purple-400 hover:bg-gray-800 rounded-md"
           >
             <Phone className="w-5 h-5" />
           </Button>
@@ -263,7 +263,7 @@ export default function Chat() {
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto pt-[72px] pb-[140px] px-4">
+      <div className="flex-1 overflow-y-auto pt-[72px] pb-[160px] px-4">
         <div className="max-w-3xl mx-auto space-y-4 py-4">
           {displayMessages.map((msg, idx) => {
             const isMine = msg.sender_id === user?.id || msg.sender_id === 'you';
@@ -370,36 +370,42 @@ export default function Chat() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
-                className="text-purple-400 hover:bg-gray-800"
+                className="text-purple-400 hover:bg-gray-800 rounded-md"
               >
                 <Paperclip className="w-5 h-5" />
               </Button>
 
-              <AnimatePresence>
-                {showAttachMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-xl"
-                  >
-                    <button
-                      onClick={() => cameraInputRef.current?.click()}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap"
+                <AnimatePresence>
+                  {showAttachMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-md overflow-hidden shadow-xl"
                     >
-                      <Camera className="w-5 h-5 text-purple-400" />
-                      <span className="text-sm text-white">Cámara</span>
-                    </button>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap border-t border-gray-700"
-                    >
-                      <ImageIcon className="w-5 h-5 text-purple-400" />
-                      <span className="text-sm text-white">Galería</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <button
+                        onClick={() => {
+                          cameraInputRef.current?.click();
+                          setShowAttachMenu(false);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap"
+                      >
+                        <Camera className="w-5 h-5 text-purple-400" />
+                        <span className="text-sm text-white">Hacer foto</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                          setShowAttachMenu(false);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap border-t border-gray-700"
+                      >
+                        <ImageIcon className="w-5 h-5 text-purple-400" />
+                        <span className="text-sm text-white">Subir foto</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
               <input
                 ref={cameraInputRef}
@@ -424,13 +430,13 @@ export default function Chat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
               placeholder="Escribe un mensaje..."
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-full px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-500"
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-md px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-500"
             />
 
             <Button
               onClick={handleSend}
               disabled={!message.trim() && attachments.length === 0}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-full h-10 w-10 p-0 disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-10 w-10 p-0 disabled:opacity-50"
             >
               <Send className="w-5 h-5" />
             </Button>
