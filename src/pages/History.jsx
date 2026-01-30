@@ -183,10 +183,13 @@ const queryClient = useQueryClient();
   return null;
 };
 
-  const getCreatedTs = (alert) => {
+  const createdFallbackRef = useRef(new Map());
+
+const getCreatedTs = (alert) => {
   const candidates = [
+    alert?.finalized_date,
+    alert?.updated_date,
     alert?.created_date,
-    alert?.createdDate,
     alert?.created_at,
     alert?.createdAt,
     alert?.created
@@ -197,8 +200,13 @@ const queryClient = useQueryClient();
     if (typeof t === 'number' && t > 0) return t;
   }
 
-  // 🔴 CLAVE ABSOLUTA:
-  // si backend no manda fecha válida, usar la hora REAL del dispositivo (Mac / iPhone)
+  if (alert?.id) {
+    if (!createdFallbackRef.current.has(alert.id)) {
+      createdFallbackRef.current.set(alert.id, Date.now());
+    }
+    return createdFallbackRef.current.get(alert.id);
+  }
+
   return Date.now();
 };
 
@@ -488,17 +496,7 @@ const queryClient = useQueryClient();
   const autoFinalizedRef = useRef(new Set());
   const autoFinalizedReservationsRef = useRef(new Set());
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => setUserLocation([position.coords.latitude, position.coords.longitude]),
-        () => {}
-      );
-    }
-    // Actualizar cada segundo para countdown preciso
-    const t = setInterval(() => setNowTs(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  
 
 const {
   data: myAlerts = [],
