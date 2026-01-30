@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -86,6 +87,7 @@ const buildDemoAlerts = (lat, lng) => {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -277,7 +279,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      window.location.href = createPageUrl('History');
+      navigate(createPageUrl('History'));
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
@@ -336,7 +338,7 @@ export default function Home() {
       
       if (alert?.is_demo) {
         const demoConvId = `demo_conv_${alert.id}`;
-        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
+        navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
       }
     },
     onError: () => {
@@ -353,7 +355,7 @@ export default function Home() {
     // Si es demo, ir a conversación demo
     if (alert?.is_demo) {
       const demoConvId = `demo_conv_${alert.id}`;
-      window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
+      navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
       return;
     }
     
@@ -365,7 +367,7 @@ export default function Home() {
                         (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
     
     if (existingConv) {
-      window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
+      navigate(createPageUrl(`Chat?conversationId=${existingConv.id}`));
       return;
     }
     
@@ -384,7 +386,7 @@ export default function Home() {
       unread_count_p2: 0
     });
     
-    window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
+    navigate(createPageUrl(`Chat?conversationId=${newConv.id}`));
   };
 
   const handleCall = (alert) => {
