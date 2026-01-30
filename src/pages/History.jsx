@@ -30,7 +30,11 @@ export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
-  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const i = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, []);
 
   // ====== UI helpers ======
   const labelNoClick = 'cursor-default select-none pointer-events-none';
@@ -59,7 +63,7 @@ export default function History() {
       minute: '2-digit',
       hour12: false
     });
-    
+
     const formatted = madridDateStr
       .replace(' de ', ' ')
       .replace(',', ' -')
@@ -67,7 +71,7 @@ export default function History() {
         const cap = month.charAt(0).toUpperCase() + month.slice(1);
         return `${day} ${cap}`;
       });
-    
+
     return formatted;
   };
 
@@ -149,9 +153,7 @@ export default function History() {
     if (v == null) return null;
     if (v instanceof Date) return v.getTime();
     if (typeof v === 'number') {
-      // Si ya es timestamp en milisegundos (>= 1e12), devolverlo tal cual
       if (v >= 1e12) return v;
-      // Si es timestamp en segundos (< 1e12), convertir a ms
       return v * 1000;
     }
 
@@ -168,40 +170,19 @@ export default function History() {
     return null;
   };
 
-  const getCreatedTs = (alert) => {
-    const candidates = [
-      alert?.created_date,
-      alert?.createdDate,
-      alert?.created_at,
-      alert?.createdAt,
-      alert?.created
-    ];
-    for (const v of candidates) {
-      const t = toMs(v);
-      if (typeof t === 'number' && t > 0) return t;
-    }
-    return null;
+  const getExpiresTs = (alert) => {
+    return toMs(alert?.expires_at);
   };
 
-  const getWaitUntilTs = (alert) => {
-    // Intentar usar wait_until si existe
-    if (alert.wait_until) {
-      const t = toMs(alert.wait_until);
-      if (typeof t === 'number' && t > 0) {
-        return t;
-      }
-    }
+  // ====== Campos robustos (evita 00:00 permanente y pantallas en blanco) ======
+  const getCreatedTs = (obj) =>
+    toMs(obj?.created_date ?? obj?.created_at ?? obj?.createdAt ?? obj?.created_ts ?? obj?.createdTs);
 
-    // Si no hay wait_until válido, SIEMPRE calcularlo desde created_date + minutes
-    const createdTs = getCreatedTs(alert);
-    const mins = Number(alert.available_in_minutes);
-    
-    if (createdTs && Number.isFinite(mins) && mins > 0) {
-      return createdTs + (mins * 60 * 1000);
-    }
-    
-    return null;
-  };
+const getWaitUntilTs = (alert) => {
+  // ÚNICA fuente válida
+  const expiresMs = toMs(alert?.expires_at);
+  return expiresMs ?? null;
+};
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
@@ -229,7 +210,11 @@ export default function History() {
           : 'border-purple-400/70 bg-purple-600/25'
       ].join(' ')}
     >
-      <span className={`text-sm font-mono font-extrabold ${dimmed ? 'text-gray-400/70' : 'text-purple-100'}`}>
+      <span
+        className={`text-sm font-mono font-extrabold ${
+          dimmed ? 'text-gray-400/70' : 'text-purple-100'
+        }`}
+      >
         {text}
       </span>
     </div>
@@ -307,452 +292,282 @@ export default function History() {
     const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
     const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
 
-    const photoCls = bright
-      ? 'w-full h-full object-cover'
-      : 'w-full h-full object-cover opacity-40 grayscale';
+    const photoCls = bright ? 'w-full h-full object-cover' : 'w-full h-full object-cover';
 
-    const nameCls = bright
-      ? 'font-bold text-xl text-white leading-none min-h-[22px]'
-      : 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]';
+    const avatarSrc = photoUrl || avatarFor(name);
 
-    const carCls = bright
-      ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]'
-      : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]';
-
-    const plateWrapCls = bright ? 'flex-shrink-0' : 'opacity-45 flex-shrink-0';
-    const carIconWrapCls = bright
-      ? 'flex-shrink-0 relative -top-[1px]'
-      : 'opacity-45 flex-shrink-0 relative -top-[1px]';
-
-    const lineTextCls = bright ? 'text-gray-200 leading-5' : 'text-gray-300 leading-5';
-
-    const isTimeObj =
-      timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
-
-    const statusBoxCls = statusOn
-      ? isCountdownLike
-        ? 'border-purple-400/70 bg-purple-600/25'
-        : 'border-purple-500/30 bg-purple-600/10'
-      : 'border-gray-700 bg-gray-800/60';
-
-    const statusTextCls = statusOn
-      ? isCountdownLike
-        ? 'text-purple-100'
-        : isDimStatus
-        ? 'text-gray-400/70'
-        : 'text-purple-300'
-      : 'text-gray-400 opacity-70';
+    const statusColorClass = isCompleted
+      ? 'text-green-400'
+      : isDimStatus
+      ? 'text-gray-500'
+      : isCountdownLike
+      ? 'text-purple-300'
+      : 'text-gray-400';
 
     return (
       <>
-        <div className="flex gap-2.5">
-          <div
-            className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
-              bright ? 'border-purple-500/40 bg-gray-900' : 'border-gray-600/70 bg-gray-800/30'
-            }`}
-          >
-            {photoUrl ? (
-              <img src={photoUrl} alt={name} className={photoCls} />
+        {/* top row: photo + car/plate + actions */}
+        <div className="flex gap-3 items-center mb-2">
+          {/* Foto */}
+          <div className="w-[92px] h-[92px] rounded-xl overflow-hidden border-2 border-gray-700 flex-shrink-0 bg-gray-800">
+            {avatarSrc ? (
+              <img src={avatarSrc} alt={name} className={photoCls} />
             ) : (
-              <div
-                className={`w-full h-full flex items-center justify-center text-3xl ${
-                  bright ? 'text-gray-300' : 'text-gray-600 opacity-40'
-                }`}
-              >
-                👤
+              <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold">
+                {String(name || 'U').slice(0, 1).toUpperCase()}
               </div>
             )}
           </div>
 
-          <div className="flex-1 h-[85px] flex flex-col">
-            <p className={nameCls}>{(name || '').split(' ')[0] || 'Usuario'}</p>
-            <p className={carCls}>{carLabel || 'Sin datos'}</p>
+          {/* Car + plate */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-white font-extrabold text-base truncate">{name || 'Usuario'}</span>
+            </div>
 
-            <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-              <div className={plateWrapCls}>
-                <PlateProfile plate={plate} />
-              </div>
-
-              <div className="flex-1 flex justify-center">
-                <div className={carIconWrapCls}>
-                  <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+            <div className="flex items-center gap-2">
+              <CarIconProfile color={getCarFill(carColor)} />
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs text-gray-400 font-semibold truncate">{carLabel || 'Sin datos'}</span>
+                <div className="mt-1">
+                  <PlateProfile plate={plate} />
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-1.5 border-t border-gray-700/80 mt-2">
-          <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
-            {address ? (
-              <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
-              </div>
-            ) : null}
+          {/* Actions */}
+          <div className="flex flex-col gap-2 items-end">
+            {priceChip ? priceChip : null}
 
-            {timeLine ? (
-              <div className="flex items-start gap-1.5 text-xs">
-                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                {isTimeObj ? (
-                  <span className={lineTextCls}>
-                    {timeLine.main}{' '}
-                    <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
-                  </span>
-                ) : (
-                  <span className={lineTextCls}>{timeLine}</span>
-                )}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="mt-2">
-          <div className="flex gap-2">
-            <Button
-              size="icon"
-              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-              onClick={onChat}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
-
-            {phoneEnabled ? (
+            <div className="flex gap-2">
               <Button
                 size="icon"
-                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl h-10 w-10 border-2 border-gray-500"
+                onClick={onChat}
+              >
+                <MessageCircle className="w-5 h-5" strokeWidth={3} />
+              </Button>
+
+              <Button
+                size="icon"
+                className={`${
+                  phoneEnabled ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-700'
+                } text-white rounded-xl h-10 w-10 border-2 border-gray-500`}
                 onClick={onCall}
+                disabled={!phoneEnabled}
               >
-                <Phone className="w-4 h-4" />
+                {phoneEnabled ? <Phone className="w-5 h-5" strokeWidth={3} /> : <PhoneOff className="w-5 h-5" strokeWidth={3} />}
               </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-                disabled
-              >
-                <PhoneOff className="w-4 h-4 text-white" />
-              </Button>
-            )}
-
-            <div className="flex-1">
-              <div
-                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
-              >
-                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                  {statusText}
-                </span>
-              </div>
             </div>
-
-            {priceChip ? <div className="hidden">{priceChip}</div> : null}
           </div>
         </div>
+
+        {/* address */}
+        <div className="flex items-start gap-1.5 text-xs mb-2">
+          <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+          <span className="text-gray-400 leading-5">{formatAddress(address) || 'Ubicación marcada'}</span>
+        </div>
+
+        {/* timeline */}
+        <div className="flex items-start gap-1.5 text-xs mb-2">
+          <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+          <span className="text-gray-400 leading-5">{timeLine || '--'}</span>
+        </div>
+
+        {/* status */}
+        {statusOn ? (
+          <div className="mt-2">
+            <div className="w-full h-9 rounded-lg border-2 border-gray-700/80 bg-black/30 flex items-center justify-center px-3">
+              <span className={`text-sm font-extrabold ${statusColorClass}`}>{statusText}</span>
+            </div>
+          </div>
+        ) : null}
       </>
     );
   };
 
-  // ====== Ocultar tarjetas al borrar (UI) ======
-  const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
-  const hideKey = (key) => {
-    setHiddenKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
-  };
+  // ====== Queries ======
+  const queryClient = useQueryClient();
 
+  const { data: myAlertsRaw, isLoading } = useQuery({
+    queryKey: ['myAlerts'],
+    queryFn: async () => {
+      const res = await base44.entities.ParkingAlert.list({
+        filter: { user_email: user?.email }
+      });
+      return res?.data || res || [];
+    },
+    enabled: Boolean(user?.email)
+  });
+
+  const { data: myTransactionsRaw } = useQuery({
+    queryKey: ['myTransactions'],
+    queryFn: async () => {
+      const res = await base44.entities.Transaction.list({
+        filter: { $or: [{ buyer_id: user?.id }, { seller_id: user?.id }] }
+      });
+      return res?.data || res || [];
+    },
+    enabled: Boolean(user?.id)
+  });
+
+  // ====== Hides ======
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+  const hideKey = (k) => setHiddenKeys((prev) => new Set(prev).add(k));
+
+  // ====== Safety delete ======
   const deleteAlertSafe = async (id) => {
     try {
       await base44.entities.ParkingAlert.delete(id);
     } catch (e) {}
   };
 
-  // ====== Effects ======
-  const autoFinalizedRef = useRef(new Set());
-  const autoFinalizedReservationsRef = useRef(new Set());
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => setUserLocation([position.coords.latitude, position.coords.longitude]),
-        () => {}
-      );
-    }
-    // Actualizar cada segundo para countdown preciso
-    const t = setInterval(() => setNowTs(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-const {
-  data: myAlerts = [],
-  isLoading: loadingAlerts,
-  refetch: refetchMyAlerts
-} = useQuery({
-  queryKey: ['myAlerts', user?.id, user?.email],
-  enabled: !!user?.id || !!user?.email,
-  staleTime: 5000,
-  refetchInterval: 5000,
-  queryFn: async () => {
-    const res = await base44.entities.ParkingAlert.list();
-    const list = Array.isArray(res) ? res : (res?.data || []);
-
-    return list.filter(a => {
-      if (!a) return false;
-      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
-      if (user?.email && a.user_email === user.email) return true;
-      return false;
-    });
-  }
-});
- 
-  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-    queryKey: ['myTransactions', user?.email],
-    queryFn: async () => {
-      const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.email }),
-        base44.entities.Transaction.filter({ buyer_id: user?.email })
-      ]);
-      return [...asSeller, ...asBuyer];
-    },
-    enabled: !!user?.email,
-    staleTime: 30000,
-    refetchInterval: false
-  });
-
-
-
-  const mockReservationsFinal = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-res-fin-1',
-        status: 'completed',
-        reserved_by_id: user?.id,
-        user_id: 'seller-8',
-        user_email: 'seller8@test.com',
-        user_name: 'Hugo',
-        user_photo: avatarFor('Hugo'),
-        car_brand: 'BMW',
-        car_model: 'Serie 1',
-        car_color: 'gris',
-        car_plate: '2847BNM',
-        address: 'Calle Gran Vía, 25',
-        available_in_minutes: 8,
-        price: 4.0,
-        phone: '611111111',
-        allow_phone_calls: false,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
-      },
-      {
-        id: 'mock-res-fin-2',
-        status: 'cancelled',
-        reserved_by_id: user?.id,
-        user_id: 'seller-9',
-        user_email: 'seller9@test.com',
-        user_name: 'Nuria',
-        user_photo: avatarFor('Nuria'),
-        car_brand: 'Audi',
-        car_model: 'A3',
-        car_color: 'azul',
-        car_plate: '1209KLP',
-        address: 'Calle Uría, 10',
-        available_in_minutes: 12,
-        price: 3.0,
-        phone: '622222222',
-        allow_phone_calls: true,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 3).toISOString()
-      },
-      {
-        id: 'mock-res-fin-3',
-        status: 'expired',
-        reserved_by_id: user?.id,
-        user_id: 'seller-10',
-        user_email: 'seller10@test.com',
-        user_name: 'Iván',
-        user_photo: avatarFor('Iván'),
-        car_brand: 'Toyota',
-        car_model: 'Yaris',
-        car_color: 'blanco',
-        car_plate: '4444XYZ',
-        address: 'Calle Campoamor, 15',
-        available_in_minutes: 10,
-        price: 2.8,
-        phone: null,
-        allow_phone_calls: false,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 5).toISOString()
-      }
-    ];
-  }, [user?.id]);
-
-  const mockTransactions = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-tx-1',
-        seller_id: user?.id,
-        seller_name: 'Tu',
-        buyer_id: 'buyer-1',
-        buyer_name: 'Marco',
-        buyer_photo_url: avatarFor('Marco'),
-        buyer_car: 'BMW Serie 3',
-        buyer_car_color: 'gris',
-        buyer_plate: '2847BNM',
-        amount: 5.0,
-        seller_earnings: 4.0,
-        platform_fee: 1.0,
-        status: 'completed',
-        address: 'Calle Gran Vía, 25',
-        alert_id: 'mock-alert-1',
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
-      }
-    ];
-  }, [user?.id]);
-
- 
-
-
-
-const myActiveAlerts = useMemo(() => {
-  const filtered = myAlerts.filter((a) => {
-    if (!a) return false;
-
-    const isMine =
-      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
-      (user?.email && a.user_email === user.email);
-
-    if (!isMine) return false;
-
-    const status = String(a.status || '').toLowerCase();
-
-    return status === 'active' || status === 'reserved';
-  });
-  
-  // Solo mostrar la última alerta activa (la más reciente)
-  if (filtered.length === 0) return [];
-  
-  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
-  return [sorted[0]];
-}, [myAlerts, user?.id, user?.email, nowTs]);
-const myFinalizedAlerts = useMemo(() => {
-  return myAlerts.filter((a) => {
-    if (!a) return false;
-
-    const isMine =
-      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
-      (user?.email && a.user_email === user.email);
-
-    if (!isMine) return false;
-
-    return ['cancelled', 'completed', 'expired'].includes(
-      String(a.status || '').toLowerCase()
-    );
-  });
-}, [myAlerts, user?.id, user?.email]);
-    
-  // Reservas (tuyas como comprador)
-  const myReservationsReal = useMemo(() => {
-    return myAlerts.filter((a) => {
-      if (a.reserved_by_id !== user?.id) return false;
-      if (a.status !== 'reserved') return false;
-
-      return true;
-    });
-  }, [myAlerts, user?.id]);
-  const reservationsActiveAll = myReservationsReal;
-
-  const myFinalizedAsSellerTx = [
-    ...transactions.filter((t) => t.seller_id === user?.id),
-    ...mockTransactions
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
-
-  const myFinalizedAll = [
-    ...myFinalizedAlerts.map((a) => ({
-      type: 'alert',
-      id: `final-alert-${a.id}`,
-      created_date: a.created_date,
-      data: a
-    })),
-   
-    ...myFinalizedAsSellerTx.map((t) => ({
-      type: 'transaction',
-      id: `final-tx-${t.id}`,
-      created_date: t.created_date,
-      data: t
-    }))
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
-
- 
-    
-
-  const reservationsFinalAllBase = [
-  ...myAlerts
-    .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
-    .map((a) => ({
-      type: 'alert',
-      id: `res-final-alert-${a.id}`,
-      created_date: a.created_date,
-      data: a
-    })),
-  ...transactions
-    .filter((t) => t.buyer_id === user?.id)
-    .map((t) => ({
-      type: 'transaction',
-      id: `res-final-tx-${t.id}`,
-      created_date: t.created_date,
-      data: t
-    })),
-  ...mockReservationsFinal.map((a) => ({
-    type: 'alert',
-    id: `res-final-mock-${a.id}`,
-    created_date: a.created_date,
-    data: a
-  }))
-];
-  const reservationsFinalAll = reservationsFinalAllBase.sort(
-    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
-  );
-
-  const isLoading = loadingAlerts || loadingTransactions;
-
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+      return base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
 
-  const expireAlertMutation = useMutation({
-    mutationFn: async (alertId) => {
-      await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
+  const [userEmailSafe] = useState(user?.email || '');
+
+  // ====== Demo fallbacks (si hiciera falta) ======
+  const baseNow = Date.now();
+  const demoAlerts = [
+    {
+      id: 'mock-1',
+      user_email: userEmailSafe,
+      user_name: 'Sofía',
+      user_photo: fixedAvatars.Sofía,
+      address: 'Calle Uría, n10, Oviedo',
+      available_in_minutes: 8,
+      price: 2.5,
+      car_brand: 'Seat',
+      car_model: 'Ibiza',
+      car_color: 'rojo',
+      car_plate: '1234ABC',
+      expires_at: new Date(baseNow + 8 * 60 * 1000).toISOString(),
+      status: 'active',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    {
+      id: 'mock-2',
+      user_email: userEmailSafe,
+      user_name: 'Hugo',
+      user_photo: fixedAvatars.Hugo,
+      address: 'Avenida de Galicia, n5, Oviedo',
+      available_in_minutes: 12,
+      price: 3.0,
+      car_brand: 'BMW',
+      car_model: 'Serie 1',
+      car_color: 'azul',
+      car_plate: '5678DEF',
+      expires_at: new Date(baseNow + 12 * 60 * 1000).toISOString(),
+      status: 'reserved',
+      reserved_by_name: 'Marco',
+      reserved_by_email: userEmailSafe,
+      reserved_by_car: 'Audi A3 gris',
+      reserved_by_plate: '9999ZZZ',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 3).toISOString()
+    },
+    {
+      id: 'mock-3',
+      user_email: userEmailSafe,
+      user_name: 'Nuria',
+      user_photo: fixedAvatars.Nuria,
+      address: 'Plaza de España, n1, Oviedo',
+      available_in_minutes: 6,
+      price: 2.0,
+      car_brand: 'Renault',
+      car_model: 'Clio',
+      car_color: 'gris',
+      car_plate: '2468GHI',
+      expires_at: new Date(baseNow - 2 * 60 * 1000).toISOString(),
+      status: 'expired',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 5).toISOString()
     }
-  });
+  ];
 
-  // ====== Badge ancho igual que la foto (95px) ======
-  const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
+  const myAlerts = Array.isArray(myAlertsRaw) ? myAlertsRaw : [];
+  const myTransactions = Array.isArray(myTransactionsRaw) ? myTransactionsRaw : [];
 
-  // ====== Map status a texto ======
-  const statusLabelFrom = (s) => {
-    const st = String(s || '').toLowerCase();
-    if (st === 'completed') return 'COMPLETADA';
-    if (st === 'cancelled') return 'CANCELADA';
-    if (st === 'expired') return 'EXPIRADA';
-    if (st === 'reserved') return 'EN CURSO';
-    return 'COMPLETADA';
+  // ====== Derivados ======
+  const myActiveAlerts = useMemo(() => {
+    const real = myAlerts.filter((a) => String(a.status || '').toLowerCase() === 'active');
+    if (real.length > 0) return real;
+    return demoAlerts.filter((a) => String(a.status).toLowerCase() === 'active');
+  }, [myAlerts]);
+
+  const reservationsActiveAll = useMemo(() => {
+    const real = myAlerts.filter((a) => String(a.status || '').toLowerCase() === 'reserved');
+    if (real.length > 0) return real;
+    return demoAlerts.filter((a) => String(a.status).toLowerCase() === 'reserved');
+  }, [myAlerts]);
+
+  const myFinalizedAll = useMemo(() => {
+    const alertsFinal = myAlerts
+      .filter((a) => ['expired', 'cancelled', 'completed'].includes(String(a.status || '').toLowerCase()))
+      .map((a) => ({ type: 'alert', id: `alert-${a.id}`, data: a }));
+
+    const txFinal = myTransactions
+      .filter((t) => ['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()))
+      .map((t) => ({ type: 'tx', id: `tx-${t.id}`, data: t }));
+
+    const filtered = [...alertsFinal, ...txFinal];
+
+    if (filtered.length > 0) {
+      const sorted = filtered.sort((a, b) => (toMs(b.data.created_date) || 0) - (toMs(a.data.created_date) || 0));
+      return sorted;
+    }
+
+    const demoFinal = demoAlerts
+      .filter((a) => ['expired', 'cancelled', 'completed'].includes(String(a.status).toLowerCase()))
+      .map((a) => ({ type: 'alert', id: `alert-${a.id}`, data: a }));
+
+    return demoFinal;
+  }, [myAlerts, myTransactions]);
+
+  const reservationsFinalAll = useMemo(() => {
+    const alertsFinal = myAlerts
+      .filter((a) => ['expired', 'cancelled', 'completed'].includes(String(a.status || '').toLowerCase()))
+      .map((a) => ({ type: 'alert', id: `alert-${a.id}`, data: a }));
+
+    const txFinal = myTransactions
+      .filter((t) => ['completed', 'cancelled'].includes(String(t.status || '').toLowerCase()))
+      .map((t) => ({ type: 'tx', id: `tx-${t.id}`, data: t }));
+
+    const filtered = [...alertsFinal, ...txFinal];
+    if (filtered.length > 0) {
+      const sorted = filtered.sort((a, b) => (toMs(b.data.created_date) || 0) - (toMs(a.data.created_date) || 0));
+      return sorted;
+    }
+
+    return [];
+  }, [myAlerts, myTransactions]);
+
+  // ====== Auto-finalize reservas cuando expiraron ======
+  const autoFinalizedReservationsRef = useRef(new Set());
+
+  // ====== Helpers status ======
+  const statusLabelFrom = (st) => {
+    const s = String(st || '').toLowerCase();
+    if (s === 'completed') return 'COMPLETADA';
+    if (s === 'cancelled') return 'CANCELADA';
+    if (s === 'expired') return 'EXPIRADA';
+    if (s === 'reserved') return 'RESERVADA';
+    if (s === 'active') return 'ACTIVA';
+    return 'FINALIZADA';
   };
 
-  // ====== Dinero en "Tus reservas" según estado ======
-  const reservationMoneyModeFromStatus = (status) => {
-    const st = String(status || '').toLowerCase();
-    if (st === 'completed') return 'paid';
-    if (st === 'expired' || st === 'cancelled') return 'neutral';
+  const reservationMoneyModeFromStatus = (st) => {
+    const s = String(st || '').toLowerCase();
+    if (s === 'completed') return 'paid';
+    if (s === 'cancelled') return 'neutral';
+    if (s === 'expired') return 'neutral';
     return 'neutral';
   };
 
@@ -762,7 +577,6 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* FIX: sin borde negro debajo */}
           <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
@@ -775,7 +589,6 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
 
           {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
             className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -800,20 +613,31 @@ const myFinalizedAlerts = useMemo(() => {
                 ) : (
                   <div className="space-y-[20px]">
                     {myActiveAlerts
-                       .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
-                       .map((alert, index) => {
-                         const createdTs = getCreatedTs(alert);
-                         const waitUntilTs = getWaitUntilTs(alert);
+                      .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
+                      .map((alert, index) => {
+                        const createdTs = getCreatedTs(alert);
+                        const waitUntilTs = getWaitUntilTs(alert);
+                        console.log('ALERT DEBUG', {
+  id: alert.id,
+  expires_at: alert.expires_at,
+  expires_ts: toMs(alert.expires_at),
+  now: Date.now(),
+  diff: toMs(alert.expires_at) - Date.now()
+});
 
-                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
-                           timeZone: 'Europe/Madrid', 
-                           hour: '2-digit', 
-                           minute: '2-digit', 
-                           hour12: false 
-                         }) : '--:--';
-                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
+                        // FIX: countdown no depende de created_date (evita 00:00 permanente)
+                        const remainingMs = waitUntilTs ? Math.max(0, waitUntilTs - nowTs) : 0;
 
+                        const waitUntilLabel = waitUntilTs
+                          ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                              timeZone: 'Europe/Madrid',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })
+                          : '--:--';
+
+                        const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
 
                         const cardKey = `active-${alert.id}`;
                         if (hiddenKeys.has(cardKey)) return null;
@@ -881,9 +705,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       showContactButtons={true}
                                       onChat={() =>
                                         (window.location.href = createPageUrl(
-                                          `Chat?alertId=${alert.id}&userId=${
-                                            alert.reserved_by_email || alert.reserved_by_id
-                                          }`
+                                          `Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`
                                         ))
                                       }
                                       onCall={() =>
@@ -904,15 +726,13 @@ const myFinalizedAlerts = useMemo(() => {
                                   </span>
                                 </div>
 
-                                <div className="flex items-start justify-between text-xs">
-                                  <div className="flex items-start gap-1.5">
-                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                    <span className="text-gray-500 leading-5">
-                                      Te vas en {alert.available_in_minutes} min
-                                    </span>
-                                  </div>
+                                <div className="flex items-start gap-1.5 text-xs">
+                                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-white leading-5">
+                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                  </span>
                                   <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las: {waitUntilLabel}
+                                    Debes esperar hasta las {waitUntilLabel}
                                   </span>
                                 </div>
 
@@ -925,7 +745,7 @@ const myFinalizedAlerts = useMemo(() => {
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                                      className={`bg-green-500/20 text-green-400 border border-green-500/30 ${labelNoClick}`}
                                     >
                                       Activa
                                     </Badge>
@@ -934,11 +754,7 @@ const myFinalizedAlerts = useMemo(() => {
                                   dateClassName="text-white"
                                   right={
                                     <div className="flex items-center gap-1">
-                                      <MoneyChip
-                                        mode="green"
-                                        showUpIcon
-                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
-                                      />
+                                      <MoneyChip mode="neutral" amountText={`${(alert.price ?? 0).toFixed(2)}€`} />
                                       <Button
                                         size="icon"
                                         className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
@@ -969,7 +785,7 @@ const myFinalizedAlerts = useMemo(() => {
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
                                   <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las {waitUntilLabel}
+                                    Debes esperar hasta las: {waitUntilLabel}
                                   </span>
                                 </div>
 
@@ -1017,7 +833,7 @@ const myFinalizedAlerts = useMemo(() => {
                             <CardHeaderRow
                               left={
                                 <Badge
-                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${labelNoClick}`}
                                 >
                                   Finalizada
                                 </Badge>
@@ -1047,49 +863,61 @@ const myFinalizedAlerts = useMemo(() => {
 
                             <div className="border-t border-gray-700/80 mb-2" />
 
-                            <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                              <span className="text-gray-400 leading-5">
-                                {formatAddress(a.address) || 'Ubicación marcada'}
-                              </span>
-                            </div>
-
-                            <div className="mt-2">
-                              <CountdownButton
-                                text={statusLabelFrom(a.status)}
-                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
-                              />
-                            </div>
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={`${a.car_brand || ''} ${a.car_model || ''}`.trim() || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Transacción finalizada · ${
+                                ts
+                                  ? new Date(ts).toLocaleString('es-ES', {
+                                      timeZone: 'Europe/Madrid',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      hour12: false
+                                    })
+                                  : '--:--'
+                              }`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={Boolean(a.phone && a.allow_phone_calls !== false)}
+                              onCall={() =>
+                                a.phone && (window.location.href = `tel:${a.phone}`)
+                              }
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                            />
                           </motion.div>
                         );
                       }
 
                       const tx = item.data;
-                      const isSeller = tx.seller_id === user?.id;
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
 
-                      const buyerName = tx.buyer_name || 'Usuario';
-                      const buyerPhoto = tx.buyer_photo_url || tx.buyerPhotoUrl || '';
-                      const buyerCarLabel =
-                        tx.buyer_car ||
-                        tx.buyerCar ||
-                        tx.buyer_car_label ||
-                        tx.buyerCarLabel ||
-                        (tx.buyer_car_brand
-                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
-                          : '');
-                      const buyerPlate =
-                        tx.buyer_plate ||
-                        tx.buyerPlate ||
-                        tx.buyer_car_plate ||
-                        tx.buyerCarPlate ||
+                      const sellerName = tx.seller_name || 'Usuario';
+                      const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
+                      const sellerCarLabel =
+                        tx.seller_car ||
+                        tx.sellerCar ||
+                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                      const sellerPlate =
+                        tx.seller_plate ||
+                        tx.sellerPlate ||
+                        tx.seller_car_plate ||
+                        tx.sellerCarPlate ||
                         tx.car_plate ||
                         tx.carPlate ||
                         '';
-                      const buyerColor =
-                        tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
+                      const sellerColor =
+                        tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
 
-                      const ts = toMs(tx.created_date);
-                      const dateText = ts ? formatCardDate(ts) : '--';
+                      const txPaid = String(tx.status || '').toLowerCase() === 'completed';
 
                       return (
                         <motion.div
@@ -1102,7 +930,7 @@ const myFinalizedAlerts = useMemo(() => {
                           <CardHeaderRow
                             left={
                               <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${labelNoClick}`}
                               >
                                 Finalizada
                               </Badge>
@@ -1111,19 +939,16 @@ const myFinalizedAlerts = useMemo(() => {
                             dateClassName="text-gray-600"
                             right={
                               <div className="flex items-center gap-1">
-                                {isSeller ? (
-                                  <MoneyChip
-                                    mode="green"
-                                    showUpIcon
-                                    amountText={`${(tx.seller_earnings ?? 0).toFixed(2)}€`}
-                                  />
-                                ) : (
+                                {txPaid ? (
                                   <MoneyChip
                                     mode="red"
                                     showDownIcon
                                     amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
                                   />
+                                ) : (
+                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
                                 )}
+
                                 <Button
                                   size="icon"
                                   className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
@@ -1137,25 +962,31 @@ const myFinalizedAlerts = useMemo(() => {
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
-                          <div className="mb-1.5">
-                            <MarcoContent
-                              photoUrl={buyerPhoto}
-                              name={buyerName}
-                              carLabel={buyerCarLabel || 'Sin datos'}
-                              plate={buyerPlate}
-                              carColor={buyerColor}
-                              address={tx.address}
-                              timeLine={`Transacción completada · ${
-                                ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
-                              }`}
-                              onChat={() =>
-                                (window.location.href = createPageUrl(
-                                  `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
-                                ))
-                              }
-                              statusText="COMPLETADA"
-                            />
-                          </div>
+                          <MarcoContent
+                            photoUrl={sellerPhoto}
+                            name={sellerName}
+                            carLabel={sellerCarLabel || 'Sin datos'}
+                            plate={sellerPlate}
+                            carColor={sellerColor}
+                            address={tx.address}
+                            timeLine={`Transacción completada · ${
+                              ts
+                                ? new Date(ts).toLocaleString('es-ES', {
+                                    timeZone: 'Europe/Madrid',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: false
+                                  })
+                                : '--:--'
+                            }`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
+                              ))
+                            }
+                            statusText="COMPLETADA"
+                            statusEnabled={true}
+                          />
                         </motion.div>
                       );
                     })}
@@ -1166,7 +997,6 @@ const myFinalizedAlerts = useMemo(() => {
           </TabsContent>
 
           {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
             className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
@@ -1195,27 +1025,23 @@ const myFinalizedAlerts = useMemo(() => {
 
                       const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
                       const waitUntilLabel = hasExpiry
-                       ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
-                       : '--:--';
+                        ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })
+                        : '--:--';
 
                       const countdownText =
-                        remainingMs === null
-                          ? '--:--'
-                          : remainingMs > 0
-                          ? formatRemaining(remainingMs)
-                          : 'Reserva finalizada';
+                        remainingMs === null ? '--:--' : remainingMs > 0 ? formatRemaining(remainingMs) : 'Reserva finalizada';
 
                       const key = `res-active-${alert.id}`;
                       if (hiddenKeys.has(key)) return null;
 
                       const isMock = String(alert.id).startsWith('mock-');
 
-                      if (
-                        alert.status === 'reserved' &&
-                        hasExpiry &&
-                        remainingMs !== null &&
-                        remainingMs <= 0
-                      ) {
+                      if (alert.status === 'reserved' && hasExpiry && remainingMs !== null && remainingMs <= 0) {
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
@@ -1231,9 +1057,7 @@ const myFinalizedAlerts = useMemo(() => {
 
                       const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
-
                       const dateText = formatCardDate(createdTs);
-                      const moneyMode = reservationMoneyModeFromStatus('reserved');
 
                       return (
                         <motion.div
@@ -1245,91 +1069,41 @@ const myFinalizedAlerts = useMemo(() => {
                         >
                           <CardHeaderRow
                             left={
-                              <Badge
-                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Activa
+                              <Badge className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${labelNoClick}`}>
+                                Reservada
                               </Badge>
                             }
                             dateText={dateText}
                             dateClassName="text-white"
                             right={
-                              <div className="flex items-center gap-1">
-                                {moneyMode === 'paid' ? (
-                                  <MoneyChip
-                                    mode="red"
-                                    showDownIcon
-                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
-                                  />
-                                ) : (
-                                  <MoneyChip
-                                    mode="neutral"
-                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
-                                  />
-                                )}
-
-                                <Button
-                                  size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                  onClick={async () => {
-                                    hideKey(key);
-                                    if (isMock) return;
-
-                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
-                                    await base44.entities.ChatMessage.create({
-                                      alert_id: alert.id,
-                                      sender_id: user?.email || user?.id,
-                                      sender_name:
-                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-                                      receiver_id: alert.user_email || alert.user_id,
-                                      message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
-                                      read: false
-                                    });
-
-                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                                  }}
-                                >
-                                  <X className="w-4 h-4" strokeWidth={3} />
-                                </Button>
-                              </div>
+                              <MoneyChip
+                                mode="red"
+                                showDownIcon
+                                amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                              />
                             }
                           />
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
                           <MarcoContent
-                            bright={true}
                             photoUrl={alert.user_photo}
                             name={alert.user_name}
                             carLabel={carLabel || 'Sin datos'}
                             plate={alert.car_plate}
                             carColor={alert.car_color}
                             address={alert.address}
-                            timeLine={{
-                              main: `Se va en ${alert.available_in_minutes} min ·`,
-                              accent: `Te espera hasta las ${waitUntilLabel}`
-                            }}
+                            timeLine={`Se va en ${alert.available_in_minutes ?? '--'} min · Te espera hasta las ${waitUntilLabel}`}
                             onChat={() =>
                               (window.location.href = createPageUrl(
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
                               ))
                             }
                             statusText={countdownText}
-                            statusEnabled={true}
                             phoneEnabled={phoneEnabled}
                             onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
+                            statusEnabled={false}
                           />
-
-                          {/* Línea horizontal y botón de navegación */}
-                          <div className="border-t border-gray-700/80 mt-2 pt-2">
-                            <Button
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
-                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
-                            >
-                              IR
-                              <Navigation className="w-5 h-5" />
-                            </Button>
-                          </div>
                         </motion.div>
                       );
                     })}
@@ -1361,12 +1135,16 @@ const myFinalizedAlerts = useMemo(() => {
                         const waitUntilTs = getWaitUntilTs(a);
                         const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
                         const waitUntilLabel = hasExpiry
-                         ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
-                         : '--:--';
+                          ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                              timeZone: 'Europe/Madrid',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false
+                            })
+                          : '--:--';
 
                         const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
                         const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
-
                         const mode = reservationMoneyModeFromStatus(a.status);
 
                         return (
@@ -1380,7 +1158,7 @@ const myFinalizedAlerts = useMemo(() => {
                             <CardHeaderRow
                               left={
                                 <Badge
-                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${labelNoClick}`}
                                 >
                                   Finalizada
                                 </Badge>
@@ -1448,7 +1226,9 @@ const myFinalizedAlerts = useMemo(() => {
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car ||
+                        tx.sellerCar ||
+                        `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
@@ -1473,7 +1253,7 @@ const myFinalizedAlerts = useMemo(() => {
                           <CardHeaderRow
                             left={
                               <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${labelNoClick}`}
                               >
                                 Finalizada
                               </Badge>
@@ -1513,7 +1293,9 @@ const myFinalizedAlerts = useMemo(() => {
                             carColor={sellerColor}
                             address={tx.address}
                             timeLine={`Transacción completada · ${
-                              ts ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
+                              ts
+                                ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                                : '--:--'
                             }`}
                             onChat={() =>
                               (window.location.href = createPageUrl(
@@ -1543,7 +1325,7 @@ const myFinalizedAlerts = useMemo(() => {
         ))}
 
       <script>
-      {`if (window.location.hash === '#refresh') { window.location.hash = ''; window.location.reload(); }`}
+        {`if (window.location.hash === '#refresh') { window.location.hash = ''; window.location.reload(); }`}
       </script>
     </div>
   );
