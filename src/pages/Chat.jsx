@@ -257,7 +257,7 @@ export default function Chat() {
 
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
-        <div className="flex items-center gap-3 px-4 py-2">
+        <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
             {otherUser?.photo ? (
               <img 
@@ -389,7 +389,7 @@ export default function Chat() {
 
       {/* Input */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-20">
-        <div className="max-w-3xl mx-auto px-4 py-2">
+        <div className="max-w-3xl mx-auto px-4 py-3">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">
               {attachments.map((att, i) => (
