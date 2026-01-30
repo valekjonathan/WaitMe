@@ -278,7 +278,7 @@ export default function Chat() {
             <p className="text-xs text-gray-400">En línea</p>
           </div>
 
-          <div className="bg-purple-800/40 rounded-md p-2 hover:bg-purple-700/50 cursor-pointer transition-colors">
+          <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-2 hover:bg-purple-600/30 cursor-pointer transition-colors">
             <Phone className="w-5 h-5 text-purple-300" />
           </div>
         </div>
@@ -318,9 +318,6 @@ export default function Chat() {
                   )}
 
                   <div className={`flex flex-col gap-1 ${isMine ? 'items-end' : 'items-start'}`}>
-                    <div className="text-[10px] text-gray-400 px-1">
-                      {format(new Date(msg.created_date), 'HH:mm')}
-                    </div>
                     <div 
                       className={`rounded-2xl px-4 py-2 ${
                         isMine 
@@ -353,14 +350,17 @@ export default function Chat() {
                         </div>
                       ))}
 
-                      {isMine && (
-                        <div className="flex items-center justify-end gap-0.5 mt-0.5">
+                      <div className={`flex items-center justify-end gap-1 mt-1 ${isMine ? '' : ''}`}>
+                        <span className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
+                          {format(new Date(msg.created_date), 'HH:mm')}
+                        </span>
+                        {isMine && (
                           <div className="relative w-4 h-3">
                             <Check className="w-3 h-3 text-blue-400 absolute top-0 left-0" strokeWidth={2.5} />
                             <Check className="w-3 h-3 text-blue-400 absolute top-0 left-1.5" strokeWidth={2.5} />
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
