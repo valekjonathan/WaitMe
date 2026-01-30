@@ -1040,9 +1040,12 @@ if (
                       if (hiddenKeys.has(key)) return null;
 
                       if (item.type === 'alert') {
-                        const a = item.data;
-                        const ts = item.created_date;
-                        const dateText = ts ? formatCardDate(ts) : '--';
+  const a = item.data;
+  // 🔴 NO pintar alertas COMPLETADAS aquí (van como transacción)
+  if (String(a?.status || '').toLowerCase() === 'completed') return null;
+
+  const ts = item.created_date;
+  const dateText = ts ? formatCardDate(ts) : '--';
 
                         return (
                           <motion.div
