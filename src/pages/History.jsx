@@ -184,24 +184,9 @@ export default function History() {
   };
 
   const getWaitUntilTs = (alert) => {
-    // Intentar usar wait_until si existe
-    if (alert.wait_until) {
-      const t = toMs(alert.wait_until);
-      if (typeof t === 'number' && t > 0) {
-        return t;
-      }
-    }
-
-    // Si no hay wait_until válido, SIEMPRE calcularlo desde created_date + minutes
-    const createdTs = getCreatedTs(alert);
-    const mins = Number(alert.available_in_minutes);
-    
-    if (createdTs && Number.isFinite(mins) && mins > 0) {
-      return createdTs + (mins * 60 * 1000);
-    }
-    
-    return null;
-  };
+  const t = toMs(alert?.expires_at);
+  return typeof t === 'number' && t > 0 ? t : null;
+};
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
