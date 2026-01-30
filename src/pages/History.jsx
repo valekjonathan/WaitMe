@@ -812,6 +812,21 @@ const myFinalizedAlerts = useMemo(() => {
                          const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
+// ⏱ Auto-expirar cuando llega a 0
+if (
+  waitUntilTs &&
+  remainingMs === 0 &&
+  alert.status === 'active' &&
+  !autoFinalizedRef.current.has(alert.id)
+) {
+  autoFinalizedRef.current.add(alert.id);
+
+  base44.entities.ParkingAlert
+    .update(alert.id, { status: 'expired' })
+    .finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+}
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
