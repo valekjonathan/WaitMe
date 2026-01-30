@@ -688,7 +688,7 @@ const myFinalizedAlerts = useMemo(() => {
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-      created_date: a.created_date,
+      created_date: a.finalized_date || a.updated_date || a.created_date,
       data: a
     })),
    
