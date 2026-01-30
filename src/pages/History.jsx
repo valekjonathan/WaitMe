@@ -184,8 +184,24 @@ export default function History() {
   };
 
   const getWaitUntilTs = (alert) => {
-  const t = toMs(alert?.expires_at);
-  return typeof t === 'number' && t > 0 ? t : null;
+  // 1️⃣ Si backend ya trae expires_at, usarlo
+  const expires = toMs(alert?.expires_at);
+  if (typeof expires === 'number' && expires > 0) return expires;
+
+  // 2️⃣ Fallback REAL: created_date + available_in_minutes
+  const created = getCreatedTs(alert);
+  const mins = Number(alert?.available_in_minutes);
+
+  if (
+    typeof created === 'number' &&
+    created > 0 &&
+    Number.isFinite(mins) &&
+    mins > 0
+  ) {
+    return created + mins * 60 * 1000;
+  }
+
+  return null;
 };
 
   const formatRemaining = (ms) => {
