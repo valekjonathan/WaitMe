@@ -357,8 +357,8 @@ export default function Navigate() {
       
       // Redirigir a History después de 3 segundos
       setTimeout(() => {
-        window.location.href = createPageUrl('History');
-      }, 3000);
+  navigate(createPageUrl('History'));
+}, 3000);
     };
     
     releasePayment();
