@@ -156,9 +156,19 @@ export default function History() {
     return v > 1e12 ? v : v * 1000;
   }
 
-  // String (ISO / backend)
+  // String
   if (typeof v === 'string') {
-    const t = new Date(v).getTime(); // 👈 CLAVE: dejar que JS haga la conversión correcta
+    const s = v.trim();
+    if (!s) return null;
+
+    // Si tiene zona horaria (Z o +hh:mm) → Date normal
+    if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
+      const t = new Date(s).getTime();
+      return Number.isNaN(t) ? null : t;
+    }
+
+    // 🔴 CLAVE: string SIN zona → tratar como hora local (Madrid)
+    const t = new Date(s + ':00').getTime();
     return Number.isNaN(t) ? null : t;
   }
 
