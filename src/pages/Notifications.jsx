@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 
 export default function Notifications() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const queryClient = useQueryClient();
@@ -245,10 +246,10 @@ export default function Notifications() {
                               <Button
                                 className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                }}
-                              >
+  e.stopPropagation();
+  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+}}
+>
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                               <Button
@@ -266,9 +267,9 @@ export default function Notifications() {
                               <Button
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Navigate?alertId=${notif.alert_id}`);
-                                }}
+  e.stopPropagation();
+  navigate(createPageUrl(`Navigate?alertId=${notif.alert_id}`));
+}}
                               >
                                 IR <Navigation className="w-3 h-3" />
                               </Button>
@@ -295,9 +296,9 @@ export default function Notifications() {
                                 <Button
                                   className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                  }}
+  e.stopPropagation();
+  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+}}
                                 >
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
