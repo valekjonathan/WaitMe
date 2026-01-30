@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Send, Paperclip, Camera, Image as ImageIcon, ArrowLeft, Phone, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -218,38 +219,29 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      {/* Header personalizado */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(createPageUrl('Chats'))}
-            className="text-white hover:bg-gray-800 rounded-md"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
+      <Header title="Chat" showBackButton={true} backTo="Chats" />
 
-          <div className="flex items-center gap-3 flex-1">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
-              {otherUser?.photo ? (
-                <img 
-                  src={otherUser.photo} 
-                  alt={otherUser.name} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl">
-                  👤
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-white font-semibold truncate">
-                {otherUser?.name || 'Usuario'}
-              </h2>
-              <p className="text-xs text-gray-400">En línea</p>
-            </div>
+      {/* Info del usuario */}
+      <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
+            {otherUser?.photo ? (
+              <img 
+                src={otherUser.photo} 
+                alt={otherUser.name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl">
+                👤
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-white font-semibold truncate">
+              {otherUser?.name || 'Usuario'}
+            </h2>
+            <p className="text-xs text-gray-400">En línea</p>
           </div>
 
           <Button
@@ -263,7 +255,7 @@ export default function Chat() {
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto pt-[72px] pb-[160px] px-4">
+      <div className="flex-1 overflow-y-auto pt-[128px] pb-[160px] px-4">
         <div className="max-w-3xl mx-auto space-y-4 py-4">
           {displayMessages.map((msg, idx) => {
             const isMine = msg.sender_id === user?.id || msg.sender_id === 'you';
@@ -286,7 +278,7 @@ export default function Chat() {
                   className={`flex gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isMine && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-purple-500/30">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-purple-500/30">
                       <img 
                         src={msg.sender_photo || 'https://via.placeholder.com/32'} 
                         alt={msg.sender_name}
