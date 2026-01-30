@@ -806,7 +806,7 @@ const myFinalizedAlerts = useMemo(() => {
               <>
                 <SectionTag variant="green" text="Activas" />
 
-                {myActiveAlerts.length === 0 ? (
+                {visibleActiveAlerts.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -816,7 +816,7 @@ const myFinalizedAlerts = useMemo(() => {
                   </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
-                    {myActiveAlerts
+                    {visibleActiveAlerts
                        .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
                        .map((alert, index) => {
                          const createdTs = getCreatedTs(alert);
@@ -977,9 +977,13 @@ if (
                                         size="icon"
                                         className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
                                         onClick={() => {
-                                          hideKey(cardKey);
-                                          cancelAlertMutation.mutate(alert.id);
-                                        }}
+  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
+  cancelAlertMutation.mutate(alert.id, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
+    }
+  });
+}}
                                         disabled={cancelAlertMutation.isPending}
                                       >
                                         <X className="w-4 h-4" strokeWidth={3} />
