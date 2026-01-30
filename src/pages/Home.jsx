@@ -107,34 +107,43 @@ export default function Home() {
   });
 
   const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me()
-  });
+  queryKey: ['user'],
+  queryFn: () => base44.auth.me(),
+  staleTime: 60000,
+  cacheTime: 300000
+});
 
   const { data: unreadCount } = useQuery({
-    queryKey: ['unreadCount', user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const notifications = await base44.entities.Notification.filter({
-        user_id: user.id,
-        read: false
-      });
-      return notifications?.length || 0;
-    }
-  });
+  queryKey: ['unreadCount', user?.id],
+  enabled: !!user?.id,
+  staleTime: 30000,
+  cacheTime: 300000,
+  queryFn: async () => {
+    const notifications = await base44.entities.Notification.filter({
+  recipient_id: user.id,
+  read: false
+});
+    return notifications?.length || 0;
+  }
+});
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts'],
-    queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
-      return list.filter(a => (a?.status || 'active') === 'active');
-    }
-  });
+  queryKey: ['alerts'],
+  enabled: mode === 'search',
+  staleTime: 30000,
+  cacheTime: 300000,
+  queryFn: async () => {
+    const alerts = await base44.entities.ParkingAlert.list();
+    const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+    return list.filter(a => (a?.status || 'active') === 'active');
+  }
+});
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && mode === 'create',
+    staleTime: 30000,
+cacheTime: 300000,
     queryFn: async () => {
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
