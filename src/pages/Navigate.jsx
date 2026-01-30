@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
 
 export default function Navigate() {
+  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const alertId = urlParams.get('alertId');
   
