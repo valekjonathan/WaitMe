@@ -28,16 +28,10 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
-    // Click en el título = recarga de la página actual
     return (
-      <button
-        type="button"
-        onClick={() => navigate(0)}
-        className="text-lg font-semibold select-none"
-        aria-label="Recargar página"
-      >
+      <div className="text-lg font-semibold select-none">
         {TitleInner}
-      </button>
+      </div>
     );
   };
 

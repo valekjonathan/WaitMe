@@ -549,13 +549,15 @@ const { data: pendingNotifications = [] } = useQuery({
   }
 });
 
+const myActiveAlertsFiltered = myActiveAlerts.filter(a => a.status === 'active');
+const currentNotification = pendingNotifications[0] || null;
+
 // Crear notificación mock después de 3 segundos si hay alertas activas
 const [mockNotificationCreated, setMockNotificationCreated] = useState(false);
+const [mockNotifications, setMockNotifications] = useState([]);
+
 useEffect(() => {
-  if (!user?.id || mockNotificationCreated) return;
-  
-  const hasActiveAlerts = myActiveAlerts.some(a => a.status === 'active');
-  if (!hasActiveAlerts) return;
+  if (!user?.id || mockNotificationCreated || myActiveAlertsFiltered.length === 0) return;
 
   const timer = setTimeout(() => {
     const mockNotif = {
@@ -565,9 +567,9 @@ useEffect(() => {
       sender_id: 'mock-buyer-hugo',
       sender_name: 'Hugo',
       sender_photo: avatarFor('Hugo'),
-      alert_id: myActiveAlerts[0]?.id,
-      alert_address: myActiveAlerts[0]?.address || 'Calle Gran Vía, 25',
-      amount: myActiveAlerts[0]?.price || 5.0,
+      alert_id: myActiveAlertsFiltered[0]?.id,
+      alert_address: myActiveAlertsFiltered[0]?.address || 'Calle Gran Vía, 25',
+      amount: myActiveAlertsFiltered[0]?.price || 5.0,
       buyer_car: 'BMW Serie 1',
       buyer_plate: '2847BNM',
       buyer_car_color: 'gris',
@@ -575,14 +577,15 @@ useEffect(() => {
       created_date: new Date().toISOString()
     };
     
-    pendingNotifications.push(mockNotif);
+    setMockNotifications([mockNotif]);
     setMockNotificationCreated(true);
   }, 3000);
 
   return () => clearTimeout(timer);
-}, [user?.id, myActiveAlerts, mockNotificationCreated]);
+}, [user?.id, myActiveAlertsFiltered.length, mockNotificationCreated]);
 
-const currentNotification = pendingNotifications[0] || null;
+const allNotifications = [...pendingNotifications, ...mockNotifications];
+const activeNotification = allNotifications[0] || null;
  
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.email],
@@ -894,39 +897,35 @@ const myFinalizedAlerts = useMemo(() => {
   });
 
   const handleAcceptReservation = () => {
-    if (!currentNotification) return;
+    if (!activeNotification) return;
     
     setProcessingNotification(true);
     
     acceptReservationMutation.mutate({
-      notificationId: currentNotification.id,
-      alertId: currentNotification.alert_id,
+      notificationId: activeNotification.id,
+      alertId: activeNotification.alert_id,
       buyerData: {
-        buyer_id: currentNotification.sender_id,
-        buyer_email: currentNotification.sender_id,
-        buyer_name: currentNotification.sender_name,
-        buyer_car: currentNotification.buyer_car,
-        buyer_plate: currentNotification.buyer_plate
+        buyer_id: activeNotification.sender_id,
+        buyer_email: activeNotification.sender_id,
+        buyer_name: activeNotification.sender_name,
+        buyer_car: activeNotification.buyer_car,
+        buyer_plate: activeNotification.buyer_plate
       }
     });
 
-    // Remover mock de la lista
-    if (String(currentNotification.id).startsWith('mock-')) {
-      const idx = pendingNotifications.findIndex(n => n.id === currentNotification.id);
-      if (idx !== -1) pendingNotifications.splice(idx, 1);
+    if (String(activeNotification.id).startsWith('mock-')) {
+      setMockNotifications([]);
     }
   };
 
   const handleRejectReservation = () => {
-    if (!currentNotification) return;
+    if (!activeNotification) return;
     
     setProcessingNotification(true);
-    rejectReservationMutation.mutate(currentNotification.id);
+    rejectReservationMutation.mutate(activeNotification.id);
 
-    // Remover mock de la lista
-    if (String(currentNotification.id).startsWith('mock-')) {
-      const idx = pendingNotifications.findIndex(n => n.id === currentNotification.id);
-      if (idx !== -1) pendingNotifications.splice(idx, 1);
+    if (String(activeNotification.id).startsWith('mock-')) {
+      setMockNotifications([]);
     }
   };
 
@@ -1732,9 +1731,9 @@ if (
         ))}
 
       {/* Modal de solicitud de reserva */}
-      {currentNotification && (
+      {activeNotification && (
         <ReservationRequestModal
-          notification={currentNotification}
+          notification={activeNotification}
           onAccept={handleAcceptReservation}
           onReject={handleRejectReservation}
           isProcessing={processingNotification}
