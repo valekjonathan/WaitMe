@@ -601,28 +601,64 @@ const {
   }, [user?.id]);
 
   const mockTransactions = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-tx-1',
-        seller_id: user?.id,
-        seller_name: 'Tu',
-        buyer_id: 'buyer-1',
-        buyer_name: 'Marco',
-        buyer_photo_url: avatarFor('Marco'),
-        buyer_car: 'BMW Serie 3',
-        buyer_car_color: 'gris',
-        buyer_plate: '2847BNM',
-        amount: 5.0,
-        seller_earnings: 4.0,
-        platform_fee: 1.0,
-        status: 'completed',
-        address: 'Calle Gran Vía, 25',
-        alert_id: 'mock-alert-1',
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
-      }
-    ];
-  }, [user?.id]);
+  const baseNow = Date.now();
+  return [
+    {
+      id: 'mock-tx-1',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-1',
+      buyer_name: 'Marco',
+      buyer_photo_url: avatarFor('Marco'),
+      buyer_car: 'BMW Serie 3',
+      buyer_car_color: 'gris',
+      buyer_plate: '2847BNM',
+      amount: 5.0,
+      seller_earnings: 4.0,
+      platform_fee: 1.0,
+      status: 'completed',
+      address: 'Calle Gran Vía, 25',
+      alert_id: 'mock-alert-1',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
+    },
+    {
+      id: 'mock-tx-2',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-2',
+      buyer_name: 'Hugo',
+      buyer_photo_url: avatarFor('Hugo'),
+      buyer_car: 'Audi A4',
+      buyer_car_color: 'negro',
+      buyer_plate: '5521LKP',
+      amount: 6.5,
+      seller_earnings: 5.2,
+      platform_fee: 1.3,
+      status: 'completed',
+      address: 'Calle Uría, 10',
+      alert_id: 'mock-alert-2',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 6).toISOString()
+    },
+    {
+      id: 'mock-tx-3',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-3',
+      buyer_name: 'Nuria',
+      buyer_photo_url: avatarFor('Nuria'),
+      buyer_car: 'Seat Ibiza',
+      buyer_car_color: 'rojo',
+      buyer_plate: '9032JHG',
+      amount: 3.8,
+      seller_earnings: 3.0,
+      platform_fee: 0.8,
+      status: 'completed',
+      address: 'Calle Campoamor, 15',
+      alert_id: 'mock-alert-3',
+      created_date: new Date(baseNow - 1000 * 60 * 30).toISOString()
+    }
+  ];
+}, [user?.id]);
 
  
 
