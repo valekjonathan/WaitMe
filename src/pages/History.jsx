@@ -649,6 +649,9 @@ const myActiveAlerts = useMemo(() => {
   const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email, nowTs]);
+const visibleActiveAlerts = useMemo(() => {
+  return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
+}, [myActiveAlerts, hiddenKeys]);
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
