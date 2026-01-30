@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Send, Paperclip, Camera, Image as ImageIcon, ArrowLeft, Phone, MoreVertical } from 'lucide-react';
+import { Send, Paperclip, Camera, Image as ImageIcon, ArrowLeft, Phone, MoreVertical, Check, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
@@ -278,13 +278,9 @@ export default function Chat() {
             <p className="text-xs text-gray-400">En línea</p>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-purple-400 hover:bg-gray-800 rounded-md"
-          >
-            <Phone className="w-5 h-5" />
-          </Button>
+          <div className="bg-purple-600 rounded-md p-2 hover:bg-purple-700 cursor-pointer transition-colors">
+            <Phone className="w-5 h-5 text-white" />
+          </div>
         </div>
       </div>
 
@@ -321,42 +317,65 @@ export default function Chat() {
                     </div>
                   )}
 
-                  <div 
-                    className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                      isMine 
-                        ? 'bg-purple-600 text-white rounded-br-sm' 
-                        : 'bg-gray-800 text-white rounded-bl-sm'
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-                      {msg.message}
-                    </p>
-                    
-                    {msg.attachments && JSON.parse(msg.attachments).map((att, i) => (
-                      <div key={i} className="mt-2">
-                        {att.type?.includes('image') ? (
-                          <img 
-                            src={att.url} 
-                            alt="Adjunto" 
-                            className="rounded-lg max-w-[200px]"
-                          />
-                        ) : (
-                          <a 
-                            href={att.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs underline"
-                          >
-                            📎 {att.name}
-                          </a>
-                        )}
-                      </div>
-                    ))}
-
-                    <div className={`text-[10px] mt-1 ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
+                  <div className="flex flex-col gap-1">
+                    <div className={`text-[10px] ${isMine ? 'text-right text-gray-400' : 'text-left text-gray-400'}`}>
                       {format(new Date(msg.created_date), 'HH:mm')}
                     </div>
+                    <div 
+                      className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                        isMine 
+                          ? 'bg-purple-600 text-white rounded-br-sm' 
+                          : 'bg-gray-800 text-white rounded-bl-sm'
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                        {msg.message}
+                      </p>
+                      
+                      {msg.attachments && JSON.parse(msg.attachments).map((att, i) => (
+                        <div key={i} className="mt-2">
+                          {att.type?.includes('image') ? (
+                            <img 
+                              src={att.url} 
+                              alt="Adjunto" 
+                              className="rounded-lg max-w-[200px]"
+                            />
+                          ) : (
+                            <a 
+                              href={att.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs underline"
+                            >
+                              📎 {att.name}
+                            </a>
+                          )}
+                        </div>
+                      ))}
+
+                      {isMine && (
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          <CheckCheck className="w-3 h-3 text-purple-200" />
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {isMine && (
+                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-purple-500/30">
+                      {user?.photo_url ? (
+                        <img 
+                          src={user.photo_url} 
+                          alt="Tú"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-purple-700 flex items-center justify-center text-lg">
+                          👤
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               </div>
             );
