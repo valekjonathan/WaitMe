@@ -191,11 +191,6 @@ export default function History() {
   };
 
   const getWaitUntilTs = (alert) => {
-  // 1️⃣ Si backend ya trae expires_at, usarlo
-  const expires = toMs(alert?.expires_at);
-  if (typeof expires === 'number' && expires > 0) return expires;
-
-  // 2️⃣ Fallback REAL: created_date + available_in_minutes
   const created = getCreatedTs(alert);
   const mins = Number(alert?.available_in_minutes);
 
