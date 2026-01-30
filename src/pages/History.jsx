@@ -1041,7 +1041,7 @@ if (
 
                       if (item.type === 'alert') {
                         const a = item.data;
-                        const ts = toMs(a.created_date);
+                        const ts = item.created_date;
                         const dateText = ts ? formatCardDate(ts) : '--';
 
                         return (
