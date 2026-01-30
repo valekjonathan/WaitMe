@@ -27,6 +27,8 @@ import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/components/AuthContext';
 import ReservationRequestModal from '@/components/ReservationRequestModal';
 
+const sseError = () => {};
+
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
@@ -41,6 +43,22 @@ useEffect(() => {
 }, []);
 
 const queryClient = useQueryClient();
+useEffect(() => {
+  if (!user?.id && !user?.email) return;
+
+  const unsubAlerts = base44.entities.ParkingAlert.subscribe(() => {
+    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  });
+
+  const unsubNotifications = base44.entities.Notification.subscribe(() => {
+    queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
+  });
+
+  return () => {
+    unsubAlerts?.();
+    unsubNotifications?.();
+  };
+}, [user?.id, user?.email, queryClient]);
 
   // ====== UI helpers ======
   const labelNoClick = 'cursor-default select-none pointer-events-none';
@@ -515,7 +533,6 @@ const {
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 5000,
-  refetchInterval: 5000,
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
@@ -534,7 +551,6 @@ const { data: pendingNotifications = [] } = useQuery({
   queryKey: ['pendingReservationNotifications', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 3000,
-  refetchInterval: 3000,
   queryFn: async () => {
     try {
       const allNotifications = await base44.entities.Notification.filter({
@@ -555,33 +571,7 @@ const { data: pendingNotifications = [] } = useQuery({
 const [mockNotificationCreated, setMockNotificationCreated] = useState(false);
 const [mockNotifications, setMockNotifications] = useState([]);
 
-useEffect(() => {
-  if (!user?.id || mockNotificationCreated || myActiveAlertsFiltered.length === 0) return;
 
-  const timer = setTimeout(() => {
-    const mockNotif = {
-      id: 'mock-notif-1',
-      type: 'reservation_request',
-      recipient_id: user?.email || user?.id,
-      sender_id: 'mock-buyer-hugo',
-      sender_name: 'Hugo',
-      sender_photo: avatarFor('Hugo'),
-      alert_id: myActiveAlertsFiltered[0]?.id,
-      alert_address: myActiveAlertsFiltered[0]?.address || 'Calle Gran Vía, 25',
-      amount: myActiveAlertsFiltered[0]?.price || 5.0,
-      buyer_car: 'BMW Serie 1',
-      buyer_plate: '2847BNM',
-      buyer_car_color: 'gris',
-      status: 'pending',
-      created_date: new Date().toISOString()
-    };
-    
-    setMockNotifications([mockNotif]);
-    setMockNotificationCreated(true);
-  }, 3000);
-
-  return () => clearTimeout(timer);
-}, [user?.id, myActiveAlertsFiltered.length, mockNotificationCreated]);
 
 const allNotifications = [...pendingNotifications, ...mockNotifications];
 const activeNotification = allNotifications[0] || null;
