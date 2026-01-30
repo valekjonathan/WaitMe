@@ -444,7 +444,7 @@ const getCreatedTs = (alert) => {
               onClick={onChat}
             >
               <MessageCircle className="w-4 h-4" />
-            </button>
+            </Button>
 
             {phoneEnabled ? (
               <Button
@@ -453,7 +453,7 @@ const getCreatedTs = (alert) => {
                 onClick={onCall}
               >
                 <Phone className="w-4 h-4" />
-              </button>
+              </Button>
             ) : (
               <Button
                 variant="outline"
@@ -462,7 +462,7 @@ const getCreatedTs = (alert) => {
                 disabled
               >
                 <PhoneOff className="w-4 h-4 text-white" />
-              </button>
+              </Button>
             )}
 
             <div className="flex-1">
@@ -1184,41 +1184,7 @@ if (
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-                          <CardHeaderRow
-                            left={
-                              <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Finalizada
-                              </Badge>
-                            }
-                            dateText={dateText}
-                            dateClassName="text-gray-600"
-                            right={
-                              <div className="flex items-center gap-1">
-                                {isSeller ? (
-                                  <MoneyChip
-                                    mode="green"
-                                    showUpIcon
-                                    amountText={`${(tx.seller_earnings ?? 0).toFixed(2)}€`}
-                                  />
-                                ) : (
-                                  <MoneyChip
-                                    mode="red"
-                                    showDownIcon
-                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
-                                  />
-                                )}
-                                <Button
-                                  size="icon"
-                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
-                                  onClick={() => hideKey(key)}
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            }
-                          />
+
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
@@ -1412,7 +1378,7 @@ if (
                             >
                               IR
                               <Navigation className="w-5 h-5" />
-                            </button>
+                            </Button>
                           </div>
                         </motion.div>
                       );
@@ -1585,7 +1551,7 @@ if (
                                   onClick={() => hideKey(key)}
                                 >
                                   <X className="w-4 h-4" />
-                                </button>
+                                </Button>
                               </div>
                             }
                           />
@@ -1629,9 +1595,7 @@ if (
           <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
         ))}
 
-      <script>
-      {`if (window.location.hash === '#refresh') { window.location.hash = ''; window.location.reload(); }`}
-      </script>
+      
     </div>
   );
 }
