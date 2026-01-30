@@ -325,6 +325,18 @@ export default function Chat() {
                           : 'bg-gray-800 text-white rounded-bl-sm max-w-[280px]'
                       }`}
                     >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
+                          {format(new Date(msg.created_date), 'HH:mm')}
+                        </span>
+                        {isMine && (
+                          <div className="relative w-4 h-3">
+                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-0" strokeWidth={2.5} />
+                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-1.5" strokeWidth={2.5} />
+                          </div>
+                        )}
+                      </div>
+
                       <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
                         {msg.message}
                       </p>
@@ -349,18 +361,6 @@ export default function Chat() {
                           )}
                         </div>
                       ))}
-
-                      <div className={`flex items-center justify-end gap-1 mt-1 ${isMine ? '' : ''}`}>
-                        <span className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
-                          {format(new Date(msg.created_date), 'HH:mm')}
-                        </span>
-                        {isMine && (
-                          <div className="relative w-4 h-3">
-                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-0" strokeWidth={2.5} />
-                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-1.5" strokeWidth={2.5} />
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
 
