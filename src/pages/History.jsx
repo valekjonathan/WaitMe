@@ -549,8 +549,7 @@ const { data: pendingNotifications = [] } = useQuery({
   }
 });
 
-const myActiveAlertsFiltered = myActiveAlerts.filter(a => a.status === 'active');
-const currentNotification = pendingNotifications[0] || null;
+
 
 // Crear notificación mock después de 3 segundos si hay alertas activas
 const [mockNotificationCreated, setMockNotificationCreated] = useState(false);
@@ -754,6 +753,8 @@ const myActiveAlerts = useMemo(() => {
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
+const myActiveAlertsFiltered = myActiveAlerts.filter(a => a.status === 'active');
+const currentNotification = pendingNotifications[0] || null;
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
