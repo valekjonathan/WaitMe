@@ -478,6 +478,7 @@ const getCreatedTs = (alert) => {
 
   // ====== Ocultar tarjetas al borrar (UI) ======
   const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
+  const isHidden = (key) => hiddenKeys.has(key);
   const hideKey = (key) => {
     setHiddenKeys((prev) => {
       const next = new Set(prev);
