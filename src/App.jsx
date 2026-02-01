@@ -27,24 +27,21 @@ const FullscreenLoader = () => (
 )
 
 const AuthenticatedApp = () => {
-  const { loading, user, authError } = useAuth()
+  const { loading, authError } = useAuth()
 
-  // 🔴 CLAVE: en iPhone SIEMPRE renderizamos algo
+  // ⏳ Mientras carga auth, loader
   if (loading) {
     return <FullscreenLoader />
   }
 
-  // Usuario no registrado → pantalla controlada
+  // 🚫 Usuario NO registrado (caso real)
   if (authError?.type === 'user_not_registered') {
     return <UserNotRegisteredError />
   }
 
-  // 🔴 NO redirigir automáticamente en iOS
-  // Solo mostramos loader y dejamos que Home cargue
-  if (authError?.type === 'auth_required') {
-    return <FullscreenLoader />
-  }
-
+  // ✅ CLAVE:
+  // auth_required (401 en iPhone) NO bloquea la app
+  // Dejamos renderizar TODO
   return (
     <Routes>
       <Route
