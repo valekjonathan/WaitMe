@@ -281,7 +281,16 @@ export default function Notifications() {
                         <p className="font-semibold text-white text-lg">
                           {notif.sender_name.split(' ')[0]} aceptó tu <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
                         </p>
-                        <p className="text-xs text-gray-500">{format(new Date(notif.created_date), 'HH:mm')}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(notif.created_date).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          }).replace(' de ', ' ').replace(',', ' -')}
+                        </p>
                       </div>
 
                       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
@@ -453,7 +462,14 @@ export default function Notifications() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                          {format(new Date(notif.created_date), 'HH:mm')}
+                          {new Date(notif.created_date).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          }).replace(' de ', ' ').replace(',', ' -')}
                         </p>
                       </div>
                     </>
