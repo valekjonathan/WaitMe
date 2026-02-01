@@ -324,12 +324,6 @@ export default function Chats() {
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                             <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price || 0)}€</span>
                           </div>
-
-                          {hasUnread && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
-                              <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                            </div>
-                          )}
                         </div>
                       </div>
 
@@ -436,12 +430,6 @@ export default function Chats() {
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                             <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price || 0)}€</span>
                           </div>
-
-                          {hasUnread && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
-                              <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                            </div>
-                          )}
                         </div>
                       </div>
 
