@@ -35,7 +35,7 @@ export default function BottomNav() {
   });
 
   const baseBtn =
-    'w-full h-[64px] flex flex-col items-center justify-center gap-[2px] text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 rounded-lg';
+    'w-full h-[52px] flex flex-col items-center justify-center gap-[2px] text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 rounded-lg';
 
   const iconCls = 'w-7 h-7 shrink-0';
   const textCls =
@@ -74,7 +74,7 @@ export default function BottomNav() {
           </Button>
         </Link>
 
-        <div className="w-px h-10 bg-gray-700" />
+        <div className="w-px h-8 bg-gray-700" />
 
         {/* MAPA */}
         <Link to={createPageUrl('Home')} className="flex-1">
@@ -91,7 +91,7 @@ export default function BottomNav() {
           </Button>
         </Link>
 
-        <div className="w-px h-10 bg-gray-700" />
+        <div className="w-px h-8 bg-gray-700" />
 
         {/* NOTIFICACIONES */}
         <Link to={createPageUrl('Notifications')} className="flex-1 relative">
@@ -107,7 +107,7 @@ export default function BottomNav() {
           </Button>
         </Link>
 
-        <div className="w-px h-10 bg-gray-700" />
+        <div className="w-px h-8 bg-gray-700" />
 
         {/* CHATS */}
         <Link to={createPageUrl('Chats')} className="flex-1">
