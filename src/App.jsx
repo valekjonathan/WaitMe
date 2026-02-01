@@ -1,54 +1,69 @@
 import './App.css'
+import React from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import PageNotFound from './lib/PageNotFound'
+import { AuthProvider, useAuth } from '@/lib/AuthContext'
+import UserNotRegisteredError from '@/components/UserNotRegisteredError'
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const { Pages, Layout, mainPage } = pagesConfig
+const mainPageKey = mainPage ?? Object.keys(Pages)[0]
+const MainPage = mainPageKey ? Pages[mainPageKey] : () => null
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+const LayoutWrapper = ({ children, currentPageName }) =>
+  Layout
+    ? <Layout currentPageName={currentPageName}>{children}</Layout>
+    : <>{children}</>
+
+const FullscreenLoader = () => (
+  <div className="min-h-[100dvh] flex items-center justify-center bg-black">
+    <div className="w-8 h-8 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+  </div>
+)
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const {
+    loading,          // ← USAMOS SOLO loading
+    user,
+    authError,
+    navigateToLogin
+  } = useAuth()
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
+  // 1️⃣ Mientras carga auth → SIEMPRE render
+  if (loading) {
+    return <FullscreenLoader />
   }
 
-  // Handle authentication errors
+  // 2️⃣ Errores de auth → SIEMPRE render
   if (authError) {
     if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      return <UserNotRegisteredError />
+    }
+
+    if (authError.type === 'auth_required') {
+      // redirige pero NO devuelvas null
+      navigateToLogin()
+      return <FullscreenLoader />
     }
   }
 
-  // Render the main app
+  // 3️⃣ App normal
   return (
     <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
+      <Route
+        path="/"
+        element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <MainPage />
+          </LayoutWrapper>
+        }
+      />
+
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
@@ -60,14 +75,13 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
-  );
-};
-
+  )
+}
 
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -75,6 +89,7 @@ function App() {
           <NavigationTracker />
           <AuthenticatedApp />
         </Router>
+
         <Toaster />
         <VisualEditAgent />
       </QueryClientProvider>
