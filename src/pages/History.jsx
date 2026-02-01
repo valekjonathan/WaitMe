@@ -590,6 +590,36 @@ const activeNotification = allNotifications[0] || null;
 
 
 
+  const mockActiveReservation = useMemo(() => {
+    const baseNow = Date.now();
+    return {
+      id: 'mock-active-reserved-alert',
+      status: 'reserved',
+      user_id: user?.id,
+      user_email: user?.email,
+      user_name: user?.full_name || 'Tu',
+      user_photo: user?.photo_url || null,
+      car_brand: user?.car_brand || 'Seat',
+      car_model: user?.car_model || 'Ibiza',
+      car_color: user?.car_color || 'azul',
+      car_plate: user?.car_plate || '1234ABC',
+      address: 'Calle Uría, 25',
+      latitude: 43.3625,
+      longitude: -5.8490,
+      available_in_minutes: 12,
+      price: 5.0,
+      phone: user?.phone || '612345678',
+      allow_phone_calls: user?.allow_phone_calls ?? true,
+      reserved_by_id: 'demo_buyer_active',
+      reserved_by_email: 'comprador@demo.com',
+      reserved_by_name: 'Laura',
+      reserved_by_car: 'Audi A3',
+      reserved_by_plate: '8899XYZ',
+      reserved_by_vehicle_type: 'car',
+      created_date: new Date(baseNow - 1000 * 60 * 5).toISOString()
+    };
+  }, [user]);
+
   const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
@@ -732,12 +762,12 @@ const myActiveAlerts = useMemo(() => {
     return status === 'active' || status === 'reserved';
   });
   
-  // Solo mostrar la última alerta activa (la más reciente)
-  if (filtered.length === 0) return [];
+  // Si no hay alertas reales, mostrar la mock activa
+  if (filtered.length === 0) return [mockActiveReservation];
   
   const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
-}, [myAlerts, user?.id, user?.email, nowTs]);
+}, [myAlerts, user?.id, user?.email, nowTs, mockActiveReservation]);
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
