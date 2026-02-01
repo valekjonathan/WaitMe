@@ -345,7 +345,8 @@ const getCreatedTs = (alert) => {
     phoneEnabled = false,
     onCall,
     statusEnabled = false,
-    bright = false
+    bright = false,
+    hideNavigateButton = false
   }) => {
     const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
@@ -483,15 +484,17 @@ const getCreatedTs = (alert) => {
               </Button>
             )}
 
-            <div className="flex-1">
-              <div
-                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
-              >
-                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                  {statusText}
-                </span>
+            {!hideNavigateButton && (
+              <div className="flex-1">
+                <div
+                  className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
+                >
+                  <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                    {statusText}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             {priceChip ? <div className="hidden">{priceChip}</div> : null}
           </div>
@@ -1065,7 +1068,7 @@ if (
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
+                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                                     >
                                       Reservado por:
                                     </Badge>
