@@ -297,7 +297,14 @@ export default function Chat() {
                 {showDate && (
                   <div className="flex justify-center my-4">
                     <div className="bg-gray-800/80 rounded-full px-4 py-1 text-xs text-gray-400">
-                      {format(new Date(msg.created_date), "d 'de' MMMM - HH:mm", { locale: es })}
+                      {new Date(msg.created_date).toLocaleString('es-ES', {
+                        timeZone: 'Europe/Madrid',
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      }).replace(' de ', ' ').replace(',', ' -')}
                     </div>
                   </div>
                 )}
