@@ -73,14 +73,14 @@ useEffect(() => {
   };
   const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
 
-  // ====== Fecha: "19 Enero - 21:05" en hora de Madrid ======
+  // ====== Fecha: "2 Feb. - 00:28" en hora de Madrid ======
   const formatCardDate = (ts) => {
     if (!ts) return '--';
     const date = new Date(ts);
     const madridDateStr = date.toLocaleString('es-ES', {
       timeZone: 'Europe/Madrid',
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
@@ -89,10 +89,7 @@ useEffect(() => {
     const formatted = madridDateStr
       .replace(' de ', ' ')
       .replace(',', ' -')
-      .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
-        const cap = month.charAt(0).toUpperCase() + month.slice(1);
-        return `${day} ${cap}`;
-      });
+      .replace(/\./g, '.');
     
     return formatted;
   };
@@ -1065,7 +1062,7 @@ if (
                                 <CardHeaderRow
                                   left={
                                    <Badge
-                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
+                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                                    >
                                      Reservado:
                                    </Badge>
