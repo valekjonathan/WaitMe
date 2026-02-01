@@ -610,12 +610,14 @@ const activeNotification = allNotifications[0] || null;
       price: 5.0,
       phone: user?.phone || '612345678',
       allow_phone_calls: user?.allow_phone_calls ?? true,
-      reserved_by_id: 'demo_buyer_active',
-      reserved_by_email: 'comprador@demo.com',
+      reserved_by_id: 'demo_buyer_laura',
+      reserved_by_email: 'laura@demo.com',
       reserved_by_name: 'Laura',
       reserved_by_car: 'Audi A3',
+      reserved_by_car_color: 'negro',
       reserved_by_plate: '8899XYZ',
       reserved_by_vehicle_type: 'car',
+      reserved_by_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
       created_date: new Date(baseNow - 1000 * 60 * 5).toISOString()
     };
   }, [user]);
