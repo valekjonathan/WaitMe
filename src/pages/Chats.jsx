@@ -370,6 +370,11 @@ export default function Chats() {
                       >
                         <div className="flex justify-between items-center">
                           <p className="text-xs font-bold text-purple-400">Último mensaje:</p>
+                          {hasUnread && (
+                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center ml-auto">
+                              <span className="text-red-400 text-[10px] font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                            </div>
+                          )}
                         </div>
                         <p className="text-xs text-gray-300 mt-1">{item.last_message_text || 'Sin mensajes'}</p>
                       </div>
@@ -477,6 +482,11 @@ export default function Chats() {
                       >
                         <div className="flex justify-between items-center">
                           <p className="text-xs font-bold text-purple-400">Último mensaje:</p>
+                          {hasUnread && (
+                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center ml-auto">
+                              <span className="text-red-400 text-[10px] font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                            </div>
+                          )}
                         </div>
                         <p className="text-xs text-gray-300 mt-1">{conv.last_message_text || 'Sin mensajes'}</p>
                       </div>
