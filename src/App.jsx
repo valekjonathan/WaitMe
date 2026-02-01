@@ -6,10 +6,30 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import PageNotFound from './lib/PageNotFound'
 import { AuthProvider, useAuth } from '@/lib/AuthContext'
 import UserNotRegisteredError from '@/components/UserNotRegisteredError'
+
+/* =========================
+   Helpers críticos iOS
+   ========================= */
+const isEditorEnv = () => {
+  if (typeof window === 'undefined') return false
+  try {
+    // El editor de Base44 corre en iframe
+    return window.top !== window.self
+  } catch {
+    return false
+  }
+}
+
+const isIOS = () => {
+  if (typeof navigator === 'undefined') return false
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
+/* ========================= */
 
 const { Pages, Layout, mainPage } = pagesConfig
 const mainPageKey = mainPage ?? Object.keys(Pages)[0]
@@ -27,32 +47,22 @@ const FullscreenLoader = () => (
 )
 
 const AuthenticatedApp = () => {
-  const {
-    loading,          // ← USAMOS SOLO loading
-    user,
-    authError,
-    navigateToLogin
-  } = useAuth()
+  const { loading, authError, navigateToLogin } = useAuth()
 
-  // 1️⃣ Mientras carga auth → SIEMPRE render
   if (loading) {
     return <FullscreenLoader />
   }
 
-  // 2️⃣ Errores de auth → SIEMPRE render
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />
     }
-
     if (authError.type === 'auth_required') {
-      // redirige pero NO devuelvas null
       navigateToLogin()
       return <FullscreenLoader />
     }
   }
 
-  // 3️⃣ App normal
   return (
     <Routes>
       <Route
@@ -82,16 +92,18 @@ const AuthenticatedApp = () => {
 }
 
 function App() {
+  const enableEditorTools = isEditorEnv() && !isIOS()
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <NavigationTracker />
+          {enableEditorTools && <NavigationTracker />}
           <AuthenticatedApp />
         </Router>
 
         <Toaster />
-        <VisualEditAgent />
+        {enableEditorTools && <VisualEditAgent />}
       </QueryClientProvider>
     </AuthProvider>
   )
