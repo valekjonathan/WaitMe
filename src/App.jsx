@@ -1,5 +1,5 @@
 import './App.css'
-import React, { useEffect, useRef, useMemo } from 'react'
+import React from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -26,46 +26,23 @@ const FullscreenLoader = () => (
   </div>
 )
 
-// ✅ Evita pantalla blanca en iPhone: desactiva NavigationTracker SOLO en iOS Safari
-const SafeNavigationTracker = () => {
-  const shouldDisable = useMemo(() => {
-    if (typeof window === 'undefined') return true
-    const ua = window.navigator?.userAgent || ''
-    const isIOS = /iPad|iPhone|iPod/i.test(ua)
-    const isIOSBrowser = /CriOS|FxiOS|EdgiOS/i.test(ua) // Chrome/Firefox/Edge iOS
-    const isSafari = /Safari/i.test(ua) && !isIOSBrowser
-    return isIOS && isSafari
-  }, [])
-
-  if (shouldDisable) return null
-  return <NavigationTracker />
-}
-
 const AuthenticatedApp = () => {
-  const {
-    loading,
-    authError,
-    navigateToLogin
-  } = useAuth()
+  const { loading, user, authError } = useAuth()
 
-  const redirectedRef = useRef(false)
+  // 🔴 CLAVE: en iPhone SIEMPRE renderizamos algo
+  if (loading) {
+    return <FullscreenLoader />
+  }
 
-  // ✅ Nunca llames navigateToLogin() durante el render (en iPhone rompe fácil)
-  useEffect(() => {
-    if (loading) return
-    if (!authError) return
+  // Usuario no registrado → pantalla controlada
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />
+  }
 
-    if (authError.type === 'auth_required' && !redirectedRef.current) {
-      redirectedRef.current = true
-      navigateToLogin()
-    }
-  }, [loading, authError, navigateToLogin])
-
-  if (loading) return <FullscreenLoader />
-
-  if (authError) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />
-    if (authError.type === 'auth_required') return <FullscreenLoader />
+  // 🔴 NO redirigir automáticamente en iOS
+  // Solo mostramos loader y dejamos que Home cargue
+  if (authError?.type === 'auth_required') {
+    return <FullscreenLoader />
   }
 
   return (
@@ -96,12 +73,12 @@ const AuthenticatedApp = () => {
   )
 }
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <SafeNavigationTracker />
+          <NavigationTracker />
           <AuthenticatedApp />
         </Router>
 
@@ -111,5 +88,3 @@ function App() {
     </AuthProvider>
   )
 }
-
-export default App
