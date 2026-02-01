@@ -303,11 +303,7 @@ export default function Chats() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
                 >
-                  <div
-                    className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 ${
-                      hasUnread ? 'border-purple-500' : 'border-purple-500/40'
-                    }`}
-                  >
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-gray-600/70">
                     <div className="flex flex-col">
                       <div className="flex justify-between items-center mb-2">
                         <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
@@ -347,12 +343,8 @@ export default function Chats() {
                             </>
                           }
                           onChat={() => navigate(createPageUrl(`Chat?conversationId=${item.conversationId}`))}
-                          statusText={new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
-                            timeZone: 'Europe/Madrid',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          })}
+                          statusText="IR"
+                          statusEnabled={true}
                           phoneEnabled={!!alert.allow_phone_calls}
                           onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         />
@@ -409,11 +401,7 @@ export default function Chats() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
                 >
-                  <div
-                    className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 ${
-                      hasUnread ? 'border-purple-500' : 'border-purple-500/40'
-                    }`}
-                  >
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-gray-600/70">
                     <div className="flex flex-col">
                       <div className="flex justify-between items-center mb-2">
                         <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
@@ -453,12 +441,13 @@ export default function Chats() {
                             </>
                           }
                           onChat={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
-                          statusText={new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
+                          statusText={alert.user_id === user?.id ? new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
                             timeZone: 'Europe/Madrid',
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: false
-                          })}
+                          }) : "IR"}
+                          statusEnabled={alert.user_id !== user?.id}
                           phoneEnabled={!!alert.allow_phone_calls}
                           onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         />
