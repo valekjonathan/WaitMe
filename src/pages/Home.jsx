@@ -174,10 +174,15 @@ export default function Home() {
     maxDistance: 10
   });
 
- const { data: user } = useQuery({
+const { data: user } = useQuery({
   queryKey: ['user'],
-  queryFn: () => base44.auth.me(),
-  enabled: false,
+  queryFn: async () => {
+    try {
+      return await base44.auth.me();
+    } catch {
+      return null;
+    }
+  },
   staleTime: 60000,
   cacheTime: 300000
 });
