@@ -174,22 +174,19 @@ export default function Home() {
     maxDistance: 10
   });
 
-const { data: user } = useQuery({
+const { data: user, isError } = useQuery({
   queryKey: ['user'],
-  queryFn: async () => {
-    try {
-      return await base44.auth.me();
-    } catch {
-      return null;
-    }
-  },
+  queryFn: () => base44.auth.me(),
+  retry: false,
   staleTime: 60000,
   cacheTime: 300000
 });
 
+const safeUser = isError ? null : user;
+
   const { data: unreadCount } = useQuery({
-  queryKey: ['unreadCount', user?.id],
-  enabled: !!user?.id,
+  queryKey: ['unreadCount', safeUser?.id],
+  enabled: !!safeUser?.id,
   staleTime: 30000,
   cacheTime: 300000,
   queryFn: async () => {
