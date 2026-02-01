@@ -1064,11 +1064,11 @@ if (
                               <>
                                 <CardHeaderRow
                                   left={
-                                    <Badge
-                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
-                                    >
-                                      Reservado por:
-                                    </Badge>
+                                   <Badge
+                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
+                                   >
+                                     Reservado:
+                                   </Badge>
                                   }
                                   dateText={dateText}
                                   dateClassName="text-white"
@@ -1123,29 +1123,6 @@ if (
                                   />
                                 </div>
                                 )}
-
-                                <div className="flex items-start gap-1.5 text-xs mb-2">
-                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">
-                                    {formatAddress(alert.address) || 'Ubicación marcada'}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-start justify-between text-xs">
-                                  <div className="flex items-start gap-1.5">
-                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                    <span className="text-gray-500 leading-5">
-                                      Te vas en {alert.available_in_minutes} min
-                                    </span>
-                                  </div>
-                                  <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las: {waitUntilLabel}
-                                  </span>
-                                </div>
-
-                                <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={false} />
-                                </div>
                               </>
                             ) : (
                               <>
