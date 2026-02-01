@@ -1,22 +1,18 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from '@/App.jsx'
-import '@/index.css'
+import App from './App'
+import './App.css'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  // <React.StrictMode>
-  <App />
-  // </React.StrictMode>,
-)
+const rootElement = document.getElementById('root')
 
-if (import.meta.hot) {
-  import.meta.hot.on('vite:beforeUpdate', () => {
-    window.parent?.postMessage({ type: 'sandbox:beforeUpdate' }, '*');
-  });
-  import.meta.hot.on('vite:afterUpdate', () => {
-    window.parent?.postMessage({ type: 'sandbox:afterUpdate' }, '*');
-  });
+if (!rootElement) {
+  throw new Error('Root element not found')
 }
 
-
-
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <div style={{ minHeight: '100vh', background: 'black' }}>
+      <App />
+    </div>
+  </React.StrictMode>
+)
