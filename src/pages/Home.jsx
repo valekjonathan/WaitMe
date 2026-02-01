@@ -15,8 +15,6 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 
-const MADRID_CENTER = [40.4168, -3.7038]; // centro inicial SIEMPRE (Madrid)
-
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -30,8 +28,8 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const buildDemoAlerts = (lat, lng) => {
-  const baseLat = lat ?? MADRID_CENTER[0];
-  const baseLng = lng ?? MADRID_CENTER[1];
+  const baseLat = lat ?? 43.3619;
+  const baseLng = lng ?? -5.8494;
 
   return [
     {
@@ -45,9 +43,9 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '1234ABC',
       price: 3.0,
       available_in_minutes: 5,
-      latitude: baseLat + 0.002,
-      longitude: baseLng + 0.001,
-      address: 'Gran Vía, Madrid',
+      latitude: baseLat + 0.0008,
+      longitude: baseLng + 0.0005,
+      address: 'Calle Uría, Oviedo',
       phone: '+34612345678',
       allow_phone_calls: true
     },
@@ -62,9 +60,9 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '5678DEF',
       price: 4.0,
       available_in_minutes: 12,
-      latitude: baseLat - 0.001,
-      longitude: baseLng - 0.002,
-      address: 'Sol, Madrid',
+      latitude: baseLat - 0.0006,
+      longitude: baseLng - 0.0009,
+      address: 'Calle Campoamor, Oviedo',
       phone: '+34623456789',
       allow_phone_calls: false
     },
@@ -79,47 +77,96 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '9012GHI',
       price: 2.5,
       available_in_minutes: 20,
-      latitude: baseLat + 0.001,
-      longitude: baseLng - 0.001,
-      address: 'Plaza Mayor, Madrid',
+      latitude: baseLat + 0.0005,
+      longitude: baseLng - 0.0004,
+      address: 'Plaza de la Escandalera, Oviedo',
       phone: '+34634567890',
+      allow_phone_calls: true
+    },
+    {
+      id: 'demo_4',
+      is_demo: true,
+      user_name: 'LUCIA',
+      user_photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
+      car_brand: 'Renault',
+      car_model: 'Clio',
+      car_color: 'rojo',
+      car_plate: '3344JKL',
+      price: 3.5,
+      available_in_minutes: 8,
+      latitude: baseLat - 0.0004,
+      longitude: baseLng + 0.0006,
+      address: 'Calle Covadonga, Oviedo',
+      phone: '+34645678901',
+      allow_phone_calls: true
+    },
+    {
+      id: 'demo_5',
+      is_demo: true,
+      user_name: 'CARLOS',
+      user_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
+      car_brand: 'Ford',
+      car_model: 'Fiesta',
+      car_color: 'gris',
+      car_plate: '7788MNO',
+      price: 2.0,
+      available_in_minutes: 15,
+      latitude: baseLat + 0.0003,
+      longitude: baseLng + 0.0007,
+      address: 'Calle Altamirano, Oviedo',
+      phone: '+34656789012',
+      allow_phone_calls: false
+    },
+    {
+      id: 'demo_6',
+      is_demo: true,
+      user_name: 'PAULA',
+      user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
+      car_brand: 'Opel',
+      car_model: 'Corsa',
+      car_color: 'amarillo',
+      car_plate: '2233PQR',
+      price: 4.5,
+      available_in_minutes: 10,
+      latitude: baseLat - 0.0007,
+      longitude: baseLng + 0.0003,
+      address: 'Calle Fruela, Oviedo',
+      phone: '+34667890123',
+      allow_phone_calls: true
+    },
+    {
+      id: 'demo_7',
+      is_demo: true,
+      user_name: 'JAVIER',
+      user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
+      car_brand: 'Peugeot',
+      car_model: '208',
+      car_color: 'azul',
+      car_plate: '5566STU',
+      price: 3.2,
+      available_in_minutes: 18,
+      latitude: baseLat + 0.0006,
+      longitude: baseLng - 0.0008,
+      address: 'Calle Independencia, Oviedo',
+      phone: '+34678901234',
       allow_phone_calls: true
     }
   ];
 };
 
-// fetch con timeout para iOS (evita cuelgues silenciosos)
-const fetchWithTimeout = async (url, options = {}, timeoutMs = 7000) => {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
-  } finally {
-    clearTimeout(id);
-  }
-};
-
 export default function Home() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
-
-  // ✅ iPhone rápido: SIEMPRE centro inicial Madrid, y luego si llega geo se actualiza
-  const [userLocation, setUserLocation] = useState(MADRID_CENTER);
-  const [selectedPosition, setSelectedPosition] = useState({ lat: MADRID_CENTER[0], lng: MADRID_CENTER[1] });
-
+  const [userLocation, setUserLocation] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
-
-  // ✅ evita crash iOS: mapa se monta tras el primer frame real
-  const [mapReady, setMapReady] = useState(false);
 
   const [filters, setFilters] = useState({
     maxPrice: 10,
@@ -128,45 +175,43 @@ export default function Home() {
   });
 
   const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 60000,
-    cacheTime: 300000
-  });
+  queryKey: ['user'],
+  queryFn: () => base44.auth.me(),
+  staleTime: 60000,
+  cacheTime: 300000
+});
 
   const { data: unreadCount } = useQuery({
-    queryKey: ['unreadCount', user?.id],
-    enabled: !!user?.id,
-    staleTime: 30000,
-    cacheTime: 300000,
-    queryFn: async () => {
-      const notifications = await base44.entities.Notification.filter({
-        recipient_id: user.id,
-        read: false
-      });
-      return notifications?.length || 0;
-    }
-  });
+  queryKey: ['unreadCount', user?.id],
+  enabled: !!user?.id,
+  staleTime: 30000,
+  cacheTime: 300000,
+  queryFn: async () => {
+    const notifications = await base44.entities.Notification.filter({
+  recipient_id: user.id,
+  read: false
+});
+    return notifications?.length || 0;
+  }
+});
 
-  // ✅ “tiempo real” para coches cercanos en el mapa de fondo:
-  // cargamos alertas siempre (modo null también) y refrescamos cada 15s
-  const { data: rawAlertsAll = [] } = useQuery({
-    queryKey: ['alertsAll'],
-    staleTime: 15000,
-    cacheTime: 300000,
-    refetchInterval: 15000,
-    queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
-      return list.filter(a => (a?.status || 'active') === 'active' || (a?.status || '') === 'reserved');
-    }
-  });
+  const { data: rawAlerts } = useQuery({
+  queryKey: ['alerts'],
+  enabled: mode === 'search',
+  staleTime: 30000,
+  cacheTime: 300000,
+  queryFn: async () => {
+    const alerts = await base44.entities.ParkingAlert.list();
+    const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+    return list.filter(a => (a?.status || 'active') === 'active');
+  }
+});
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id && mode === 'create',
     staleTime: 30000,
-    cacheTime: 300000,
+cacheTime: 300000,
     queryFn: async () => {
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
@@ -188,16 +233,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetchWithTimeout(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'Accept-Language': 'es'
-          }
-        },
-        7000
-      );
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
       const data = await res.json();
       setSuggestions(data || []);
       setShowSuggestions(true);
@@ -216,7 +252,6 @@ export default function Home() {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
     setUserLocation([lat, lng]);
-    setSelectedPosition({ lat, lng });
   };
 
   const getCurrentLocation = () => {
@@ -225,15 +260,10 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
 
-        fetchWithTimeout(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-          { headers: { 'Accept': 'application/json', 'Accept-Language': 'es' } },
-          7000
-        )
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
           .then((res) => res.json())
           .then((data) => {
             if (data?.address) {
@@ -244,38 +274,24 @@ export default function Home() {
           })
           .catch(() => {});
       },
-      () => {
-        // si el usuario deniega, seguimos con Madrid y sin romper nada
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
-  // ✅ Arranque iPhone ultra rápido:
-  // 1) Pintar UI al instante
-  // 2) Montar mapa en el siguiente frame
-  // 3) Pedir geoloc DESPUÉS (no bloquea)
   useEffect(() => {
-    let cancelled = false;
-
-    requestAnimationFrame(() => {
-      if (!cancelled) setMapReady(true);
-    });
-
-    const t = setTimeout(() => {
-      if (!cancelled) getCurrentLocation();
-    }, 250);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
+    getCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const homeMapAlerts = useMemo(() => {
+    const center = userLocation || [43.3619, -5.8494];
+    return buildDemoAlerts(center[0], center[1]);
+  }, [userLocation]);
+
   const filteredAlerts = useMemo(() => {
-    const list = Array.isArray(rawAlertsAll) ? rawAlertsAll : [];
-    const [uLat, uLng] = Array.isArray(userLocation) ? userLocation : [MADRID_CENTER[0], MADRID_CENTER[1]];
+    const list = Array.isArray(rawAlerts) ? rawAlerts : [];
+    const [uLat, uLng] = Array.isArray(userLocation) ? userLocation : [null, null];
 
     return list.filter((a) => {
       if (!a) return false;
@@ -289,41 +305,33 @@ export default function Home() {
       const lat = a.latitude ?? a.lat;
       const lng = a.longitude ?? a.lng;
 
-      // solo cerca
-      if (lat != null && lng != null) {
+      if (uLat != null && uLng != null && lat != null && lng != null) {
         const km = calculateDistance(uLat, uLng, lat, lng);
         if (Number.isFinite(km) && km > filters.maxDistance) return false;
       }
       return true;
     });
-  }, [rawAlertsAll, filters, userLocation]);
-
-  // ✅ coches “alrededor” en el mapa de fondo detrás del logo
-  const homeMapAlerts = useMemo(() => {
-    const [lat, lng] = Array.isArray(userLocation) ? userLocation : MADRID_CENTER;
-    const real = Array.isArray(filteredAlerts) ? filteredAlerts : [];
-    if (real.length > 0) return real;
-    return buildDemoAlerts(lat, lng);
-  }, [userLocation, filteredAlerts]);
+  }, [rawAlerts, filters, userLocation]);
 
   const searchAlerts = useMemo(() => {
     if (mode !== 'search') return [];
-    const real = Array.isArray(filteredAlerts) ? filteredAlerts : [];
+    const real = filteredAlerts || [];
     if (real.length > 0) return real;
 
-    const [lat, lng] = Array.isArray(userLocation) ? userLocation : MADRID_CENTER;
-    return buildDemoAlerts(lat, lng);
+    const center = userLocation || [43.3619, -5.8494];
+    return buildDemoAlerts(center[0], center[1]);
   }, [mode, filteredAlerts, userLocation]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
+      // Validar que el usuario no tenga otra alerta activa
       if (myActiveAlerts && myActiveAlerts.length > 0) {
         throw new Error('ALREADY_HAS_ALERT');
       }
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-
+      
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -345,7 +353,7 @@ export default function Home() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alertsAll'] });
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       navigate(createPageUrl('History'));
@@ -371,6 +379,9 @@ export default function Home() {
       const buyerPlate = user?.car_plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
+      // 1) Marcar la alerta como RESERVADA (para que en "Tus alertas" aparezca como Reservado por...)
+      // 2) Guardar datos del comprador para pintar la tarjeta sin depender de otras tablas
+      // 3) Crear transacción + mensaje
       return Promise.all([
         base44.entities.ParkingAlert.update(alert.id, {
           status: 'reserved',
@@ -401,12 +412,10 @@ export default function Home() {
     },
     onSuccess: (data, alert) => {
       setConfirmDialog({ open: false, alert: null });
-
+      
       if (alert?.is_demo) {
         const demoConvId = `demo_conv_${alert.id}`;
         navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['alertsAll'] });
       }
     },
     onError: () => {
@@ -420,23 +429,26 @@ export default function Home() {
   };
 
   const handleChat = async (alert) => {
+    // Si es demo, ir a conversación demo
     if (alert?.is_demo) {
       const demoConvId = `demo_conv_${alert.id}`;
       navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
       return;
     }
-
+    
     const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-
+    
+    // Buscar conversación existente rápidamente
     const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
-    const existingConv = conversations.find(c => c.participant2_id === otherUserId) ||
-      (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
-
+    const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
+                        (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
+    
     if (existingConv) {
       navigate(createPageUrl(`Chat?conversationId=${existingConv.id}`));
       return;
     }
-
+    
+    // Crear nueva conversación
     const newConv = await base44.entities.Conversation.create({
       participant1_id: user.id,
       participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
@@ -450,7 +462,7 @@ export default function Home() {
       unread_count_p1: 0,
       unread_count_p2: 0
     });
-
+    
     navigate(createPageUrl(`Chat?conversationId=${newConv.id}`));
   };
 
@@ -475,7 +487,7 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL */}
+          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -484,17 +496,12 @@ export default function Home() {
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
-                {/* ✅ mapa seguro iPhone: monta tras primer frame */}
-                {mapReady ? (
-                  <ParkingMap
-                    alerts={homeMapAlerts}
-                    userLocation={userLocation}
-                    className="absolute inset-0 w-full h-full"
-                    zoomControl={false}
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-black" />
-                )}
+                <ParkingMap
+                  alerts={homeMapAlerts}
+                  userLocation={userLocation}
+                  className="absolute inset-0 w-full h-full"
+                  zoomControl={false}
+                />
               </div>
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
@@ -533,7 +540,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR */}
+          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -543,19 +550,15 @@ export default function Home() {
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
               <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
-                {mapReady ? (
-                  <ParkingMap
-                    alerts={searchAlerts}
-                    onAlertClick={setSelectedAlert}
-                    userLocation={userLocation}
-                    selectedAlert={selectedAlert}
-                    showRoute={!!selectedAlert}
-                    zoomControl={true}
-                    className="h-full"
-                  />
-                ) : (
-                  <div className="h-full w-full rounded-xl bg-black" />
-                )}
+                <ParkingMap
+                  alerts={searchAlerts}
+                  onAlertClick={setSelectedAlert}
+                  userLocation={userLocation}
+                  selectedAlert={selectedAlert}
+                  showRoute={!!selectedAlert}
+                  zoomControl={true}
+                  className="h-full"
+                />
 
                 {!showFilters && (
                   <Button
@@ -606,6 +609,7 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -622,7 +626,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ */}
+          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -632,34 +636,26 @@ export default function Home() {
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
               <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
-                {mapReady ? (
-                  <ParkingMap
-                    isSelecting={true}
-                    selectedPosition={selectedPosition}
-                    setSelectedPosition={(pos) => {
-                      setSelectedPosition(pos);
-                      fetchWithTimeout(
-                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`,
-                        { headers: { 'Accept': 'application/json', 'Accept-Language': 'es' } },
-                        7000
-                      )
-                        .then((res) => res.json())
-                        .then((data) => {
-                          if (data?.address) {
-                            const road = data.address.road || data.address.street || '';
-                            const number = data.address.house_number || '';
-                            setAddress(number ? `${road}, ${number}` : road);
-                          }
-                        })
-                        .catch(() => {});
-                    }}
-                    userLocation={userLocation}
-                    zoomControl={true}
-                    className="h-full"
-                  />
-                ) : (
-                  <div className="h-full w-full rounded-xl bg-black" />
-                )}
+                <ParkingMap
+                  isSelecting={true}
+                  selectedPosition={selectedPosition}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data?.address) {
+                          const road = data.address.road || data.address.street || '';
+                          const number = data.address.house_number || '';
+                          setAddress(number ? `${road}, ${number}` : road);
+                        }
+                      })
+                      .catch(() => {});
+                  }}
+                  userLocation={userLocation}
+                  zoomControl={true}
+                  className="h-full"
+                />
               </div>
 
               <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
@@ -677,7 +673,7 @@ export default function Home() {
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
                       }
-
+                      
                       const currentUser = user;
                       const payload = {
                         latitude: selectedPosition.lat,
@@ -694,7 +690,7 @@ export default function Home() {
                         phone: currentUser?.phone || null,
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
-
+                      
                       createAlertMutation.mutate(payload);
                     }}
                     isLoading={createAlertMutation.isPending}
