@@ -27,8 +27,6 @@ import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/components/AuthContext';
 import ReservationRequestModal from '@/components/ReservationRequestModal';
 
-const sseError = () => {};
-
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
