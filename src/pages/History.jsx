@@ -345,8 +345,7 @@ const getCreatedTs = (alert) => {
     phoneEnabled = false,
     onCall,
     statusEnabled = false,
-    bright = false,
-    hideNavigateButton = false
+    bright = false
   }) => {
     const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
@@ -484,17 +483,15 @@ const getCreatedTs = (alert) => {
               </Button>
             )}
 
-            {!hideNavigateButton && (
-              <div className="flex-1">
-                <div
-                  className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
-                >
-                  <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                    {statusText}
-                  </span>
-                </div>
+            <div className="flex-1">
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
+              >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                  {statusText}
+                </span>
               </div>
-            )}
+            </div>
 
             {priceChip ? <div className="hidden">{priceChip}</div> : null}
           </div>
@@ -1068,7 +1065,7 @@ if (
                                 <CardHeaderRow
                                   left={
                                     <Badge
-                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
                                     >
                                       Reservado por:
                                     </Badge>
@@ -1107,9 +1104,9 @@ if (
                                     carLabel={alert.reserved_by_car || 'Sin datos'}
                                     plate={alert.reserved_by_plate}
                                     carColor={alert.reserved_by_car_color || 'gris'}
-                                    address={null}
+                                    address={alert.address}
                                     timeLine={{
-                                      main: `Te espera ·`,
+                                      main: `Te espera ${alert.available_in_minutes} min ·`,
                                       accent: `Hasta las ${waitUntilLabel}`
                                     }}
                                     onChat={() =>
@@ -1123,10 +1120,32 @@ if (
                                     statusEnabled={true}
                                     phoneEnabled={Boolean(alert.phone && alert.allow_phone_calls)}
                                     onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
-                                    hideNavigateButton={true}
                                   />
                                 </div>
                                 )}
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start justify-between text-xs">
+                                  <div className="flex items-start gap-1.5">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
+                                  </div>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
                               </>
                             ) : (
                               <>
