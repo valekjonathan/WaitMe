@@ -1,12 +1,12 @@
 import './App.css'
-import React from 'react'
+import React, { useEffect, useRef, useMemo } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import PageNotFound from './lib/PageNotFound'
 import { AuthProvider, useAuth } from '@/lib/AuthContext'
 import UserNotRegisteredError from '@/components/UserNotRegisteredError'
@@ -26,33 +26,48 @@ const FullscreenLoader = () => (
   </div>
 )
 
+// ✅ Evita pantalla blanca en iPhone: desactiva NavigationTracker SOLO en iOS Safari
+const SafeNavigationTracker = () => {
+  const shouldDisable = useMemo(() => {
+    if (typeof window === 'undefined') return true
+    const ua = window.navigator?.userAgent || ''
+    const isIOS = /iPad|iPhone|iPod/i.test(ua)
+    const isIOSBrowser = /CriOS|FxiOS|EdgiOS/i.test(ua) // Chrome/Firefox/Edge iOS
+    const isSafari = /Safari/i.test(ua) && !isIOSBrowser
+    return isIOS && isSafari
+  }, [])
+
+  if (shouldDisable) return null
+  return <NavigationTracker />
+}
+
 const AuthenticatedApp = () => {
   const {
-    loading,          // ← USAMOS SOLO loading
-    user,
+    loading,
     authError,
     navigateToLogin
   } = useAuth()
 
-  // 1️⃣ Mientras carga auth → SIEMPRE render
-  if (loading) {
-    return <FullscreenLoader />
-  }
+  const redirectedRef = useRef(false)
 
-  // 2️⃣ Errores de auth → SIEMPRE render
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />
-    }
+  // ✅ Nunca llames navigateToLogin() durante el render (en iPhone rompe fácil)
+  useEffect(() => {
+    if (loading) return
+    if (!authError) return
 
-    if (authError.type === 'auth_required') {
-      // redirige pero NO devuelvas null
+    if (authError.type === 'auth_required' && !redirectedRef.current) {
+      redirectedRef.current = true
       navigateToLogin()
-      return <FullscreenLoader />
     }
+  }, [loading, authError, navigateToLogin])
+
+  if (loading) return <FullscreenLoader />
+
+  if (authError) {
+    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />
+    if (authError.type === 'auth_required') return <FullscreenLoader />
   }
 
-  // 3️⃣ App normal
   return (
     <Routes>
       <Route
@@ -86,7 +101,7 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <NavigationTracker />
+          <SafeNavigationTracker />
           <AuthenticatedApp />
         </Router>
 
