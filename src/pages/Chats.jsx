@@ -21,6 +21,35 @@ const toDateMs = (v) => {
 
 const DEMO_ITEMS = [
   {
+    conversationId: 'demo_seller_1',
+    other: {
+      id: 'demo_buyer_x',
+      name: 'Hugo',
+      photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+      allowCalls: true,
+      phone: '655444333'
+    },
+    alert: {
+      id: 'demo_alert_seller_1',
+      user_id: 'current_user',
+      car_brand: 'Renault',
+      car_model: 'Clio',
+      car_color: 'rojo',
+      car_plate: '8765 MNK',
+      price: 4,
+      available_in_minutes: 8,
+      address: 'Calle San Francisco, Oviedo',
+      latitude: 43.3615,
+      longitude: -5.8475,
+      allow_phone_calls: true,
+      phone: '655444333'
+    },
+    last_message_text: 'Voy de camino, llego en 3 minutos',
+    last_message_at: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
+    unread: 2,
+    isSellerDemo: true
+  },
+  {
     conversationId: 'demo_1',
     other: {
       id: 'demo_user_1',
@@ -296,6 +325,23 @@ export default function Chats() {
               const hasUnread = unreadCount > 0;
               const distanceText = calculateDistanceText(alert);
 
+              const isSellerView = item.isSellerDemo === true;
+              const waitUntilLabel = new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
+                timeZone: 'Europe/Madrid',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              });
+
+              const remainingMs = alert.available_in_minutes * 60 * 1000;
+              const formatCountdown = (ms) => {
+                const totalSec = Math.floor(ms / 1000);
+                const m = Math.floor(totalSec / 60);
+                const s = totalSec % 60;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+              };
+              const countdownText = formatCountdown(remainingMs);
+
               return (
                 <motion.div
                   key={item.conversationId}
@@ -336,21 +382,22 @@ export default function Chats() {
                           carColor={alert.car_color || 'gris'}
                           address={alert.address}
                           timeLine={
-                            <>
-                              <span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las{' '}
-                              {new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
-                                timeZone: 'Europe/Madrid',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                              })}
-                            </>
+                            isSellerView ? (
+                              <>
+                                <span className="text-white">Te vas en {alert.available_in_minutes} min ·</span> Debes esperarle hasta las {waitUntilLabel}
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {waitUntilLabel}
+                              </>
+                            )
                           }
                           onChat={() => navigate(createPageUrl(`Chat?conversationId=${item.conversationId}`))}
-                          statusText="IR"
+                          statusText={isSellerView ? countdownText : "IR"}
                           statusEnabled={true}
                           phoneEnabled={!!alert.allow_phone_calls}
                           onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                          onNavigate={!isSellerView ? () => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`) : undefined}
                         />
                       </div>
 
@@ -358,10 +405,10 @@ export default function Chats() {
                         className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate(createPageUrl(`Chat?conversationId=${item.conversationId}`))}
                       >
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start relative">
                           <p className="text-xs font-bold text-purple-400">Último mensaje:</p>
                           {hasUnread && (
-                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center ml-auto">
+                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center absolute right-0 -top-3">
                               <span className="text-red-400 text-[10px] font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
@@ -438,26 +485,40 @@ export default function Chats() {
                           carColor={alert.car_color || 'gris'}
                           address={alert.address}
                           timeLine={
-                            <>
-                              <span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las{' '}
-                              {new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
-                                timeZone: 'Europe/Madrid',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                              })}
-                            </>
+                            alert.user_id === user?.id ? (
+                              <>
+                                <span className="text-white">Te vas en {alert.available_in_minutes} min ·</span> Debes esperarle hasta las{' '}
+                                {new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
+                                  timeZone: 'Europe/Madrid',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
+                                })}
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las{' '}
+                                {new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
+                                  timeZone: 'Europe/Madrid',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
+                                })}
+                              </>
+                            )
                           }
                           onChat={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
-                          statusText={alert.user_id === user?.id ? new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
-                            timeZone: 'Europe/Madrid',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          }) : "IR"}
-                          statusEnabled={alert.user_id !== user?.id}
+                          statusText={alert.user_id === user?.id ? (() => {
+                            const remainingMs = alert.available_in_minutes * 60 * 1000;
+                            const totalSec = Math.floor(remainingMs / 1000);
+                            const m = Math.floor(totalSec / 60);
+                            const s = totalSec % 60;
+                            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                          })() : "IR"}
+                          statusEnabled={true}
                           phoneEnabled={!!alert.allow_phone_calls}
                           onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                          onNavigate={alert.user_id !== user?.id ? () => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`) : undefined}
                         />
                       </div>
 
@@ -465,10 +526,10 @@ export default function Chats() {
                         className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
                       >
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start relative">
                           <p className="text-xs font-bold text-purple-400">Último mensaje:</p>
                           {hasUnread && (
-                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center ml-auto">
+                            <div className="w-5 h-5 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center absolute right-0 -top-3">
                               <span className="text-red-400 text-[10px] font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}

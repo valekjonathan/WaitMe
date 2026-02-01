@@ -17,7 +17,8 @@ export default function MarcoCard({
   onCall,
   statusEnabled = false,
   bright = false,
-  conversationId
+  conversationId,
+  onNavigate
 }) {
   const [showChat, setShowChat] = useState(false);
   const [newMessage, setNewMessage] = useState('');
@@ -214,13 +215,24 @@ export default function MarcoCard({
           )}
 
           <div className="flex-1">
-            <div
-              className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
-            >
-              <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                {statusText}
-              </span>
-            </div>
+            {onNavigate ? (
+              <button
+                onClick={onNavigate}
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls} cursor-pointer hover:opacity-80 transition-opacity`}
+              >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                  {statusText}
+                </span>
+              </button>
+            ) : (
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
+              >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                  {statusText}
+                </span>
+              </div>
+            )}
           </div>
 
           {priceChip ? <div className="hidden">{priceChip}</div> : null}
