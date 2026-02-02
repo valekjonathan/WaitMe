@@ -49,7 +49,7 @@ export default function BottomNav() {
     'absolute top-1 right-2 bg-purple-500/20 border-2 border-purple-500/30 text-purple-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm px-4 pt-0 pb-2 safe-area-pb z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 pt-0 pb-2 safe-area-pb z-50">
       <div className="flex items-center max-w-md mx-auto">
         {/* ALERTAS */}
         <Link to={createPageUrl('History')} className="flex-1 relative">

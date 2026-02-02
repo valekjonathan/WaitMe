@@ -661,9 +661,9 @@ cacheTime: 300000,
                 />
               </div>
 
-              <div className="px-4 py-2 flex-shrink-0 flex justify-center">
-                <div className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 inline-flex items-center">
-                  <p className="text-white font-medium text-sm whitespace-nowrap">
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="bg-purple-600/20 border border-purple-500/40 rounded-xl px-4 py-2">
+                  <p className="text-white font-medium text-center text-sm">
                     ¿ Dónde estás aparcado ?
                   </p>
                 </div>
