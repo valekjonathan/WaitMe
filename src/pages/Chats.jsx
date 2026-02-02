@@ -379,16 +379,21 @@ export default function Chats() {
                         </Badge>
 
                         <div className="flex items-center gap-1">
-                          {distanceText && (
-                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                              <Navigation className="w-3 h-3 text-purple-400" />
-                              <span className="text-white font-bold text-xs">{distanceText}</span>
-                            </div>
-                          )}
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                             <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price || 0)}€</span>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Fecha y hora + distancia */}
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <span className="text-[11px] text-gray-400 font-medium">{messageDateText}</span>
+                        {distanceText && (
+                          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-6">
+                            <Navigation className="w-3 h-3 text-purple-400" />
+                            <span className="text-white font-bold text-[10px]">{distanceText}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
