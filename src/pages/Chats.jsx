@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -136,13 +136,6 @@ export default function Chats() {
   const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [now, setNow] = useState(Date.now());
-
-  // Actualizar contador cada segundo
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Usuario autenticado (cacheado)
   const { data: user } = useQuery({
@@ -333,18 +326,14 @@ export default function Chats() {
               const distanceText = calculateDistanceText(alert);
 
               const isSellerView = item.isSellerDemo === true;
-              
-              // Calcular tiempo de expiración (hora actual + minutos disponibles)
-              const expiresAtMs = now + (Number(alert.available_in_minutes) || 0) * 60000;
-              const waitUntilLabel = new Date(expiresAtMs).toLocaleString('es-ES', {
+              const waitUntilLabel = new Date(Date.now() + (Number(alert.available_in_minutes) || 0) * 60000).toLocaleString('es-ES', {
                 timeZone: 'Europe/Madrid',
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
               });
 
-              // Countdown regresivo en tiempo real
-              const remainingMs = Math.max(0, expiresAtMs - now);
+              const remainingMs = alert.available_in_minutes * 60 * 1000;
               const formatCountdown = (ms) => {
                 const totalSec = Math.floor(ms / 1000);
                 const m = Math.floor(totalSec / 60);
@@ -352,17 +341,6 @@ export default function Chats() {
                 return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
               };
               const countdownText = formatCountdown(remainingMs);
-
-              // Fecha y hora del mensaje (formato: "10 Ene - 10:29")
-              const messageDate = new Date(item.last_message_at);
-              const messageDateText = messageDate.toLocaleString('es-ES', {
-                timeZone: 'Europe/Madrid',
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }).replace(' de ', ' ').replace(',', ' -');
 
               return (
                 <motion.div
@@ -379,21 +357,16 @@ export default function Chats() {
                         </Badge>
 
                         <div className="flex items-center gap-1">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                              <Navigation className="w-3 h-3 text-purple-400" />
+                              <span className="text-white font-bold text-xs">{distanceText}</span>
+                            </div>
+                          )}
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                             <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price || 0)}€</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Fecha y hora + distancia */}
-                      <div className="flex items-center justify-between mb-2 px-1">
-                        <span className="text-[11px] text-gray-400 font-medium">{messageDateText}</span>
-                        {distanceText && (
-                          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-6">
-                            <Navigation className="w-3 h-3 text-purple-400" />
-                            <span className="text-white font-bold text-[10px]">{distanceText}</span>
-                          </div>
-                        )}
                       </div>
 
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
@@ -468,28 +441,6 @@ export default function Chats() {
 
               const distanceText = calculateDistanceText(alert);
 
-              // Countdown regresivo en tiempo real para conversaciones reales
-              const expiresAtMs = now + (Number(alert.available_in_minutes) || 0) * 60000;
-              const remainingMs = Math.max(0, expiresAtMs - now);
-              const formatCountdown = (ms) => {
-                const totalSec = Math.floor(ms / 1000);
-                const m = Math.floor(totalSec / 60);
-                const s = totalSec % 60;
-                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-              };
-              const countdownText = formatCountdown(remainingMs);
-
-              // Fecha y hora del mensaje
-              const messageDate = new Date(conv.last_message_at);
-              const messageDateText = messageDate.toLocaleString('es-ES', {
-                timeZone: 'Europe/Madrid',
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }).replace(' de ', ' ').replace(',', ' -');
-
               return (
                 <motion.div
                   key={conv.id}
@@ -505,21 +456,16 @@ export default function Chats() {
                         </Badge>
 
                         <div className="flex items-center gap-1">
+                          {distanceText && (
+                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                              <Navigation className="w-3 h-3 text-purple-400" />
+                              <span className="text-white font-bold text-xs">{distanceText}</span>
+                            </div>
+                          )}
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                             <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price || 0)}€</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Fecha y hora + distancia */}
-                      <div className="flex items-center justify-between mb-2 px-1">
-                        <span className="text-[11px] text-gray-400 font-medium">{messageDateText}</span>
-                        {distanceText && (
-                          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-6">
-                            <Navigation className="w-3 h-3 text-purple-400" />
-                            <span className="text-white font-bold text-[10px]">{distanceText}</span>
-                          </div>
-                        )}
                       </div>
 
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
@@ -554,7 +500,13 @@ export default function Chats() {
                             )
                           }
                           onChat={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
-                          statusText={alert.user_id === user?.id ? countdownText : "IR"}
+                          statusText={alert.user_id === user?.id ? (() => {
+                            const remainingMs = alert.available_in_minutes * 60 * 1000;
+                            const totalSec = Math.floor(remainingMs / 1000);
+                            const m = Math.floor(totalSec / 60);
+                            const s = totalSec % 60;
+                            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                          })() : "IR"}
                           statusEnabled={true}
                           phoneEnabled={!!alert.allow_phone_calls}
                           onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
