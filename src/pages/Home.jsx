@@ -14,6 +14,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
+import SimulationEngine from '@/components/SimulationEngine';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -476,7 +477,8 @@ cacheTime: 300000,
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <NotificationManager user={user} />
+      <NotificationManager user={safeUser} />
+      <SimulationEngine user={safeUser} enabled={!!safeUser?.id} />
 
       <Header
         title="WaitMe!"
