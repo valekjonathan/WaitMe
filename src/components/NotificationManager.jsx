@@ -3,22 +3,19 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
 export default function NotificationManager({ user }) {
-  // 🔒 PROTECCIÓN CRÍTICA PARA SAFARI iOS
-  const isNotificationSupported =
-    typeof window !== 'undefined' &&
-    'Notification' in window &&
-    typeof Notification.permission === 'string';
 
-  if (!isNotificationSupported) {
-    // iPhone → no rompe la app
+  // 🚫 Safari iOS NO soporta Notification API
+  if (typeof window === 'undefined' || !('Notification' in window)) {
     return null;
   }
 
-  const [permission, setPermission] = useState(Notification.permission);
+  const [permission, setPermission] = useState(
+    Notification.permission ?? 'default'
+  );
+
   const [lastNotificationId, setLastNotificationId] = useState(null);
   const [lastMessageId, setLastMessageId] = useState(null);
 
-  // Solicitar permisos
   useEffect(() => {
     if (permission === 'default') {
       Notification.requestPermission().then(setPermission);
@@ -46,55 +43,28 @@ export default function NotificationManager({ user }) {
   });
 
   useEffect(() => {
-    if (notifications.length === 0 || permission !== 'granted') return;
+    if (!notifications.length || permission !== 'granted') return;
 
     const latest = notifications[0];
-    if (lastNotificationId === latest.id) return;
+    if (latest.id === lastNotificationId) return;
 
     setLastNotificationId(latest.id);
-    if (user?.notifications_enabled === false) return;
 
-    let title = 'WaitMe!';
-    let body = '';
-
-    switch (latest.type) {
-      case 'reservation_request':
-        title = '🚗 Nueva solicitud de reserva';
-        body = `${latest.sender_name} quiere reservar tu plaza por ${latest.amount}€`;
-        break;
-      case 'reservation_accepted':
-        title = '✅ Reserva aceptada';
-        body = `${latest.sender_name} ha aceptado tu solicitud`;
-        break;
-      case 'reservation_rejected':
-        title = '❌ Reserva rechazada';
-        body = `${latest.sender_name} ha rechazado tu solicitud`;
-        break;
-      case 'buyer_nearby':
-        title = '📍 El comprador está cerca';
-        body = `${latest.sender_name} está llegando`;
-        break;
-      case 'payment_completed':
-        title = '💰 Pago completado';
-        body = `Has recibido ${latest.amount}€`;
-        break;
-      default:
-        return;
-    }
-
-    new Notification(title, { body });
-  }, [notifications, permission, lastNotificationId, user]);
+    new Notification('WaitMe!', {
+      body: 'Tienes una nueva notificación'
+    });
+  }, [notifications, permission, lastNotificationId]);
 
   useEffect(() => {
-    if (messages.length === 0 || permission !== 'granted') return;
+    if (!messages.length || permission !== 'granted') return;
 
     const latest = messages[0];
-    if (lastMessageId === latest.id) return;
+    if (latest.id === lastMessageId) return;
 
     setLastMessageId(latest.id);
 
     new Notification('💬 Nuevo mensaje', {
-      body: `${latest.sender_name}: ${latest.message}`
+      body: latest.message
     });
   }, [messages, permission, lastMessageId]);
 
