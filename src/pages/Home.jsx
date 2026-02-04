@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -86,6 +87,7 @@ const buildDemoAlerts = (lat, lng) => {
 };
 
 export default function Home() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -245,14 +247,13 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      // Validar que el usuario no tenga otra alerta activa
       if (myActiveAlerts && myActiveAlerts.length > 0) {
         throw new Error('ALREADY_HAS_ALERT');
       }
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-      
+
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -277,7 +278,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      window.location.href = createPageUrl('History');
+      navigate(createPageUrl('History'));
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
@@ -300,9 +301,6 @@ export default function Home() {
       const buyerPlate = user?.car_plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
-      // 1) Marcar la alerta como RESERVADA (para que en "Tus alertas" aparezca como Reservado por...)
-      // 2) Guardar datos del comprador para pintar la tarjeta sin depender de otras tablas
-      // 3) Crear transacción + mensaje
       return Promise.all([
         base44.entities.ParkingAlert.update(alert.id, {
           status: 'reserved',
@@ -333,10 +331,10 @@ export default function Home() {
     },
     onSuccess: (data, alert) => {
       setConfirmDialog({ open: false, alert: null });
-      
+
       if (alert?.is_demo) {
         const demoConvId = `demo_conv_${alert.id}`;
-        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
+        navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`));
       }
     },
     onError: () => {
@@ -350,26 +348,23 @@ export default function Home() {
   };
 
   const handleChat = async (alert) => {
-    // Si es demo, ir a conversación demo
     if (alert?.is_demo) {
       const demoConvId = `demo_conv_${alert.id}`;
-      window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
+      navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`));
       return;
     }
-    
+
     const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-    
-    // Buscar conversación existente rápidamente
+
     const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
-    const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
-                        (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
-    
+    const existingConv = conversations.find(c => c.participant2_id === otherUserId) ||
+      (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
+
     if (existingConv) {
-      window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
+      navigate(createPageUrl(`Chat?conversationId=${existingConv.id}`));
       return;
     }
-    
-    // Crear nueva conversación
+
     const newConv = await base44.entities.Conversation.create({
       participant1_id: user.id,
       participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
@@ -383,8 +378,8 @@ export default function Home() {
       unread_count_p1: 0,
       unread_count_p2: 0
     });
-    
-    window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
+
+    navigate(createPageUrl(`Chat?conversationId=${newConv.id}`));
   };
 
   const handleCall = (alert) => {
@@ -408,7 +403,6 @@ export default function Home() {
 
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -461,7 +455,6 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -530,7 +523,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -547,7 +539,6 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -594,7 +585,7 @@ export default function Home() {
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
                       }
-                      
+
                       const currentUser = user;
                       const payload = {
                         latitude: selectedPosition.lat,
@@ -611,7 +602,7 @@ export default function Home() {
                         phone: currentUser?.phone || null,
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
-                      
+
                       createAlertMutation.mutate(payload);
                     }}
                     isLoading={createAlertMutation.isPending}
