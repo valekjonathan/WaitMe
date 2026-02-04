@@ -502,63 +502,21 @@ const getCreatedTs = (alert) => {
 
   // ====== Effects ======
   const autoFinalizedRef = useRef(new Set());
-  useEffect(() => {
-  if (!myAlerts || myAlerts.length === 0) return;
-
-  myAlerts.forEach((alert) => {
-    if (!alert) return;
-
-    const createdTs = getCreatedTs(alert);
-    const waitUntilTs = getWaitUntilTs(alert);
-    if (!waitUntilTs) return;
-
-    const remainingMs = Math.max(0, waitUntilTs - nowTs);
-
-    if (
-      remainingMs === 0 &&
-      String(alert.status || '').toLowerCase() === 'active' &&
-      !autoFinalizedRef.current.has(alert.id)
-    ) {
-      autoFinalizedRef.current.add(alert.id);
-
-      base44.entities.ParkingAlert
-        .update(alert.id, { status: 'expired' })
-        .finally(() => {
-          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-        });
-    }
-  });
-}, [myAlerts, nowTs, queryClient]);
   const autoFinalizedReservationsRef = useRef(new Set());
 
   
 
-// ARCHIVO: src/pages/History.jsx
-// CAMBIO EXACTO (según tu ZIP):
-// Reemplaza LÍNEAS 508 a 528 (incluidas) por este bloque:
-
 const {
   data: myAlerts = [],
-  isLoading: loadingAlerts,
-  refetch: refetchMyAlerts
+  isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-
-  // ✅ Para que al entrar desde el botón de abajo se vea inmediato (sin “recargas”)
-  staleTime: 60000,
+  staleTime: 30000,
   refetchInterval: false,
-  refetchOnMount: false,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-
-  // ✅ Mantén lo que ya había mientras actualiza (evita vacío/flash)
-  placeholderData: (prev) => prev ?? [],
-
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
-
     return list.filter(a => {
       if (!a) return false;
       if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
@@ -895,7 +853,21 @@ const myFinalizedAlerts = useMemo(() => {
 
 
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         
+                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
+if (
+  waitUntilTs &&
+  remainingMs === 0 &&
+  String(alert.status || '').toLowerCase() === 'active' &&
+  !autoFinalizedRef.current.has(alert.id)
+) {
+  autoFinalizedRef.current.add(alert.id);
+
+  base44.entities.ParkingAlert
+    .update(alert.id, { status: 'expired' })
+    .finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+}
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1029,10 +1001,15 @@ const myFinalizedAlerts = useMemo(() => {
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
                                       <button
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                         onClick={() => {
-                                          hideKey(cardKey);
-                                          cancelAlertMutation.mutate(alert.id);
-                                        }}
+  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
+  cancelAlertMutation.mutate(alert.id, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
+    }
+  });
+}}
                                         disabled={cancelAlertMutation.isPending}
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
