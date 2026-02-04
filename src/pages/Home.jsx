@@ -192,7 +192,7 @@ const safeUser = isError ? null : user;
   cacheTime: 300000,
   queryFn: async () => {
     const notifications = await base44.entities.Notification.filter({
-  recipient_id: user.id,
+  recipient_id: safeUser.id,
   read: false
 });
     return notifications?.length || 0;
@@ -476,7 +476,7 @@ const safeUser = isError ? null : user;
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-[100dvh] bg-black text-white">
       <NotificationManager user={safeUser} />
       <SimulationEngine user={safeUser} enabled={!!safeUser?.id} />
 
@@ -552,7 +552,7 @@ const safeUser = isError ? null : user;
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
+              style={{ overflow: 'hidden', height: 'calc(100dvh - 136px)' }}
             >
               <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
@@ -638,7 +638,7 @@ const safeUser = isError ? null : user;
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+              style={{ overflow: 'hidden', height: 'calc(100dvh - 148px)' }}
             >
               <div className="h-[47%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
