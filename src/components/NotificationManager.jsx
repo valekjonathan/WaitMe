@@ -1,27 +1,31 @@
-import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react'
+import { base44 } from '@/api/base44Client'
+import { useQuery } from '@tanstack/react-query'
 
 export default function NotificationManager({ user }) {
-
-  // 🚫 Safari iOS NO soporta Notification API
-  if (typeof window === 'undefined' || !('Notification' in window)) {
-    return null;
-  }
+  // ✅ PROTECCIÓN CRÍTICA PARA iOS
+  const isNotificationSupported =
+    typeof window !== 'undefined' &&
+    'Notification' in window &&
+    typeof Notification.permission === 'string'
 
   const [permission, setPermission] = useState(
-    Notification.permission ?? 'default'
-  );
+    isNotificationSupported ? Notification.permission : 'denied'
+  )
 
-  const [lastNotificationId, setLastNotificationId] = useState(null);
-  const [lastMessageId, setLastMessageId] = useState(null);
+  const [lastNotificationId, setLastNotificationId] = useState(null)
+  const [lastMessageId, setLastMessageId] = useState(null)
 
+  // Solicitar permisos SOLO si existe la API
   useEffect(() => {
-    if (permission === 'default') {
-      Notification.requestPermission().then(setPermission);
-    }
-  }, [permission]);
+    if (!isNotificationSupported) return
 
+    if (permission === 'default') {
+      Notification.requestPermission().then(setPermission)
+    }
+  }, [permission, isNotificationSupported])
+
+  // Notificaciones
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: () =>
@@ -30,8 +34,9 @@ export default function NotificationManager({ user }) {
         read: false
       }),
     enabled: !!user?.email && permission === 'granted'
-  });
+  })
 
+  // Mensajes
   const { data: messages = [] } = useQuery({
     queryKey: ['unreadMessages', user?.email],
     queryFn: () =>
@@ -40,33 +45,41 @@ export default function NotificationManager({ user }) {
         read: false
       }),
     enabled: !!user?.email && permission === 'granted'
-  });
+  })
 
+  // Mostrar notificaciones
   useEffect(() => {
-    if (!notifications.length || permission !== 'granted') return;
+    if (!isNotificationSupported) return
+    if (permission !== 'granted') return
+    if (!notifications.length) return
 
-    const latest = notifications[0];
-    if (latest.id === lastNotificationId) return;
+    const latest = notifications[0]
+    if (latest.id === lastNotificationId) return
 
-    setLastNotificationId(latest.id);
+    setLastNotificationId(latest.id)
 
     new Notification('WaitMe!', {
-      body: 'Tienes una nueva notificación'
-    });
-  }, [notifications, permission, lastNotificationId]);
+      body: 'Tienes una nueva notificación',
+      icon:
+        'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png'
+    })
+  }, [notifications, permission, lastNotificationId, isNotificationSupported])
 
+  // Mostrar mensajes
   useEffect(() => {
-    if (!messages.length || permission !== 'granted') return;
+    if (!isNotificationSupported) return
+    if (permission !== 'granted') return
+    if (!messages.length) return
 
-    const latest = messages[0];
-    if (latest.id === lastMessageId) return;
+    const latest = messages[0]
+    if (latest.id === lastMessageId) return
 
-    setLastMessageId(latest.id);
+    setLastMessageId(latest.id)
 
     new Notification('💬 Nuevo mensaje', {
       body: latest.message
-    });
-  }, [messages, permission, lastMessageId]);
+    })
+  }, [messages, permission, lastMessageId, isNotificationSupported])
 
-  return null;
+  return null
 }

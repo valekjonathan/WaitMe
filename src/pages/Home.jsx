@@ -14,6 +14,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
+import SimulationEngine from '@/components/SimulationEngine';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -476,7 +477,8 @@ cacheTime: 300000,
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <NotificationManager user={user} />
+      <NotificationManager user={safeUser} />
+      <SimulationEngine user={safeUser} enabled={!!safeUser?.id} />
 
       <Header
         title="WaitMe!"
@@ -638,7 +640,7 @@ cacheTime: 300000,
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
+              <div className="h-[47%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -661,11 +663,15 @@ cacheTime: 300000,
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
-              </h3>
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="bg-purple-600/20 border border-purple-500/40 rounded-xl px-4 py-2">
+                  <p className="text-white font-medium text-center text-sm">
+                    ¿ Dónde estás aparcado ?
+                  </p>
+                </div>
+              </div>
 
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pb-3 pt-1 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
