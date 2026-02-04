@@ -528,6 +528,7 @@ const {
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 5000,
+  refetchInterval: 5000,
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
@@ -546,6 +547,7 @@ const { data: pendingNotifications = [] } = useQuery({
   queryKey: ['pendingReservationNotifications', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 3000,
+  refetchInterval: 5000,
   queryFn: async () => {
     try {
       const allNotifications = await base44.entities.Notification.filter({

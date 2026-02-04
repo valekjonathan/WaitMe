@@ -15,7 +15,6 @@ export function AuthProvider({ children }) {
         const currentUser = await base44.auth.me();
         if (mounted) setUser(currentUser);
       } catch (error) {
-        // Usuario no autenticado
         if (mounted) setUser(null);
       } finally {
         if (mounted) setLoading(false);
@@ -23,9 +22,11 @@ export function AuthProvider({ children }) {
     };
 
     fetchUser();
+    const interval = setInterval(fetchUser, 5000);
 
     return () => {
       mounted = false;
+      clearInterval(interval);
     };
   }, []);
 
