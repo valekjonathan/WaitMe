@@ -613,7 +613,12 @@ export default function Chats() {
 
             // Calcular distancia (metros o km)
             const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+              if (!alert?.latitude || !alert?.longitude) return null;
+              if (!userLocation) {
+                // Demo: distancias variadas
+                const demoDistances = ['150m', '320m', '480m', '650m', '800m'];
+                return demoDistances[(alert.id || '').charCodeAt(0) % demoDistances.length];
+              }
               const R = 6371;
               const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
               const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
