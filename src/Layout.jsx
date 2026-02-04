@@ -7,7 +7,7 @@ const BOTTOM_NAV_HEIGHT = 72;
 export default function Layout({ children }) {
   return (
     <AuthProvider>
-      <div className="w-full bg-black overflow-hidden">
+      <div className="w-full bg-black overflow-y-auto">
         {/* Header spacer */}
         <div style={{ height: HEADER_HEIGHT }} />
 
