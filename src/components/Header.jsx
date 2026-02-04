@@ -48,8 +48,7 @@ export default function Header({
     <header
       className="
         fixed top-0 left-0 right-0 z-50
-        bg-black/90 backdrop-blur-sm
-        border-b-2 border-gray-700
+        bg-black backdrop-blur-sm
         pt-[env(safe-area-inset-top)]
       "
     >
