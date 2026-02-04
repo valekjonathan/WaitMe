@@ -508,24 +508,20 @@ const getCreatedTs = (alert) => {
 
 const {
   data: myAlerts = [],
-  isLoading: loadingAlerts,
-  refetch: refetchMyAlerts
+  isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 5000,
-  refetchInterval: 5000,
+  staleTime: 30000,
+  refetchInterval: false,
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
-
     return list.filter(a => {
       if (!a) return false;
-      // Filtrar por user_id, created_by O user_email
-      const isMine = 
-        (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
-        (user?.email && (a.user_email === user.email || a.created_by === user.email));
-      return isMine;
+      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
+      if (user?.email && a.user_email === user.email) return true;
+      return false;
     });
   }
 });
@@ -833,7 +829,6 @@ const myFinalizedAlerts = useMemo(() => {
                 Tus reservas
               </TabsTrigger>
             </TabsList>
-            <div className="w-full h-px bg-black mt-0.5" />
           </div>
 
           <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
