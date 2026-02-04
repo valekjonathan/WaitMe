@@ -972,23 +972,20 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
-      <main className="pb-20 px-4">
+      <div className="sticky top-[56px] z-40 bg-black">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black">
-            <TabsList className="w-full bg-gray-900 border-0">
-              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                Tus alertas
-              </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
-                Tus reservas
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="w-full bg-gray-900 border-0">
+            <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Tus alertas
+            </TabsTrigger>
+            <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+              Tus reservas
+            </TabsTrigger>
+          </TabsList>
 
-          {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
             value="alerts"
-            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
+            className={`px-4 space-y-3 pt-3 pb-24 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1365,10 +1362,9 @@ if (
             )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
-            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
+            className={`px-4 space-y-3 pt-3 pb-24 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1733,7 +1729,7 @@ if (
             )}
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
 
       <BottomNav />
 
