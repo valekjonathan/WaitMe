@@ -653,12 +653,10 @@ export default function Chats() {
                           {cardDate}
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1">
-                          {distanceText && (
-                            <div className={`backdrop-blur-sm border rounded-full px-2 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-black/40 border-purple-500/30' : 'bg-black/20 border-gray-600/30'}`}>
-                              <Navigation className={`w-3 h-3 ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`} />
-                              <span className={`font-bold text-xs ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{distanceText}</span>
-                            </div>
-                          )}
+                          <div className={`backdrop-blur-sm border rounded-full px-2 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-black/40 border-purple-500/30' : 'bg-black/20 border-gray-600/30'}`}>
+                            <Navigation className={`w-3 h-3 ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                            <span className={`font-bold text-xs ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{distanceText}</span>
+                          </div>
                           <div className={`border rounded-lg px-3 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/30' : 'bg-purple-600/10 border-purple-500/20'}`}>
                             <span className={`font-bold text-xs ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`}>{Math.floor(alert.price)}€</span>
                           </div>
