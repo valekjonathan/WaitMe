@@ -504,7 +504,6 @@ const getCreatedTs = (alert) => {
   const autoFinalizedReservationsRef = useRef(new Set());
 
   // ====== Effects ======
-  const autoFinalizedRef = useRef(new Set());
   useEffect(() => {
   if (!myAlerts || myAlerts.length === 0) return;
 
