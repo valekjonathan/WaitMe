@@ -589,9 +589,9 @@ export default function Chats() {
                       </div>
                     </div>
                 </div>
-              </motion.div>);
+              </motion.div>
+            })}
 
-          })}
                       </div>
         }
                       </main>
