@@ -1029,15 +1029,10 @@ const myFinalizedAlerts = useMemo(() => {
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
                                       <button
-                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                         onClick={() => {
-  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
-  cancelAlertMutation.mutate(alert.id, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
-    }
-  });
-}}
+                                          hideKey(cardKey);
+                                          cancelAlertMutation.mutate(alert.id);
+                                        }}
                                         disabled={cancelAlertMutation.isPending}
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
