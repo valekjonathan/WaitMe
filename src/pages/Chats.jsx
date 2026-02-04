@@ -444,7 +444,7 @@ export default function Chats() {
                               <span className={`font-bold text-xs ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{distanceText}</span>
                             </div>
                           )}
-                          <div className={`border rounded-lg px-3 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/30' : 'bg-gray-600/10 border-gray-600/30'}`}>
+                          <div className={`border rounded-lg px-3 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/30' : 'bg-gray-600/10 border-gray-600/30 opacity-40'}`}>
                             <span className={`font-bold text-xs ${hasUnread ? 'text-purple-300' : 'text-gray-400'}`}>{Math.floor(alert.price)}€</span>
                           </div>
                         </div>
