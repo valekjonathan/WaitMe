@@ -521,9 +521,11 @@ const {
 
     return list.filter(a => {
       if (!a) return false;
-      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
-      if (user?.email && a.user_email === user.email) return true;
-      return false;
+      // Filtrar por user_id, created_by O user_email
+      const isMine = 
+        (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+        (user?.email && (a.user_email === user.email || a.created_by === user.email));
+      return isMine;
     });
   }
 });
