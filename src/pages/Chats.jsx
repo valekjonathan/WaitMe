@@ -653,10 +653,10 @@ export default function Chats() {
                           {cardDate}
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1">
-                          <div className={`backdrop-blur-sm border rounded-full px-2 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-black/40 border-purple-500/30' : 'bg-black/20 border-gray-600/30'}`}>
-                            <Navigation className={`w-3 h-3 ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`} />
-                            <span className={`font-bold text-xs ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{distanceText}</span>
-                          </div>
+                          <button onClick={() => window.open(`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`, '_blank')} className={`border rounded-lg px-2.5 py-1 flex items-center gap-1.5 h-7 transition-all ${hasUnread ? 'bg-purple-600/20 border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60' : 'bg-purple-600/10 border-purple-500/20 hover:bg-purple-600/20 hover:border-purple-500/30'}`}>
+                            <MapPin className={`w-3 h-3 ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`} />
+                            <span className={`font-bold text-xs ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`}>{distanceText}</span>
+                          </button>
                           <div className={`border rounded-lg px-3 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/30' : 'bg-purple-600/10 border-purple-500/20'}`}>
                             <span className={`font-bold text-xs ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`}>{Math.floor(alert.price)}€</span>
                           </div>
