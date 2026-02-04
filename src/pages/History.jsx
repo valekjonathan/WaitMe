@@ -566,7 +566,7 @@ const {
     });
   }
 });
- 
+
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.email],
     queryFn: async () => {
