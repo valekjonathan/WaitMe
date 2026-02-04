@@ -503,39 +503,6 @@ const getCreatedTs = (alert) => {
   const autoFinalizedRef = useRef(new Set());
   const autoFinalizedReservationsRef = useRef(new Set());
 
-  // ====== Effects ======
-  useEffect(() => {
-  if (!myAlerts || myAlerts.length === 0) return;
-
-  myAlerts.forEach((alert) => {
-    if (!alert) return;
-
-    const createdTs = getCreatedTs(alert);
-    const waitUntilTs = getWaitUntilTs(alert);
-    if (!waitUntilTs) return;
-
-    const remainingMs = Math.max(0, waitUntilTs - nowTs);
-
-    if (
-      remainingMs === 0 &&
-      String(alert.status || '').toLowerCase() === 'active' &&
-      !autoFinalizedRef.current.has(alert.id)
-    ) {
-      autoFinalizedRef.current.add(alert.id);
-
-      base44.entities.ParkingAlert
-        .update(alert.id, { status: 'expired' })
-        .finally(() => {
-          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-        });
-    }
-  });
-}, [myAlerts, nowTs, queryClient]);
-
-// ARCHIVO: src/pages/History.jsx
-// CAMBIO EXACTO (según tu ZIP):
-// Reemplaza LÍNEAS 508 a 528 (incluidas) por este bloque:
-
 const {
   data: myAlerts = [],
   isLoading: loadingAlerts,
@@ -749,35 +716,6 @@ const myFinalizedAlerts = useMemo(() => {
     );
   });
 }, [myAlerts, user?.id, user?.email]);
-
-// ====== Effects ======
-useEffect(() => {
-  if (!myAlerts || myAlerts.length === 0) return;
-
-  myAlerts.forEach((alert) => {
-    if (!alert) return;
-
-    const createdTs = getCreatedTs(alert);
-    const waitUntilTs = getWaitUntilTs(alert);
-    if (!waitUntilTs) return;
-
-    const remainingMs = Math.max(0, waitUntilTs - nowTs);
-
-    if (
-      remainingMs === 0 &&
-      String(alert.status || '').toLowerCase() === 'active' &&
-      !autoFinalizedRef.current.has(alert.id)
-    ) {
-      autoFinalizedRef.current.add(alert.id);
-
-      base44.entities.ParkingAlert
-        .update(alert.id, { status: 'expired' })
-        .finally(() => {
-          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-        });
-    }
-  });
-}, [myAlerts, nowTs, queryClient]);
 
 // Reservas (tuyas como comprador)
 const myReservationsReal = useMemo(() => {
