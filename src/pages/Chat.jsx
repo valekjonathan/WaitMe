@@ -304,7 +304,7 @@ export default function Chat() {
       )}
 
       {/* Messages */}
-      <div className="messages-container flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24">
+      <div className="messages-container fixed top-[160px] bottom-[152px] left-0 right-0 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((msg, index) => {
           const isMine = msg.sender_id === user?.id;
           const isSystem = msg.message_type === 'system';
@@ -353,7 +353,7 @@ export default function Chat() {
       </div>
 
       {/* Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
+      <div className="fixed bottom-[76px] left-0 right-0 p-4 border-t border-gray-700/80 bg-gray-800/50 flex gap-2 flex-shrink-0 relative z-10">
         <input
           type="file"
           ref={cameraInputRef}

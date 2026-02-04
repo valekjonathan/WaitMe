@@ -128,10 +128,7 @@ export default function Profile() {
       <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <main className="fixed top-[56px] bottom-[76px] left-0 right-0 overflow-y-auto px-4 max-w-md mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4">
+        <div className="space-y-4 py-4">
 
           {/* Tarjeta tipo DNI */}
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -334,7 +331,7 @@ export default function Profile() {
                 maxLength={7} />
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
 
       <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />

@@ -835,19 +835,10 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}
           >
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
                 <SectionTag variant="green" text="Activas" />
 
                 {visibleActiveAlerts.length === 0 ? (
@@ -1214,23 +1205,12 @@ if (
                     })}
                   </div>
                 )}
-              </>
-            )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}
           >
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
                 <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
@@ -1582,11 +1562,10 @@ if (
                       );
                     })}
                   </div>
-                )}
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
+                  )}
+                  </TabsContent>
+                  </Tabs>
+                  </main>
 
       <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 

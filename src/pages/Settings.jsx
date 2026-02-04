@@ -71,11 +71,7 @@ export default function Settings() {
       <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <main className="fixed top-[56px] bottom-[76px] left-0 right-0 overflow-y-auto px-4 max-w-md mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
+        <div className="space-y-6 py-4">
           {/* Perfil resumen */}
           <Link to={createPageUrl('Profile')}>
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
@@ -153,7 +149,7 @@ export default function Settings() {
             <Logo size="sm" />
             <p className="text-xs text-gray-500 mt-2">Versión 1.0.0</p>
           </div>
-        </motion.div>
+        </div>
       </main>
 
       <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />

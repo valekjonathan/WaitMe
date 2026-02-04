@@ -412,7 +412,7 @@ export default function Navigate() {
       <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       {/* Mapa - SIEMPRE VISIBLE */}
-      <div className="fixed top-[56px] bottom-[460px] left-0 right-0">
+      <div className="fixed top-[56px] bottom-[396px] left-0 right-0">
         <ParkingMap
           alerts={displayAlert ? [displayAlert] : []}
           userLocation={userLocation}
@@ -425,7 +425,7 @@ export default function Navigate() {
       </div>
 
       {/* Panel inferior */}
-      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
+      <div className="fixed bottom-[76px] left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
         {/* Info de destino */}
         {displayAlert && (
           <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
