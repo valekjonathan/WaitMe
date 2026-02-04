@@ -83,11 +83,11 @@ export default function Header({
 
           {/* TÍTULO CENTRADO REAL: click recarga */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">{renderTitle()}</div>
+            <div className="pointer-events-auto text-sm sm:text-lg">{renderTitle()}</div>
           </div>
 
           {/* DERECHA: iconos morados */}
-          <div className="flex items-center gap-1 justify-end">
+          <div className="flex items-center gap-0.5 sm:gap-1 justify-end">
             <Link to={createPageUrl('Settings')}>
               <Button
                 variant="ghost"
