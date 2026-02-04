@@ -359,28 +359,14 @@ export default function Chats() {
             const hasUnread = unreadCount > 0;
 
             // Formatear fecha creación/último mensaje
-            const formatCardDate = (ts) => {
-              if (!ts) return '--';
-              const date = new Date(ts);
-              const madridDateStr = date.toLocaleString('es-ES', {
-                timeZone: 'Europe/Madrid',
-                day: 'numeric',
-                month: 'long',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              });
-              
-              const formatted = madridDateStr
-                .replace(' de ', ' ')
-                .replace(',', ' -')
-                .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
-                  const cap = month.charAt(0).toUpperCase() + month.slice(1);
-                  return `${day} ${cap}`;
-                });
-              
-              return formatted;
-            };
+             const formatCardDate = (ts) => {
+               if (!ts) return '--';
+               const date = new Date(ts);
+               const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
+               const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
+               const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+               return `${day} ${month} - ${time}`;
+             };
 
             const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
 
