@@ -4,7 +4,6 @@ import React from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
@@ -22,7 +21,6 @@ const LayoutWrapper = ({ children, currentPageName }) =>
 
 const FullscreenLoader = ({ text = 'Cargando…' }) => (
   <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-black text-white gap-3 px-6">
-    {/* ✅ Sin rueditas/spinner: evita “pantallas de carga” visuales */}
     <p className="text-sm text-gray-300 text-center">{text}</p>
   </div>
 )
@@ -60,14 +58,12 @@ class ErrorBoundary extends React.Component {
 const AuthenticatedApp = () => {
   const { loading, authError, navigateToLogin } = useAuth()
 
-  // ✅ NUNCA devolver null: en iPhone se queda blanco si loading no termina.
   if (loading) return <FullscreenLoader text="Cargando sesión…" />
 
   if (authError?.type === 'user_not_registered') {
     return <UserNotRegisteredError />
   }
 
-  // ✅ Si Safari bloquea cookies/sesión → CTA (no pantalla en blanco)
   if (authError?.type === 'auth_required') {
     return (
       <div className="min-h-[100dvh] bg-black text-white flex flex-col items-center justify-center px-6 gap-4">
@@ -132,7 +128,6 @@ export default function App() {
             <AuthenticatedApp />
           </Router>
           <Toaster />
-          <VisualEditAgent />
         </ErrorBoundary>
       </QueryClientProvider>
     </AuthProvider>
