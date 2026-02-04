@@ -443,12 +443,12 @@ export default function Chats() {
                         <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>
                           {cardDate}
                         </div>
-                        <button onClick={() => window.open(`https://www.google.com/maps?q=${alert?.latitude},${alert?.longitude}`, '_blank')} className={`border-2 rounded-lg px-2.5 py-1 flex items-center gap-1 h-7 transition-all ${hasUnread ? 'bg-purple-600/20 border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60' : 'bg-purple-600/10 border-purple-500/20 hover:bg-purple-600/20 hover:border-purple-500/30'}`}>
-                          <MapPin className={`w-3 h-3 flex-shrink-0 ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`} />
-                          <span className={`text-xs ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`}>{distanceText}</span>
-                        </button>
-                        <div className={`border-2 rounded-lg px-2.5 py-1 flex items-center h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/40 hover:bg-purple-600/30 hover:border-purple-500/60' : 'bg-purple-600/10 border-purple-500/20 hover:bg-purple-600/20 hover:border-purple-500/30'}`}>
-                          <span className={`text-xs ${hasUnread ? 'text-purple-300' : 'text-purple-400/50'}`}>{Math.floor(alert?.price)}€</span>
+                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                          <Navigation className="w-3 h-3 text-purple-400" />
+                          <span className="text-white font-bold text-xs">{distanceText}</span>
+                        </div>
+                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                          <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price)}€</span>
                         </div>
                       </div>
 
