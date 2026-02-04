@@ -371,7 +371,7 @@ export default function Navigate() {
   const mapCenter = displayAlert ? [displayAlert.latitude, displayAlert.longitude] : [defaultLat, defaultLon];
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
       {/* Modal de éxito de pago */}
       {showPaymentSuccess && (
         <motion.div
@@ -412,8 +412,10 @@ export default function Navigate() {
         </div>
       </header>
 
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
       {/* Mapa - SIEMPRE VISIBLE */}
-      <div className="flex-1 pt-[60px] pb-[420px]">
+      <div className="fixed top-[56px] bottom-[460px] left-0 right-0">
         <ParkingMap
           alerts={displayAlert ? [displayAlert] : []}
           userLocation={userLocation}
@@ -523,6 +525,8 @@ export default function Navigate() {
           </motion.div>
         )}
       </div>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
     </div>

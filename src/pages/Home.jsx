@@ -408,16 +408,10 @@ export default function Home() {
 
       <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
-      <main className="fixed inset-0">
-        <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
-          {!mode && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
-            >
+      <main className="fixed top-[56px] bottom-[76px] left-0 right-0">
+        {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
+        {!mode && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
                   alerts={homeMapAlerts}
@@ -460,18 +454,12 @@ export default function Home() {
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
-            >
+            <div className="absolute inset-0 flex flex-col" style={{ overflow: 'hidden' }}>
               <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
@@ -546,18 +534,12 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* ESTOY APARCADO AQUÍ (sin scroll) */}
           {mode === 'create' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
-            >
+            <div className="absolute inset-0 flex flex-col" style={{ overflow: 'hidden' }}>
               <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
@@ -620,9 +602,8 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </main>
 
       <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />

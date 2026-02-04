@@ -64,19 +64,13 @@ export default function Settings() {
     base44.auth.logout();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="fixed inset-0 bg-black text-white overflow-hidden">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
-      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
+      <main className="fixed top-[56px] bottom-[76px] left-0 right-0 overflow-y-auto px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -161,6 +155,8 @@ export default function Settings() {
           </div>
         </motion.div>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
       
       <BottomNav />
     </div>

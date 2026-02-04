@@ -289,8 +289,10 @@ export default function Chat() {
   const otherUserPhoto = isP1 ? conversation?.participant2_photo : conversation?.participant1_photo;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col pb-20 overflow-hidden">
+    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
       <Header title="Chat" showBackButton={true} backTo="Chats" />
+      
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
       
       <ChatHeader otherUserPhoto={otherUserPhoto} otherUserName={otherUserName} />
 
@@ -414,6 +416,8 @@ export default function Chat() {
           <Send className="w-5 h-5" />
         </Button>
       </div>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
     </div>

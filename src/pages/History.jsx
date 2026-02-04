@@ -821,7 +821,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
-      <main className="pt-[56px] pb-20 px-4">
+      <main className="fixed top-[56px] bottom-[76px] left-0 right-0 overflow-y-auto px-4">
         <Tabs defaultValue="alerts" className="w-full">
           {/* FIX: sin borde negro debajo */}
           <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
@@ -1583,7 +1583,6 @@ if (
                     })}
                   </div>
                 )}
-              </>
             )}
           </TabsContent>
         </Tabs>

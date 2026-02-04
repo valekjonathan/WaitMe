@@ -155,9 +155,7 @@ export default function Notifications() {
         <div className="px-4 py-4">
           <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
 
-          {isLoading ? (
-            <div className="text-center py-12 text-gray-500">Cargando...</div>
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="text-center py-20 text-gray-500">
               <Bell className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg mb-2">Sin notificaciones</p>
