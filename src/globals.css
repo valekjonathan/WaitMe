@@ -1,37 +1,79 @@
+/* src/globals.css */
+
+/* 🔴 ARCHIVO CLAVE
+   - Elimina fondos blancos/negros intermedios
+   - Asegura que TODA la app tenga fondo negro siempre
+   - Corrige diferencias Preview vs iPhone (Safari)
+   - No cambia NINGÚN diseño
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ---------- RESET DURO ---------- */
 html,
 body,
-#root {
-  height: 100%;
+#root,
+#app-root {
   width: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
-  background: black;
+  background: #000;
+  color: #fff;
+  overscroll-behavior: none;
 }
 
-.app-viewport,
-[data-app-viewport] {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+/* Evita flashes blancos en iOS */
+body {
+  background-color: #000 !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.safe-header {
-  padding-top: env(safe-area-inset-top);
+/* ---------- HELPERS DE ALTURA ---------- */
+/* Header fijo = 60px */
+.pt-header {
+  padding-top: 60px;
 }
 
+/* BottomNav fijo (altura real aproximada) */
+.pb-bottomnav {
+  padding-bottom: 80px;
+}
+
+/* ---------- BASE44 / SAFARI FIX ---------- */
+/* Algunos wrappers internos de Base44 meten padding */
+[data-app-viewport],
+.app-viewport {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #000 !important;
+}
+
+/* ---------- SCROLL ---------- */
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- VARIABLES DE TEMA (NO VISUAL CHANGE) ---------- */
 @layer base {
   :root {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
+
     --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
+
     --primary: 270 80% 60%;
     --primary-foreground: 0 0% 100%;
+
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
+
     --border: 0 0% 14.9%;
     --radius: 0.75rem;
   }
