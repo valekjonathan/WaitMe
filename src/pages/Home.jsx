@@ -179,8 +179,8 @@ const { data: user, isError } = useQuery({
   queryKey: ['user'],
   queryFn: () => base44.auth.me(),
   retry: false,
-  staleTime: 5000,
-  refetchInterval: 5000
+  staleTime: 60000,
+  cacheTime: 300000
 });
 
 const safeUser = isError ? null : user;
@@ -202,8 +202,8 @@ const safeUser = isError ? null : user;
   const { data: rawAlerts } = useQuery({
   queryKey: ['alerts'],
   enabled: mode === 'search',
-  staleTime: 5000,
-  refetchInterval: 5000,
+  staleTime: 30000,
+  cacheTime: 300000,
   queryFn: async () => {
     const alerts = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
@@ -214,8 +214,8 @@ const safeUser = isError ? null : user;
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id && mode === 'create',
-    staleTime: 5000,
-    refetchInterval: 5000,
+    staleTime: 30000,
+cacheTime: 300000,
     queryFn: async () => {
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);

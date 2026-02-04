@@ -1,8 +1,8 @@
-css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* RESET TOTAL */
 html,
 body,
 #root {
@@ -13,16 +13,21 @@ body,
   background: black;
 }
 
+/* Base44 padding automático */
 .app-viewport,
 [data-app-viewport] {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
+/* Safe-area SOLO para headers reales */
 .safe-header {
   padding-top: env(safe-area-inset-top);
 }
 
+/* ===============================
+   TEMA
+   =============================== */
 @layer base {
   :root {
     --background: 0 0% 3.9%;
@@ -40,4 +45,4 @@ body,
   body {
     @apply bg-background text-foreground;
   }
-}
+} 

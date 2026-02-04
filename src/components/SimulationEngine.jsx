@@ -18,7 +18,7 @@ export default function SimulationEngine({ user, enabled = true }) {
       const cycle = cycleRef.current;
       
       try {
-        // CICLO 1: Completar alerta de Laura y SUBIR DINERO
+        // CICLO 1: Completar alerta de Laura y crear notificación de pago
         if (cycle === 1) {
           const alerts = await base44.entities.ParkingAlert.list();
           const lauraAlert = alerts?.find(a => 
@@ -27,19 +27,10 @@ export default function SimulationEngine({ user, enabled = true }) {
           );
           
           if (lauraAlert) {
-            // 1. Completar alerta
             await base44.entities.ParkingAlert.update(lauraAlert.id, {
               status: 'completed'
             });
             
-            // 2. Subir dinero al usuario (80% del precio)
-            const earnings = lauraAlert.price * 0.8;
-            const currentCredits = user?.credits || 0;
-            await base44.auth.updateMe({
-              credits: currentCredits + earnings
-            });
-            
-            // 3. Crear notificación
             await base44.entities.Notification.create({
               type: 'payment_completed',
               recipient_id: lauraAlert.user_id,
@@ -48,12 +39,11 @@ export default function SimulationEngine({ user, enabled = true }) {
               sender_name: lauraAlert.reserved_by_name || 'Laura',
               sender_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
               alert_id: lauraAlert.id,
-              amount: earnings,
+              amount: lauraAlert.price,
               read: false,
               status: 'completed'
             });
             
-            queryClient.invalidateQueries({ queryKey: ['user'] });
             queryClient.invalidateQueries({ queryKey: ['alerts'] });
             queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
