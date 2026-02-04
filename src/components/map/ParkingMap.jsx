@@ -160,7 +160,8 @@ export default function ParkingMap({
   sellerLocation,
   className = '',
   zoomControl = true,
-  buyerLocations = []
+  buyerLocations = [],
+  onAddressChange
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -172,6 +173,7 @@ export default function ParkingMap({
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
+  const [address, setAddress] = useState('');
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
