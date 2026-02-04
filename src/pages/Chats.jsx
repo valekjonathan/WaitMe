@@ -119,6 +119,20 @@ export default function Chats() {
           last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
           unread_count_p1: 0,
           unread_count_p2: 0
+        },
+        {
+          id: 'mock4',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'user5',
+          participant2_name: 'Sofía',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          alert_id: 'alert4',
+          last_message_text: 'Ya voy llegando, 2 minutos',
+          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
+          unread_count_p1: 2,
+          unread_count_p2: 0
         }
       ];
 
@@ -199,6 +213,21 @@ export default function Chats() {
           longitude: -3.688790,
           allow_phone_calls: true,
           phone: '+34698765432'
+        },
+        {
+          id: 'alert4',
+          user_name: 'Sofía',
+          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          car_brand: 'Renault',
+          car_model: 'Clio',
+          car_plate: '7733 MNP',
+          price: 6,
+          available_in_minutes: 8,
+          address: 'Calle Uría, 33',
+          latitude: 43.362776,
+          longitude: -5.845890,
+          allow_phone_calls: true,
+          phone: '+34677889900'
         }
       ];
       
@@ -294,6 +323,32 @@ export default function Chats() {
             // Borde encendido SOLO si tiene mensajes no leídos
             const hasUnread = unreadCount > 0;
 
+            // Formatear fecha creación/último mensaje
+            const formatCardDate = (ts) => {
+              if (!ts) return '--';
+              const date = new Date(ts);
+              const madridDateStr = date.toLocaleString('es-ES', {
+                timeZone: 'Europe/Madrid',
+                day: 'numeric',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              });
+              
+              const formatted = madridDateStr
+                .replace(' de ', ' ')
+                .replace(',', ' -')
+                .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
+                  const cap = month.charAt(0).toUpperCase() + month.slice(1);
+                  return `${day} ${cap}`;
+                });
+              
+              return formatted;
+            };
+
+            const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
+
             // Resolver datos del otro usuario desde usersMap
             const otherUserData = usersMap.get(otherUserId);
             const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
@@ -336,20 +391,25 @@ export default function Chats() {
                 <div className={`bg-gradient-to-br ${hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'} rounded-xl p-2.5 transition-all border-2 ${hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'}`}>
 
                     <div className="flex flex-col h-full">
-                      {/* Header: "Info del usuario:" + distancia + precio */}
-                      <div className="flex justify-between items-center mb-2">
-                        <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none`}>
-                          Info usuario
-                        </Badge>
-                        <div className="flex items-center gap-1">
+                      {/* Header: "Info del usuario:" + fecha + distancia + precio */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-shrink-0">
+                          <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none`}>
+                            Info usuario
+                          </Badge>
+                        </div>
+                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white' : 'text-gray-600'}`}>
+                          {cardDate}
+                        </div>
+                        <div className="flex-shrink-0 flex items-center gap-1">
                           {distanceText && (
-                            <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                              <Navigation className="w-3 h-3 text-purple-400" />
-                              <span className="text-white font-bold text-xs">{distanceText}</span>
+                            <div className={`backdrop-blur-sm border rounded-full px-2 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-black/40 border-purple-500/30' : 'bg-black/20 border-gray-600/30'}`}>
+                              <Navigation className={`w-3 h-3 ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                              <span className={`font-bold text-xs ${hasUnread ? 'text-white' : 'text-gray-400'}`}>{distanceText}</span>
                             </div>
                           )}
-                          <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                            <span className="text-purple-300 font-bold text-xs">{Math.floor(alert.price)}€</span>
+                          <div className={`border rounded-lg px-3 py-0.5 flex items-center gap-1 h-7 ${hasUnread ? 'bg-purple-600/20 border-purple-500/30' : 'bg-gray-600/10 border-gray-600/30'}`}>
+                            <span className={`font-bold text-xs ${hasUnread ? 'text-purple-300' : 'text-gray-400'}`}>{Math.floor(alert.price)}€</span>
                           </div>
                         </div>
                       </div>
@@ -377,7 +437,7 @@ export default function Chats() {
                         <div className="flex justify-between items-center">
                           <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
                           {unreadCount > 0 && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[3px]">
+                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[6px]">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
