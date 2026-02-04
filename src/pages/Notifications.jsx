@@ -385,96 +385,9 @@ export default function Notifications() {
                       </div>
                     </div>
                   ) : (
-                    <>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex gap-3 flex-1 min-w-0">
-                          <div className="flex flex-col gap-2">
-                            {notif.sender_photo ? (
-                              <img src={notif.sender_photo} className="w-24 h-28 rounded-xl object-cover flex-shrink-0 border-2 border-purple-500" alt="" />
-                            ) : (
-                              <div className="w-24 h-28 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0 border-2 border-purple-500">
-                                <Bell className="w-8 h-8 text-gray-500" />
-                              </div>
-                            )}
-
-                            {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <div className="flex items-center gap-1.5 mt-1">
-                                <Button
-                                  className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                                  onClick={(e) => {
-  e.stopPropagation();
-  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
-}}
-                                >
-                                  <MessageCircle className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (notif.alert?.allow_phone_calls && notif.alert?.phone) {
-                                      window.location.href = `tel:${notif.alert.phone}`;
-                                    }
-                                  }}
-                                  disabled={!notif.alert?.allow_phone_calls || !notif.alert?.phone}
-                                >
-                                  <Phone className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-white text-lg">{notif.sender_name.split(' ')[0]}</p>
-                            <p className="text-sm text-gray-300 mt-1">{getNotificationText(notif)}</p>
-
-                            {notif.type === 'reservation_request' && notif.status === 'pending' && (
-                              <>
-                                {notif.alert && (
-                                  <p className="text-xs text-purple-500 mt-2 mb-1 whitespace-nowrap">
-                                    Debes esperar hasta las: <span className="font-semibold">{format(new Date(new Date(notif.created_date).getTime() + (notif.alert.available_in_minutes || 0) * 60000), 'HH:mm')}</span>
-                                  </p>
-                                )}
-                                <div className="flex gap-1.5 mt-2">
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 border-2 border-green-500 h-7 px-2 text-xs"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedNotification(notif);
-                                    }}
-                                  >
-                                    <Check className="w-3 h-3 mr-1" />
-                                    Aceptar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    className="bg-red-600 hover:bg-red-700 border-2 border-red-500 h-7 px-2 text-xs"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      rejectMutation.mutate(notif);
-                                    }}
-                                  >
-                                    <X className="w-3 h-3 mr-1" />
-                                    Rechazar
-                                  </Button>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                          {new Date(notif.created_date).toLocaleString('es-ES', {
-                            timeZone: 'Europe/Madrid',
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          }).replace(' de ', ' ').replace(',', ' -')}
-                        </p>
-                      </div>
-                    </>
+                    <div className="text-xs text-gray-400 text-center py-4">
+                      {getNotificationText(notif)}
+                    </div>
                   )}
                 </motion.div>
               ))}
