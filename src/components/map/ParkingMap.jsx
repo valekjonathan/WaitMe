@@ -392,12 +392,14 @@ export default function ParkingMap({
           </Marker>
         )}
 
-        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
-        <Marker
-          position={selectedPosition}
-          icon={createUserLocationIcon()}>
+        {/* Pin fijo en el centro del mapa (estilo Uber) */}
+        {isSelecting && (
+          <Marker
+            position={selectedPosition || defaultCenter}
+            icon={createUserLocationIcon()}
+            zIndexOffset={5000}>
           </Marker>
-        }
+        )}
         
         {/* Ruta */}
         {route &&
