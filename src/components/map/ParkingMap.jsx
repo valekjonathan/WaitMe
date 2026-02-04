@@ -223,6 +223,24 @@ export default function ParkingMap({
 
   return (
     <div className={`relative ${className}`}>
+      {/* Botón centrado con dirección en modo selección */}
+      {isSelecting && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
+          <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg px-4 py-2">
+            <span className="text-white font-bold text-sm">¿ Donde estas aparcado ?</span>
+          </div>
+        </div>
+      )}
+
+      {/* Dirección leída debajo del pin */}
+      {isSelecting && address && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-16 z-40 pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-1.5 max-w-xs">
+            <p className="text-purple-300 font-bold text-xs text-center line-clamp-2">{address}</p>
+          </div>
+        </div>
+      )}
+
       <style>{`
         .leaflet-top.leaflet-left {
           top: 10px !important;
