@@ -117,23 +117,21 @@ function createUserLocationIcon() {
 
 function LocationMarker({ position, setPosition, isSelecting }) {
   const map = useMapEvents({
-    click(e) {
+    move() {
       if (isSelecting) {
-        setPosition(e.latlng);
+        const center = map.getCenter();
+        setPosition({ lat: center.lat, lng: center.lng });
       }
     }
   });
 
   useEffect(() => {
-    if (position) {
-      map.flyTo(position, map.getZoom());
+    if (position && position.lat != null && position.lng != null) {
+      map.setView([position.lat, position.lng], map.getZoom());
     }
   }, [position, map]);
 
-  return position === null ? null :
-  <Marker position={position}>
-    </Marker>;
-
+  return null;
 }
 
 function FlyToLocation({ position }) {
