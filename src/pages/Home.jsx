@@ -578,10 +578,10 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[72px] sm:bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 126px)' }}
             >
-              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
+              <div className="h-[45%] relative px-2 sm:px-3 pt-1 sm:pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
