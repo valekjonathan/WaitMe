@@ -452,36 +452,36 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-2 sm:mb-4 w-full flex flex-col items-center relative z-10 px-4 sm:px-6">
-               <img
-                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
-                 alt="WaitMe!"
-                 className="w-32 sm:w-48 h-32 sm:h-48 mb-0 object-contain"
-               />
-               <h1 className="text-sm sm:text-xl font-bold whitespace-nowrap -mt-1 sm:-mt-3">
-                 Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
-               </h1>
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                  alt="WaitMe!"
+                  className="w-48 h-48 mb-0 object-contain"
+                />
+                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                </h1>
               </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-2 sm:space-y-4 relative z-10 px-4 sm:px-6">
-               <Button
-                 onClick={() => setMode('search')}
-                 className="w-full h-14 sm:h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-sm sm:text-lg font-medium rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-4"
-               >
-                 <svg className="w-16 sm:w-28 h-16 sm:h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                 </svg>
-                 ¿ Dónde quieres aparcar ?
-               </Button>
+              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
+                <Button
+                  onClick={() => setMode('search')}
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
+                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  ¿ Dónde quieres aparcar ?
+                </Button>
 
-               <Button
-                 onClick={() => setMode('create')}
-                 className="w-full h-14 sm:h-20 bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-lg font-medium rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-4"
-               >
-                 <Car className="w-10 sm:w-14 h-10 sm:h-14" strokeWidth={2.5} />
-                 ¡ Estoy aparcado aquí !
-               </Button>
+                <Button
+                  onClick={() => setMode('create')}
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                >
+                  <Car className="w-14 h-14" strokeWidth={2.5} />
+                  ¡ Estoy aparcado aquí !
+                </Button>
               </div>
             </motion.div>
           )}
@@ -492,10 +492,10 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[60px] sm:bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 114px)' }}
+              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
-              <div className="h-[44%] relative px-2 sm:px-3 pt-0.5 sm:pt-1 flex-shrink-0">
+              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -528,17 +528,17 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-2 sm:px-4 py-0.5 sm:py-1 flex-shrink-0 z-50 relative">
-               <div className="relative">
-                 <MapPin className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-                 <input
-                   type="text"
-                   placeholder="Buscar dirección..."
-                   value={searchInput}
-                   onChange={handleSearchInputChange}
-                   onFocus={() => setShowSuggestions(true)}
-                   className="w-full bg-gray-900 border border-gray-700 text-white pl-9 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                 />
+              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    value={searchInput}
+                    onChange={handleSearchInputChange}
+                    onFocus={() => setShowSuggestions(true)}
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
@@ -556,8 +556,8 @@ export default function Home() {
               </div>
 
               {/* SIN SCROLL: tarjeta encaja en el resto */}
-              <div className="flex-1 px-2 sm:px-4 pb-2 sm:pb-3 min-h-0 overflow-hidden flex items-start">
-               <div className="w-full h-full">
+              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
+                <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
                     isEmpty={!selectedAlert}
@@ -578,10 +578,10 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[72px] sm:bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 126px)' }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[45%] relative px-2 sm:px-3 pt-1 sm:pt-2 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -593,12 +593,8 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-2 sm:py-3 text-xs sm:text-sm flex-shrink-0">
-               ¿ Dónde estas aparcado ?
-              </h3>
-
-              <div className="px-2 sm:px-4 pb-2 sm:pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
-               <div className="w-full">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+                <div className="w-full">
                   <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
