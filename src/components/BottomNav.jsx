@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -9,10 +9,12 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.id],
-    queryFn: async () => base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
+    queryFn: async () =>
+      base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -20,7 +22,8 @@ export default function BottomNav() {
 
   const { data: reservedAlerts = [] } = useQuery({
     queryKey: ['userReservedAlerts', user?.id],
-    queryFn: async () => base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
+    queryFn: async () =>
+      base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -28,7 +31,8 @@ export default function BottomNav() {
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
-    queryFn: async () => base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
+    queryFn: async () =>
+      base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -49,6 +53,7 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       <div className="flex items-center max-w-md mx-auto gap-0">
+
         <Link to={createPageUrl('History')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
@@ -73,22 +78,21 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA: RECARGA SIEMPRE LA HOME PRINCIPAL (botones) */}
-        <a
-          href={homeUrl}
+        {/* MAPA — navegación SPA, sin recarga */}
+        <button
+          type="button"
           className="flex-1 min-w-0"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = homeUrl; // fuerza recarga y vuelve a los botones
-          }}
+          onClick={() => navigate(homeUrl)}
         >
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
             </svg>
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Mapa</span>
           </Button>
-        </a>
+        </button>
 
         <div className="w-px h-10 bg-gray-700" />
 
@@ -113,6 +117,7 @@ export default function BottomNav() {
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
           </Button>
         </Link>
+
       </div>
     </nav>
   );
