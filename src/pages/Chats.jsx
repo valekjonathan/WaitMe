@@ -349,8 +349,7 @@ export default function Chats() {
         </div>
 
          <div className="px-4 space-y-3 pt-1">
-             {/* 7 conversaciones variadas */}
-             {[
+             {filteredConversations.map((conv, index) => {
                // 1: Alguien reservó mi alerta - CON 3 MENSAJES SIN LEER
                {
                  id: 'demo-conv-1',
