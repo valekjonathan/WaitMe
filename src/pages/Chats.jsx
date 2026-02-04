@@ -348,9 +348,73 @@ export default function Chats() {
         </div>
 
          <div className="px-4 space-y-3 pt-1">
-             {filteredConversations.map((conv, index) => {
-             const alert = alertsMap.get(conv.alert_id);
-             if (!alert) return null;
+             {/* Crear datos mockeados para mostrar ambos escenarios */}
+             {[
+               // Escenario 1: Alguien reservó mi alerta
+               {
+                 id: 'demo-conv-1',
+                 participant1_id: user?.id || 'user1',
+                 participant1_name: 'Tu',
+                 participant1_photo: user?.photo_url,
+                 participant2_id: 'buyer-demo-1',
+                 participant2_name: 'Laura',
+                 participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+                 alert_id: 'demo-alert-1',
+                 last_message_text: 'Perfecto, ya estoy aquí en 2 minutos',
+                 last_message_at: new Date(Date.now() - 3 * 60000).toISOString(),
+                 unread_count_p1: 0,
+                 unread_count_p2: 0
+               },
+               // Escenario 2: Yo reservé la alerta de otro
+               {
+                 id: 'demo-conv-2',
+                 participant1_id: 'seller-demo-1',
+                 participant1_name: 'Marco',
+                 participant1_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+                 participant2_id: user?.id || 'user1',
+                 participant2_name: 'Tu',
+                 participant2_photo: user?.photo_url,
+                 alert_id: 'demo-alert-2',
+                 last_message_text: '¿Dónde estás? Te espero abajo',
+                 last_message_at: new Date(Date.now() - 8 * 60000).toISOString(),
+                 unread_count_p1: 1,
+                 unread_count_p2: 0
+               }
+             ].map((conv, index) => {
+             // Datos mockeados de alertas
+             const alertsMockData = {
+               'demo-alert-1': {
+                 id: 'demo-alert-1',
+                 price: 4.5,
+                 car_brand: 'BMW',
+                 car_model: 'Serie 1',
+                 car_plate: '2847 BNM',
+                 car_color: 'gris',
+                 address: 'Calle Gran Vía, 25',
+                 available_in_minutes: 12,
+                 allow_phone_calls: true,
+                 phone: '+34612345678',
+                 reserved_by_id: 'buyer-demo-1',
+                 reserved_by_name: 'Laura',
+                 reserved_by_email: 'laura@test.com'
+               },
+               'demo-alert-2': {
+                 id: 'demo-alert-2',
+                 price: 5.0,
+                 car_brand: 'Audi',
+                 car_model: 'A3',
+                 car_plate: '5521 LKP',
+                 car_color: 'negro',
+                 address: 'Calle Uría, 10',
+                 available_in_minutes: 8,
+                 allow_phone_calls: true,
+                 phone: '+34698765432',
+                 user_id: 'seller-demo-1',
+                 user_name: 'Marco'
+               }
+             };
+             
+             const alert = alertsMockData[conv.alert_id];
              const isP1 = conv.participant1_id === user?.id;
              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
