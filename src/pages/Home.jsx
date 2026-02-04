@@ -452,36 +452,36 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
-                  alt="WaitMe!"
-                  className="w-48 h-48 mb-0 object-contain"
-                />
-                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
-                </h1>
+              <div className="text-center mb-2 sm:mb-4 w-full flex flex-col items-center relative z-10 px-4 sm:px-6">
+               <img
+                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                 alt="WaitMe!"
+                 className="w-32 sm:w-48 h-32 sm:h-48 mb-0 object-contain"
+               />
+               <h1 className="text-sm sm:text-xl font-bold whitespace-nowrap -mt-1 sm:-mt-3">
+                 Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+               </h1>
               </div>
 
-              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
-                <Button
-                  onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
-                >
-                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  ¿ Dónde quieres aparcar ?
-                </Button>
+              <div className="w-full max-w-sm mx-auto space-y-2 sm:space-y-4 relative z-10 px-4 sm:px-6">
+               <Button
+                 onClick={() => setMode('search')}
+                 className="w-full h-14 sm:h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-sm sm:text-lg font-medium rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-4"
+               >
+                 <svg className="w-16 sm:w-28 h-16 sm:h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                 </svg>
+                 ¿ Dónde quieres aparcar ?
+               </Button>
 
-                <Button
-                  onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
-                >
-                  <Car className="w-14 h-14" strokeWidth={2.5} />
-                  ¡ Estoy aparcado aquí !
-                </Button>
+               <Button
+                 onClick={() => setMode('create')}
+                 className="w-full h-14 sm:h-20 bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-lg font-medium rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-4"
+               >
+                 <Car className="w-10 sm:w-14 h-10 sm:h-14" strokeWidth={2.5} />
+                 ¡ Estoy aparcado aquí !
+               </Button>
               </div>
             </motion.div>
           )}
