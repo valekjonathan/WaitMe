@@ -17,6 +17,7 @@ export default function MarcoCard({
   onCall,
   statusEnabled = false,
   bright = false,
+  dimmed = false,
   conversationId
 }) {
   const [showChat, setShowChat] = useState(false);
@@ -31,16 +32,16 @@ export default function MarcoCard({
   const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
   const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
 
-  const photoCls = 'w-full h-full object-cover';
+  const photoCls = dimmed ? 'w-full h-full object-cover opacity-40 grayscale' : 'w-full h-full object-cover';
 
-  const nameCls = 'font-bold text-xl text-white leading-none min-h-[22px]';
+  const nameCls = dimmed ? 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]' : 'font-bold text-xl text-white leading-none min-h-[22px]';
 
-  const carCls = 'text-sm font-medium text-white leading-none flex-1 flex items-center truncate relative top-[6px]';
+  const carCls = dimmed ? 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]' : 'text-sm font-medium text-white leading-none flex-1 flex items-center truncate relative top-[6px]';
 
-  const plateWrapCls = 'flex-shrink-0';
-  const carIconWrapCls = 'flex-shrink-0 relative -top-[1px]';
+  const plateWrapCls = dimmed ? 'opacity-45 flex-shrink-0' : 'flex-shrink-0';
+  const carIconWrapCls = dimmed ? 'opacity-45 flex-shrink-0 relative -top-[1px]' : 'flex-shrink-0 relative -top-[1px]';
 
-  const lineTextCls = 'text-white leading-5';
+  const lineTextCls = dimmed ? 'text-gray-400 leading-5 opacity-80' : 'text-white leading-5';
 
   const isTimeObj =
     timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
@@ -117,7 +118,7 @@ export default function MarcoCard({
       <div className="flex gap-2.5">
         <div
           className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
-            bright ? 'border-purple-500/40 bg-gray-900' : 'border-gray-600/70 bg-gray-800/30'
+            dimmed ? 'border-gray-600/70 bg-gray-800/30' : bright ? 'border-purple-500/40 bg-gray-900' : 'border-gray-600/70 bg-gray-800/30'
           }`}
         >
           {photoUrl ? (
@@ -152,17 +153,17 @@ export default function MarcoCard({
       </div>
 
       <div className="pt-1.5 border-t border-gray-700/80 mt-2">
-        <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
+        <div className={dimmed ? 'space-y-1.5 opacity-80' : bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
           {address ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-white leading-5 line-clamp-1">{address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}</span>
+              <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
+              <span className={`${dimmed ? 'text-gray-400' : 'text-white'} leading-5 line-clamp-1`}>{address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}</span>
             </div>
           ) : null}
 
           {timeLine ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
               {isTimeObj ? (
                 <span className={lineTextCls}>
                   <span className="text-white">{timeLine.main}</span>
