@@ -590,7 +590,7 @@ const activeNotification = allNotifications[0] || null;
   const mockActiveReservation = useMemo(() => {
     const baseNow = Date.now();
     return {
-      id: 'mock-active-reserved-alert',
+      id: null,
       status: 'reserved',
       user_id: user?.id,
       user_email: user?.email,
