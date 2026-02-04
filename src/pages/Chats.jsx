@@ -351,6 +351,7 @@ export default function Chats() {
          <div className="px-4 space-y-3 pt-1">
              {filteredConversations.map((conv, index) => {
              const alert = alertsMap.get(conv.alert_id);
+             if (!alert) return null;
              const isP1 = conv.participant1_id === user?.id;
              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
