@@ -591,10 +591,8 @@ export default function Chats() {
                 </div>
               </motion.div>
             })}
-
-                      </div>
-        }
-                      </main>
+        </div>
+        </main>
 
       <BottomNav />
     </div>);
