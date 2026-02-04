@@ -73,25 +73,15 @@ useEffect(() => {
   };
   const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
 
-  // ====== Fecha: "2 Feb. - 00:28" en hora de Madrid ======
+  // ====== Fecha: "4 Febrero - 12:27" en hora de Madrid ======
   const formatCardDate = (ts) => {
     if (!ts) return '--';
     const date = new Date(ts);
-    const madridDateStr = date.toLocaleString('es-ES', {
-      timeZone: 'Europe/Madrid',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    
-    const formatted = madridDateStr
-      .replace(' de ', ' ')
-      .replace(',', ' -')
-      .replace(/\./g, '.');
-    
-    return formatted;
+    const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' });
+    const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' });
+    const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+    return `${day} ${capitalizedMonth} - ${time}`;
   };
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
@@ -590,7 +580,7 @@ const activeNotification = allNotifications[0] || null;
   const mockActiveReservation = useMemo(() => {
     const baseNow = Date.now();
     return {
-      id: null,
+      id: 'mock-active-reserved-alert',
       status: 'reserved',
       user_id: user?.id,
       user_email: user?.email,
@@ -971,6 +961,8 @@ const myFinalizedAlerts = useMemo(() => {
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
+
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
@@ -1732,6 +1724,8 @@ if (
           </TabsContent>
         </Tabs>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
 

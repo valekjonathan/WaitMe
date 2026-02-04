@@ -266,7 +266,7 @@ export default function Chats() {
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const meters = Math.round(R * c * 1000);
-    return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+    return `${meters}m`;
   };
 
   const filteredReal = useMemo(() => {
@@ -299,6 +299,8 @@ export default function Chats() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={showDemo ? filteredDemo.reduce((s, d) => s + (d.unread || 0), 0) : totalUnread} />
+
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <main className="pt-[56px] pb-24">
         <div className="px-4 pt-3">
@@ -536,6 +538,8 @@ export default function Chats() {
           )}
         </div>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
     </div>

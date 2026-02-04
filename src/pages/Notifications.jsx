@@ -247,6 +247,8 @@ export default function Notifications() {
     <div className="min-h-screen bg-black text-white">
       <Header title="Notificaciones" showBackButton={true} backTo="Home" />
 
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
       <main className="pt-[56px] pb-24">
         <div className="px-4 py-4">
           <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
@@ -282,14 +284,14 @@ export default function Notifications() {
                           {notif.sender_name.split(' ')[0]} aceptó tu <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
                         </p>
                         <p className="text-xs text-gray-500">
-                          {new Date(notif.created_date).toLocaleString('es-ES', {
-                            timeZone: 'Europe/Madrid',
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          }).replace(' de ', ' ').replace(',', ' -')}
+                          {(() => {
+                            const date = new Date(notif.created_date);
+                            const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' });
+                            const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' });
+                            const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                            const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+                            return `${day} ${capitalizedMonth} - ${time}`;
+                          })()}
                         </p>
                       </div>
 
@@ -462,14 +464,14 @@ export default function Notifications() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                          {new Date(notif.created_date).toLocaleString('es-ES', {
-                            timeZone: 'Europe/Madrid',
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          }).replace(' de ', ' ').replace(',', ' -')}
+                          {(() => {
+                            const date = new Date(notif.created_date);
+                            const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' });
+                            const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' });
+                            const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                            const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+                            return `${day} ${capitalizedMonth} - ${time}`;
+                          })()}
                         </p>
                       </div>
                     </>
@@ -480,6 +482,8 @@ export default function Notifications() {
           )}
         </div>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
 

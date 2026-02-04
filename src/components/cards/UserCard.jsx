@@ -83,12 +83,9 @@ export default function UserCard({
       Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(latitude * Math.PI / 180) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
+    const meters = Math.round(R * c * 1000);
     
-    if (distanceKm < 1) {
-      return `${Math.round(distanceKm * 1000)}m`;
-    }
-    return `${distanceKm.toFixed(1)}km`;
+    return `${meters}m`;
   };
 
   const distance = calculateDistance();
