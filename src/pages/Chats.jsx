@@ -348,27 +348,27 @@ export default function Chats() {
         </div>
 
          <div className="px-4 space-y-3 pt-1">
-             {/* Crear datos mockeados para mostrar ambos escenarios */}
+             {/* 7 conversaciones variadas */}
              {[
-               // Escenario 1: Alguien reservó mi alerta
+               // 1: Alguien reservó mi alerta - CON 3 MENSAJES SIN LEER
                {
                  id: 'demo-conv-1',
                  participant1_id: user?.id || 'user1',
                  participant1_name: 'Tu',
                  participant1_photo: user?.photo_url,
-                 participant2_id: 'buyer-demo-1',
+                 participant2_id: 'buyer-1',
                  participant2_name: 'Laura',
                  participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
                  alert_id: 'demo-alert-1',
                  last_message_text: 'Perfecto, ya estoy aquí en 2 minutos',
                  last_message_at: new Date(Date.now() - 3 * 60000).toISOString(),
-                 unread_count_p1: 0,
+                 unread_count_p1: 3,
                  unread_count_p2: 0
                },
-               // Escenario 2: Yo reservé la alerta de otro
+               // 2: Yo reservé la alerta de otro - SIN MENSAJES SIN LEER
                {
                  id: 'demo-conv-2',
-                 participant1_id: 'seller-demo-1',
+                 participant1_id: 'seller-1',
                  participant1_name: 'Marco',
                  participant1_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
                  participant2_id: user?.id || 'user1',
@@ -377,42 +377,187 @@ export default function Chats() {
                  alert_id: 'demo-alert-2',
                  last_message_text: '¿Dónde estás? Te espero abajo',
                  last_message_at: new Date(Date.now() - 8 * 60000).toISOString(),
+                 unread_count_p1: 0,
+                 unread_count_p2: 0
+               },
+               // 3: Conversación con Carlos - 5 MENSAJES SIN LEER
+               {
+                 id: 'demo-conv-3',
+                 participant1_id: user?.id || 'user1',
+                 participant1_name: 'Tu',
+                 participant1_photo: user?.photo_url,
+                 participant2_id: 'buyer-2',
+                 participant2_name: 'Carlos',
+                 participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                 alert_id: 'demo-alert-3',
+                 last_message_text: 'Genial, me encanta el lugar',
+                 last_message_at: new Date(Date.now() - 12 * 60000).toISOString(),
+                 unread_count_p1: 5,
+                 unread_count_p2: 0
+               },
+               // 4: Conversación con Sofía - 1 MENSAJE SIN LEER
+               {
+                 id: 'demo-conv-4',
+                 participant1_id: 'seller-2',
+                 participant1_name: 'Sofía',
+                 participant1_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+                 participant2_id: user?.id || 'user1',
+                 participant2_name: 'Tu',
+                 participant2_photo: user?.photo_url,
+                 alert_id: 'demo-alert-4',
+                 last_message_text: 'Ya voy llegando, estoy a 5 minutos',
+                 last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
                  unread_count_p1: 1,
+                 unread_count_p2: 0
+               },
+               // 5: Conversación con Patricia - SIN MENSAJES SIN LEER, SIN MENSAJES
+               {
+                 id: 'demo-conv-5',
+                 participant1_id: user?.id || 'user1',
+                 participant1_name: 'Tu',
+                 participant1_photo: user?.photo_url,
+                 participant2_id: 'buyer-3',
+                 participant2_name: 'Patricia',
+                 participant2_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+                 alert_id: 'demo-alert-5',
+                 last_message_text: 'Sin mensajes',
+                 last_message_at: new Date(Date.now() - 25 * 60000).toISOString(),
+                 unread_count_p1: 0,
+                 unread_count_p2: 0
+               },
+               // 6: Conversación con David - 2 MENSAJES SIN LEER
+               {
+                 id: 'demo-conv-6',
+                 participant1_id: 'seller-3',
+                 participant1_name: 'David',
+                 participant1_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+                 participant2_id: user?.id || 'user1',
+                 participant2_name: 'Tu',
+                 participant2_photo: user?.photo_url,
+                 alert_id: 'demo-alert-6',
+                 last_message_text: 'Te espero en el café de abajo',
+                 last_message_at: new Date(Date.now() - 5 * 60000).toISOString(),
+                 unread_count_p1: 2,
+                 unread_count_p2: 0
+               },
+               // 7: Conversación con Marta - SIN MENSAJES SIN LEER
+               {
+                 id: 'demo-conv-7',
+                 participant1_id: user?.id || 'user1',
+                 participant1_name: 'Tu',
+                 participant1_photo: user?.photo_url,
+                 participant2_id: 'buyer-4',
+                 participant2_name: 'Marta',
+                 participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                 alert_id: 'demo-alert-7',
+                 last_message_text: 'Perfecto, nos vemos en 15 minutos',
+                 last_message_at: new Date(Date.now() - 18 * 60000).toISOString(),
+                 unread_count_p1: 0,
                  unread_count_p2: 0
                }
              ].map((conv, index) => {
-             // Datos mockeados de alertas
-             const alertsMockData = {
-               'demo-alert-1': {
-                 id: 'demo-alert-1',
-                 price: 4.5,
-                 car_brand: 'BMW',
-                 car_model: 'Serie 1',
-                 car_plate: '2847 BNM',
-                 car_color: 'gris',
-                 address: 'Calle Gran Vía, 25',
-                 available_in_minutes: 12,
-                 allow_phone_calls: true,
-                 phone: '+34612345678',
-                 reserved_by_id: 'buyer-demo-1',
-                 reserved_by_name: 'Laura',
-                 reserved_by_email: 'laura@test.com'
-               },
-               'demo-alert-2': {
-                 id: 'demo-alert-2',
-                 price: 5.0,
-                 car_brand: 'Audi',
-                 car_model: 'A3',
-                 car_plate: '5521 LKP',
-                 car_color: 'negro',
-                 address: 'Calle Uría, 10',
-                 available_in_minutes: 8,
-                 allow_phone_calls: true,
-                 phone: '+34698765432',
-                 user_id: 'seller-demo-1',
-                 user_name: 'Marco'
-               }
-             };
+              // Datos mockeados de alertas
+              const alertsMockData = {
+                'demo-alert-1': {
+                  id: 'demo-alert-1',
+                  price: 4.5,
+                  car_brand: 'BMW',
+                  car_model: 'Serie 1',
+                  car_plate: '2847 BNM',
+                  car_color: 'gris',
+                  address: 'Calle Gran Vía, 25',
+                  available_in_minutes: 12,
+                  allow_phone_calls: true,
+                  phone: '+34612345678',
+                  reserved_by_id: 'buyer-1',
+                  reserved_by_name: 'Laura',
+                  reserved_by_email: 'laura@test.com'
+                },
+                'demo-alert-2': {
+                  id: 'demo-alert-2',
+                  price: 5.0,
+                  car_brand: 'Audi',
+                  car_model: 'A3',
+                  car_plate: '5521 LKP',
+                  car_color: 'negro',
+                  address: 'Calle Uría, 10',
+                  available_in_minutes: 8,
+                  allow_phone_calls: true,
+                  phone: '+34698765432',
+                  user_id: 'seller-1',
+                  user_name: 'Marco'
+                },
+                'demo-alert-3': {
+                  id: 'demo-alert-3',
+                  price: 3.5,
+                  car_brand: 'Seat',
+                  car_model: 'Ibiza',
+                  car_plate: '1234 ABC',
+                  car_color: 'azul',
+                  address: 'Calle Mayor, 18',
+                  available_in_minutes: 15,
+                  allow_phone_calls: false,
+                  phone: null,
+                  reserved_by_id: 'buyer-2',
+                  reserved_by_name: 'Carlos'
+                },
+                'demo-alert-4': {
+                  id: 'demo-alert-4',
+                  price: 6.0,
+                  car_brand: 'Renault',
+                  car_model: 'Clio',
+                  car_plate: '7733 MNP',
+                  car_color: 'rojo',
+                  address: 'Calle Uría, 33',
+                  available_in_minutes: 8,
+                  allow_phone_calls: true,
+                  phone: '+34677889900',
+                  user_id: 'seller-2',
+                  user_name: 'Sofía'
+                },
+                'demo-alert-5': {
+                  id: 'demo-alert-5',
+                  price: 4.0,
+                  car_brand: 'Toyota',
+                  car_model: 'Yaris',
+                  car_plate: '5678 DEF',
+                  car_color: 'blanco',
+                  address: 'Avenida del Paseo, 25',
+                  available_in_minutes: 20,
+                  allow_phone_calls: true,
+                  phone: '+34698765432',
+                  reserved_by_id: 'buyer-3',
+                  reserved_by_name: 'Patricia'
+                },
+                'demo-alert-6': {
+                  id: 'demo-alert-6',
+                  price: 5.5,
+                  car_brand: 'Ford',
+                  car_model: 'Fiesta',
+                  car_plate: '9876 XYZ',
+                  car_color: 'naranja',
+                  address: 'Paseo de la Castellana, 42',
+                  available_in_minutes: 10,
+                  allow_phone_calls: true,
+                  phone: '+34666554433',
+                  user_id: 'seller-3',
+                  user_name: 'David'
+                },
+                'demo-alert-7': {
+                  id: 'demo-alert-7',
+                  price: 7.0,
+                  car_brand: 'Volkswagen',
+                  car_model: 'Golf',
+                  car_plate: '4455 GHI',
+                  car_color: 'negro',
+                  address: 'Calle Campoamor, 15',
+                  available_in_minutes: 18,
+                  allow_phone_calls: false,
+                  phone: null,
+                  reserved_by_id: 'buyer-4',
+                  reserved_by_name: 'Marta'
+                }
+              };
              
              const alert = alertsMockData[conv.alert_id];
              const isP1 = conv.participant1_id === user?.id;
