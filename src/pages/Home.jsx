@@ -207,6 +207,15 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reset') === '1') {
+      setMode(null);
+      setSelectedAlert(null);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);

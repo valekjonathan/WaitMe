@@ -82,7 +82,7 @@ export default function BottomNav() {
         <button
           type="button"
           className="flex-1 min-w-0"
-          onClick={() => navigate(homeUrl)}
+          onClick={() => navigate(homeUrl + '?reset=1')}
         >
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
