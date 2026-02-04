@@ -418,7 +418,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white">
       <NotificationManager user={user} />
 
       <Header
@@ -431,7 +431,7 @@ export default function Home() {
         }}
       />
 
-      <main className="flex-1 relative overflow-hidden" style={{ height: 'calc(100vh - 60px - 88px)' }}>
+      <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
@@ -439,7 +439,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="w-full h-full flex flex-col items-center justify-center overflow-hidden"
+              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
               <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
                 <ParkingMap
@@ -492,8 +492,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col"
-              style={{ overflow: 'hidden' }}
+              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[60px] sm:bottom-[76px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 114px)' }}
             >
               <div className="h-[44%] relative px-2 sm:px-3 pt-0.5 sm:pt-1 flex-shrink-0">
                 <ParkingMap
@@ -578,8 +578,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col"
-              style={{ overflow: 'hidden' }}
+              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[72px] sm:bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 126px)' }}
             >
               <div className="h-[45%] relative px-2 sm:px-3 pt-1 sm:pt-2 flex-shrink-0">
                 <ParkingMap
