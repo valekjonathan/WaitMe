@@ -1,6 +1,5 @@
 import React from 'react';
 import { AuthProvider } from '@/components/AuthContext';
-import '@/globals.css';
 
 export default function Layout({ children }) {
   return (

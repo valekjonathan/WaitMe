@@ -19,16 +19,18 @@ export default function Header({
     const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
 
+    const TitleInner = isWaitMe ? (
+      <>
+        <span className="text-white">Wait</span>
+        <span className="text-purple-500">Me!</span>
+      </>
+    ) : (
+      <span className="text-white">{title}</span>
+    );
+
     return (
       <div className="text-lg font-semibold select-none">
-        {isWaitMe ? (
-          <>
-            <span className="text-white">Wait</span>
-            <span className="text-purple-500">Me!</span>
-          </>
-        ) : (
-          <span className="text-white">{title}</span>
-        )}
+        {TitleInner}
       </div>
     );
   };
@@ -37,7 +39,7 @@ export default function Header({
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => (onBack ? onBack() : navigate(-1))}
+      onClick={() => (onBack ? onBack() : null)}
       className="text-white"
     >
       <ArrowLeft className="w-6 h-6" />
@@ -45,17 +47,11 @@ export default function Header({
   );
 
   return (
-    <header
-      className="
-        fixed top-0 left-0 right-0 z-50
-        bg-black/90 backdrop-blur-sm
-        border-b-2 border-gray-700
-        pt-[env(safe-area-inset-top)]
-      "
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
+        {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
-          {/* IZQUIERDA */}
+          {/* IZQUIERDA: atrás + dinero */}
           <div className="flex items-center">
             {showBackButton ? (
               onBack ? (
@@ -66,27 +62,26 @@ export default function Header({
                 </Link>
               )
             ) : (
+              // placeholder para que el dinero no cambie de sitio entre pantallas
               <div className="w-10" />
             )}
 
-            {/* DINERO */}
+            {/* DINERO: se queda donde está (entre atrás y título) */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
                 <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                  <span className="text-purple-400 font-bold text-sm">
-                    {(user?.credits || 0).toFixed(2)}€
-                  </span>
+                  <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
                 </div>
               </Link>
             </div>
           </div>
 
-          {/* TÍTULO CENTRADO REAL */}
+          {/* TÍTULO CENTRADO REAL: click recarga */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">{renderTitle()}</div>
           </div>
 
-          {/* DERECHA */}
+          {/* DERECHA: iconos morados */}
           <div className="flex items-center gap-1 justify-end">
             <Link to={createPageUrl('Settings')}>
               <Button
@@ -98,6 +93,7 @@ export default function Header({
               </Button>
             </Link>
 
+            {/* Perfil SIN circulito (no lleva notificaciones) */}
             <Link to={createPageUrl('Profile')}>
               <Button
                 variant="ghost"
