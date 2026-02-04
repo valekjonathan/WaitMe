@@ -263,7 +263,28 @@ export default function Chats() {
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
-         <div className="px-4 space-y-3 pt-2.5">
+        <div className="px-4 pt-3 pb-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+            <input
+              type="text"
+              placeholder="Buscar conversaciones..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+         <div className="px-4 space-y-3 pt-1">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
@@ -301,7 +322,7 @@ export default function Chats() {
               const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
               const distanceKm = R * c;
               const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              return `${meters}m`;
             };
             const distanceText = calculateDistance();
 
@@ -328,7 +349,7 @@ export default function Chats() {
                             </div>
                           )}
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
+                            <span className="text-purple-300 font-bold text-xs">{Math.floor(alert.price)}€</span>
                           </div>
                         </div>
                       </div>
@@ -355,7 +376,7 @@ export default function Chats() {
                         <div className="flex justify-between items-center">
                           <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
                           {unreadCount > 0 && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
+                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[3px]">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
