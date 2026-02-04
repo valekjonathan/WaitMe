@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Navigation } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -62,31 +62,28 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  /* ================= FILTER + SEARCH ================= */
+  /* ================= FILTRO + FALLBACK ================= */
   const filtered = useMemo(() => {
     return conversations.filter(c => {
-      const alert = alertsMap.get(c.alert_id);
-      if (!alert) return false;
-
-      if (!searchQuery) return true;
-
       const otherName =
         c.participant1_id === user?.id
           ? c.participant2_name
           : c.participant1_name;
 
+      if (!searchQuery) return true;
+
       const text = `${otherName} ${c.last_message_text || ''}`.toLowerCase();
       return text.includes(searchQuery.toLowerCase());
     });
-  }, [conversations, alertsMap, searchQuery, user?.id]);
+  }, [conversations, searchQuery, user?.id]);
 
   /* ================= RENDER ================= */
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton backTo="Home" unreadCount={totalUnread} />
 
-      {/* BUSCADOR */}
-      <div className="pt-[60px] px-4 pb-2">
+      {/* BUSCADOR — bien colocado */}
+      <div className="pt-[72px] px-4 pb-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
           <Input
@@ -102,10 +99,22 @@ export default function Chats() {
         {filtered.map((conv, index) => {
           const isP1 = conv.participant1_id === user?.id;
           const alert = alertsMap.get(conv.alert_id);
-          if (!alert) return null;
 
           const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
           const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+
+          /* FALLBACK si no hay alerta */
+          const safeAlert = alert || {
+            user_photo: isP1 ? conv.participant2_photo : conv.participant1_photo,
+            car_brand: '',
+            car_model: '',
+            car_plate: '',
+            car_color: 'gris',
+            address: '',
+            available_in_minutes: 0,
+            price: 0,
+            allow_phone_calls: false
+          };
 
           return (
             <motion.div
@@ -121,38 +130,32 @@ export default function Chats() {
                     Info usuario
                   </Badge>
 
-                  <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 h-7 flex items-center">
-                    <span className="text-purple-300 font-bold text-xs">
-                      {Math.round(alert.price)}€
-                    </span>
-                  </div>
+                  {alert && (
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 h-7 flex items-center">
+                      <span className="text-purple-300 font-bold text-xs">
+                        {Math.round(alert.price)}€
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-gray-700/80 pt-2">
                   <MarcoCard
-                    photoUrl={alert.user_photo}
+                    photoUrl={safeAlert.user_photo}
                     name={otherName}
-                    carLabel={`${alert.car_brand} ${alert.car_model}`}
-                    plate={alert.car_plate}
-                    carColor={alert.car_color || 'gris'}
-                    address={alert.address}
+                    carLabel={`${safeAlert.car_brand} ${safeAlert.car_model}`}
+                    plate={safeAlert.car_plate}
+                    carColor={safeAlert.car_color}
+                    address={safeAlert.address}
                     timeLine={
-                      <>
-                        <span className="text-white">
-                          Se va en {alert.available_in_minutes} min ·
-                        </span>{' '}
-                        Te espera
-                      </>
+                      safeAlert.available_in_minutes
+                        ? <>Se va en {safeAlert.available_in_minutes} min</>
+                        : <>Conversación activa</>
                     }
                     onChat={() =>
                       navigate(createPageUrl(`Chat?conversationId=${conv.id}`))
                     }
-                    phoneEnabled={alert.allow_phone_calls}
-                    onCall={() =>
-                      alert.allow_phone_calls &&
-                      alert.phone &&
-                      (window.location.href = `tel:${alert.phone}`)
-                    }
+                    phoneEnabled={safeAlert.allow_phone_calls}
                   />
                 </div>
 
