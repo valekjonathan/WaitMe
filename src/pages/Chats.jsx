@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -39,11 +39,13 @@ function CountdownTimer({ availableInMinutes }) {
   return (
     <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
+    </div>
+  );
 }
 
 export default function Chats() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +77,7 @@ export default function Chats() {
     queryFn: async () => {
       // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
-      
+
       // Datos mock para demostración
       const mockConversations = [
         {
@@ -123,9 +125,10 @@ export default function Chats() {
       ];
 
       const combined = [...mockConversations, ...allConversations];
-      return combined.sort((a, b) =>
-      new Date(b.last_message_at || b.updated_date || b.created_date) -
-      new Date(a.last_message_at || a.updated_date || a.created_date)
+      return combined.sort(
+        (a, b) =>
+          new Date(b.last_message_at || b.updated_date || b.created_date) -
+          new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
     staleTime: 10000,
@@ -152,7 +155,7 @@ export default function Chats() {
     queryKey: ['alertsForChats'],
     queryFn: async () => {
       const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
-      
+
       // Datos mock de alertas
       const mockAlerts = [
         {
@@ -181,7 +184,7 @@ export default function Chats() {
           available_in_minutes: 15,
           address: 'Calle Mayor, 18',
           latitude: 40.416775,
-          longitude: -3.703790,
+          longitude: -3.70379,
           allow_phone_calls: false,
           phone: null
         },
@@ -196,12 +199,12 @@ export default function Chats() {
           available_in_minutes: 45,
           address: 'Avenida del Paseo, 25',
           latitude: 40.456775,
-          longitude: -3.688790,
+          longitude: -3.68879,
           allow_phone_calls: true,
           phone: '+34698765432'
         }
       ];
-      
+
       return [...mockAlerts, ...realAlerts];
     },
     enabled: !!user?.id,
@@ -231,13 +234,10 @@ export default function Chats() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
+        const otherUserName =
+          conv.participant1_id === user?.id ? conv.participant2_name : conv.participant1_name;
         const lastMessage = conv.last_message_text || '';
-
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
+        return otherUserName?.toLowerCase().includes(query) || lastMessage.toLowerCase().includes(query);
       });
     }
 
@@ -256,70 +256,63 @@ export default function Chats() {
     return Math.max(1, minutes);
   };
 
-
-
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
-         <div className="px-4 space-y-3 pt-2.5">
-            {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
-            const isP1 = conv.participant1_id === user?.id;
-            const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const alert = alertsMap.get(conv.alert_id);
+        <div className="px-4 space-y-3 pt-2.5">
+          {filteredConversations
+            .filter((conv) => alertsMap.has(conv.alert_id))
+            .map((conv, index) => {
+              const isP1 = conv.participant1_id === user?.id;
+              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
+              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+              const alert = alertsMap.get(conv.alert_id);
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
+              const otherUserData = usersMap.get(otherUserId);
+              const otherUserName =
+                otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
+              const otherUserPhoto =
+                otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+              const otherUserPhone =
+                otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
+              const allowCalls = otherUserData?.allow_phone_calls ?? false;
 
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+              const calculateDistanceToAlert = () => {
+                if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
+                const R = 6371;
+                const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
+                const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
+                const a =
+                  Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(userLocation[0] * Math.PI / 180) *
+                    Math.cos(alert.latitude * Math.PI / 180) *
+                    Math.sin(dLon / 2) *
+                    Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                const distanceKm = R * c;
+                const meters = Math.round(distanceKm * 1000);
+                return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              };
 
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
+              const distanceText = calculateDistanceToAlert();
 
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude || !userLocation) return null;
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
-            };
-            const distanceText = calculateDistance();
-
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50`}>
-
+              return (
+                <motion.div
+                  key={conv.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50">
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-2">
                         <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
                           Info usuario
                         </Badge>
+
                         <div className="flex items-center gap-1">
                           {distanceText && (
                             <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
@@ -327,31 +320,55 @@ export default function Chats() {
                               <span className="text-white font-bold text-xs">{distanceText}</span>
                             </div>
                           )}
+
                           <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert.price)}€</span>
+                            <span className="text-purple-300 font-bold text-xs">{Math.round(alert?.price || 0)}€</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Tarjeta de usuario con MarcoCard */}
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                       <MarcoCard
-                         photoUrl={otherUser.photo}
-                         name={otherUserName}
-                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                         plate={alert.car_plate}
-                         carColor={alert.car_color || 'gris'}
-                         address={alert.address}
-                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
-                         onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                         statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
-                         phoneEnabled={alert.allow_phone_calls}
-                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                       />
+                        <MarcoCard
+                          photoUrl={otherUserPhoto}
+                          name={otherUserName}
+                          carLabel={`${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim()}
+                          plate={alert?.car_plate}
+                          carColor={alert?.car_color || 'gris'}
+                          address={alert?.address}
+                          timeLine={
+                            <>
+                              <span className="text-white">Se va en {alert?.available_in_minutes} min ·</span> Te espera
+                              hasta las{' '}
+                              {new Date(Date.now() + (alert?.available_in_minutes || 0) * 60000).toLocaleString('es-ES', {
+                                timeZone: 'Europe/Madrid',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                              })}
+                            </>
+                          }
+                          onChat={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
+                          statusText={new Date(Date.now() + (alert?.available_in_minutes || 0) * 60000).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          })}
+                          phoneEnabled={alert?.allow_phone_calls}
+                          onCall={() => {
+                            if ((alert?.allow_phone_calls || allowCalls) && (alert?.phone || otherUserPhone)) {
+                              window.location.href = `tel:${alert?.phone || otherUserPhone}`;
+                            }
+                          }}
+                        />
                       </div>
 
                       {/* Ultimos mensajes */}
-                      <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
+                      <div
+                        className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => navigate(createPageUrl(`Chat?conversationId=${conv.id}`))}
+                      >
                         <div className="flex justify-between items-center">
                           <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
                           {unreadCount > 0 && (
@@ -363,15 +380,14 @@ export default function Chats() {
                         <p className="text-xs text-gray-300 mt-1">{conv.last_message_text || 'Sin mensajes'}</p>
                       </div>
                     </div>
-                </div>
-              </motion.div>);
-
-          })}
-                      </div>
-        }
-                      </main>
+                  </div>
+                </motion.div>
+              );
+            })}
+        </div>
+      </main>
 
       <BottomNav />
-    </div>);
-
+    </div>
+  );
 }
