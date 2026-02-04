@@ -117,21 +117,23 @@ function createUserLocationIcon() {
 
 function LocationMarker({ position, setPosition, isSelecting }) {
   const map = useMapEvents({
-    move() {
+    click(e) {
       if (isSelecting) {
-        const center = map.getCenter();
-        setPosition({ lat: center.lat, lng: center.lng });
+        setPosition(e.latlng);
       }
     }
   });
 
   useEffect(() => {
-    if (position && position.lat != null && position.lng != null) {
-      map.setView([position.lat, position.lng], map.getZoom());
+    if (position) {
+      map.flyTo(position, map.getZoom());
     }
   }, [position, map]);
 
-  return null;
+  return position === null ? null :
+  <Marker position={position}>
+    </Marker>;
+
 }
 
 function FlyToLocation({ position }) {
@@ -160,8 +162,7 @@ export default function ParkingMap({
   sellerLocation,
   className = '',
   zoomControl = true,
-  buyerLocations = [],
-  onAddressChange
+  buyerLocations = []
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -173,7 +174,6 @@ export default function ParkingMap({
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
-  const [address, setAddress] = useState('');
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
@@ -207,40 +207,8 @@ export default function ParkingMap({
     }
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
 
-  // Reverse geocoding para leer dirección al mover mapa en modo selección
-  useEffect(() => {
-    if (isSelecting && selectedPosition && selectedPosition.lat != null && selectedPosition.lng != null) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedPosition.lat}&lon=${selectedPosition.lng}`)
-        .then(res => res.json())
-        .then(data => {
-          const addr = data.address?.road || data.address?.street || data.display_name || 'Ubicación desconocida';
-          setAddress(addr);
-          onAddressChange?.(addr, selectedPosition);
-        })
-        .catch(() => setAddress('Ubicación desconocida'));
-    }
-  }, [selectedPosition, isSelecting, onAddressChange]);
-
   return (
     <div className={`relative ${className}`}>
-      {/* Botón centrado con dirección en modo selección */}
-      {isSelecting && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
-          <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg px-4 py-2">
-            <span className="text-white font-bold text-sm">¿ Donde estas aparcado ?</span>
-          </div>
-        </div>
-      )}
-
-      {/* Dirección leída debajo del pin */}
-      {isSelecting && address && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-16 z-40 pointer-events-none">
-          <div className="bg-black/70 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-1.5 max-w-xs">
-            <p className="text-purple-300 font-bold text-xs text-center line-clamp-2">{address}</p>
-          </div>
-        </div>
-      )}
-
       <style>{`
         .leaflet-top.leaflet-left {
           top: 10px !important;
@@ -392,14 +360,12 @@ export default function ParkingMap({
           </Marker>
         )}
 
-        {/* Pin fijo en el centro del mapa (estilo Uber) */}
-        {isSelecting && (
-          <Marker
-            position={selectedPosition || defaultCenter}
-            icon={createUserLocationIcon()}
-            zIndexOffset={5000}>
+        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
+        <Marker
+          position={selectedPosition}
+          icon={createUserLocationIcon()}>
           </Marker>
-        )}
+        }
         
         {/* Ruta */}
         {route &&

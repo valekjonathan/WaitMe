@@ -585,13 +585,28 @@ export default function Home() {
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
-                  setSelectedPosition={setSelectedPosition}
-                  onAddressChange={(addr) => setAddress(addr)}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data?.address) {
+                          const road = data.address.road || data.address.street || '';
+                          const number = data.address.house_number || '';
+                          setAddress(number ? `${road}, ${number}` : road);
+                        }
+                      })
+                      .catch(() => {});
+                  }}
                   userLocation={userLocation}
                   zoomControl={true}
                   className="h-full"
                 />
               </div>
+
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
+                ¿ Dónde estas aparcado ?
+              </h3>
 
               <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
