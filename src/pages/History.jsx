@@ -821,7 +821,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pt-1 pb-0">
+          <div className="sticky top-[56px] z-40 bg-black pt-[5px] pb-0">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -832,7 +832,7 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          <TabsContent value="alerts" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
+          <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
 
                 {visibleActiveAlerts.length === 0 ? (
@@ -1120,7 +1120,7 @@ if (
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
                               <span className="text-gray-400 leading-5">
                                 {formatAddress(a.address) || 'Ubicación marcada'}
                               </span>
@@ -1201,7 +1201,7 @@ if (
                   )}
                   </TabsContent>
 
-                  <TabsContent value="reservations" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
+                  <TabsContent value="reservations" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                   <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
