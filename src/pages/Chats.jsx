@@ -644,7 +644,7 @@ export default function Chats() {
                             {alert?.reserved_by_id === user?.id ? 'Reservaste a:' : alert?.reserved_by_id ? 'Te reservó' : 'Info usuario'}
                           </Badge>
                         </div>
-                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white' : 'text-gray-600'} truncate`}>
+                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white font-semibold' : 'text-gray-600'} truncate`}>
                           {cardDate}
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1">
