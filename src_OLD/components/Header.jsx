@@ -112,6 +112,8 @@ export default function Header({
           </div>
         </div>
       </div>
-    </header>
+      </header>
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-50" />
+    </>
   );
 }

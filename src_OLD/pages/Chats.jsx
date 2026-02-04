@@ -371,6 +371,8 @@ export default function Chats() {
         }
                       </main>
 
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
       <BottomNav />
     </div>);
 
