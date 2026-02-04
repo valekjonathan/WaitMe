@@ -1,139 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { ArrowLeft, Settings, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/AuthContext';
-import MoneyAnimation from '@/components/MoneyAnimation';
-import { motion } from 'framer-motion';
+import React from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Settings, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { createPageUrl } from '@/utils'
 
 export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
-  backTo = 'Home',
-  onBack
+  backTo = 'Home'
 }) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [moneyAnim, setMoneyAnim] = useState(null);
-  const [displayCredits, setDisplayCredits] = useState(user?.credits || 0);
-
-  useEffect(() => {
-    const prevCredits = displayCredits;
-    const newCredits = user?.credits || 0;
-    
-    if (newCredits > prevCredits) {
-      const diff = newCredits - prevCredits;
-      setMoneyAnim(diff);
-      setTimeout(() => setMoneyAnim(null), 2100);
-    }
-    
-    setDisplayCredits(newCredits);
-  }, [user?.credits]);
-
-  const renderTitle = () => {
-    const t = (title || '').trim();
-    const normalized = t.toLowerCase().replace(/\s+/g, '');
-    const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
-
-    return (
-      <div className="text-lg font-semibold select-none">
-        {isWaitMe ? (
-          <>
-            <span className="text-white">Wait</span>
-            <span className="text-purple-500">Me!</span>
-          </>
-        ) : (
-          <span className="text-white">{title}</span>
-        )}
-      </div>
-    );
-  };
-
-  const BackButton = () => (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => (onBack ? onBack() : navigate(-1))}
-      className="text-white"
-    >
-      <ArrowLeft className="w-6 h-6" />
-    </Button>
-  );
+  const navigate = useNavigate()
 
   return (
-    <header
-      className="
-        fixed top-0 left-0 right-0 z-50
-        bg-black backdrop-blur-sm
-        pt-[env(safe-area-inset-top)]
-      "
-    >
-      <div className="px-4 py-3">
-        <div className="relative flex items-center justify-between">
-          {/* IZQUIERDA */}
-          <div className="flex items-center">
-            {showBackButton ? (
-              onBack ? (
-                <BackButton />
-              ) : (
-                <Link to={createPageUrl(backTo)}>
-                  <BackButton />
-                </Link>
-              )
-            ) : (
-              <div className="w-10" />
-            )}
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black h-[60px]">
+      <div className="h-[60px] px-4 flex items-center justify-between">
+        {/* IZQUIERDA */}
+        <div className="flex items-center gap-2">
+          {showBackButton ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="text-white"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+          ) : (
+            <div className="w-10" />
+          )}
+        </div>
 
-            {/* DINERO */}
-            <div className="flex items-center justify-center px-2">
-              <Link to={createPageUrl('Settings')}>
-                <motion.div 
-                  key={displayCredits}
-                  initial={{ scale: 1 }}
-                  animate={{ scale: [1, 1.15, 1] }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer"
-                >
-                  <span className="text-purple-400 font-bold text-sm">
-                    {displayCredits.toFixed(2)}€
-                  </span>
-                </motion.div>
-              </Link>
-            </div>
-          </div>
+        {/* CENTRO */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="text-lg font-semibold">
+            <span className="text-white">Wait</span>
+            <span className="text-purple-500">Me!</span>
+          </span>
+        </div>
 
-          {/* TÍTULO CENTRADO REAL */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">{renderTitle()}</div>
-          </div>
-
-          {/* DERECHA */}
-          <div className="flex items-center gap-1 justify-end">
-            <Link to={createPageUrl('Settings')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <Settings className="w-7 h-7" />
-              </Button>
-            </Link>
-
-            <Link to={createPageUrl('Profile')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <User className="w-7 h-7" />
-              </Button>
-            </Link>
-          </div>
+        {/* DERECHA */}
+        <div className="flex items-center gap-1">
+          <Link to={createPageUrl('Settings')}>
+            <Button variant="ghost" size="icon" className="text-purple-400">
+              <Settings className="w-6 h-6" />
+            </Button>
+          </Link>
+          <Link to={createPageUrl('Profile')}>
+            <Button variant="ghost" size="icon" className="text-purple-400">
+              <User className="w-6 h-6" />
+            </Button>
+          </Link>
         </div>
       </div>
-
-      {moneyAnim && <MoneyAnimation amount={moneyAnim} onComplete={() => setMoneyAnim(null)} />}
     </header>
-  );
+  )
 }
