@@ -431,7 +431,7 @@ export default function Chats() {
                       <div className="flex items-center gap-2 mb-2">
                         <div className="flex-shrink-0">
                           <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none`}>
-                            Info usuario
+                            {alert?.reserved_by_id === user?.id ? 'Reservaste a:' : alert?.reserved_by_id ? 'Te reservó' : 'Info usuario'}
                           </Badge>
                         </div>
                         <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white' : 'text-gray-600'} truncate`}>
