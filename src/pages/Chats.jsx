@@ -121,20 +121,35 @@ export default function Chats() {
           unread_count_p2: 0
         },
         {
-          id: 'mock4',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'user5',
-          participant2_name: 'Sofía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert4',
-          last_message_text: 'Ya voy llegando, 2 minutos',
-          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
-          unread_count_p2: 0
-        }
-      ];
+            id: 'mock4',
+            participant1_id: user?.id || 'user1',
+            participant1_name: 'Tu',
+            participant1_photo: user?.photo_url,
+            participant2_id: 'user5',
+            participant2_name: 'Sofía',
+            participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+            alert_id: 'alert4',
+            last_message_text: 'Ya voy llegando, 2 minutos',
+            last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
+            unread_count_p1: 2,
+            unread_count_p2: 0
+          },
+          {
+            id: 'mock5',
+            participant1_id: user?.id || 'user1',
+            participant1_name: 'Tu',
+            participant1_photo: user?.photo_url,
+            participant2_id: 'user6',
+            participant2_name: 'Marco',
+            participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
+            alert_id: 'alert5',
+            last_message_text: '¿A qué hora te liberas?',
+            last_message_at: new Date(Date.now() - 3 * 60000).toISOString(),
+            unread_count_p1: 0,
+            unread_count_p2: 1,
+            status: 'reserved'
+          }
+        ];
 
       const combined = [...mockConversations, ...allConversations];
       return combined.sort((a, b) =>
@@ -228,8 +243,27 @@ export default function Chats() {
           longitude: -5.845890,
           allow_phone_calls: true,
           phone: '+34677889900'
+        },
+        {
+          id: 'alert5',
+          user_name: 'Marco',
+          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
+          car_brand: 'BMW',
+          car_model: 'Serie 3',
+          car_plate: '5521 LKP',
+          price: 5.5,
+          available_in_minutes: 12,
+          address: 'Calle Campoamor, 15',
+          latitude: 43.357815,
+          longitude: -5.849790,
+          allow_phone_calls: true,
+          phone: '+34666554433',
+          reserved_by_id: user?.id || 'buyer1',
+          reserved_by_name: 'Tu',
+          reserved_by_email: user?.email,
+          status: 'reserved'
         }
-      ];
+        ];
       
       return [...mockAlerts, ...realAlerts];
     },
@@ -314,7 +348,10 @@ export default function Chats() {
         </div>
 
          <div className="px-4 space-y-3 pt-1">
-            {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
+             {filteredConversations.map((conv, index) => {
+             // Mostrar también las conversaciones sin alerta si es una reserva activa
+             const alert = alertsMap.get(conv.alert_id);
+             if (!alert && (!conv.status || conv.status !== 'reserved')) return null;
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
             const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
@@ -398,7 +435,7 @@ export default function Chats() {
                             Info usuario
                           </Badge>
                         </div>
-                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white' : 'text-gray-600'}`}>
+                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-white' : 'text-gray-600'} truncate`}>
                           {cardDate}
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1">
@@ -437,7 +474,7 @@ export default function Chats() {
                         <div className="flex justify-between items-center">
                           <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
                           {unreadCount > 0 && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[6px]">
+                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[8px]">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
