@@ -972,10 +972,10 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
-      <main className="pt-[56px] pb-20 px-4">
+      <main className="px-4">
         <Tabs defaultValue="alerts" className="w-full">
           {/* FIX: sin borde negro debajo */}
-          <div className="sticky top-[56px] z-40 bg-black pt-0 pb-1 -mt-px">
+          <div className="sticky top-0 z-40 bg-black pt-0 pb-1 -mt-px">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -990,7 +990,7 @@ const myFinalizedAlerts = useMemo(() => {
           {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
