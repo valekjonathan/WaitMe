@@ -304,11 +304,12 @@ export default function Chats() {
       });
     }
 
-    // Ordenar sin leer primero
+    // Ordenar sin leer primero, después por timestamp más reciente
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
-      return bUnread - aUnread;
+      if (bUnread !== aUnread) return bUnread - aUnread;
+      return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
     });
   }, [conversations, searchQuery, user?.id]);
 
