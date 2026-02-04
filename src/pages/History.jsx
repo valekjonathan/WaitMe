@@ -972,9 +972,9 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
-      <main className="pt-[56px] pb-20 px-4">
+      <main className="pt-[56px] pb-20 px-0">
         <Tabs defaultValue="alerts" className="w-full">
-          <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
+          <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 rounded-none">
             <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
               Tus alertas
             </TabsTrigger>
@@ -986,7 +986,7 @@ const myFinalizedAlerts = useMemo(() => {
           {/* ===================== TUS ALERTAS ===================== */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 pb-24 pt-2 max-h-[calc(100vh-116px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 pt-2 px-4 max-h-[calc(100vh-108px)] overflow-y-auto ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1366,7 +1366,7 @@ if (
           {/* ===================== TUS RESERVAS ===================== */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 pb-24 pt-2 max-h-[calc(100vh-116px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 pt-2 px-4 max-h-[calc(100vh-108px)] overflow-y-auto ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
