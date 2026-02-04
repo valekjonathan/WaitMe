@@ -492,10 +492,10 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
+              className="fixed inset-0 top-[54px] sm:top-[60px] bottom-[60px] sm:bottom-[76px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 114px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[44%] relative px-2 sm:px-3 pt-0.5 sm:pt-1 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
