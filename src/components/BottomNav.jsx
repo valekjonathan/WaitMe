@@ -76,7 +76,7 @@ export default function BottomNav() {
           </Button>
         </Link>
 
-        <div className="w-px h-10 bg-gray-700" />
+        <div className="w-px h-8 sm:h-10 bg-gray-700" />
 
         {/* MAPA — navegación SPA, sin recarga */}
         <button
@@ -94,7 +94,7 @@ export default function BottomNav() {
           </Button>
         </button>
 
-        <div className="w-px h-10 bg-gray-700" />
+        <div className="w-px h-8 sm:h-10 bg-gray-700" />
 
         <Link to={createPageUrl('Notifications')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
