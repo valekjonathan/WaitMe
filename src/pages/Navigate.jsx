@@ -292,13 +292,10 @@ export default function Navigate() {
 
   const distanceMeters = calculateDistanceBetweenUsers();
 
-  // Calcular distancia para mostrar
+  // Calcular distancia para mostrar (siempre en metros)
   const distance = (() => {
     if (distanceMeters === null) return null;
-    if (distanceMeters < 1000) {
-      return { value: Math.round(distanceMeters), unit: 'm' };
-    }
-    return { value: (distanceMeters / 1000).toFixed(1), unit: 'km' };
+    return { value: Math.round(distanceMeters), unit: 'm' };
   })();
 
   // Liberar pago cuando estén a menos de 10 metros

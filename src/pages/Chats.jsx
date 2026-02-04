@@ -259,11 +259,13 @@ export default function Chats() {
 
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="fixed inset-0 bg-black text-white overflow-hidden">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
-      <main className="pt-[60px] pb-24">
-         <div className="px-4 space-y-3 pt-2.5">
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
+      <main className="fixed top-[56px] bottom-[76px] left-0 right-0 overflow-y-auto">
+        <div className="px-4 space-y-3 pt-2.5 pb-6">
             {filteredConversations.filter(conv => alertsMap.has(conv.alert_id)).map((conv, index) => {
             const isP1 = conv.participant1_id === user?.id;
             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
@@ -299,20 +301,13 @@ export default function Chats() {
               Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2);
               const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return meters > 1000 ? `${(meters / 1000).toFixed(1)}km` : `${meters}m`;
+              const meters = Math.round(R * c * 1000);
+              return `${meters}m`;
             };
             const distanceText = calculateDistance();
 
             return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50`}>
+              <div key={conv.id} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50">
 
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
@@ -364,12 +359,10 @@ export default function Chats() {
                       </div>
                     </div>
                 </div>
-              </motion.div>);
-
+            );
           })}
-                      </div>
-        }
-                      </main>
+        </div>
+      </main>
 
       <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
