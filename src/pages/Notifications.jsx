@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,10 +12,13 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
+import NotificationToast from '@/components/NotificationToast';
 
 export default function Notifications() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [toastNotification, setToastNotification] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -30,7 +33,85 @@ export default function Notifications() {
     fetchUser();
   }, []);
 
-  const { data: notifications = [], isLoading } = useQuery({
+  // Demo notifications
+  const demoNotifications = useMemo(() => [
+    {
+      id: 'demo_notif_1',
+      type: 'reservation_request',
+      sender_id: 'demo_user_sofia',
+      sender_name: 'Sofía',
+      sender_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
+      recipient_id: user?.id,
+      alert_id: 'demo_alert_req_1',
+      amount: 5.0,
+      status: 'pending',
+      read: false,
+      created_date: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+      alert: {
+        id: 'demo_alert_req_1',
+        car_brand: 'Seat',
+        car_model: 'Ibiza',
+        car_color: 'azul',
+        car_plate: '1234ABC',
+        available_in_minutes: 8,
+        allow_phone_calls: true,
+        phone: '+34612345678',
+        address: 'Calle Uría, Oviedo'
+      }
+    },
+    {
+      id: 'demo_notif_2',
+      type: 'reservation_accepted',
+      sender_id: 'demo_user_marco',
+      sender_name: 'Marco',
+      sender_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      recipient_id: user?.id,
+      alert_id: 'demo_alert_acc_1',
+      amount: 4.0,
+      status: 'completed',
+      read: false,
+      created_date: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      alert: {
+        id: 'demo_alert_acc_1',
+        car_brand: 'BMW',
+        car_model: 'Serie 1',
+        car_color: 'negro',
+        car_plate: '5678DEF',
+        available_in_minutes: 12,
+        allow_phone_calls: false,
+        phone: null,
+        address: 'Calle Campoamor, Oviedo'
+      }
+    },
+    {
+      id: 'demo_notif_3',
+      type: 'buyer_nearby',
+      sender_id: 'demo_user_lucia',
+      sender_name: 'Lucía',
+      sender_photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
+      recipient_id: user?.id,
+      alert_id: 'demo_alert_nearby',
+      amount: 3.5,
+      status: 'completed',
+      read: false,
+      created_date: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'demo_notif_4',
+      type: 'payment_completed',
+      sender_id: 'demo_user_carlos',
+      sender_name: 'Carlos',
+      sender_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
+      recipient_id: user?.id,
+      alert_id: 'demo_alert_payment',
+      amount: 6.0,
+      status: 'completed',
+      read: true,
+      created_date: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+    }
+  ], [user?.id]);
+
+  const { data: realNotifications = [], isLoading } = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async () => {
       const notifs = await base44.entities.Notification.filter({ recipient_id: user?.id }, '-created_date');
@@ -44,8 +125,23 @@ export default function Notifications() {
       }));
     },
     enabled: !!user?.id,
-    staleTime: 10000
+    staleTime: 30000,
+    cacheTime: 300000,
   });
+
+  const notifications = realNotifications.length > 0 ? realNotifications : demoNotifications;
+
+  // Simular notificación push cada 20 segundos
+  useEffect(() => {
+    if (!user) return;
+    
+    const interval = setInterval(() => {
+      const randomNotif = demoNotifications[Math.floor(Math.random() * demoNotifications.length)];
+      setToastNotification({ ...randomNotif, id: `toast_${Date.now()}` });
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [user, demoNotifications]);
 
   const acceptMutation = useMutation({
     mutationFn: async (notification) => {
@@ -155,7 +251,9 @@ export default function Notifications() {
         <div className="px-4 py-4">
           <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
 
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12 text-gray-500">Cargando...</div>
+          ) : notifications.length === 0 ? (
             <div className="text-center py-20 text-gray-500">
               <Bell className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg mb-2">Sin notificaciones</p>
@@ -183,7 +281,16 @@ export default function Notifications() {
                         <p className="font-semibold text-white text-lg">
                           {notif.sender_name.split(' ')[0]} aceptó tu <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
                         </p>
-                        <p className="text-xs text-gray-500">{format(new Date(notif.created_date), 'HH:mm')}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(notif.created_date).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          }).replace(' de ', ' ').replace(',', ' -')}
+                        </p>
                       </div>
 
                       <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
@@ -243,10 +350,10 @@ export default function Notifications() {
                               <Button
                                 className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                }}
-                              >
+  e.stopPropagation();
+  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+}}
+>
                                 <MessageCircle className="w-4 h-4" />
                               </Button>
                               <Button
@@ -264,9 +371,9 @@ export default function Notifications() {
                               <Button
                                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
                                 onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.location.href = createPageUrl(`Navigate?alertId=${notif.alert_id}`);
-                                }}
+  e.stopPropagation();
+  navigate(createPageUrl(`Navigate?alertId=${notif.alert_id}`));
+}}
                               >
                                 IR <Navigation className="w-3 h-3" />
                               </Button>
@@ -293,9 +400,9 @@ export default function Notifications() {
                                 <Button
                                   className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.location.href = createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`);
-                                  }}
+  e.stopPropagation();
+  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+}}
                                 >
                                   <MessageCircle className="w-4 h-4" />
                                 </Button>
@@ -355,7 +462,14 @@ export default function Notifications() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                          {format(new Date(notif.created_date), 'HH:mm')}
+                          {new Date(notif.created_date).toLocaleString('es-ES', {
+                            timeZone: 'Europe/Madrid',
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                          }).replace(' de ', ' ').replace(',', ' -')}
                         </p>
                       </div>
                     </>
@@ -368,6 +482,13 @@ export default function Notifications() {
       </main>
 
       <BottomNav />
+
+      {toastNotification && (
+        <NotificationToast
+          notification={toastNotification}
+          onClose={() => setToastNotification(null)}
+        />
+      )}
 
       {/* Dialog de confirmación */}
       <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
@@ -400,6 +521,7 @@ export default function Notifications() {
                 rejectMutation.mutate(selectedNotification);
               }}
               className="flex-1 border-gray-700"
+              disabled={rejectMutation.isPending}
             >
               Rechazar
             </Button>
@@ -408,8 +530,9 @@ export default function Notifications() {
                 acceptMutation.mutate(selectedNotification);
               }}
               className="flex-1 bg-green-600 hover:bg-green-700"
+              disabled={acceptMutation.isPending}
             >
-              Aceptar y esperar
+              {acceptMutation.isPending ? 'Aceptando...' : 'Aceptar y esperar'}
             </Button>
           </DialogFooter>
         </DialogContent>
