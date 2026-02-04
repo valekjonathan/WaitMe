@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
@@ -28,7 +27,6 @@ import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/components/AuthContext';
 
 export default function History() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
@@ -945,11 +943,11 @@ if (
                                       showLocationInfo={false}
                                       showContactButtons={true}
                                       onChat={() =>
-                                        (navigate(createPageUrl(
+                                        (window.location.href = createPageUrl(
                                           `Chat?alertId=${alert.id}&userId=${
                                             alert.reserved_by_email || alert.reserved_by_id
                                           }`
-                                        )))
+                                        ))
                                       }
                                       onCall={() =>
                                         alert.phone && (window.location.href = `tel:${alert.phone}`)
@@ -1190,9 +1188,9 @@ if (
                                 ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
                               }`}
                               onChat={() =>
-                                (navigate(createPageUrl(
+                                (window.location.href = createPageUrl(
                                   `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
-                                )))
+                                ))
                               }
                               statusText="COMPLETADA"
                             />
@@ -1336,9 +1334,9 @@ if (
                               accent: `Te espera hasta las ${waitUntilLabel}`
                             }}
                             onChat={() =>
-                              (navigate(createPageUrl(
+                              (window.location.href = createPageUrl(
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
-                              )))
+                              ))
                             }
                             statusText={countdownText}
                             statusEnabled={true}
@@ -1350,7 +1348,7 @@ if (
                           <div className="border-t border-gray-700/80 mt-2 pt-2">
                             <Button
                               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
-                              onClick={() => navigate(createPageUrl(`Navigate?alertId=${alert.id}`))}
+                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
                             >
                               IR
                               <Navigation className="w-5 h-5" />
@@ -1457,9 +1455,9 @@ if (
                               address={a.address}
                               timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
                               onChat={() =>
-                                (navigate(createPageUrl(
+                                (window.location.href = createPageUrl(
                                   `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
-                                )))
+                                ))
                               }
                               statusText={statusLabelFrom(a.status)}
                               phoneEnabled={phoneEnabled}
@@ -1545,9 +1543,9 @@ if (
                               ts ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
                             }`}
                             onChat={() =>
-                              (navigate(createPageUrl(
+                              (window.location.href = createPageUrl(
                                 `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
-                              )))
+                              ))
                             }
                             statusText="COMPLETADA"
                             statusEnabled={true}

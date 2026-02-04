@@ -28,12 +28,11 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
-    // ANTES: navigate(0) => recarga
-    // AHORA: no hace nada (sin cambiar UI)
+    // Click en el título = recarga de la página actual
     return (
       <button
         type="button"
-        onClick={() => {}}
+        onClick={() => navigate(0)}
         className="text-lg font-semibold select-none"
         aria-label="Recargar página"
       >
@@ -56,7 +55,9 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
+        {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
+          {/* IZQUIERDA: atrás + dinero */}
           <div className="flex items-center">
             {showBackButton ? (
               onBack ? (
@@ -67,9 +68,11 @@ export default function Header({
                 </Link>
               )
             ) : (
+              // placeholder para que el dinero no cambie de sitio entre pantallas
               <div className="w-10" />
             )}
 
+            {/* DINERO: se queda donde está (entre atrás y título) */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
                 <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
@@ -79,10 +82,12 @@ export default function Header({
             </div>
           </div>
 
+          {/* TÍTULO CENTRADO REAL: click recarga */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">{renderTitle()}</div>
           </div>
 
+          {/* DERECHA: iconos morados */}
           <div className="flex items-center gap-1 justify-end">
             <Link to={createPageUrl('Settings')}>
               <Button
@@ -94,6 +99,7 @@ export default function Header({
               </Button>
             </Link>
 
+            {/* Perfil SIN circulito (no lleva notificaciones) */}
             <Link to={createPageUrl('Profile')}>
               <Button
                 variant="ghost"
