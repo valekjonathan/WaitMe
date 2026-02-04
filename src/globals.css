@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
