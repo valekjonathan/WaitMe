@@ -265,13 +265,12 @@ export default function Notifications() {
                     }
                   }}
                 >
-                  {notif.type === 'reservation_accepted' && notif.alert ? (
-                    // Mostrar tarjeta del vendedor con sus datos
-                    <div>
-                      <div className="flex justify-between items-center mb-3">
-                        <p className="font-semibold text-white text-lg">
-                          {notif.sender_name.split(' ')[0]} aceptó tu <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
-                        </p>
+                  {notif.alert ? (
+                    // Mostrar tarjeta con todos los datos del usuario (formato Home)
+                    <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
+                      {/* Header: Nombre + Fecha */}
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</h3>
                         <p className="text-xs text-gray-500">
                           {new Date(notif.created_date).toLocaleString('es-ES', {
                             timeZone: 'Europe/Madrid',
@@ -284,93 +283,105 @@ export default function Notifications() {
                         </p>
                       </div>
 
-                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-3 border-2 border-purple-500">
-                        <div className="flex gap-3 px-2">
-                          {/* Foto a la izquierda */}
-                          <div className="w-24 h-28 rounded-xl overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500">
-                            {notif.sender_photo ? (
-                              <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
-                            )}
+                      {/* Foto + Info vehicular */}
+                      <div className="flex gap-2.5 mb-2">
+                        {/* Foto */}
+                        <div className="w-20 h-24 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border-2 border-purple-500/40">
+                          {notif.sender_photo ? (
+                            <img src={notif.sender_photo} className="w-full h-full object-cover" alt={notif.sender_name} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl text-gray-500">👤</div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <p className="font-semibold text-sm text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+                            <p className="text-xs text-gray-300 mt-0.5">{notif.alert.address}</p>
                           </div>
 
-                          {/* Info a la derecha */}
-                          <div className="flex-1 flex flex-col justify-between pr-2">
-                            {/* Nombre */}
-                            <p className="font-bold text-lg text-white">{notif.sender_name.split(' ')[0]}</p>
-                            
-                            {/* Marca y Modelo con icono */}
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-medium text-white">{notif.alert.car_brand} {notif.alert.car_model}</p>
+                          {/* Matrícula */}
+                          <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-6">
+                            <div className="bg-blue-600 h-full w-4 flex items-center justify-center">
+                              <span className="text-[7px] font-bold text-white">E</span>
+                            </div>
+                            <span className="flex-1 text-center font-mono font-bold text-xs tracking-wider text-black">
                               {(() => {
-                                const carColors = {
-                                  'blanco': '#FFFFFF',
-                                  'negro': '#1a1a1a',
-                                  'rojo': '#ef4444',
-                                  'azul': '#3b82f6',
-                                  'amarillo': '#facc15',
-                                  'gris': '#6b7280'
-                                };
-                                const color = carColors[notif.alert.car_color] || '#6b7280';
-                                return (
-                                  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
-                                    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
-                                    <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                                    <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                                  </svg>
-                                );
+                                const plate = notif.alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
+                                return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
                               })()}
-                            </div>
-                            
-                            {/* Matrícula */}
-                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-                                <span className="text-[8px] font-bold text-white">E</span>
-                              </div>
-                              <span className="flex-1 text-center font-mono font-bold text-sm tracking-wider text-black">
-                                {(() => {
-                                  const plate = notif.alert.car_plate?.replace(/\s/g, '').toUpperCase() || '';
-                                  return plate.length >= 4 ? `${plate.slice(0, 4)} ${plate.slice(4)}` : plate;
-                                })()}
-                              </span>
-                            </div>
-
-                            {/* Botones de acción en una fila */}
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Button
-                                className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                                onClick={(e) => {
-  e.stopPropagation();
-  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
-}}
->
-                                <MessageCircle className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                className="bg-white hover:bg-gray-100 text-green-600 h-7 w-11 rounded-lg flex items-center justify-center p-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (notif.alert.allow_phone_calls && notif.alert.phone) {
-                                    window.location.href = `tel:${notif.alert.phone}`;
-                                  }
-                                }}
-                                disabled={!notif.alert.allow_phone_calls || !notif.alert.phone}
-                              >
-                                <Phone className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
-                                onClick={(e) => {
-  e.stopPropagation();
-  navigate(createPageUrl(`Navigate?alertId=${notif.alert_id}`));
-}}
-                              >
-                                IR <Navigation className="w-3 h-3" />
-                              </Button>
-                            </div>
+                            </span>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Info de tiempo y precio */}
+                      <div className="border-t border-gray-700/80 pt-2 mb-2">
+                        <p className="text-xs text-gray-300 mb-1">
+                          <Clock className="w-3 h-3 inline mr-1" />
+                          Se va en {notif.alert.available_in_minutes} min
+                        </p>
+                        <p className="text-xs text-purple-400 font-semibold">
+                          Precio: {notif.amount}€
+                        </p>
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          className="bg-green-600 hover:bg-green-700 text-white h-7 w-10 rounded-lg flex items-center justify-center p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          className="bg-white hover:bg-gray-100 text-black h-7 w-10 rounded-lg flex items-center justify-center p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (notif.alert.allow_phone_calls && notif.alert.phone) {
+                              window.location.href = `tel:${notif.alert.phone}`;
+                            }
+                          }}
+                          disabled={!notif.alert.allow_phone_calls || !notif.alert.phone}
+                        >
+                          <Phone className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-7 rounded-lg font-semibold flex items-center justify-center gap-1 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(createPageUrl(`Navigate?alertId=${notif.alert_id}`));
+                          }}
+                        >
+                          IR <Navigation className="w-3 h-3" />
+                        </Button>
+
+                        {notif.type === 'reservation_request' && notif.status === 'pending' && (
+                          <>
+                            <Button
+                              className="bg-green-600 hover:bg-green-700 border-2 border-green-500 h-7 px-2 text-xs rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedNotification(notif);
+                              }}
+                            >
+                              <Check className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              className="bg-red-600 hover:bg-red-700 border-2 border-red-500 h-7 px-2 text-xs rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                rejectMutation.mutate(notif);
+                              }}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ) : (
