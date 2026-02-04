@@ -975,7 +975,7 @@ const myFinalizedAlerts = useMemo(() => {
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           {/* FIX: sin borde negro debajo */}
-          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
+          <div className="sticky top-[56px] z-40 bg-black pt-0 pb-1 -mt-px">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
