@@ -12,13 +12,11 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
-import NotificationToast from '@/components/NotificationToast';
 
 export default function Notifications() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [toastNotification, setToastNotification] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -130,18 +128,6 @@ export default function Notifications() {
   });
 
   const notifications = realNotifications.length > 0 ? realNotifications : demoNotifications;
-
-  // Simular notificación push cada 20 segundos
-  useEffect(() => {
-    if (!user) return;
-    
-    const interval = setInterval(() => {
-      const randomNotif = demoNotifications[Math.floor(Math.random() * demoNotifications.length)];
-      setToastNotification({ ...randomNotif, id: `toast_${Date.now()}` });
-    }, 20000);
-
-    return () => clearInterval(interval);
-  }, [user, demoNotifications]);
 
   const acceptMutation = useMutation({
     mutationFn: async (notification) => {
@@ -482,13 +468,6 @@ export default function Notifications() {
       </main>
 
       <BottomNav />
-
-      {toastNotification && (
-        <NotificationToast
-          notification={toastNotification}
-          onClose={() => setToastNotification(null)}
-        />
-      )}
 
       {/* Dialog de confirmación */}
       <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
