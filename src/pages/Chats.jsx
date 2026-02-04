@@ -300,7 +300,7 @@ export default function Chats() {
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={showDemo ? filteredDemo.reduce((s, d) => s + (d.unread || 0), 0) : totalUnread} />
 
-      <main className="pt-[60px] pb-24">
+      <main className="pt-[56px] pb-24">
         <div className="px-4 pt-3">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
