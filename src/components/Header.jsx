@@ -9,8 +9,7 @@ export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
   backTo = 'Home',
-  onBack,
-  bordered = true
+  onBack
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,23 +28,33 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
-    return <div className="text-lg font-semibold select-none">{TitleInner}</div>;
+    // Click en el título = recarga de la página actual
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(0)}
+        className="text-lg font-semibold select-none"
+        aria-label="Recargar página"
+      >
+        {TitleInner}
+      </button>
+    );
   };
 
   const BackButton = () => (
-    <Button variant="ghost" size="icon" onClick={() => (onBack ? onBack() : null)} className="text-white">
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => (onBack ? onBack() : null)}
+      className="text-white"
+    >
       <ArrowLeft className="w-6 h-6" />
     </Button>
   );
 
   return (
-    <header
-      className={[
-        'fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm',
-        bordered ? 'border-b-0' : 'border-b-0'
-      ].join(' ')}
-    >
-      <div className="px-4 py-2">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <div className="px-4 py-3">
         {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
           {/* IZQUIERDA: atrás + dinero */}
