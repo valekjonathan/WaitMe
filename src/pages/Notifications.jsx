@@ -235,7 +235,11 @@ export default function Notifications() {
 
       <main className="pt-16 pb-24">
         <div className="px-4 py-4">
-          <h2 className="text-xl font-bold mb-4 text-center">Notificaciones:</h2>
+          <div className="flex items-center justify-center mb-4">
+            <Badge className="bg-purple-600/20 text-purple-300 border border-purple-400/50 font-bold text-sm h-8 px-3 flex items-center justify-center cursor-default select-none pointer-events-none">
+              Notificaciones:
+            </Badge>
+          </div>
 
           {isLoading ? (
             <div className="text-center py-12 text-gray-500">Cargando...</div>
