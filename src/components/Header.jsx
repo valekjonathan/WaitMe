@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
+import MoneyAnimation from '@/components/MoneyAnimation';
+import { motion } from 'framer-motion';
 
 export default function Header({
   title = 'WaitMe!',
@@ -13,6 +15,21 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [moneyAnim, setMoneyAnim] = useState(null);
+  const [displayCredits, setDisplayCredits] = useState(user?.credits || 0);
+
+  useEffect(() => {
+    const prevCredits = displayCredits;
+    const newCredits = user?.credits || 0;
+    
+    if (newCredits > prevCredits) {
+      const diff = newCredits - prevCredits;
+      setMoneyAnim(diff);
+      setTimeout(() => setMoneyAnim(null), 2100);
+    }
+    
+    setDisplayCredits(newCredits);
+  }, [user?.credits]);
 
   const renderTitle = () => {
     const t = (title || '').trim();
@@ -71,11 +88,17 @@ export default function Header({
             {/* DINERO */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
-                <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                <motion.div 
+                  key={displayCredits}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer"
+                >
                   <span className="text-purple-400 font-bold text-sm">
-                    {(user?.credits || 0).toFixed(2)}€
+                    {displayCredits.toFixed(2)}€
                   </span>
-                </div>
+                </motion.div>
               </Link>
             </div>
           </div>
@@ -109,6 +132,8 @@ export default function Header({
           </div>
         </div>
       </div>
+
+      {moneyAnim && <MoneyAnimation amount={moneyAnim} onComplete={() => setMoneyAnim(null)} />}
     </header>
   );
 }
