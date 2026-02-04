@@ -4,10 +4,8 @@ import { AuthProvider } from '@/components/AuthContext';
 export default function Layout({ children }) {
   return (
     <AuthProvider>
-      <div className="relative min-h-screen bg-black w-full overflow-x-hidden">
-        <main className="w-full">
-          {children}
-        </main>
+      <div className="min-h-[100dvh] w-full bg-black overflow-y-auto">
+        {children}
       </div>
     </AuthProvider>
   );
