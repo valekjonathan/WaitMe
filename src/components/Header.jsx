@@ -45,7 +45,7 @@ export default function Header({
         bordered ? 'border-b-0' : 'border-b-0'
       ].join(' ')}
     >
-      <div className="px-4 py-3">
+      <div className="px-4 py-2">
         {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
           {/* IZQUIERDA: atrás + dinero */}
