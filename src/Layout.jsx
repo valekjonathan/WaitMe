@@ -16,7 +16,7 @@ export default function Layout({ children }) {
           style={{
             minHeight: `calc(100dvh - ${HEADER_HEIGHT + BOTTOM_NAV_HEIGHT}px)`
           }}
-          className="overflow-y-auto bg-black"
+          className="bg-black"
         >
           {children}
         </main>
