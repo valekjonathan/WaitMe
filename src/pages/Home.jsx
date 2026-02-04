@@ -593,12 +593,12 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
+              <h3 className="text-white font-semibold text-center py-2 sm:py-3 text-xs sm:text-sm flex-shrink-0">
+               ¿ Dónde estas aparcado ?
               </h3>
 
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
-                <div className="w-full">
+              <div className="px-2 sm:px-4 pb-2 sm:pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+               <div className="w-full">
                   <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
