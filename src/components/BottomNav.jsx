@@ -56,11 +56,11 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('History')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
-            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
+            <svg className="w-6 sm:w-8 h-6 sm:h-8" viewBox="0 0 32 32" fill="none">
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
             </svg>
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
+            <span className="text-[8px] sm:text-[10px] font-bold whitespace-nowrap truncate">Alertas</span>
 
             {activeAlerts.length > 0 && (
               <span className={badgeGreen}>
