@@ -373,7 +373,22 @@ export default function Chats() {
             // Resolver datos del otro usuario desde usersMap
             const otherUserData = usersMap.get(otherUserId);
             const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            const otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+            let otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+
+            // Generar foto con IA si no existe
+            if (!otherUserPhoto) {
+              const photoUrls = [
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                'https://randomuser.me/api/portraits/women/68.jpg',
+                'https://randomuser.me/api/portraits/men/32.jpg',
+                'https://randomuser.me/api/portraits/women/44.jpg',
+                'https://randomuser.me/api/portraits/men/75.jpg'
+              ];
+              otherUserPhoto = photoUrls[(conv.id || '').charCodeAt(0) % photoUrls.length];
+            }
+
             const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
             const allowCalls = otherUserData?.allow_phone_calls ?? false;
 
