@@ -506,17 +506,32 @@ const getCreatedTs = (alert) => {
 
   
 
+// ARCHIVO: src/pages/History.jsx
+// CAMBIO EXACTO (según tu ZIP):
+// Reemplaza LÍNEAS 508 a 528 (incluidas) por este bloque:
+
 const {
   data: myAlerts = [],
-  isLoading: loadingAlerts
+  isLoading: loadingAlerts,
+  refetch: refetchMyAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 30000,
+
+  // ✅ Para que al entrar desde el botón de abajo se vea inmediato (sin “recargas”)
+  staleTime: 60000,
   refetchInterval: false,
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+
+  // ✅ Mantén lo que ya había mientras actualiza (evita vacío/flash)
+  placeholderData: (prev) => prev ?? [],
+
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
+
     return list.filter(a => {
       if (!a) return false;
       if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
