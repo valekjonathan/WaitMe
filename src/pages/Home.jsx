@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,7 +13,6 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import SimulationEngine from '@/components/SimulationEngine';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -44,8 +42,8 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '1234ABC',
       price: 3.0,
       available_in_minutes: 5,
-      latitude: baseLat + 0.0008,
-      longitude: baseLng + 0.0005,
+      latitude: baseLat + 0.002,
+      longitude: baseLng + 0.001,
       address: 'Calle Uría, Oviedo',
       phone: '+34612345678',
       allow_phone_calls: true
@@ -61,8 +59,8 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '5678DEF',
       price: 4.0,
       available_in_minutes: 12,
-      latitude: baseLat - 0.0006,
-      longitude: baseLng - 0.0009,
+      latitude: baseLat - 0.001,
+      longitude: baseLng - 0.002,
       address: 'Calle Campoamor, Oviedo',
       phone: '+34623456789',
       allow_phone_calls: false
@@ -78,85 +76,16 @@ const buildDemoAlerts = (lat, lng) => {
       car_plate: '9012GHI',
       price: 2.5,
       available_in_minutes: 20,
-      latitude: baseLat + 0.0005,
-      longitude: baseLng - 0.0004,
+      latitude: baseLat + 0.001,
+      longitude: baseLng - 0.001,
       address: 'Plaza de la Escandalera, Oviedo',
       phone: '+34634567890',
-      allow_phone_calls: true
-    },
-    {
-      id: 'demo_4',
-      is_demo: true,
-      user_name: 'LUCIA',
-      user_photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-      car_brand: 'Renault',
-      car_model: 'Clio',
-      car_color: 'rojo',
-      car_plate: '3344JKL',
-      price: 3.5,
-      available_in_minutes: 8,
-      latitude: baseLat - 0.0004,
-      longitude: baseLng + 0.0006,
-      address: 'Calle Covadonga, Oviedo',
-      phone: '+34645678901',
-      allow_phone_calls: true
-    },
-    {
-      id: 'demo_5',
-      is_demo: true,
-      user_name: 'CARLOS',
-      user_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
-      car_brand: 'Ford',
-      car_model: 'Fiesta',
-      car_color: 'gris',
-      car_plate: '7788MNO',
-      price: 2.0,
-      available_in_minutes: 15,
-      latitude: baseLat + 0.0003,
-      longitude: baseLng + 0.0007,
-      address: 'Calle Altamirano, Oviedo',
-      phone: '+34656789012',
-      allow_phone_calls: false
-    },
-    {
-      id: 'demo_6',
-      is_demo: true,
-      user_name: 'PAULA',
-      user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-      car_brand: 'Opel',
-      car_model: 'Corsa',
-      car_color: 'amarillo',
-      car_plate: '2233PQR',
-      price: 4.5,
-      available_in_minutes: 10,
-      latitude: baseLat - 0.0007,
-      longitude: baseLng + 0.0003,
-      address: 'Calle Fruela, Oviedo',
-      phone: '+34667890123',
-      allow_phone_calls: true
-    },
-    {
-      id: 'demo_7',
-      is_demo: true,
-      user_name: 'JAVIER',
-      user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-      car_brand: 'Peugeot',
-      car_model: '208',
-      car_color: 'azul',
-      car_plate: '5566STU',
-      price: 3.2,
-      available_in_minutes: 18,
-      latitude: baseLat + 0.0006,
-      longitude: baseLng - 0.0008,
-      address: 'Calle Independencia, Oviedo',
-      phone: '+34678901234',
       allow_phone_calls: true
     }
   ];
 };
 
 export default function Home() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
@@ -175,47 +104,35 @@ export default function Home() {
     maxDistance: 10
   });
 
-const { data: user, isError } = useQuery({
-  queryKey: ['user'],
-  queryFn: () => base44.auth.me(),
-  retry: false,
-  staleTime: 60000,
-  cacheTime: 300000
-});
-
-const safeUser = isError ? null : user;
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me()
+  });
 
   const { data: unreadCount } = useQuery({
-  queryKey: ['unreadCount', safeUser?.id],
-  enabled: !!safeUser?.id,
-  staleTime: 30000,
-  cacheTime: 300000,
-  queryFn: async () => {
-    const notifications = await base44.entities.Notification.filter({
-  recipient_id: user.id,
-  read: false
-});
-    return notifications?.length || 0;
-  }
-});
+    queryKey: ['unreadCount', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const notifications = await base44.entities.Notification.filter({
+        user_id: user.id,
+        read: false
+      });
+      return notifications?.length || 0;
+    }
+  });
 
   const { data: rawAlerts } = useQuery({
-  queryKey: ['alerts'],
-  enabled: mode === 'search',
-  staleTime: 30000,
-  cacheTime: 300000,
-  queryFn: async () => {
-    const alerts = await base44.entities.ParkingAlert.list();
-    const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
-    return list.filter(a => (a?.status || 'active') === 'active');
-  }
-});
+    queryKey: ['alerts'],
+    queryFn: async () => {
+      const alerts = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+      return list.filter(a => (a?.status || 'active') === 'active');
+    }
+  });
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
-    enabled: !!user?.id && mode === 'create',
-    staleTime: 30000,
-cacheTime: 300000,
+    enabled: !!user?.id,
     queryFn: async () => {
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
@@ -360,7 +277,7 @@ cacheTime: 300000,
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      navigate(createPageUrl('History'));
+      window.location.href = createPageUrl('History');
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
@@ -419,7 +336,7 @@ cacheTime: 300000,
       
       if (alert?.is_demo) {
         const demoConvId = `demo_conv_${alert.id}`;
-        navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
+        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
       }
     },
     onError: () => {
@@ -436,7 +353,7 @@ cacheTime: 300000,
     // Si es demo, ir a conversación demo
     if (alert?.is_demo) {
       const demoConvId = `demo_conv_${alert.id}`;
-      navigate(createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=...`));
+      window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
       return;
     }
     
@@ -448,7 +365,7 @@ cacheTime: 300000,
                         (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
     
     if (existingConv) {
-      navigate(createPageUrl(`Chat?conversationId=${existingConv.id}`));
+      window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
       return;
     }
     
@@ -467,7 +384,7 @@ cacheTime: 300000,
       unread_count_p2: 0
     });
     
-    navigate(createPageUrl(`Chat?conversationId=${newConv.id}`));
+    window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
   };
 
   const handleCall = (alert) => {
@@ -477,8 +394,7 @@ cacheTime: 300000,
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <NotificationManager user={safeUser} />
-      <SimulationEngine user={safeUser} enabled={!!safeUser?.id} />
+      <NotificationManager user={user} />
 
       <Header
         title="WaitMe!"
@@ -640,7 +556,7 @@ cacheTime: 300000,
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[47%] relative px-3 pt-2 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
                   isSelecting={true}
                   selectedPosition={selectedPosition}
@@ -663,15 +579,11 @@ cacheTime: 300000,
                 />
               </div>
 
-              <div className="px-4 py-2 flex-shrink-0">
-                <div className="bg-purple-600/20 border border-purple-500/40 rounded-xl px-4 py-2">
-                  <p className="text-white font-medium text-center text-sm">
-                    ¿ Dónde estás aparcado ?
-                  </p>
-                </div>
-              </div>
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
+                ¿ Dónde estas aparcado ?
+              </h3>
 
-              <div className="px-4 pb-3 pt-1 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}

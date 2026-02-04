@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const AuthContext = createContext(null);
@@ -8,30 +8,26 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
     const fetchUser = async () => {
       try {
         const currentUser = await base44.auth.me();
-        if (mounted) setUser(currentUser);
+        setUser(currentUser);
       } catch (error) {
         // Usuario no autenticado
-        if (mounted) setUser(null);
+        setUser(null);
       } finally {
-        if (mounted) setLoading(false);
+        setLoading(false);
       }
     };
-
+    
     fetchUser();
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  const value = useMemo(() => ({ user, setUser, loading }), [user, loading]);
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, setUser, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
