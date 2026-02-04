@@ -327,8 +327,7 @@ const getCreatedTs = (alert) => {
     phoneEnabled = false,
     onCall,
     statusEnabled = false,
-    bright = false,
-    hideIcons = false
+    bright = false
   }) => {
     const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
@@ -414,14 +413,14 @@ const getCreatedTs = (alert) => {
 
         <div className="pt-1.5 border-t border-gray-700/80 mt-2">
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
-            {address && !hideIcons ? (
+            {address ? (
               <div className="flex items-start gap-1.5 text-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
               </div>
             ) : null}
 
-            {timeLine && !hideIcons ? (
+            {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
                 <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                 {isTimeObj ? (
@@ -822,7 +821,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pt-3 pb-1">
+          <div className="sticky top-[56px] z-40 bg-black pt-[7px] pb-0">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -833,7 +832,7 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          <TabsContent value="alerts" className={`space-y-3 pt-2 pb-6 ${noScrollBar}`}>
+          <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
 
                 {visibleActiveAlerts.length === 0 ? (
@@ -1218,7 +1217,6 @@ if (
                                 ))
                               }
                               statusText="COMPLETADA"
-                              hideIcons={true}
                             />
                           </div>
                         </motion.div>
@@ -1228,7 +1226,7 @@ if (
                   )}
                   </TabsContent>
 
-                  <TabsContent value="reservations" className={`space-y-3 pt-2 pb-6 ${noScrollBar}`}>
+                  <TabsContent value="reservations" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                   <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
@@ -1489,7 +1487,6 @@ if (
                               phoneEnabled={phoneEnabled}
                               onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
                               statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
-                              hideIcons={true}
                             />
                           </motion.div>
                         );
@@ -1576,7 +1573,6 @@ if (
                             }
                             statusText="COMPLETADA"
                             statusEnabled={true}
-                            hideIcons={true}
                           />
                         </motion.div>
                       );
