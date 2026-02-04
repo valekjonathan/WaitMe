@@ -528,17 +528,17 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-                  <input
-                    type="text"
-                    placeholder="Buscar dirección..."
-                    value={searchInput}
-                    onChange={handleSearchInputChange}
-                    onFocus={() => setShowSuggestions(true)}
-                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+              <div className="px-2 sm:px-4 py-0.5 sm:py-1 flex-shrink-0 z-50 relative">
+               <div className="relative">
+                 <MapPin className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                 <input
+                   type="text"
+                   placeholder="Buscar dirección..."
+                   value={searchInput}
+                   onChange={handleSearchInputChange}
+                   onFocus={() => setShowSuggestions(true)}
+                   className="w-full bg-gray-900 border border-gray-700 text-white pl-9 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                 />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
