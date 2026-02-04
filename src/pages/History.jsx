@@ -834,13 +834,6 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
 
           <TabsContent value="alerts" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
                 <SectionTag variant="green" text="Activas" />
 
                 {visibleActiveAlerts.length === 0 ? (
@@ -1206,20 +1199,11 @@ if (
                       );
                     })}
                   </div>
-                )}
-              </>
-            )}
-          </TabsContent>
+                  )}
+                  </TabsContent>
 
-          <TabsContent value="reservations" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
-                <SectionTag variant="green" text="Activas" />
+                  <TabsContent value="reservations" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
+                  <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
@@ -1569,13 +1553,11 @@ if (
                         </motion.div>
                       );
                     })}
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
+                    </div>
+                    )}
+                    </TabsContent>
+                    </Tabs>
+                    </main>
 
       <BottomNav />
 
