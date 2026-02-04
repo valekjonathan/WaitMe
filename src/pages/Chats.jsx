@@ -322,7 +322,7 @@ export default function Chats() {
               const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
               const distanceKm = R * c;
               const meters = Math.round(distanceKm * 1000);
-              return `${meters}m`;
+              return `${Math.min(meters, 999)}m`;
             };
             const distanceText = calculateDistance();
 
@@ -333,12 +333,12 @@ export default function Chats() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}>
 
-                <div className={`bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2.5 transition-all border-2 border-purple-500/50`}>
+                <div className={`bg-gradient-to-br ${hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'} rounded-xl p-2.5 transition-all border-2 ${hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'}`}>
 
                     <div className="flex flex-col h-full">
                       {/* Header: "Info del usuario:" + distancia + precio */}
                       <div className="flex justify-between items-center mb-2">
-                        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none">
+                        <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-[95px] flex items-center justify-center text-center cursor-default select-none pointer-events-none`}>
                           Info usuario
                         </Badge>
                         <div className="flex items-center gap-1">
@@ -363,25 +363,26 @@ export default function Chats() {
                          plate={alert.car_plate}
                          carColor={alert.car_color || 'gris'}
                          address={alert.address}
-                         timeLine={<><span className="text-white">Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
+                         timeLine={<><span className={hasUnread ? "text-white" : "text-gray-400"}>Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
                          onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
                          statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
                          phoneEnabled={alert.allow_phone_calls}
                          onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                         dimmed={!hasUnread}
                        />
                       </div>
 
                       {/* Ultimos mensajes */}
                       <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
                         <div className="flex justify-between items-center">
-                          <p className="text-xs font-bold text-purple-400">Ultimos mensajes:</p>
+                          <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
                           {unreadCount > 0 && (
                             <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[3px]">
                               <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-300 mt-1">{conv.last_message_text || 'Sin mensajes'}</p>
+                        <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>{conv.last_message_text || 'Sin mensajes'}</p>
                       </div>
                     </div>
                 </div>
