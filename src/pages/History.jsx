@@ -532,9 +532,6 @@ const getCreatedTs = (alert) => {
     }
   });
 }, [myAlerts, nowTs, queryClient]);
-  const autoFinalizedReservationsRef = useRef(new Set());
-
-  
 
 // ARCHIVO: src/pages/History.jsx
 // CAMBIO EXACTO (según tu ZIP):
