@@ -1,3 +1,4 @@
+// src/App.jsx
 import './App.css'
 import React from 'react'
 import { Toaster } from "@/components/ui/toaster"
@@ -21,7 +22,7 @@ const LayoutWrapper = ({ children, currentPageName }) =>
 
 const FullscreenLoader = ({ text = 'Cargando…' }) => (
   <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-black text-white gap-3 px-6">
-    <div className="w-8 h-8 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+    {/* ✅ Sin rueditas/spinner: evita “pantallas de carga” visuales */}
     <p className="text-sm text-gray-300 text-center">{text}</p>
   </div>
 )
@@ -66,7 +67,7 @@ const AuthenticatedApp = () => {
     return <UserNotRegisteredError />
   }
 
-  // ✅ Si Safari bloquea cookies/sesión → muestra CTA (no pantalla en blanco)
+  // ✅ Si Safari bloquea cookies/sesión → CTA (no pantalla en blanco)
   if (authError?.type === 'auth_required') {
     return (
       <div className="min-h-[100dvh] bg-black text-white flex flex-col items-center justify-center px-6 gap-4">
@@ -77,7 +78,11 @@ const AuthenticatedApp = () => {
           <Button className="bg-purple-600 hover:bg-purple-700" onClick={navigateToLogin}>
             Iniciar sesión
           </Button>
-          <Button variant="outline" className="border-white/30 bg-white/10" onClick={() => window.location.reload()}>
+          <Button
+            variant="outline"
+            className="border-white/30 bg-white/10"
+            onClick={() => window.location.reload()}
+          >
             Recargar
           </Button>
         </div>
