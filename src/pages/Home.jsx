@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -89,6 +89,7 @@ const buildDemoAlerts = (lat, lng) => {
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -208,13 +209,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('reset') === '1') {
       setMode(null);
       setSelectedAlert(null);
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
+  }, [location.search]);
 
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
