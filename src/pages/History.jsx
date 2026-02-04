@@ -831,6 +831,7 @@ const myFinalizedAlerts = useMemo(() => {
                 Tus reservas
               </TabsTrigger>
             </TabsList>
+            <div className="w-full h-px bg-black mt-0.5" />
           </div>
 
           <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
