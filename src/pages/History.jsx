@@ -819,6 +819,8 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           {/* FIX: sin borde negro debajo */}
@@ -1586,6 +1588,8 @@ if (
           </TabsContent>
         </Tabs>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
 

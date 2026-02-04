@@ -406,6 +406,8 @@ export default function Home() {
         }}
       />
 
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
+
       <main className="fixed inset-0">
         <AnimatePresence mode="wait">
           {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
@@ -622,6 +624,8 @@ export default function Home() {
           )}
         </AnimatePresence>
       </main>
+
+      <div className="fixed bottom-[76px] left-0 right-0 h-[1px] bg-purple-500/30 z-40" />
 
       <BottomNav />
 
