@@ -593,10 +593,6 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
-              </h3>
-
               <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
