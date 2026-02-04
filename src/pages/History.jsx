@@ -25,13 +25,11 @@ import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/components/AuthContext';
-import ReservationRequestModal from '@/components/ReservationRequestModal';
 
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
-  const [processingNotification, setProcessingNotification] = useState(false);
 
 useEffect(() => {
   const id = setInterval(() => {
@@ -41,22 +39,6 @@ useEffect(() => {
 }, []);
 
 const queryClient = useQueryClient();
-useEffect(() => {
-  if (!user?.id && !user?.email) return;
-
-  const unsubAlerts = base44.entities.ParkingAlert.subscribe(() => {
-    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-  });
-
-  const unsubNotifications = base44.entities.Notification.subscribe(() => {
-    queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
-  });
-
-  return () => {
-    unsubAlerts?.();
-    unsubNotifications?.();
-  };
-}, [user?.id, user?.email, queryClient]);
 
   // ====== UI helpers ======
   const labelNoClick = 'cursor-default select-none pointer-events-none';
@@ -73,15 +55,28 @@ useEffect(() => {
   };
   const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
 
-  // ====== Fecha: "4 Febrero - 12:27" en hora de Madrid ======
+  // ====== Fecha: "19 Enero - 21:05" en hora de Madrid ======
   const formatCardDate = (ts) => {
     if (!ts) return '--';
     const date = new Date(ts);
-    const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric' });
-    const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'long' });
-    const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
-    return `${day} ${capitalizedMonth} - ${time}`;
+    const madridDateStr = date.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const formatted = madridDateStr
+      .replace(' de ', ' ')
+      .replace(',', ' -')
+      .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
+        const cap = month.charAt(0).toUpperCase() + month.slice(1);
+        return `${day} ${cap}`;
+      });
+    
+    return formatted;
   };
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
@@ -518,6 +513,7 @@ const {
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 5000,
+  refetchInterval: 5000,
   queryFn: async () => {
     const res = await base44.entities.ParkingAlert.list();
     const list = Array.isArray(res) ? res : (res?.data || []);
@@ -530,36 +526,6 @@ const {
     });
   }
 });
-
-// Notificaciones de reserva pendientes
-const { data: pendingNotifications = [] } = useQuery({
-  queryKey: ['pendingReservationNotifications', user?.id, user?.email],
-  enabled: !!user?.id || !!user?.email,
-  staleTime: 3000,
-  queryFn: async () => {
-    try {
-      const allNotifications = await base44.entities.Notification.filter({
-        recipient_id: user?.email || user?.id,
-        type: 'reservation_request',
-        status: 'pending'
-      });
-      return allNotifications || [];
-    } catch (e) {
-      return [];
-    }
-  }
-});
-
-
-
-// Crear notificación mock después de 3 segundos si hay alertas activas
-const [mockNotificationCreated, setMockNotificationCreated] = useState(false);
-const [mockNotifications, setMockNotifications] = useState([]);
-
-
-
-const allNotifications = [...pendingNotifications, ...mockNotifications];
-const activeNotification = allNotifications[0] || null;
  
   const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     queryKey: ['myTransactions', user?.email],
@@ -576,38 +542,6 @@ const activeNotification = allNotifications[0] || null;
   });
 
 
-
-  const mockActiveReservation = useMemo(() => {
-    const baseNow = Date.now();
-    return {
-      id: 'mock-active-reserved-alert',
-      status: 'reserved',
-      user_id: user?.id,
-      user_email: user?.email,
-      user_name: user?.full_name || 'Tu',
-      user_photo: user?.photo_url || null,
-      car_brand: user?.car_brand || 'Seat',
-      car_model: user?.car_model || 'Ibiza',
-      car_color: user?.car_color || 'azul',
-      car_plate: user?.car_plate || '1234ABC',
-      address: 'Calle Uría, 25',
-      latitude: 43.3625,
-      longitude: -5.8490,
-      available_in_minutes: 12,
-      price: 5.0,
-      phone: user?.phone || '612345678',
-      allow_phone_calls: user?.allow_phone_calls ?? true,
-      reserved_by_id: 'demo_buyer_laura',
-      reserved_by_email: 'laura@demo.com',
-      reserved_by_name: 'Laura',
-      reserved_by_car: 'Audi A3',
-      reserved_by_car_color: 'negro',
-      reserved_by_plate: '8899XYZ',
-      reserved_by_vehicle_type: 'car',
-      reserved_by_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-      created_date: new Date(baseNow - 1000 * 60 * 5).toISOString()
-    };
-  }, [user]);
 
   const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
@@ -751,17 +685,15 @@ const myActiveAlerts = useMemo(() => {
     return status === 'active' || status === 'reserved';
   });
   
-  // Si no hay alertas reales, mostrar la mock activa
-  if (filtered.length === 0) return [mockActiveReservation];
+  // Solo mostrar la última alerta activa (la más reciente)
+  if (filtered.length === 0) return [];
   
   const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
-}, [myAlerts, user?.id, user?.email, nowTs, mockActiveReservation]);
+}, [myAlerts, user?.id, user?.email, nowTs]);
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
-const myActiveAlertsFiltered = myActiveAlerts.filter(a => a.status === 'active');
-const currentNotification = pendingNotifications[0] || null;
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -862,81 +794,6 @@ const myFinalizedAlerts = useMemo(() => {
     }
   });
 
-  const acceptReservationMutation = useMutation({
-    mutationFn: async ({ notificationId, alertId, buyerData }) => {
-      // Actualizar la alerta con los datos del comprador
-      await base44.entities.ParkingAlert.update(alertId, {
-        status: 'reserved',
-        reserved_by_id: buyerData.buyer_id,
-        reserved_by_email: buyerData.buyer_email,
-        reserved_by_name: buyerData.buyer_name,
-        reserved_by_car: buyerData.buyer_car,
-        reserved_by_plate: buyerData.buyer_plate,
-        reserved_by_vehicle_type: 'car'
-      });
-
-      // Actualizar la notificación como aceptada (si no es mock)
-      if (!String(notificationId).startsWith('mock-')) {
-        await base44.entities.Notification.update(notificationId, { 
-          status: 'accepted' 
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
-      setProcessingNotification(false);
-    }
-  });
-
-  const rejectReservationMutation = useMutation({
-    mutationFn: async (notificationId) => {
-      // Actualizar la notificación como rechazada (si no es mock)
-      if (!String(notificationId).startsWith('mock-')) {
-        await base44.entities.Notification.update(notificationId, { 
-          status: 'rejected' 
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pendingReservationNotifications'] });
-      setProcessingNotification(false);
-    }
-  });
-
-  const handleAcceptReservation = () => {
-    if (!activeNotification) return;
-    
-    setProcessingNotification(true);
-    
-    acceptReservationMutation.mutate({
-      notificationId: activeNotification.id,
-      alertId: activeNotification.alert_id,
-      buyerData: {
-        buyer_id: activeNotification.sender_id,
-        buyer_email: activeNotification.sender_id,
-        buyer_name: activeNotification.sender_name,
-        buyer_car: activeNotification.buyer_car,
-        buyer_plate: activeNotification.buyer_plate
-      }
-    });
-
-    if (String(activeNotification.id).startsWith('mock-')) {
-      setMockNotifications([]);
-    }
-  };
-
-  const handleRejectReservation = () => {
-    if (!activeNotification) return;
-    
-    setProcessingNotification(true);
-    rejectReservationMutation.mutate(activeNotification.id);
-
-    if (String(activeNotification.id).startsWith('mock-')) {
-      setMockNotifications([]);
-    }
-  };
-
   // ====== Badge ancho igual que la foto (95px) ======
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
 
@@ -966,8 +823,9 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pb-0 -mx-4 px-4">
-            <TabsList className="w-full bg-gray-900">
+          {/* FIX: sin borde negro debajo */}
+          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
               </TabsTrigger>
@@ -977,9 +835,11 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
+          {/* ===================== TUS ALERTAS ===================== */}
+          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1050,11 +910,11 @@ if (
                               <>
                                 <CardHeaderRow
                                   left={
-                                   <Badge
-                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${badgePhotoWidth} ${labelNoClick}`}
-                                   >
-                                     Reservado:
-                                   </Badge>
+                                    <Badge
+                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
+                                    >
+                                      Reservado por:
+                                    </Badge>
                                   }
                                   dateText={dateText}
                                   dateClassName="text-white"
@@ -1082,33 +942,60 @@ if (
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
-                                  <div className="mb-1.5">
-                                  <MarcoContent
-                                    bright={true}
-                                    photoUrl={alert.reserved_by_photo}
-                                    name={alert.reserved_by_name}
-                                    carLabel={alert.reserved_by_car || 'Sin datos'}
-                                    plate={alert.reserved_by_plate}
-                                    carColor={alert.reserved_by_car_color || 'gris'}
-                                    address={alert.address}
-                                    timeLine={{
-                                      main: `Te espera ${alert.available_in_minutes} min ·`,
-                                      accent: `Hasta las ${waitUntilLabel}`
-                                    }}
-                                    onChat={() =>
-                                      (window.location.href = createPageUrl(
-                                        `Chat?alertId=${alert.id}&userId=${
-                                          alert.reserved_by_email || alert.reserved_by_id
-                                        }`
-                                      ))
-                                    }
-                                    statusText={countdownText}
-                                    statusEnabled={true}
-                                    phoneEnabled={Boolean(alert.phone && alert.allow_phone_calls)}
-                                    onCall={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
-                                  />
-                                </div>
+                                  <div className="mb-1.5 h-[220px]">
+                                    <UserCard
+                                      userName={alert.reserved_by_name}
+                                      userPhoto={null}
+                                      carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                                      carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                                      carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                                      carPlate={alert.reserved_by_plate}
+                                      vehicleType={alert.reserved_by_vehicle_type}
+                                      address={formatAddress(alert.address)}
+                                      availableInMinutes={alert.available_in_minutes}
+                                      price={alert.price}
+                                      showLocationInfo={false}
+                                      showContactButtons={true}
+                                      onChat={() =>
+                                        (window.location.href = createPageUrl(
+                                          `Chat?alertId=${alert.id}&userId=${
+                                            alert.reserved_by_email || alert.reserved_by_id
+                                          }`
+                                        ))
+                                      }
+                                      onCall={() =>
+                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
+                                      }
+                                      latitude={alert.latitude}
+                                      longitude={alert.longitude}
+                                      allowPhoneCalls={alert.allow_phone_calls}
+                                      isReserved={true}
+                                    />
+                                  </div>
                                 )}
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start justify-between text-xs">
+                                  <div className="flex items-start gap-1.5">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
+                                  </div>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
                               </>
                             ) : (
                               <>
@@ -1299,32 +1186,7 @@ if (
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-                          <CardHeaderRow
-                            left={
-                              <Badge
-                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Finalizada
-                              </Badge>
-                            }
-                            dateText={dateText}
-                            dateClassName="text-gray-600"
-                            right={
-                              <div className="flex items-center gap-1">
-                                <MoneyChip
-                                  mode="green"
-                                  showUpIcon
-                                  amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
-                                />
-                                <button
-                                  onClick={() => hideKey(key)}
-                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            }
-                          />
+
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
@@ -1356,9 +1218,11 @@ if (
             )}
           </TabsContent>
 
+          {/* ===================== TUS RESERVAS ===================== */}
+          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
-            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
+            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1735,15 +1599,7 @@ if (
           <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
         ))}
 
-      {/* Modal de solicitud de reserva */}
-      {activeNotification && (
-        <ReservationRequestModal
-          notification={activeNotification}
-          onAccept={handleAcceptReservation}
-          onReject={handleRejectReservation}
-          isProcessing={processingNotification}
-        />
-      )}
+      
     </div>
   );
 }

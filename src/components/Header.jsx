@@ -28,10 +28,16 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
+    // Click en el título = recarga de la página actual
     return (
-      <div className="text-lg font-semibold select-none">
+      <button
+        type="button"
+        onClick={() => navigate(0)}
+        className="text-lg font-semibold select-none"
+        aria-label="Recargar página"
+      >
         {TitleInner}
-      </div>
+      </button>
     );
   };
 
@@ -47,9 +53,8 @@ export default function Header({
   );
 
   return (
-    <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm">
-        <div className="px-4 py-3">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <div className="px-4 py-3">
         {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
           {/* IZQUIERDA: atrás + dinero */}

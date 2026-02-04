@@ -115,49 +115,25 @@ function createUserLocationIcon() {
   });
 }
 
-// Pin central fijo tipo Uber
-function createCenterPinIcon() {
-  return L.divIcon({
-    className: 'center-pin-marker',
-    html: `
-      <div style="position: relative; width: 40px; height: 60px;">
-        <div style="
-          position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 3px;
-          height: 45px;
-          background: linear-gradient(to bottom, #a855f7 0%, #7c3aed 100%);
-          box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
-        "></div>
-        <div style="
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 24px;
-          height: 24px;
-          background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 4px 12px rgba(168, 85, 247, 0.5);
-        "></div>
-      </div>
-    `,
-    iconSize: [40, 60],
-    iconAnchor: [20, 60]
-  });
-}
-
-function MapDragHandler({ onMoveEnd }) {
+function LocationMarker({ position, setPosition, isSelecting }) {
   const map = useMapEvents({
-    moveend() {
-      const center = map.getCenter();
-      onMoveEnd({ lat: center.lat, lng: center.lng });
+    click(e) {
+      if (isSelecting) {
+        setPosition(e.latlng);
+      }
     }
   });
-  return null;
+
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, map.getZoom());
+    }
+  }, [position, map]);
+
+  return position === null ? null :
+  <Marker position={position}>
+    </Marker>;
+
 }
 
 function FlyToLocation({ position }) {
@@ -198,33 +174,6 @@ export default function ParkingMap({
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
-  const [centerAddress, setCenterAddress] = useState('');
-  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
-
-  // Actualizar dirección cuando se mueve el mapa (modo selección)
-  const handleMapMove = (center) => {
-    if (!isSelecting) return;
-    
-    setIsLoadingAddress(true);
-    
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center.lat}&lon=${center.lng}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.address) {
-          const road = data.address.road || data.address.street || '';
-          const number = data.address.house_number || '';
-          const address = number ? `${road}, ${number}` : road;
-          setCenterAddress(address);
-          
-          // Actualizar posición seleccionada
-          if (setSelectedPosition) {
-            setSelectedPosition({ lat: center.lat, lng: center.lng });
-          }
-        }
-      })
-      .catch(() => {})
-      .finally(() => setIsLoadingAddress(false));
-  };
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
@@ -320,15 +269,12 @@ export default function ParkingMap({
         
         {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} />}
         
-        {/* Handler para mover el mapa en modo selección */}
-        {isSelecting && <MapDragHandler onMoveEnd={handleMapMove} />}
-
         {/* Marcador de ubicación del usuario estilo Uber */}
-        {normalizedUserLocation && !isSelecting &&
+        {normalizedUserLocation &&
         <Marker 
           position={normalizedUserLocation}
           icon={createUserLocationIcon()}
-          draggable={false}>
+          draggable={isSelecting}>
           </Marker>
         }
 
@@ -414,7 +360,12 @@ export default function ParkingMap({
           </Marker>
         )}
 
-
+        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
+        <Marker
+          position={selectedPosition}
+          icon={createUserLocationIcon()}>
+          </Marker>
+        }
         
         {/* Ruta */}
         {route &&
@@ -440,50 +391,7 @@ export default function ParkingMap({
         )}
       </MapContainer>
 
-      {/* Pin fijo en el centro (solo en modo selección) */}
-      {isSelecting && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -100%)',
-            zIndex: 1000,
-            pointerEvents: 'none'
-          }}
-        >
-          {createCenterPinIcon().options.html && (
-            <div dangerouslySetInnerHTML={{ __html: createCenterPinIcon().options.html }} />
-          )}
-        </div>
-      )}
 
-      {/* Dirección en tiempo real */}
-      {isSelecting && centerAddress && (
-        <div 
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            pointerEvents: 'none',
-            background: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(8px)',
-            color: 'white',
-            padding: '8px 16px',
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: '500',
-            border: '1px solid rgba(168, 85, 247, 0.3)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-            maxWidth: '280px',
-            textAlign: 'center'
-          }}
-        >
-          {isLoadingAddress ? 'Cargando...' : centerAddress}
-        </div>
-      )}
     </div>);
 
 }

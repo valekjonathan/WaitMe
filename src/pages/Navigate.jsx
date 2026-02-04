@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,8 +10,6 @@ import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
 
 export default function Navigate() {
-  const navigate = useNavigate();
-  
   const urlParams = new URLSearchParams(window.location.search);
   const alertId = urlParams.get('alertId');
   
@@ -357,8 +354,8 @@ export default function Navigate() {
       
       // Redirigir a History después de 3 segundos
       setTimeout(() => {
-  navigate(createPageUrl('History'));
-}, 3000);
+        window.location.href = createPageUrl('History');
+      }, 3000);
     };
     
     releasePayment();
@@ -493,14 +490,7 @@ export default function Navigate() {
         <div className="flex gap-2">
           <Button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
-            onClick={() =>
-  displayAlert &&
-  navigate(
-    createPageUrl(
-      `Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`
-    )
-  )
-}
+            onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
             disabled={!displayAlert}
           >
             <MessageCircle className="w-5 h-5 mr-2" />
