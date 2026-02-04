@@ -51,7 +51,7 @@ export default function BottomNav() {
     "absolute top-1 right-2 bg-purple-500/20 border-2 border-purple-500/30 text-purple-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-2 sm:px-4 py-2 sm:py-3 safe-area-inset-bottom z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-2 sm:px-4 py-1 sm:py-2 safe-area-inset-bottom z-50">
       <div className="flex items-center justify-center gap-0">
 
         <Link to={createPageUrl('History')} className="flex-1 min-w-0">

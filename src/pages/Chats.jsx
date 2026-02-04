@@ -326,7 +326,7 @@ export default function Chats() {
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
-      <main className="pt-[54px] sm:pt-[60px] pb-[72px] sm:pb-24 overflow-y-auto">
+      <main className="pt-[54px] sm:pt-[60px] pb-[68px] sm:pb-20 overflow-y-auto">
          <div className="px-2 sm:px-4 pt-2 sm:pt-3 pb-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
