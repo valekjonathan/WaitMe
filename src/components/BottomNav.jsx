@@ -113,8 +113,8 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('Chats')} className="flex-1 min-w-0">
           <Button variant="ghost" className={baseBtn}>
-            <MessageCircle className="w-8 h-8" />
-            <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
+            <MessageCircle className="w-6 sm:w-8 h-6 sm:h-8" />
+            <span className="text-[8px] sm:text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
           </Button>
         </Link>
 
