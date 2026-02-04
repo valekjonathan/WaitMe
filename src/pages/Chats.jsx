@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Navigation } from 'lucide-react';
+import { Search, Navigation } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
@@ -31,10 +32,7 @@ export default function Chats() {
   /* ================= CONVERSATIONS ================= */
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
-    queryFn: async () => {
-      const real = await base44.entities.Conversation.list('-last_message_at', 50);
-      return real || [];
-    },
+    queryFn: () => base44.entities.Conversation.list('-last_message_at', 50),
     staleTime: 60000,
     refetchOnMount: false,
     refetchOnWindowFocus: false
@@ -64,17 +62,43 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  /* ================= FILTER ================= */
+  /* ================= FILTER + SEARCH ================= */
   const filtered = useMemo(() => {
-    return conversations.filter(c => alertsMap.has(c.alert_id));
-  }, [conversations, alertsMap]);
+    return conversations.filter(c => {
+      const alert = alertsMap.get(c.alert_id);
+      if (!alert) return false;
+
+      if (!searchQuery) return true;
+
+      const otherName =
+        c.participant1_id === user?.id
+          ? c.participant2_name
+          : c.participant1_name;
+
+      const text = `${otherName} ${c.last_message_text || ''}`.toLowerCase();
+      return text.includes(searchQuery.toLowerCase());
+    });
+  }, [conversations, alertsMap, searchQuery, user?.id]);
 
   /* ================= RENDER ================= */
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton backTo="Home" unreadCount={totalUnread} />
 
-      <main className="pt-[60px] pb-24 px-4 space-y-3">
+      {/* BUSCADOR */}
+      <div className="pt-[60px] px-4 pb-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+          <Input
+            placeholder="Buscar conversación..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-gray-900 border-gray-700 text-white focus:ring-purple-500"
+          />
+        </div>
+      </div>
+
+      <main className="pb-24 px-4 space-y-3">
         {filtered.map((conv, index) => {
           const isP1 = conv.participant1_id === user?.id;
           const alert = alertsMap.get(conv.alert_id);
@@ -116,8 +140,8 @@ export default function Chats() {
                       <>
                         <span className="text-white">
                           Se va en {alert.available_in_minutes} min ·
-                        </span>
-                        {' '}Te espera
+                        </span>{' '}
+                        Te espera
                       </>
                     }
                     onChat={() =>
