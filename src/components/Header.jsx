@@ -47,8 +47,9 @@ export default function Header({
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm">
-      <div className="px-4 py-3">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm">
+        <div className="px-4 py-3">
         {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
         <div className="relative flex items-center justify-between">
           {/* IZQUIERDA: atrás + dinero */}
@@ -106,6 +107,8 @@ export default function Header({
           </div>
         </div>
       </div>
-    </header>
+      </header>
+      <div className="fixed top-[56px] left-0 right-0 h-[1px] bg-purple-500/30 z-50" />
+    </>
   );
 }
