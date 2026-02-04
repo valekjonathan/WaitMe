@@ -210,9 +210,10 @@ export default function Home() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    if (urlParams.get('reset') === '1') {
+    if (urlParams.get('reset')) {
       setMode(null);
       setSelectedAlert(null);
+      setShowFilters(false);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [location.search]);
