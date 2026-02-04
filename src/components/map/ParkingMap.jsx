@@ -207,6 +207,20 @@ export default function ParkingMap({
     }
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
 
+  // Reverse geocoding para leer dirección al mover mapa en modo selección
+  useEffect(() => {
+    if (isSelecting && selectedPosition && selectedPosition.lat != null && selectedPosition.lng != null) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedPosition.lat}&lon=${selectedPosition.lng}`)
+        .then(res => res.json())
+        .then(data => {
+          const addr = data.address?.road || data.address?.street || data.display_name || 'Ubicación desconocida';
+          setAddress(addr);
+          onAddressChange?.(addr, selectedPosition);
+        })
+        .catch(() => setAddress('Ubicación desconocida'));
+    }
+  }, [selectedPosition, isSelecting, onAddressChange]);
+
   return (
     <div className={`relative ${className}`}>
       <style>{`
