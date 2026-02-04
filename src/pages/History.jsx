@@ -860,7 +860,7 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-screen bg-black text-white">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
-      <main className="pt-[54px] sm:pt-[56px] pb-16 sm:pb-20 px-2 sm:px-4 overflow-y-auto">
+      <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <div className="sticky top-[56px] z-40 bg-black pt-[9px] pb-0">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
