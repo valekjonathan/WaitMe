@@ -974,9 +974,8 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* FIX: sin borde negro debajo */}
-          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
-            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
+          <div className="sticky top-[56px] z-40 bg-black pb-0 -mx-4 px-4">
+            <TabsList className="w-full bg-gray-900">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
               </TabsTrigger>
@@ -986,11 +985,9 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
@@ -1367,11 +1364,9 @@ if (
             )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
           <TabsContent
             value="reservations"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
+            className={`space-y-3 pt-3 pb-24 ${noScrollBar}`}
           >
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
