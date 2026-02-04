@@ -833,12 +833,7 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
-          <TabsContent
-            value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
-          >
+          <TabsContent value="alerts" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
@@ -1216,12 +1211,7 @@ if (
             )}
           </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
-          <TabsContent
-            value="reservations"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
-          >
+          <TabsContent value="reservations" className={`space-y-3 pt-3 pb-6 ${noScrollBar}`}>
             {isLoading ? (
               <div className="text-center py-12 text-gray-500">
                 <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
