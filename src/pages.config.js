@@ -52,10 +52,10 @@ import NotificationSettings from './pages/NotificationSettings';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import History from './pages/History';
 import Navigate from './pages/Navigate';
 import Chats from './pages/Chats';
 import Home from './pages/Home';
+import History from './pages/History';
 import __Layout from './Layout.jsx';
 
 
@@ -65,10 +65,10 @@ export const PAGES = {
     "Notifications": Notifications,
     "Profile": Profile,
     "Settings": Settings,
-    "History": History,
     "Navigate": Navigate,
     "Chats": Chats,
     "Home": Home,
+    "History": History,
 }
 
 export const pagesConfig = {

@@ -327,7 +327,8 @@ const getCreatedTs = (alert) => {
     phoneEnabled = false,
     onCall,
     statusEnabled = false,
-    bright = false
+    bright = false,
+    dimIcons = false
   }) => {
     const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
@@ -415,14 +416,14 @@ const getCreatedTs = (alert) => {
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
                 <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
               </div>
             ) : null}
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
                 {isTimeObj ? (
                   <span className={lineTextCls}>
                     {timeLine.main}{' '}
@@ -821,7 +822,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pt-[7px] pb-0">
+          <div className="sticky top-[56px] z-40 bg-black pt-[9px] pb-0">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -1217,6 +1218,7 @@ if (
                                 ))
                               }
                               statusText="COMPLETADA"
+                              dimIcons={true}
                             />
                           </div>
                         </motion.div>
@@ -1487,6 +1489,7 @@ if (
                               phoneEnabled={phoneEnabled}
                               onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
                               statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                              dimIcons={true}
                             />
                           </motion.div>
                         );
@@ -1573,6 +1576,7 @@ if (
                             }
                             statusText="COMPLETADA"
                             statusEnabled={true}
+                            dimIcons={true}
                           />
                         </motion.div>
                       );
