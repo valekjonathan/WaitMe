@@ -2,52 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { 
-        ArrowLeft, 
-        User, 
-        Coins, 
-        Bell, 
-        Shield, 
-        LogOut, 
-        ChevronRight,
-        CreditCard,
-        HelpCircle,
-        Star,
-        MessageCircle,
-        Settings as SettingsIcon
-      } from 'lucide-react';
+import {
+  User,
+  Coins,
+  Bell,
+  Shield,
+  LogOut,
+  ChevronRight,
+  CreditCard,
+  HelpCircle,
+  Star
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
   const [phone, setPhone] = useState('');
   const [allowCalls, setAllowCalls] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        setPhone(currentUser.phone || '');
-        setAllowCalls(currentUser.allow_phone_calls || false);
-      } catch (error) {
-        console.log('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+    setPhone(user?.phone || '');
+    setAllowCalls(user?.allow_phone_calls || false);
+  }, [user]);
 
   const handleSavePhone = async () => {
     setSaving(true);
@@ -64,25 +47,13 @@ export default function Settings() {
     base44.auth.logout();
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
       <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          {/* Perfil resumen */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+
           <Link to={createPageUrl('Profile')}>
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
               {user?.photo_url ? (
@@ -100,7 +71,6 @@ export default function Settings() {
             </div>
           </Link>
 
-          {/* Créditos */}
           <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -117,26 +87,28 @@ export default function Settings() {
             </Button>
           </div>
 
-          {/* Opciones */}
           <div className="bg-gray-900 rounded-2xl border border-gray-800 divide-y divide-gray-800">
-            <Link to={createPageUrl('NotificationSettings')} className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+            <Link
+              to={createPageUrl('NotificationSettings')}
+              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
+            >
               <Bell className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Notificaciones</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </Link>
-            
+
             <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Shield className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Privacidad</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
-            
+
             <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Star className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Valorar la app</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
-            
+
             <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <HelpCircle className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Ayuda</span>
@@ -144,7 +116,6 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Cerrar sesión */}
           <Button
             onClick={handleLogout}
             variant="outline"
@@ -154,14 +125,14 @@ export default function Settings() {
             Cerrar sesión
           </Button>
 
-          {/* Footer */}
           <div className="text-center pt-4">
             <Logo size="sm" />
             <p className="text-xs text-gray-500 mt-2">Versión 1.0.0</p>
           </div>
+
         </motion.div>
       </main>
-      
+
       <BottomNav />
     </div>
   );
