@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
+
+
 
 export default function Header({
   title = 'WaitMe!',
@@ -11,10 +13,16 @@ export default function Header({
   backTo = 'Home',
   onBack
 }) {
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const renderTitle = () => {
+
+
+  /* ---------- MEMO TITLE ---------- */
+
+  const renderTitle = useMemo(() => {
+
     const t = (title || '').trim();
     const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
@@ -28,7 +36,6 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
-    // Click en el título = recarga de la página actual
     return (
       <button
         type="button"
@@ -39,56 +46,82 @@ export default function Header({
         {TitleInner}
       </button>
     );
-  };
 
-  const BackButton = () => (
+  }, [title, navigate]);
+
+
+
+  /* ---------- MEMO BACK ---------- */
+
+  const handleBack = useCallback(() => {
+    if (onBack) onBack();
+  }, [onBack]);
+
+
+
+  const BackButton = useMemo(() => (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => (onBack ? onBack() : null)}
+      onClick={handleBack}
       className="text-white"
     >
       <ArrowLeft className="w-6 h-6" />
     </Button>
-  );
+  ), [handleBack]);
+
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
-        {/* Barra superior: izquierda (atrás + dinero) / derecha (iconos). El título va centrado REAL (absoluto). */}
+
         <div className="relative flex items-center justify-between">
-          {/* IZQUIERDA: atrás + dinero */}
+
+          {/* IZQUIERDA */}
           <div className="flex items-center">
+
             {showBackButton ? (
               onBack ? (
-                <BackButton />
+                BackButton
               ) : (
                 <Link to={createPageUrl(backTo)}>
-                  <BackButton />
+                  {BackButton}
                 </Link>
               )
             ) : (
-              // placeholder para que el dinero no cambie de sitio entre pantallas
               <div className="w-10" />
             )}
 
-            {/* DINERO: se queda donde está (entre atrás y título) */}
+
+
+            {/* DINERO */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
                 <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                  <span className="text-purple-400 font-bold text-sm">{(user?.credits || 0).toFixed(2)}€</span>
+                  <span className="text-purple-400 font-bold text-sm">
+                    {(user?.credits || 0).toFixed(2)}€
+                  </span>
                 </div>
               </Link>
             </div>
+
           </div>
 
-          {/* TÍTULO CENTRADO REAL: click recarga */}
+
+
+          {/* TITULO */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">{renderTitle()}</div>
+            <div className="pointer-events-auto">
+              {renderTitle}
+            </div>
           </div>
 
-          {/* DERECHA: iconos morados */}
+
+
+          {/* DERECHA */}
           <div className="flex items-center gap-1 justify-end">
+
             <Link to={createPageUrl('Settings')}>
               <Button
                 variant="ghost"
@@ -99,7 +132,8 @@ export default function Header({
               </Button>
             </Link>
 
-            {/* Perfil SIN circulito (no lleva notificaciones) */}
+
+
             <Link to={createPageUrl('Profile')}>
               <Button
                 variant="ghost"
@@ -109,8 +143,11 @@ export default function Header({
                 <User className="w-7 h-7" />
               </Button>
             </Link>
+
           </div>
+
         </div>
+
       </div>
     </header>
   );
