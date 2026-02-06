@@ -53,38 +53,38 @@ export default function Notifications() {
 
   const { data: realNotifications = [] } = useQuery({
 
-    queryKey: ['notifications', user?.id],
+  queryKey: ['notifications', user?.id],
 
-    queryFn: async () => {
+  queryFn: async () => {
 
-      const notifs = await base44.entities.Notification.filter(
-        { recipient_id: user?.id },
-        '-created_date'
-      );
+    const notifs = await base44.entities.Notification.filter(
+      { recipient_id: user?.id },
+      '-created_date'
+    );
 
-      const alertIds = [...new Set(notifs.map(n => n.alert_id).filter(Boolean))];
+    const alertIds = [...new Set(notifs.map(n => n.alert_id).filter(Boolean))];
 
-      const alerts = alertIds.length
-        ? await base44.entities.ParkingAlert.filter({ id: { $in: alertIds } })
-        : [];
+    const alerts = alertIds.length
+      ? await base44.entities.ParkingAlert.filter({ id: { $in: alertIds } })
+      : [];
 
-      const alertsMap = new Map(alerts.map(a => [a.id, a]));
+    const alertsMap = new Map(alerts.map(a => [a.id, a]));
 
-      return notifs.map(n => ({
-        ...n,
-        alert: alertsMap.get(n.alert_id) || null
-      }));
+    return notifs.map(notif => ({
+      ...notif,
+      alert: alertsMap.get(notif.alert_id) || null
+    }));
 
-    },
+  },
 
-    enabled: !!user?.id,
+  enabled: !!user?.id,
 
-    // 🔥 CLAVE → muestra datos instantáneo
-    placeholderData: (prev) => prev ?? [],
+  // 🔥 ESTA ES LA CLAVE
+  placeholderData: (prev) => prev ?? [],
 
-    staleTime: 30000,
-    cacheTime: 300000
-  });
+  staleTime: 30000,
+  cacheTime: 300000
+});
 
   const notifications = realNotifications.length
     ? realNotifications
