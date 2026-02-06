@@ -755,10 +755,41 @@ const myActiveAlerts = useMemo(() => {
   
   const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
-}, [myAlerts, user?.id, user?.email, nowTs]);
+}, [myAlerts, user?.id, user?.email]);
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
+
+  // ====== Auto-expirar alertas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!visibleActiveAlerts || visibleActiveAlerts.length === 0) return;
+
+    const toExpire = visibleActiveAlerts.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'active') return false;
+      if (autoFinalizedRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, visibleActiveAlerts, queryClient]);
+
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -785,6 +816,38 @@ const myFinalizedAlerts = useMemo(() => {
     });
   }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
+
+  // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!reservationsActiveAll || reservationsActiveAll.length === 0) return;
+
+    const toExpire = reservationsActiveAll.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'reserved') return false;
+      if (String(a.id || '').startsWith('mock-')) return false;
+      if (autoFinalizedReservationsRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedReservationsRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, reservationsActiveAll, queryClient]);
+
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
@@ -919,21 +982,6 @@ const myFinalizedAlerts = useMemo(() => {
 
 
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
-if (
-  waitUntilTs &&
-  remainingMs === 0 &&
-  String(alert.status || '').toLowerCase() === 'active' &&
-  !autoFinalizedRef.current.has(alert.id)
-) {
-  autoFinalizedRef.current.add(alert.id);
-
-  base44.entities.ParkingAlert
-    .update(alert.id, { status: 'expired' })
-    .finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    });
-}
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1334,13 +1382,8 @@ if (
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert
-                              .update(alert.id, { status: 'expired' })
-                              .finally(() => {
-                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                              });
                           }
-                        }
+}
                         return null;
                       }
 
