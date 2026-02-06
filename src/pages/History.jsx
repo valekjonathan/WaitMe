@@ -189,11 +189,21 @@ const getCreatedTs = (alert) => {
 
   const key = `alert-created-${alert.id}`;
 
-  // 1. Si ya existe en localStorage, usarlo SIEMPRE
-  const stored = localStorage.getItem(key);
-  if (stored) return Number(stored);
+  // 0) Cache en memoria (evita leer localStorage en cada render)
+  const cached = createdFallbackRef.current.get(key);
+  if (typeof cached === 'number' && cached > 0) return cached;
 
-  // 2. Guardar SOLO la primera vez
+  // 1) Si ya existe en localStorage, usarlo SIEMPRE
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    const t = Number(stored);
+    if (Number.isFinite(t) && t > 0) {
+      createdFallbackRef.current.set(key, t);
+      return t;
+    }
+  }
+
+  // 2) Guardar SOLO la primera vez
   const candidates = [
     alert?.created_date,
     alert?.created_at,
@@ -206,13 +216,15 @@ const getCreatedTs = (alert) => {
     const t = toMs(v);
     if (typeof t === 'number' && t > 0) {
       localStorage.setItem(key, String(t));
+      createdFallbackRef.current.set(key, t);
       return t;
     }
   }
 
-  // 3. Último fallback (una sola vez)
+  // 3) Último fallback (una sola vez)
   const now = Date.now();
   localStorage.setItem(key, String(now));
+  createdFallbackRef.current.set(key, now);
   return now;
 };
 
@@ -506,62 +518,97 @@ const getCreatedTs = (alert) => {
 
   
 
-  const {
-    data: myAlerts = [],
-    isLoading: loadingAlerts
-  } = useQuery({
-    queryKey: ['myAlerts', user?.id, user?.email],
-    enabled: !!user?.id || !!user?.email,
-    staleTime: 30000,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
-    queryFn: async () => {
-      // Evitar list() (muy pesado). Pedimos solo lo necesario y unimos resultados.
-      const calls = [];
+const {
+  data: myAlerts = [],
+  isLoading: loadingAlerts
+} = useQuery({
+  queryKey: ['myAlerts', user?.id, user?.email],
+  enabled: !!user?.id || !!user?.email,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  // Evita “parpadeos”/vacíos mientras refresca
+  placeholderData: (prev) => prev,
+  queryFn: async () => {
+    // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
+    // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
+    const queries = [];
 
-      if (user?.id) {
-        calls.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
-        calls.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
-        calls.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
-      }
-
-      if (user?.email) {
-        calls.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
-      }
-
-      const results = await Promise.all(calls);
-      const merged = results.flat().filter(Boolean);
-
-      // Dedup por id
-      const byId = new Map();
-      for (const a of merged) {
-        if (a?.id != null && !byId.has(a.id)) byId.set(a.id, a);
-      }
-
-      return Array.from(byId.values());
+    if (user?.id) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+      queries.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+      // Para "Tus reservas" (comprador)
+      queries.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
     }
-  });
- 
-  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-    queryKey: ['myTransactions', user?.email],
-    queryFn: async () => {
-      const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.email }),
-        base44.entities.Transaction.filter({ buyer_id: user?.email })
-      ]);
-      return [...asSeller, ...asBuyer];
-    },
-    enabled: !!user?.email,
-    staleTime: 30000,
-    refetchInterval: false
-  });
+    if (user?.email) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+    }
 
+    let results = [];
+    try {
+      if (queries.length > 0) {
+        const res = await Promise.allSettled(queries);
+        for (const r of res) {
+          if (r.status === 'fulfilled') {
+            const list = Array.isArray(r.value) ? r.value : (r.value?.data || []);
+            if (Array.isArray(list) && list.length) results.push(...list);
+          }
+        }
+      } else {
+        results = [];
+      }
+    } catch (e) {
+      results = [];
+    }
 
+    // Fallback seguro si la API no soporta bien algún filtro (no rompe nada)
+    if (!results.length) {
+      const res = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      results = Array.isArray(list) ? list : [];
+    }
 
-  const mockReservationsFinal = useMemo(() => {
+    // Deduplicar por id
+    const map = new Map();
+    for (const a of results) {
+      if (a?.id != null) map.set(a.id, a);
+    }
+    const merged = Array.from(map.values());
+
+    // Filtrado final (igual que antes)
+    return merged.filter((a) => {
+      if (!a) return false;
+      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
+      if (user?.email && a.user_email === user.email) return true;
+      if (user?.id && a.reserved_by_id === user.id) return true;
+      return false;
+    });
+  }
+});
+const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
+  queryKey: ['myTransactions', user?.email],
+  enabled: !!user?.email,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  placeholderData: (prev) => prev,
+  queryFn: async () => {
+    const [asSeller, asBuyer] = await Promise.all([
+      base44.entities.Transaction.filter({ seller_id: user?.email }),
+      base44.entities.Transaction.filter({ buyer_id: user?.email })
+    ]);
+    const s = Array.isArray(asSeller) ? asSeller : (asSeller?.data || []);
+    const b = Array.isArray(asBuyer) ? asBuyer : (asBuyer?.data || []);
+    return [...s, ...b];
+  }
+});
+const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
       {
@@ -712,6 +759,37 @@ const myActiveAlerts = useMemo(() => {
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
+
+  // ====== Auto-expirar alertas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!visibleActiveAlerts || visibleActiveAlerts.length === 0) return;
+
+    const toExpire = visibleActiveAlerts.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'active') return false;
+      if (autoFinalizedRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, visibleActiveAlerts, queryClient]);
+
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -738,6 +816,38 @@ const myFinalizedAlerts = useMemo(() => {
     });
   }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
+
+  // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!reservationsActiveAll || reservationsActiveAll.length === 0) return;
+
+    const toExpire = reservationsActiveAll.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'reserved') return false;
+      if (String(a.id || '').startsWith('mock-')) return false;
+      if (autoFinalizedReservationsRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedReservationsRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, reservationsActiveAll, queryClient]);
+
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
@@ -872,21 +982,6 @@ const myFinalizedAlerts = useMemo(() => {
 
 
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
-if (
-  waitUntilTs &&
-  remainingMs === 0 &&
-  String(alert.status || '').toLowerCase() === 'active' &&
-  !autoFinalizedRef.current.has(alert.id)
-) {
-  autoFinalizedRef.current.add(alert.id);
-
-  base44.entities.ParkingAlert
-    .update(alert.id, { status: 'expired' })
-    .finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    });
-}
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1020,16 +1115,15 @@ if (
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
                                       <button
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                         onClick={() => {
-                                          // 1) Quita la tarjeta al instante (UI)
-                                          hideKey(cardKey);
-                                          // 2) Cancela y refresca datos
-                                          cancelAlertMutation.mutate(alert.id, {
-                                            onSuccess: () => {
-                                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                                            }
-                                          });
-                                        }}
+  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
+  cancelAlertMutation.mutate(alert.id, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
+    }
+  });
+}}
                                         disabled={cancelAlertMutation.isPending}
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
@@ -1288,13 +1382,8 @@ if (
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert
-                              .update(alert.id, { status: 'expired' })
-                              .finally(() => {
-                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                              });
                           }
-                        }
+}
                         return null;
                       }
 
