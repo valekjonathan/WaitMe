@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { Header } from '@/components/Header';
+import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import { useAuth } from '@/lib/AuthContext';
