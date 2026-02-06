@@ -7,6 +7,7 @@ import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, PhoneOff, N
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -14,39 +15,46 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
 
-// Componente contador de cuenta atrás
-function CountdownTimer({ availableInMinutes }) {
+// Componente contador de cuenta atrás EN TIEMPO REAL
+function CountdownTimer({ targetTime, onExpired }) {
   const [timeLeft, setTimeLeft] = useState('');
+  const [expired, setExpired] = useState(false);
 
   useEffect(() => {
     const updateTimer = () => {
-      const totalSeconds = availableInMinutes * 60;
-      const now = Math.floor(Date.now() / 1000);
-      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
-      const elapsed = now - startTime;
-      const remaining = Math.max(0, totalSeconds - elapsed);
+      const now = Date.now();
+      const remaining = Math.max(0, targetTime - now);
+      
+      if (remaining === 0 && !expired) {
+        setExpired(true);
+        onExpired?.();
+      }
 
-      const minutes = Math.floor(remaining / 60);
-      const seconds = remaining % 60;
+      const totalSeconds = Math.floor(remaining / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
       setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [availableInMinutes]);
+  }, [targetTime, onExpired, expired]);
 
   return (
-    <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
-      <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>);
-
+    <div className={`w-full h-8 rounded-lg border-2 ${expired ? 'border-red-500 bg-red-900/20' : 'border-gray-700 bg-gray-800'} flex items-center justify-center px-3`}>
+      <span className={`${expired ? 'text-red-400' : 'text-purple-400'} text-sm font-mono font-bold`}>{timeLeft}</span>
+    </div>
+  );
 }
 
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
+  const [selectedProrroga, setSelectedProrroga] = useState(null);
+  const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -73,88 +81,80 @@ export default function Chats() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
-      // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
       
-      // Datos mock para demostración
+      // 4 tarjetas demo: 2 con mensajes sin leer (encendidas), 2 con mensajes leídos (apagadas)
       const mockConversations = [
+        // TARJETA 1: RESERVASTE A (con mensajes sin leer - ENCENDIDA)
         {
-          id: 'mock1',
+          id: 'mock_reservaste_1',
           participant1_id: user?.id || 'user1',
           participant1_name: 'Tu',
           participant1_photo: user?.photo_url,
-          participant2_id: 'user2',
+          participant2_id: 'seller_sofia',
+          participant2_name: 'Sofía',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          alert_id: 'alert_reservaste_1',
+          last_message_text: 'Perfecto, voy llegando',
+          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
+          unread_count_p1: 2,
+          unread_count_p2: 0,
+          reservation_type: 'buyer' // Tú reservaste
+        },
+        // TARJETA 2: TE RESERVÓ (con mensajes sin leer - ENCENDIDA)
+        {
+          id: 'mock_te_reservo_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'buyer_marco',
+          participant2_name: 'Marco',
+          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          alert_id: 'alert_te_reservo_1',
+          last_message_text: '¿Sigues ahí?',
+          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
+          unread_count_p1: 3,
+          unread_count_p2: 0,
+          reservation_type: 'seller' // Te reservaron
+        },
+        // TARJETA 3: RESERVASTE A (todos los mensajes leídos - APAGADA)
+        {
+          id: 'mock_reservaste_2',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_laura',
           participant2_name: 'Laura',
           participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          alert_id: 'alert1',
-          last_message_text: 'Genial, aguanto.',
-          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
+          alert_id: 'alert_reservaste_2',
+          last_message_text: 'Genial, aguanto',
+          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
           unread_count_p1: 0,
-          unread_count_p2: 0
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
         },
+        // TARJETA 4: TE RESERVÓ (todos los mensajes leídos - APAGADA)
         {
-          id: 'mock2',
+          id: 'mock_te_reservo_2',
           participant1_id: user?.id || 'user1',
           participant1_name: 'Tu',
           participant1_photo: user?.photo_url,
-          participant2_id: 'user3',
-          participant2_name: 'Marta',
-          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          alert_id: 'alert2',
-          last_message_text: 'Vale, llego en 10 minutos',
-          last_message_at: new Date(Date.now() - 5 * 60000).toISOString(),
-          unread_count_p1: 1,
-          unread_count_p2: 0
-        },
-        {
-          id: 'mock3',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'user4',
+          participant2_id: 'buyer_carlos',
           participant2_name: 'Carlos',
           participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          alert_id: 'alert3',
-          last_message_text: 'Perfecto, ya estoy ahí',
+          alert_id: 'alert_te_reservo_2',
+          last_message_text: 'Estoy cerca',
           last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
           unread_count_p1: 0,
-          unread_count_p2: 0
-        },
-        {
-            id: 'mock4',
-            participant1_id: user?.id || 'user1',
-            participant1_name: 'Tu',
-            participant1_photo: user?.photo_url,
-            participant2_id: 'user5',
-            participant2_name: 'Sofía',
-            participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-            alert_id: 'alert4',
-            last_message_text: 'Ya voy llegando, 2 minutos',
-            last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-            unread_count_p1: 2,
-            unread_count_p2: 0
-          },
-          {
-            id: 'mock5',
-            participant1_id: user?.id || 'user1',
-            participant1_name: 'Tu',
-            participant1_photo: user?.photo_url,
-            participant2_id: 'user6',
-            participant2_name: 'Marco',
-            participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
-            alert_id: 'alert5',
-            last_message_text: '¿A qué hora te liberas?',
-            last_message_at: new Date(Date.now() - 3 * 60000).toISOString(),
-            unread_count_p1: 0,
-            unread_count_p2: 1,
-            status: 'reserved'
-          }
-        ];
+          unread_count_p2: 0,
+          reservation_type: 'seller'
+        }
+      ];
 
       const combined = [...mockConversations, ...allConversations];
       return combined.sort((a, b) =>
-      new Date(b.last_message_at || b.updated_date || b.created_date) -
-      new Date(a.last_message_at || a.updated_date || a.created_date)
+        new Date(b.last_message_at || b.updated_date || b.created_date) -
+        new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
     staleTime: 10000,
@@ -182,88 +182,102 @@ export default function Chats() {
     queryFn: async () => {
       const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
       
-      // Datos mock de alertas
+      // Datos mock de alertas correspondientes a las 4 tarjetas
+      const now = Date.now();
       const mockAlerts = [
+        // ALERT 1: RESERVASTE A Sofía (12 minutos para llegar)
         {
-          id: 'alert1',
-          user_name: 'Laura',
-          user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          car_brand: 'Opel',
-          car_model: 'Corsa',
-          car_plate: '9812 GHJ',
-          price: 4,
-          available_in_minutes: 28,
-          address: 'Paseo de la Castellana, 42',
-          latitude: 40.464667,
-          longitude: -3.632623,
-          allow_phone_calls: true,
-          phone: '+34612345678'
-        },
-        {
-          id: 'alert2',
-          user_name: 'Marta',
-          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          price: 3,
-          available_in_minutes: 15,
-          address: 'Calle Mayor, 18',
-          latitude: 40.416775,
-          longitude: -3.703790,
-          allow_phone_calls: false,
-          phone: null
-        },
-        {
-          id: 'alert3',
-          user_name: 'Carlos',
-          user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          car_brand: 'Toyota',
-          car_model: 'Yaris',
-          car_plate: '5678 DEF',
-          price: 5,
-          available_in_minutes: 45,
-          address: 'Avenida del Paseo, 25',
-          latitude: 40.456775,
-          longitude: -3.688790,
-          allow_phone_calls: true,
-          phone: '+34698765432'
-        },
-        {
-          id: 'alert4',
+          id: 'alert_reservaste_1',
           user_name: 'Sofía',
           user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
           car_brand: 'Renault',
           car_model: 'Clio',
           car_plate: '7733 MNP',
+          car_color: 'rojo',
           price: 6,
-          available_in_minutes: 8,
-          address: 'Calle Uría, 33',
+          available_in_minutes: 12,
+          target_time: now + (12 * 60 * 1000), // 12 minutos desde ahora
+          address: 'Calle Uría, 33, Oviedo',
           latitude: 43.362776,
           longitude: -5.845890,
           allow_phone_calls: true,
-          phone: '+34677889900'
+          phone: '+34677889900',
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          status: 'reserved',
+          created_date: new Date(now - 1 * 60000).toISOString()
         },
+        // ALERT 2: TE RESERVÓ Marco (8 minutos para que llegue)
         {
-          id: 'alert5',
-          user_name: 'Marco',
-          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
-          car_brand: 'BMW',
-          car_model: 'Serie 3',
-          car_plate: '5521 LKP',
-          price: 5.5,
-          available_in_minutes: 12,
-          address: 'Calle Campoamor, 15',
+          id: 'alert_te_reservo_1',
+          user_name: 'Tu',
+          user_photo: user?.photo_url,
+          car_brand: 'Seat',
+          car_model: 'Ibiza',
+          car_plate: '1234 ABC',
+          car_color: 'azul',
+          price: 4,
+          available_in_minutes: 8,
+          target_time: now + (8 * 60 * 1000), // 8 minutos desde ahora
+          address: 'Calle Campoamor, 15, Oviedo',
           latitude: 43.357815,
           longitude: -5.849790,
           allow_phone_calls: true,
-          phone: '+34666554433',
-          reserved_by_id: user?.id || 'buyer1',
+          phone: user?.phone,
+          user_id: user?.id,
+          reserved_by_id: 'buyer_marco',
+          reserved_by_name: 'Marco',
+          reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          status: 'reserved',
+          created_date: new Date(now - 2 * 60000).toISOString()
+        },
+        // ALERT 3: RESERVASTE A Laura (25 minutos para llegar)
+        {
+          id: 'alert_reservaste_2',
+          user_name: 'Laura',
+          user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          car_brand: 'Opel',
+          car_model: 'Corsa',
+          car_plate: '9812 GHJ',
+          car_color: 'blanco',
+          price: 4,
+          available_in_minutes: 25,
+          target_time: now + (25 * 60 * 1000),
+          address: 'Paseo de la Castellana, 42, Madrid',
+          latitude: 40.464667,
+          longitude: -3.632623,
+          allow_phone_calls: true,
+          phone: '+34612345678',
+          reserved_by_id: user?.id,
           reserved_by_name: 'Tu',
-          reserved_by_email: user?.email,
-          status: 'reserved'
+          status: 'reserved',
+          created_date: new Date(now - 10 * 60000).toISOString()
+        },
+        // ALERT 4: TE RESERVÓ Carlos (18 minutos para que llegue)
+        {
+          id: 'alert_te_reservo_2',
+          user_name: 'Tu',
+          user_photo: user?.photo_url,
+          car_brand: 'Toyota',
+          car_model: 'Yaris',
+          car_plate: '5678 DEF',
+          car_color: 'gris',
+          price: 5,
+          available_in_minutes: 18,
+          target_time: now + (18 * 60 * 1000),
+          address: 'Avenida del Paseo, 25, Madrid',
+          latitude: 40.456775,
+          longitude: -3.688790,
+          allow_phone_calls: true,
+          phone: user?.phone,
+          user_id: user?.id,
+          reserved_by_id: 'buyer_carlos',
+          reserved_by_name: 'Carlos',
+          reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          status: 'reserved',
+          created_date: new Date(now - 15 * 60000).toISOString()
         }
-        ];
+      ];
       
       return [...mockAlerts, ...realAlerts];
     },
@@ -320,6 +334,43 @@ export default function Chats() {
     return Math.max(1, minutes);
   };
 
+  // Manejar cuando expira el contador
+  const handleCountdownExpired = (alert, isBuyer) => {
+    setCurrentExpiredAlert({ alert, isBuyer });
+    setShowProrrogaDialog(true);
+  };
+
+  // Manejar prórroga
+  const handleProrroga = async () => {
+    if (!selectedProrroga || !currentExpiredAlert) return;
+    
+    const { minutes, price } = selectedProrroga;
+    const { alert, isBuyer } = currentExpiredAlert;
+    
+    // Aquí iría la lógica de crear notificación de prórroga
+    console.log(`Prórroga solicitada: ${minutes} min por ${price}€`);
+    
+    // Crear notificación para el otro usuario
+    try {
+      await base44.entities.Notification.create({
+        type: 'extension_request',
+        recipient_id: isBuyer ? alert.user_id : alert.reserved_by_id,
+        sender_id: user?.id,
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        alert_id: alert.id,
+        amount: price,
+        extension_minutes: minutes,
+        status: 'pending'
+      });
+    } catch (err) {
+      console.error('Error creando notificación de prórroga:', err);
+    }
+    
+    setShowProrrogaDialog(false);
+    setSelectedProrroga(null);
+    setCurrentExpiredAlert(null);
+  };
+
 
 
   return (
@@ -359,17 +410,23 @@ export default function Chats() {
             // Borde encendido SOLO si tiene mensajes no leídos
             const hasUnread = unreadCount > 0;
 
-            // Formatear fecha creación/último mensaje
-             const formatCardDate = (ts) => {
-               if (!ts) return '--';
-               const date = new Date(ts);
-               const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
-               const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
-               const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-               return `${day} ${month} - ${time}`;
-             };
+            // Formatear fecha en formato "06 Feb - 12:42"
+            const formatCardDate = (ts) => {
+              if (!ts) return '--';
+              const date = new Date(ts);
+              const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
+              let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
+              // Capitalizar primera letra
+              month = month.charAt(0).toUpperCase() + month.slice(1);
+              const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+              return `${day} ${month} - ${time}`;
+            };
 
             const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
+
+            // Determinar si es comprador o vendedor
+            const isBuyer = alert?.reserved_by_id === user?.id;
+            const isSeller = alert?.user_id === user?.id || conv.reservation_type === 'seller';
 
             // Resolver datos del otro usuario desde usersMap
             const otherUserData = usersMap.get(otherUserId);
@@ -454,20 +511,46 @@ export default function Chats() {
 
                       {/* Tarjeta de usuario con MarcoCard */}
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                       <MarcoCard
-                         photoUrl={otherUser.photo}
-                         name={otherUserName}
-                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                         plate={alert.car_plate}
-                         carColor={alert.car_color || 'gris'}
-                         address={alert.address}
-                         timeLine={<><span className={hasUnread ? "text-white" : "text-gray-400"}>Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
-                         onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                         statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
-                         phoneEnabled={alert.allow_phone_calls}
-                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                         dimmed={!hasUnread}
-                       />
+                      <MarcoCard
+                        photoUrl={isBuyer ? alert.user_photo : (alert.reserved_by_photo || otherUser.photo)}
+                        name={isBuyer ? alert.user_name : (alert.reserved_by_name || otherUserName)}
+                        carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
+                        plate={alert.car_plate}
+                        carColor={alert.car_color || 'gris'}
+                        address={alert.address}
+                        timeLine={
+                          isSeller ? (
+                            <>
+                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
+                                Te vas en {alert.available_in_minutes} min · Debes esperar hasta las {format(new Date(alert.target_time || Date.now() + alert.available_in_minutes * 60000), 'HH:mm')}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
+                                Tiempo para llegar:
+                              </span>
+                            </>
+                          )
+                        }
+                        onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
+                        statusText={
+                          isSeller ? (
+                            <CountdownTimer 
+                              targetTime={alert.target_time || Date.now() + alert.available_in_minutes * 60000}
+                              onExpired={() => handleCountdownExpired(alert, false)}
+                            />
+                          ) : (
+                            <CountdownTimer 
+                              targetTime={alert.target_time || Date.now() + alert.available_in_minutes * 60000}
+                              onExpired={() => handleCountdownExpired(alert, true)}
+                            />
+                          )
+                        }
+                        phoneEnabled={alert.allow_phone_calls}
+                        onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                        dimmed={!hasUnread}
+                      />
                       </div>
 
                       {/* Ultimos mensajes */}
@@ -491,6 +574,89 @@ export default function Chats() {
               </main>
 
       <BottomNav />
-    </div>);
 
+      {/* Dialog de prórroga */}
+      <Dialog open={showProrrogaDialog} onOpenChange={setShowProrrogaDialog}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              {currentExpiredAlert?.isBuyer 
+                ? '⏱️ No te has presentado' 
+                : '⏱️ Usuario no se ha presentado'}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {currentExpiredAlert?.isBuyer 
+                ? 'Se te devolverá tu importe menos la comisión de WaitMe! (33%)' 
+                : 'Se te ingresará el 33% del importe de la operación como compensación por tu espera'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <p className="text-sm text-gray-300 font-semibold">¿Deseas prorrogar el tiempo?</p>
+            
+            <div className="space-y-2">
+              <button
+                onClick={() => setSelectedProrroga({ minutes: 5, price: 1 })}
+                className={`w-full p-3 rounded-lg border-2 transition-all ${
+                  selectedProrroga?.minutes === 5
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">5 minutos más</span>
+                  <span className="text-purple-400 font-bold">1€</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setSelectedProrroga({ minutes: 10, price: 3 })}
+                className={`w-full p-3 rounded-lg border-2 transition-all ${
+                  selectedProrroga?.minutes === 10
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">10 minutos más</span>
+                  <span className="text-purple-400 font-bold">3€</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setSelectedProrroga({ minutes: 15, price: 5 })}
+                className={`w-full p-3 rounded-lg border-2 transition-all ${
+                  selectedProrroga?.minutes === 15
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">15 minutos más</span>
+                  <span className="text-purple-400 font-bold">5€</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowProrrogaDialog(false)}
+              className="flex-1 border-gray-700"
+            >
+              {currentExpiredAlert?.isBuyer ? 'Aceptar devolución' : 'Aceptar compensación'}
+            </Button>
+            <Button
+              onClick={handleProrroga}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              disabled={!selectedProrroga}
+            >
+              Solicitar prórroga
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
