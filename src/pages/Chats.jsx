@@ -97,7 +97,7 @@ export default function Chats() {
           alert_id: 'alert_reservaste_1',
           last_message_text: 'Perfecto, voy llegando',
           last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
+          unread_count_p1: 3,
           unread_count_p2: 0,
           reservation_type: 'buyer' // Tú reservaste
         },
@@ -113,7 +113,7 @@ export default function Chats() {
           alert_id: 'alert_te_reservo_1',
           last_message_text: '¿Sigues ahí?',
           last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 2,
+          unread_count_p1: 5,
           unread_count_p2: 0,
           reservation_type: 'seller' // Te reservaron
         },
@@ -555,7 +555,6 @@ export default function Chats() {
                         }
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                        bright={hasUnread}
                         dimmed={!hasUnread}
                       />
                       </div>
