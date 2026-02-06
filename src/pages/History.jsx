@@ -189,21 +189,11 @@ const getCreatedTs = (alert) => {
 
   const key = `alert-created-${alert.id}`;
 
-  // 0) Cache en memoria (evita leer localStorage en cada render)
-  const cached = createdFallbackRef.current.get(key);
-  if (typeof cached === 'number' && cached > 0) return cached;
-
-  // 1) Si ya existe en localStorage, usarlo SIEMPRE
+  // 1. Si ya existe en localStorage, usarlo SIEMPRE
   const stored = localStorage.getItem(key);
-  if (stored) {
-    const t = Number(stored);
-    if (Number.isFinite(t) && t > 0) {
-      createdFallbackRef.current.set(key, t);
-      return t;
-    }
-  }
+  if (stored) return Number(stored);
 
-  // 2) Guardar SOLO la primera vez
+  // 2. Guardar SOLO la primera vez
   const candidates = [
     alert?.created_date,
     alert?.created_at,
@@ -216,15 +206,13 @@ const getCreatedTs = (alert) => {
     const t = toMs(v);
     if (typeof t === 'number' && t > 0) {
       localStorage.setItem(key, String(t));
-      createdFallbackRef.current.set(key, t);
       return t;
     }
   }
 
-  // 3) Último fallback (una sola vez)
+  // 3. Último fallback (una sola vez)
   const now = Date.now();
   localStorage.setItem(key, String(now));
-  createdFallbackRef.current.set(key, now);
   return now;
 };
 
@@ -524,90 +512,106 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 5 * 60 * 1000,
+  staleTime: 30 * 1000,
   gcTime: 10 * 60 * 1000,
   refetchInterval: false,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchOnMount: false,
-  // Evita “parpadeos”/vacíos mientras refresca
-  placeholderData: (prev) => prev,
+  keepPreviousData: true,
+  placeholderData: [],
   queryFn: async () => {
-    // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
-    // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
-    const queries = [];
-
-    if (user?.id) {
-      queries.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
-      queries.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
-      // Para "Tus reservas" (comprador)
-      queries.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
-    }
-    if (user?.email) {
-      queries.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
-    }
-
-    let results = [];
+    // ✅ OPT: evitamos list() global (muy lento). Hacemos filtros directos y merge.
+    // Fallback seguro a list() si el backend no soporta algún filtro.
     try {
-      if (queries.length > 0) {
-        const res = await Promise.allSettled(queries);
-        for (const r of res) {
-          if (r.status === 'fulfilled') {
-            const list = Array.isArray(r.value) ? r.value : (r.value?.data || []);
-            if (Array.isArray(list) && list.length) results.push(...list);
-          }
-        }
-      } else {
-        results = [];
-      }
-    } catch (e) {
-      results = [];
-    }
+      const tasks = [];
 
-    // Fallback seguro si la API no soporta bien algún filtro (no rompe nada)
-    if (!results.length) {
+      if (user?.id) {
+        tasks.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+        tasks.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+      }
+
+      if (user?.email) {
+        tasks.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+      }
+
+      const settled = await Promise.allSettled(tasks);
+      const merged = [];
+      for (const r of settled) {
+        if (r.status === 'fulfilled') {
+          const v = r.value;
+          const arr = Array.isArray(v) ? v : (v?.data || []);
+          if (Array.isArray(arr)) merged.push(...arr);
+        }
+      }
+
+      const map = new Map();
+      for (const a of merged) {
+        if (a?.id && !map.has(a.id)) map.set(a.id, a);
+      }
+      return Array.from(map.values());
+    } catch (e) {
       const res = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(res) ? res : (res?.data || []);
-      results = Array.isArray(list) ? list : [];
+      return list.filter((a) => {
+        if (!a) return false;
+        if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
+        if (user?.email && a.user_email === user.email) return true;
+        return false;
+      });
     }
-
-    // Deduplicar por id
-    const map = new Map();
-    for (const a of results) {
-      if (a?.id != null) map.set(a.id, a);
-    }
-    const merged = Array.from(map.values());
-
-    // Filtrado final (igual que antes)
-    return merged.filter((a) => {
-      if (!a) return false;
-      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
-      if (user?.email && a.user_email === user.email) return true;
-      if (user?.id && a.reserved_by_id === user.id) return true;
-      return false;
-    });
   }
 });
+
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-  queryKey: ['myTransactions', user?.email],
-  enabled: !!user?.email,
-  staleTime: 5 * 60 * 1000,
+  queryKey: ['myTransactions', user?.id, user?.email],
+  enabled: !!user?.id || !!user?.email,
+  staleTime: 30 * 1000,
   gcTime: 10 * 60 * 1000,
   refetchInterval: false,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchOnMount: false,
-  placeholderData: (prev) => prev,
+  keepPreviousData: true,
+  placeholderData: [],
   queryFn: async () => {
-    const [asSeller, asBuyer] = await Promise.all([
-      base44.entities.Transaction.filter({ seller_id: user?.email }),
-      base44.entities.Transaction.filter({ buyer_id: user?.email })
-    ]);
-    const s = Array.isArray(asSeller) ? asSeller : (asSeller?.data || []);
-    const b = Array.isArray(asBuyer) ? asBuyer : (asBuyer?.data || []);
-    return [...s, ...b];
+    // ✅ OPT: traemos solo lo tuyo (id y/o email) y mergeamos.
+    try {
+      const tasks = [];
+      if (user?.id) {
+        tasks.push(base44.entities.Transaction.filter({ seller_id: user.id }));
+        tasks.push(base44.entities.Transaction.filter({ buyer_id: user.id }));
+      }
+      if (user?.email) {
+        tasks.push(base44.entities.Transaction.filter({ seller_id: user.email }));
+        tasks.push(base44.entities.Transaction.filter({ buyer_id: user.email }));
+      }
+
+      const settled = await Promise.allSettled(tasks);
+      const merged = [];
+      for (const r of settled) {
+        if (r.status === 'fulfilled') {
+          const v = r.value;
+          const arr = Array.isArray(v) ? v : (v?.data || []);
+          if (Array.isArray(arr)) merged.push(...arr);
+        }
+      }
+
+      const map = new Map();
+      for (const t of merged) {
+        if (t?.id && !map.has(t.id)) map.set(t.id, t);
+      }
+      return Array.from(map.values());
+    } catch (e) {
+      const [asSeller, asBuyer] = await Promise.all([
+        base44.entities.Transaction.filter({ seller_id: user?.email }),
+        base44.entities.Transaction.filter({ buyer_id: user?.email })
+      ]);
+      return [...asSeller, ...asBuyer];
+    }
   }
 });
+
 const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
@@ -753,43 +757,12 @@ const myActiveAlerts = useMemo(() => {
   // Solo mostrar la última alerta activa (la más reciente)
   if (filtered.length === 0) return [];
   
-  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email]);
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
-
-  // ====== Auto-expirar alertas activas cuando el contador llega a 0 (sin side-effects en render) ======
-  useEffect(() => {
-    if (!visibleActiveAlerts || visibleActiveAlerts.length === 0) return;
-
-    const toExpire = visibleActiveAlerts.filter((a) => {
-      if (!a) return false;
-      if (String(a.status || '').toLowerCase() !== 'active') return false;
-      if (autoFinalizedRef.current.has(a.id)) return false;
-
-      const createdTs = getCreatedTs(a);
-      const waitUntilTs = getWaitUntilTs(a);
-      if (!waitUntilTs || !createdTs) return false;
-
-      const remainingMs = Math.max(0, waitUntilTs - nowTs);
-      return remainingMs === 0;
-    });
-
-    if (toExpire.length === 0) return;
-
-    toExpire.forEach((a) => autoFinalizedRef.current.add(a.id));
-
-    Promise.all(
-      toExpire.map((a) =>
-        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
-      )
-    ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    });
-  }, [nowTs, visibleActiveAlerts, queryClient]);
-
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -816,38 +789,6 @@ const myFinalizedAlerts = useMemo(() => {
     });
   }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
-
-  // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
-  useEffect(() => {
-    if (!reservationsActiveAll || reservationsActiveAll.length === 0) return;
-
-    const toExpire = reservationsActiveAll.filter((a) => {
-      if (!a) return false;
-      if (String(a.status || '').toLowerCase() !== 'reserved') return false;
-      if (String(a.id || '').startsWith('mock-')) return false;
-      if (autoFinalizedReservationsRef.current.has(a.id)) return false;
-
-      const createdTs = getCreatedTs(a);
-      const waitUntilTs = getWaitUntilTs(a);
-      if (!waitUntilTs || !createdTs) return false;
-
-      const remainingMs = Math.max(0, waitUntilTs - nowTs);
-      return remainingMs === 0;
-    });
-
-    if (toExpire.length === 0) return;
-
-    toExpire.forEach((a) => autoFinalizedReservationsRef.current.add(a.id));
-
-    Promise.all(
-      toExpire.map((a) =>
-        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
-      )
-    ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    });
-  }, [nowTs, reservationsActiveAll, queryClient]);
-
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
@@ -982,6 +923,21 @@ const myFinalizedAlerts = useMemo(() => {
 
 
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
+if (
+  waitUntilTs &&
+  remainingMs === 0 &&
+  String(alert.status || '').toLowerCase() === 'active' &&
+  !autoFinalizedRef.current.has(alert.id)
+) {
+  autoFinalizedRef.current.add(alert.id);
+
+  base44.entities.ParkingAlert
+    .update(alert.id, { status: 'expired' })
+    .finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+}
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1114,9 +1070,7 @@ const myFinalizedAlerts = useMemo(() => {
                                         showUpIcon
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
-                                      <button
-                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-                                        onClick={() => {
+                                      \1\2
   hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
   cancelAlertMutation.mutate(alert.id, {
     onSuccess: () => {
@@ -1382,8 +1336,13 @@ const myFinalizedAlerts = useMemo(() => {
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
+                            base44.entities.ParkingAlert
+                              .update(alert.id, { status: 'expired' })
+                              .finally(() => {
+                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                              });
                           }
-}
+                        }
                         return null;
                       }
 
