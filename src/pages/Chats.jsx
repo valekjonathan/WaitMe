@@ -30,7 +30,6 @@ const formatMMSS = (ms) => {
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
 const getTargetTimeMs = (alert) => {
-  // Fallback legacy: target_time puede venir como number o ISO string.
   const t = alert?.target_time;
   if (!t) return null;
   if (typeof t === 'number') return t;
@@ -56,76 +55,32 @@ const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
 const osrmRouteUrl = (from, to) =>
   `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false&alternatives=false&steps=false`;
 
-// ======================
-// Hook ETA
-// ======================
-function useRealtimeETA({ enabled, from, to, refreshMs = 20000 }) {
-  const [etaSeconds, setEtaSeconds] = useState(null);
-  const [etaUpdatedAt, setEtaUpdatedAt] = useState(0);
-  const abortRef = useRef(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const clearAbort = () => {
-      try {
-        abortRef.current?.abort?.();
-      } catch (e) {
-        // ignore
-      }
-      abortRef.current = null;
-    };
-
-    const fetchETA = async () => {
-      if (!enabled || !from || !to) return;
-
-      clearAbort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      try {
-        const res = await fetch(osrmRouteUrl(from, to), { signal: controller.signal });
-        if (!res.ok) throw new Error(`OSRM ${res.status}`);
-        const data = await res.json();
-        const duration = data?.routes?.[0]?.duration; // segundos
-        if (!mounted) return;
-        if (typeof duration === 'number' && Number.isFinite(duration)) {
-          setEtaSeconds(Math.max(0, Math.round(duration)));
-          setEtaUpdatedAt(Date.now());
-        }
-      } catch (e) {
-        // Si falla, no rompemos nada: mantenemos último ETA válido
-      }
-    };
-
-    // Primera carga inmediata + polling
-    fetchETA();
-    const id = setInterval(fetchETA, refreshMs);
-
-    return () => {
-      mounted = false;
-      clearInterval(id);
-      clearAbort();
-    };
-  }, [enabled, from?.lat, from?.lon, to?.lat, to?.lon, refreshMs]);
-
-  return { etaSeconds, etaUpdatedAt };
+async function fetchOsrmEtaSeconds(from, to, signal) {
+  const res = await fetch(osrmRouteUrl(from, to), { signal });
+  if (!res.ok) throw new Error(`OSRM ${res.status}`);
+  const data = await res.json();
+  const duration = data?.routes?.[0]?.duration;
+  if (typeof duration === 'number' && Number.isFinite(duration)) return Math.max(0, Math.round(duration));
+  throw new Error('OSRM duration inválido');
 }
 
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-
   const [nowTs, setNowTs] = useState(Date.now());
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
   const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
 
-  const expiredHandledRef = useRef(new Set());
+  // ETA cache: alertId -> { etaSeconds, fetchedAt }
+  const [etaMap, setEtaMap] = useState({});
 
-  // Tick global (1 vez) para TODOS los contadores => más fluido y más rápido
+  const expiredHandledRef = useRef(new Set());
+  const osrmAbortRef = useRef(null);
+
+  // Tick global (1 vez) para TODOS los contadores
   useEffect(() => {
     const id = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(id);
@@ -161,7 +116,6 @@ export default function Chats() {
     queryFn: async () => {
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
 
-      // 4 tarjetas demo
       const mockConversations = [
         {
           id: 'mock_reservaste_1',
@@ -226,7 +180,11 @@ export default function Chats() {
       ];
 
       const combined = [...mockConversations, ...allConversations];
-      return combined.sort((a, b) => new Date(b.last_message_at || b.updated_date || b.created_date) - new Date(a.last_message_at || a.updated_date || a.created_date));
+      return combined.sort(
+        (a, b) =>
+          new Date(b.last_message_at || b.updated_date || b.created_date) -
+          new Date(a.last_message_at || a.updated_date || a.created_date)
+      );
     },
     staleTime: 10000,
     refetchInterval: false
@@ -240,7 +198,6 @@ export default function Chats() {
     queryFn: async () => {
       const now = Date.now();
 
-      // Coordenadas del "otro" para que el ETA sea 100% en tiempo real también en mocks
       const mockAlerts = [
         {
           id: 'alert_reservaste_1',
@@ -389,7 +346,7 @@ export default function Chats() {
   }, [conversations, searchQuery, user?.id]);
 
   // ======================
-  // Expiración + prórroga (cuando el ETA llega a 0)
+  // Expiración + prórroga
   // ======================
   const openExpiredDialog = (alert, isBuyer) => {
     if (!alert?.id) return;
@@ -469,12 +426,140 @@ export default function Chats() {
     const dLon = (alert.longitude - userLocation.lon) * Math.PI / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLocation.lat * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(userLocation.lat * Math.PI / 180) *
+        Math.cos(alert.latitude * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distanceKm = R * c;
     const meters = Math.round(distanceKm * 1000);
     return `${Math.min(meters, 999)}m`;
   };
+
+  // ======================
+  // ETA REAL (batch + cache) -> SIN hooks en map
+  // ======================
+  const visibleEtaRequests = useMemo(() => {
+    const items = [];
+    const max = 20; // límite para no reventar OSRM
+    for (const conv of filteredConversations.slice(0, max)) {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) continue;
+
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const isSeller = alert?.reserved_by_id && !isBuyer;
+
+      // buyer: tú -> ubicación del alert
+      const buyerFrom = userLocation;
+      const buyerTo = hasLatLon(alert) ? pickCoords(alert) : null;
+
+      // seller: otro -> ubicación del alert (tu plaza)
+      const sellerFrom =
+        hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+          ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+          : null;
+      const sellerTo = hasLatLon(alert) ? pickCoords(alert) : null;
+
+      if (isBuyer && buyerFrom && buyerTo) {
+        items.push({ alertId: alert.id, from: buyerFrom, to: buyerTo });
+      } else if (isSeller && sellerFrom && sellerTo) {
+        items.push({ alertId: alert.id, from: sellerFrom, to: sellerTo });
+      }
+    }
+    return items;
+  }, [filteredConversations, alertsMap, user?.id, userLocation]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const abortPrev = () => {
+      try {
+        osrmAbortRef.current?.abort?.();
+      } catch (e) {}
+      osrmAbortRef.current = null;
+    };
+
+    const shouldRefresh = (alertId) => {
+      const entry = etaMap?.[alertId];
+      if (!entry) return true;
+      // refresco cada 20s
+      return Date.now() - entry.fetchedAt > 20000;
+    };
+
+    const run = async () => {
+      if (!visibleEtaRequests.length) return;
+
+      // abort anterior
+      abortPrev();
+      const controller = new AbortController();
+      osrmAbortRef.current = controller;
+
+      const toFetch = visibleEtaRequests.filter((it) => shouldRefresh(it.alertId));
+      if (!toFetch.length) return;
+
+      try {
+        const results = await Promise.all(
+          toFetch.map(async (it) => {
+            const etaSeconds = await fetchOsrmEtaSeconds(it.from, it.to, controller.signal);
+            return { alertId: it.alertId, etaSeconds };
+          })
+        );
+
+        if (!mounted) return;
+
+        setEtaMap((prev) => {
+          const next = { ...prev };
+          const now = Date.now();
+          for (const r of results) {
+            next[r.alertId] = { etaSeconds: r.etaSeconds, fetchedAt: now };
+          }
+          return next;
+        });
+      } catch (e) {
+        // Si OSRM falla, no rompemos nada
+      }
+    };
+
+    // primera vez + polling cada 20s
+    run();
+    const id = setInterval(run, 20000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+      abortPrev();
+    };
+    // NOTA: etaMap está dentro por refresh logic, pero controlado por shouldRefresh
+  }, [visibleEtaRequests, etaMap]);
+
+  const getRemainingMsForAlert = (alert, isBuyer) => {
+    // 1) Si hay ETA cache -> descontamos tiempo real desde fetchedAt
+    const entry = etaMap?.[alert?.id];
+    if (entry && typeof entry.etaSeconds === 'number' && Number.isFinite(entry.etaSeconds)) {
+      const elapsed = nowTs - entry.fetchedAt;
+      const base = entry.etaSeconds * 1000;
+      return Math.max(0, base - elapsed);
+    }
+
+    // 2) fallback legacy: target_time
+    const targetMs = getTargetTimeMs(alert);
+    if (targetMs) return Math.max(0, targetMs - nowTs);
+
+    // 3) si no hay nada, 0
+    return 0;
+  };
+
+  // Detectar expiraciones FUERA del render
+  useEffect(() => {
+    const max = 25;
+    for (const conv of filteredConversations.slice(0, max)) {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) continue;
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const remainingMs = getRemainingMsForAlert(alert, isBuyer);
+      if (remainingMs === 0) openExpiredDialog(alert, isBuyer);
+    }
+  }, [nowTs, filteredConversations, alertsMap, user?.id]);
 
   // ======================
   // Render
@@ -495,7 +580,10 @@ export default function Chats() {
               className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -536,63 +624,25 @@ export default function Chats() {
 
             const distanceText = calculateDistanceText(alert);
 
-            // ====== ETA REAL ======
-            // Caso buyer: FROM = tu ubicación, TO = ubicación del alert (seller)
-            const buyerFrom = userLocation;
-            const buyerTo = hasLatLon(alert) ? pickCoords(alert) : null;
-
-            // Caso seller: FROM = ubicación del otro (reserved_by_lat/lon), TO = tu ubicación (alert coords)
-            const sellerFrom = hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude') ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude') : null;
-            const sellerTo = hasLatLon(alert) ? pickCoords(alert) : null;
-
-            const { etaSeconds: buyerEtaSeconds } = useRealtimeETA({
-              enabled: Boolean(isBuyer && buyerFrom && buyerTo),
-              from: buyerFrom,
-              to: buyerTo,
-              refreshMs: 20000
-            });
-
-            const { etaSeconds: sellerEtaSeconds } = useRealtimeETA({
-              enabled: Boolean(isSeller && sellerFrom && sellerTo),
-              from: sellerFrom,
-              to: sellerTo,
-              refreshMs: 20000
-            });
-
-            // Countdown (ms) en tiempo real:
-            // - Si hay ETA real -> se renderiza como MM:SS
-            // - Si no hay ETA real -> fallback a target_time legacy
-            let remainingMs = null;
-
-            if (isBuyer && typeof buyerEtaSeconds === 'number') {
-              remainingMs = buyerEtaSeconds * 1000;
-            } else if (isSeller && typeof sellerEtaSeconds === 'number') {
-              remainingMs = sellerEtaSeconds * 1000;
-            } else {
-              const targetMs = getTargetTimeMs(alert);
-              if (targetMs) remainingMs = Math.max(0, targetMs - nowTs);
-              else remainingMs = 0;
-            }
-
+            const remainingMs = getRemainingMsForAlert(alert, isBuyer);
             const countdownText = formatMMSS(remainingMs);
 
-            // Para los textos "Te vas en X min · Debes esperar hasta las HH:mm"
-            // En seller lo calculamos con ETA real (o fallback legacy si no hay ETA)
             const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
             const waitUntilText = format(new Date(nowTs + remainingMs), 'HH:mm', { locale: es });
 
-            // Disparo de expiración al llegar a 0 (una vez)
-            if (remainingMs === 0) {
-              // Nota: este if está dentro del render, pero la acción es protegida por Set (sin setState repetido)
-              openExpiredDialog(alert, isBuyer);
-            }
-
             return (
-              <motion.div key={conv.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
+              <motion.div
+                key={conv.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
                 <div
                   className={`bg-gradient-to-br ${
                     hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
-                  } rounded-xl p-2.5 transition-all border-2 ${hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'}`}
+                  } rounded-xl p-2.5 transition-all border-2 ${
+                    hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'
+                  }`}
                 >
                   <div className="flex flex-col h-full">
                     {/* Header */}
@@ -600,13 +650,17 @@ export default function Chats() {
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
                           className={`${
-                            hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            hasUnread
+                              ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+                              : 'bg-red-500/20 text-red-400 border-red-500/30'
                           } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
                         >
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
-                      <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>{cardDate}</div>
+                      <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>
+                        {cardDate}
+                      </div>
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
@@ -656,7 +710,9 @@ export default function Chats() {
                           </div>
                         )}
                       </div>
-                      <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>{conv.last_message_text || 'Sin mensajes'}</p>
+                      <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>
+                        {conv.last_message_text || 'Sin mensajes'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -681,7 +737,9 @@ export default function Chats() {
       >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-xl">{currentExpiredAlert?.isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado'}</DialogTitle>
+            <DialogTitle className="text-xl">
+              {currentExpiredAlert?.isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado'}
+            </DialogTitle>
             <DialogDescription className="text-gray-400">
               {currentExpiredAlert?.isBuyer
                 ? 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
@@ -696,7 +754,9 @@ export default function Chats() {
               <button
                 onClick={() => setSelectedProrroga({ minutes: 5, price: 1 })}
                 className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 5 ? 'bg-purple-600/20 border-purple-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                  selectedProrroga?.minutes === 5
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
                 }`}
               >
                 <div className="flex justify-between items-center">
@@ -708,7 +768,9 @@ export default function Chats() {
               <button
                 onClick={() => setSelectedProrroga({ minutes: 10, price: 3 })}
                 className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 10 ? 'bg-purple-600/20 border-purple-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                  selectedProrroga?.minutes === 10
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
                 }`}
               >
                 <div className="flex justify-between items-center">
@@ -720,7 +782,9 @@ export default function Chats() {
               <button
                 onClick={() => setSelectedProrroga({ minutes: 15, price: 5 })}
                 className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 15 ? 'bg-purple-600/20 border-purple-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
+                  selectedProrroga?.minutes === 15
+                    ? 'bg-purple-600/20 border-purple-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
                 }`}
               >
                 <div className="flex justify-between items-center">
@@ -735,7 +799,11 @@ export default function Chats() {
             <Button variant="outline" onClick={() => setShowProrrogaDialog(false)} className="flex-1 border-gray-700">
               {currentExpiredAlert?.isBuyer ? 'ACEPTAR DEVOLUCIÓN' : 'ACEPTAR COMPENSACIÓN'}
             </Button>
-            <Button onClick={handleProrroga} className="flex-1 bg-purple-600 hover:bg-purple-700" disabled={!selectedProrroga}>
+            <Button
+              onClick={handleProrroga}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              disabled={!selectedProrroga}
+            >
               PRORROGAR
             </Button>
           </DialogFooter>
