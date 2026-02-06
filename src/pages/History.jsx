@@ -189,11 +189,21 @@ const getCreatedTs = (alert) => {
 
   const key = `alert-created-${alert.id}`;
 
-  // 1. Si ya existe en localStorage, usarlo SIEMPRE
-  const stored = localStorage.getItem(key);
-  if (stored) return Number(stored);
+  // 0) Cache en memoria (evita leer localStorage en cada render)
+  const cached = createdFallbackRef.current.get(key);
+  if (typeof cached === 'number' && cached > 0) return cached;
 
-  // 2. Guardar SOLO la primera vez
+  // 1) Si ya existe en localStorage, usarlo SIEMPRE
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    const t = Number(stored);
+    if (Number.isFinite(t) && t > 0) {
+      createdFallbackRef.current.set(key, t);
+      return t;
+    }
+  }
+
+  // 2) Guardar SOLO la primera vez
   const candidates = [
     alert?.created_date,
     alert?.created_at,
@@ -206,13 +216,15 @@ const getCreatedTs = (alert) => {
     const t = toMs(v);
     if (typeof t === 'number' && t > 0) {
       localStorage.setItem(key, String(t));
+      createdFallbackRef.current.set(key, t);
       return t;
     }
   }
 
-  // 3. Último fallback (una sola vez)
+  // 3) Último fallback (una sola vez)
   const now = Date.now();
   localStorage.setItem(key, String(now));
+  createdFallbackRef.current.set(key, now);
   return now;
 };
 
@@ -512,37 +524,91 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 30000,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
   refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  // Evita “parpadeos”/vacíos mientras refresca
+  placeholderData: (prev) => prev,
   queryFn: async () => {
-    const res = await base44.entities.ParkingAlert.list();
-    const list = Array.isArray(res) ? res : (res?.data || []);
-    return list.filter(a => {
+    // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
+    // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
+    const queries = [];
+
+    if (user?.id) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+      queries.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+      // Para "Tus reservas" (comprador)
+      queries.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
+    }
+    if (user?.email) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+    }
+
+    let results = [];
+    try {
+      if (queries.length > 0) {
+        const res = await Promise.allSettled(queries);
+        for (const r of res) {
+          if (r.status === 'fulfilled') {
+            const list = Array.isArray(r.value) ? r.value : (r.value?.data || []);
+            if (Array.isArray(list) && list.length) results.push(...list);
+          }
+        }
+      } else {
+        results = [];
+      }
+    } catch (e) {
+      results = [];
+    }
+
+    // Fallback seguro si la API no soporta bien algún filtro (no rompe nada)
+    if (!results.length) {
+      const res = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      results = Array.isArray(list) ? list : [];
+    }
+
+    // Deduplicar por id
+    const map = new Map();
+    for (const a of results) {
+      if (a?.id != null) map.set(a.id, a);
+    }
+    const merged = Array.from(map.values());
+
+    // Filtrado final (igual que antes)
+    return merged.filter((a) => {
       if (!a) return false;
       if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
       if (user?.email && a.user_email === user.email) return true;
+      if (user?.id && a.reserved_by_id === user.id) return true;
       return false;
     });
   }
 });
- 
-  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-    queryKey: ['myTransactions', user?.email],
-    queryFn: async () => {
-      const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.email }),
-        base44.entities.Transaction.filter({ buyer_id: user?.email })
-      ]);
-      return [...asSeller, ...asBuyer];
-    },
-    enabled: !!user?.email,
-    staleTime: 30000,
-    refetchInterval: false
-  });
-
-
-
-  const mockReservationsFinal = useMemo(() => {
+const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
+  queryKey: ['myTransactions', user?.email],
+  enabled: !!user?.email,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  placeholderData: (prev) => prev,
+  queryFn: async () => {
+    const [asSeller, asBuyer] = await Promise.all([
+      base44.entities.Transaction.filter({ seller_id: user?.email }),
+      base44.entities.Transaction.filter({ buyer_id: user?.email })
+    ]);
+    const s = Array.isArray(asSeller) ? asSeller : (asSeller?.data || []);
+    const b = Array.isArray(asBuyer) ? asBuyer : (asBuyer?.data || []);
+    return [...s, ...b];
+  }
+});
+const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
       {
@@ -687,7 +753,7 @@ const myActiveAlerts = useMemo(() => {
   // Solo mostrar la última alerta activa (la más reciente)
   if (filtered.length === 0) return [];
   
-  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email, nowTs]);
 const visibleActiveAlerts = useMemo(() => {
