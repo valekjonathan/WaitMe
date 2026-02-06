@@ -728,12 +728,13 @@ export default function Chats() {
       <Dialog
         open={showProrrogaDialog}
         onOpenChange={(open) => {
-          setShowProrrogaDialog(open);
-          if (!open) {
-            setSelectedProrroga(null);
-            setCurrentExpiredAlert(null);
-          }
-        }}
+  setShowProrrogaDialog(open);
+  if (!open) {
+    setSelectedProrroga(null);
+    setCurrentExpiredAlert(null);
+    expiredHandledRef.current.clear(); // 🔓 RESET
+  }
+}}
       >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
