@@ -1,965 +1,1619 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, PhoneOff, Navigation, MapPin, Clock, Car } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Clock,
+  MapPin,
+  TrendingUp,
+  TrendingDown,
+  Loader,
+  X,
+  MessageCircle,
+  PhoneOff,
+  Phone,
+  Navigation
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import MarcoCard from '@/components/cards/MarcoCard';
+import Header from '@/components/Header';
+import UserCard from '@/components/cards/UserCard';
+import SellerLocationTracker from '@/components/SellerLocationTracker';
+import { useAuth } from '@/lib/AuthContext';
 
-// Componente contador de cuenta atrás EN TIEMPO REAL
-function CountdownTimer({ targetTime, onExpired }) {
-  const [timeLeft, setTimeLeft] = useState('');
-  const [expired, setExpired] = useState(false);
+export default function History() {
+  const { user } = useAuth();
+  const [userLocation, setUserLocation] = useState(null);
+  const [nowTs, setNowTs] = useState(Date.now());
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, targetTime - now);
-      
-      if (remaining === 0 && !expired) {
-        setExpired(true);
-        onExpired?.();
-      }
+useEffect(() => {
+  const id = setInterval(() => {
+    setNowTs(Date.now());
+  }, 1000);
+  return () => clearInterval(id);
+}, []);
 
-      const totalSeconds = Math.floor(remaining / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
+const queryClient = useQueryClient();
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [targetTime, onExpired, expired]);
+  // ====== UI helpers ======
+  const labelNoClick = 'cursor-default select-none pointer-events-none';
+  const noScrollBar =
+    '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
 
-  return (
-    <div className={`w-full h-8 rounded-lg border-2 ${expired ? 'border-red-500 bg-red-900/20' : 'border-gray-700 bg-gray-800'} flex items-center justify-center px-3`}>
-      <span className={`${expired ? 'text-red-400' : 'text-purple-400'} text-sm font-mono font-bold`}>{timeLeft}</span>
+  // ====== Fotos fijas (NO rotan) ======
+  const fixedAvatars = {
+    Sofía: 'https://randomuser.me/api/portraits/women/68.jpg',
+    Hugo: 'https://randomuser.me/api/portraits/men/32.jpg',
+    Nuria: 'https://randomuser.me/api/portraits/women/44.jpg',
+    Iván: 'https://randomuser.me/api/portraits/men/75.jpg',
+    Marco: 'https://randomuser.me/api/portraits/men/12.jpg'
+  };
+  const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
+
+  // ====== Fecha: "19 Enero - 21:05" en hora de Madrid ======
+  const formatCardDate = (ts) => {
+    if (!ts) return '--';
+    const date = new Date(ts);
+    const madridDateStr = date.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const formatted = madridDateStr
+      .replace(' de ', ' ')
+      .replace(',', ' -')
+      .replace(/(\d+)\s+([a-záéíóúñ]+)/i, (m, day, month) => {
+        const cap = month.charAt(0).toUpperCase() + month.slice(1);
+        return `${day} ${cap}`;
+      });
+    
+    return formatted;
+  };
+
+  // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
+  const formatAddress = (addr) => {
+    const fallback = 'Calle Gran Vía, n1, Oviedo';
+    const s = String(addr || '').trim();
+    if (!s) return fallback;
+
+    const hasOviedo = /oviedo/i.test(s);
+    const m = s.match(/^(.+?),\s*(?:n\s*)?(\d+)\s*(?:,.*)?$/i);
+    if (m) {
+      const street = m[1].trim();
+      const num = m[2].trim();
+      return `${street}, n${num}, Oviedo`;
+    }
+
+    if (!hasOviedo) return `${s}, Oviedo`;
+    return s;
+  };
+
+  // ====== Coche + matrícula (como Marco) ======
+  const carColors = [
+    { value: 'blanco', fill: '#FFFFFF' },
+    { value: 'negro', fill: '#1a1a1a' },
+    { value: 'rojo', fill: '#ef4444' },
+    { value: 'azul', fill: '#3b82f6' },
+    { value: 'amarillo', fill: '#facc15' },
+    { value: 'gris', fill: '#6b7280' }
+  ];
+
+  const getCarFill = (colorValue) => {
+    const c = carColors.find((x) => x.value === (colorValue || '').toLowerCase());
+    return c?.fill || '#6b7280';
+  };
+
+  const formatPlate = (plate) => {
+    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
+    if (!p) return '0000 XXX';
+    const a = p.slice(0, 4);
+    const b = p.slice(4);
+    return `${a} ${b}`.trim();
+  };
+
+  const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
+    <svg viewBox="0 0 48 24" className={size} fill="none" style={{ transform: 'translateY(3px)' }}>
+      <path
+        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+        fill={color}
+        stroke="white"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M16 9 L18 12 L30 12 L32 9 Z"
+        fill="rgba(255,255,255,0.3)"
+        stroke="white"
+        strokeWidth="0.5"
+      />
+      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="14" cy="18" r="2" fill="#666" />
+      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="2" fill="#666" />
+    </svg>
+  );
+
+  const PlateProfile = ({ plate }) => (
+    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+      <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+        <span className="text-white text-[8px] font-bold">E</span>
+      </div>
+      <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+        {formatPlate(plate)}
+      </span>
     </div>
   );
-}
 
-const isFinalStatus = (status) => {
-  const s = String(status || '').toLowerCase();
-  return [
-    'completed',
-    'completada',
-    'rejected',
-    'rechazada',
-    'cancelled',
-    'cancelada',
-    'expired',
-    'agotada',
-    'left',
-    'se_fue',
-    'extended',
-    'prorrogada'
-  ].includes(s);
-};
+  // ====== Timestamps robustos ======
+  const toMs = (v) => {
+  if (v == null) return null;
 
-const statusLabel = (status) => {
-  const s = String(status || '').toLowerCase();
-  if (s === 'completed' || s === 'completada') return 'COMPLETADA';
-  if (s === 'rejected' || s === 'rechazada') return 'RECHAZADA';
-  if (s === 'cancelled' || s === 'cancelada') return 'CANCELADA';
-  if (s === 'expired' || s === 'agotada') return 'AGOTADA';
-  if (s === 'left' || s === 'se_fue') return 'SE FUE';
-  if (s === 'extended' || s === 'prorrogada') return 'PRÓRROGA';
-  if (s === 'thinking' || s === 'me_lo_pienso') return 'PENSANDO';
-  return '';
-};
+  // Date
+  if (v instanceof Date) return v.getTime();
 
-export default function Chats() {
-  const [user, setUser] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
-  const [selectedProrroga, setSelectedProrroga] = useState(null);
-  const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
+  // Number (ms o seconds)
+  if (typeof v === 'number') {
+    return v > 1e12 ? v : v * 1000;
+  }
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
-    fetchUser();
+  // String
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (!s) return null;
 
-    // Obtener ubicación del usuario
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
-        },
-        (error) => console.log('Error obteniendo ubicación:', error)
-      );
+    // Si tiene zona horaria (Z o +hh:mm) → Date normal
+    if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
+      const t = new Date(s).getTime();
+      return Number.isNaN(t) ? null : t;
     }
-  }, []);
 
-  const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ['conversations'],
+    // 🔴 CLAVE: string SIN zona → tratar como hora local (Madrid)
+    const t = new Date(s + ':00').getTime();
+    return Number.isNaN(t) ? null : t;
+  }
+
+  return null;
+};
+
+  const createdFallbackRef = useRef(new Map());
+const getCreatedTs = (alert) => {
+  if (!alert?.id) return Date.now();
+
+  const key = `alert-created-${alert.id}`;
+
+  // 1. Si ya existe en localStorage, usarlo SIEMPRE
+  const stored = localStorage.getItem(key);
+  if (stored) return Number(stored);
+
+  // 2. Guardar SOLO la primera vez
+  const candidates = [
+    alert?.created_date,
+    alert?.created_at,
+    alert?.createdAt,
+    alert?.created,
+    alert?.updated_date
+  ];
+
+  for (const v of candidates) {
+    const t = toMs(v);
+    if (typeof t === 'number' && t > 0) {
+      localStorage.setItem(key, String(t));
+      return t;
+    }
+  }
+
+  // 3. Último fallback (una sola vez)
+  const now = Date.now();
+  localStorage.setItem(key, String(now));
+  return now;
+};
+
+  const getWaitUntilTs = (alert) => {
+  const created = getCreatedTs(alert);
+  const mins = Number(alert?.available_in_minutes);
+
+  if (
+    typeof created === 'number' &&
+    created > 0 &&
+    Number.isFinite(mins) &&
+    mins > 0
+  ) {
+    return created + mins * 60 * 1000;
+  }
+
+  return null;
+};
+
+  const formatRemaining = (ms) => {
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+
+    if (h > 0) {
+      const hh = String(h).padStart(2, '0');
+      return `${hh}:${mm}:${ss}`;
+    }
+    return `${mm}:${ss}`;
+  };
+
+  // ====== Countdown (apagable para Finalizadas) ======
+  const CountdownButton = ({ text, dimmed = false }) => (
+    <div
+      className={[
+        'w-full h-9 rounded-lg border-2 flex items-center justify-center px-3',
+        dimmed
+          ? 'border-purple-500/30 bg-purple-600/10'
+          : 'border-purple-400/70 bg-purple-600/25'
+      ].join(' ')}
+    >
+      <span className={`text-sm font-mono font-extrabold ${dimmed ? 'text-gray-400/70' : 'text-purple-100'}`}>
+        {text}
+      </span>
+    </div>
+  );
+
+  // ====== Secciones "Activas / Finalizadas" centradas ======
+  const SectionTag = ({ variant, text }) => {
+    const cls =
+      variant === 'green'
+        ? 'bg-green-500/20 border-green-500/30 text-green-400'
+        : 'bg-red-500/20 border-red-500/30 text-red-400';
+    return (
+      <div className="w-full flex justify-center pt-0">
+        <div
+          className={`${cls} border rounded-md px-4 h-7 flex items-center justify-center font-bold text-xs text-center ${labelNoClick}`}
+        >
+          {text}
+        </div>
+      </div>
+    );
+  };
+
+  // ====== Header de tarjeta (fecha centrada ENTRE badge y precio) ======
+  const CardHeaderRow = ({ left, dateText, dateClassName, right }) => (
+    <div className="flex items-center gap-2 mb-2">
+      <div className="flex-shrink-0">{left}</div>
+      <div className={`flex-1 text-center text-xs ${dateClassName || ''}`}>{dateText}</div>
+      <div className="flex-shrink-0">{right}</div>
+    </div>
+  );
+
+  // ====== Chips de dinero ======
+  const MoneyChip = ({ mode = 'neutral', amountText, showDownIcon = false, showUpIcon = false }) => {
+    const isGreen = mode === 'green';
+    const isRed = mode === 'red';
+
+    const wrapCls = isGreen
+      ? 'bg-green-500/20 border border-green-500/30'
+      : isRed
+      ? 'bg-red-500/20 border border-red-500/30'
+      : 'bg-gray-500/10 border border-gray-600';
+
+    const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-gray-400';
+
+    return (
+      <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
+        {showUpIcon ? <TrendingUp className={`w-4 h-4 ${textCls}`} /> : null}
+        {showDownIcon ? <TrendingDown className={`w-4 h-4 ${textCls}`} /> : null}
+        <span className={`font-bold text-sm ${textCls}`}>{amountText}</span>
+      </div>
+    );
+  };
+
+  // ====== Contenido "Marco" SIN tarjeta envolvente ======
+  const MarcoContent = ({
+    photoUrl,
+    name,
+    carLabel,
+    plate,
+    carColor,
+    onChat,
+    statusText = 'COMPLETADA',
+    address,
+    timeLine,
+    priceChip,
+    phoneEnabled = false,
+    onCall,
+    statusEnabled = false,
+    bright = false,
+    dimIcons = false
+  }) => {
+    const stUpper = String(statusText || '').trim().toUpperCase();
+    const isCountdownLike =
+      typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
+    const isCompleted = stUpper === 'COMPLETADA';
+    const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
+    const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
+
+    const photoCls = bright
+      ? 'w-full h-full object-cover'
+      : 'w-full h-full object-cover opacity-40 grayscale';
+
+    const nameCls = bright
+      ? 'font-bold text-xl text-white leading-none min-h-[22px]'
+      : 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]';
+
+    const carCls = bright
+      ? 'text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]'
+      : 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]';
+
+    const plateWrapCls = bright ? 'flex-shrink-0' : 'opacity-45 flex-shrink-0';
+    const carIconWrapCls = bright
+      ? 'flex-shrink-0 relative -top-[1px]'
+      : 'opacity-45 flex-shrink-0 relative -top-[1px]';
+
+    const lineTextCls = bright ? 'text-gray-200 leading-5' : 'text-gray-300 leading-5';
+
+    const isTimeObj =
+      timeLine && typeof timeLine === 'object' && !Array.isArray(timeLine) && 'main' in timeLine;
+
+    const statusBoxCls = statusOn
+      ? isCountdownLike
+        ? 'border-purple-400/70 bg-purple-600/25'
+        : 'border-purple-500/30 bg-purple-600/10'
+      : 'border-gray-700 bg-gray-800/60';
+
+    const statusTextCls = statusOn
+      ? isCountdownLike
+        ? 'text-purple-100'
+        : isDimStatus
+        ? 'text-gray-400/70'
+        : 'text-purple-300'
+      : 'text-gray-400 opacity-70';
+
+    return (
+      <>
+        <div className="flex gap-2.5">
+          <div
+            className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
+              bright ? 'border-purple-500/40 bg-gray-900' : 'border-gray-600/70 bg-gray-800/30'
+            }`}
+          >
+            {photoUrl ? (
+              <img src={photoUrl} alt={name} className={photoCls} />
+            ) : (
+              <div
+                className={`w-full h-full flex items-center justify-center text-3xl ${
+                  bright ? 'text-gray-300' : 'text-gray-600 opacity-40'
+                }`}
+              >
+                👤
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 h-[85px] flex flex-col">
+            <p className={nameCls}>{(name || '').split(' ')[0] || 'Usuario'}</p>
+            <p className={carCls}>{carLabel || 'Sin datos'}</p>
+
+            <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+              <div className={plateWrapCls}>
+                <PlateProfile plate={plate} />
+              </div>
+
+              <div className="flex-1 flex justify-center">
+                <div className={carIconWrapCls}>
+                  <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-1.5 border-t border-gray-700/80 mt-2">
+          <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
+            {address ? (
+              <div className="flex items-start gap-1.5 text-xs">
+                <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
+                <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
+              </div>
+            ) : null}
+
+            {timeLine ? (
+              <div className="flex items-start gap-1.5 text-xs">
+                <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
+                {isTimeObj ? (
+                  <span className={lineTextCls}>
+                    {timeLine.main}{' '}
+                    <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
+                  </span>
+                ) : (
+                  <span className={lineTextCls}>{timeLine}</span>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-2">
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+              onClick={onChat}
+            >
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+
+            {phoneEnabled ? (
+              <Button
+                size="icon"
+                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                onClick={onCall}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+                disabled
+              >
+                <PhoneOff className="w-4 h-4 text-white" />
+              </Button>
+            )}
+
+            <div className="flex-1">
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
+              >
+                <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
+                  {statusText}
+                </span>
+              </div>
+            </div>
+
+            {priceChip ? <div className="hidden">{priceChip}</div> : null}
+          </div>
+        </div>
+      </>
+    );
+  };
+
+  // ====== Ocultar tarjetas al borrar (UI) ======
+  const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
+  const isHidden = (key) => hiddenKeys.has(key);
+  const hideKey = (key) => {
+    setHiddenKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  };
+
+  const deleteAlertSafe = async (id) => {
+    try {
+      await base44.entities.ParkingAlert.delete(id);
+    } catch (e) {}
+  };
+
+  // ====== Effects ======
+  const autoFinalizedRef = useRef(new Set());
+  const autoFinalizedReservationsRef = useRef(new Set());
+
+  
+
+  const {
+    data: myAlerts = [],
+    isLoading: loadingAlerts
+  } = useQuery({
+    queryKey: ['myAlerts', user?.id, user?.email],
+    enabled: !!user?.id || !!user?.email,
+    staleTime: 30000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
     queryFn: async () => {
-      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
-      
-      // 4 tarjetas demo: 2 con mensajes sin leer (encendidas), 2 con mensajes leídos (apagadas)
-      const mockConversations = [
-        // TARJETA 1: RESERVASTE A (con mensajes sin leer - ENCENDIDA)
-        {
-          id: 'mock_reservaste_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_sofia',
-          participant2_name: 'Sofía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_reservaste_1',
-          last_message_text: 'Perfecto, voy llegando',
-          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
-          unread_count_p2: 0,
-          reservation_type: 'buyer' // Tú reservaste
-        },
-        // TARJETA 2: TE RESERVÓ (con mensajes sin leer - ENCENDIDA)
-        {
-          id: 'mock_te_reservo_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_marco',
-          participant2_name: 'Marco',
-          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_1',
-          last_message_text: '¿Sigues ahí?',
-          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 3,
-          unread_count_p2: 0,
-          reservation_type: 'seller' // Te reservaron
-        },
-        // TARJETA 3: RESERVASTE A (todos los mensajes leídos - APAGADA)
-        {
-          id: 'mock_reservaste_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_laura',
-          participant2_name: 'Laura',
-          participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          alert_id: 'alert_reservaste_2',
-          last_message_text: 'Genial, aguanto',
-          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        // TARJETA 4: TE RESERVÓ (todos los mensajes leídos - APAGADA)
-        {
-          id: 'mock_te_reservo_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_carlos',
-          participant2_name: 'Carlos',
-          participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_2',
-          last_message_text: 'Estoy cerca',
-          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        }
-        ,
-        // DEMOS extra (para ver TODOS los estados en esta pantalla)
-        {
-          id: 'mock_completada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_paula',
-          participant2_name: 'Paula',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
-          alert_id: 'alert_demo_completada_1',
-          last_message_text: '¡Listo! Pago completado ✅',
-          last_message_at: new Date(Date.now() - 25 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_me_lo_pienso_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_nerea',
-          participant2_name: 'Nerea',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_demo_pensando_1',
-          last_message_text: 'Me lo estoy pensando...',
-          last_message_at: new Date(Date.now() - 30 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_rechazada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_sara',
-          participant2_name: 'Sara',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/20.jpg',
-          alert_id: 'alert_demo_rechazada_1',
-          last_message_text: 'Operación rechazada ❌',
-          last_message_at: new Date(Date.now() - 35 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_prorrogada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_david',
-          participant2_name: 'David',
-          participant2_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-          alert_id: 'alert_demo_prorrogada_1',
-          last_message_text: 'Prórroga aceptada (+10 min)',
-          last_message_at: new Date(Date.now() - 40 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        },
-        {
-          id: 'mock_se_fue_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_luis',
-          participant2_name: 'Luis',
-          participant2_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
-          alert_id: 'alert_demo_se_fue_1',
-          last_message_text: 'El usuario se fue antes',
-          last_message_at: new Date(Date.now() - 45 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        },
-        {
-          id: 'mock_agotada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_marta',
-          participant2_name: 'Marta',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
-          alert_id: 'alert_demo_agotada_1',
-          last_message_text: 'Tiempo agotado ⏱️',
-          last_message_at: new Date(Date.now() - 50 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_cancelada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_elena',
-          participant2_name: 'Elena',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/88.jpg',
-          alert_id: 'alert_demo_cancelada_1',
-          last_message_text: 'Operación cancelada',
-          last_message_at: new Date(Date.now() - 55 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        }
-      ];
+      // Evitar list() (muy pesado). Pedimos solo lo necesario y unimos resultados.
+      const calls = [];
 
-      const combined = [...mockConversations, ...allConversations];
-      return combined.sort((a, b) =>
-        new Date(b.last_message_at || b.updated_date || b.created_date) -
-        new Date(a.last_message_at || a.updated_date || a.created_date)
-      );
-    },
-    staleTime: 10000,
-    refetchInterval: false
+      if (user?.id) {
+        calls.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+        calls.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+        calls.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
+      }
+
+      if (user?.email) {
+        calls.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+      }
+
+      const results = await Promise.all(calls);
+      const merged = results.flat().filter(Boolean);
+
+      // Dedup por id
+      const byId = new Map();
+      for (const a of merged) {
+        if (a?.id != null && !byId.has(a.id)) byId.set(a.id, a);
+      }
+
+      return Array.from(byId.values());
+    }
   });
-
-  // Obtener usuarios para resolver datos completos
-  const { data: users = [] } = useQuery({
-    queryKey: ['usersForChats'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !!user?.id,
-    staleTime: 60000,
-    refetchInterval: false
-  });
-
-  const usersMap = React.useMemo(() => {
-    const map = new Map();
-    users.forEach((u) => map.set(u.id, u));
-    return map;
-  }, [users]);
-
-  // Obtener alertas para mostrar info
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['alertsForChats'],
+ 
+  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
+    queryKey: ['myTransactions', user?.email],
     queryFn: async () => {
-      const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
-      
-      // Datos mock de alertas correspondientes a las 4 tarjetas
-      const now = Date.now();
-      const mockAlerts = [
-        // ALERT 1: RESERVASTE A Sofía (12 minutos para llegar)
-        {
-          id: 'alert_reservaste_1',
-          user_name: 'Sofía',
-          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          car_brand: 'Renault',
-          car_model: 'Clio',
-          car_plate: '7733 MNP',
-          car_color: 'rojo',
-          price: 6,
-          available_in_minutes: 12,
-          target_time: now + (12 * 60 * 1000), // 12 minutos desde ahora
-          address: 'Calle Uría, 33, Oviedo',
-          latitude: 43.362776,
-          longitude: -5.845890,
-          allow_phone_calls: true,
-          phone: '+34677889900',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'reserved',
-          created_date: new Date(now - 1 * 60000).toISOString()
-        },
-        // ALERT 2: TE RESERVÓ Marco (8 minutos para que llegue)
-        {
-          id: 'alert_te_reservo_1',
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          car_color: 'azul',
-          price: 4,
-          available_in_minutes: 8,
-          target_time: now + (8 * 60 * 1000), // 8 minutos desde ahora
-          address: 'Calle Campoamor, 15, Oviedo',
-          latitude: 43.357815,
-          longitude: -5.849790,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          user_id: user?.id,
-          reserved_by_id: 'buyer_marco',
-          reserved_by_name: 'Marco',
-          reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          status: 'reserved',
-          created_date: new Date(now - 2 * 60000).toISOString()
-        },
-        // ALERT 3: RESERVASTE A Laura (25 minutos para llegar)
-        {
-          id: 'alert_reservaste_2',
-          user_name: 'Laura',
-          user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          car_brand: 'Opel',
-          car_model: 'Corsa',
-          car_plate: '9812 GHJ',
-          car_color: 'blanco',
-          price: 4,
-          available_in_minutes: 25,
-          target_time: now + (25 * 60 * 1000),
-          address: 'Paseo de la Castellana, 42, Madrid',
-          latitude: 40.464667,
-          longitude: -3.632623,
-          allow_phone_calls: true,
-          phone: '+34612345678',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'reserved',
-          created_date: new Date(now - 10 * 60000).toISOString()
-        },
-        // ALERT 4: TE RESERVÓ Carlos (18 minutos para que llegue)
-        {
-          id: 'alert_te_reservo_2',
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Toyota',
-          car_model: 'Yaris',
-          car_plate: '5678 DEF',
-          car_color: 'gris',
-          price: 5,
-          available_in_minutes: 18,
-          target_time: now + (18 * 60 * 1000),
-          address: 'Avenida del Paseo, 25, Madrid',
-          latitude: 40.456775,
-          longitude: -3.688790,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          user_id: user?.id,
-          reserved_by_id: 'buyer_carlos',
-          reserved_by_name: 'Carlos',
-          reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          status: 'reserved',
-          created_date: new Date(now - 15 * 60000).toISOString()
-        }
-        ,
-        // DEMOS extra (estados finales y "me lo pienso")
-        {
-          id: 'alert_completada_1',
-          user_id: 'seller_marta',
-          user_name: 'Marta',
-          user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
-          car_brand: 'BMW',
-          car_model: 'Serie 1',
-          car_plate: '4581 LKM',
-          car_color: 'negro',
-          price: 3,
-          address: 'Plaza de la Escandalera, Oviedo',
-          latitude: 43.36062,
-          longitude: -5.84489,
-          allow_phone_calls: true,
-          phone: '+34611111111',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'completed',
-          created_date: new Date(now - 30 * 60000).toISOString()
-        },
-        {
-          id: 'alert_pensando_1',
-          user_id: 'seller_sara',
-          user_name: 'Sara',
-          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          car_brand: 'Fiat',
-          car_model: '500',
-          car_plate: '9012 KJH',
-          car_color: 'blanco',
-          price: 4,
-          address: 'Calle Rosal, 7, Oviedo',
-          latitude: 43.36212,
-          longitude: -5.8471,
-          allow_phone_calls: false,
-          phone: '+34622222222',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'thinking',
-          created_date: new Date(now - 35 * 60000).toISOString()
-        },
-        {
-          id: 'alert_rechazada_1',
-          user_id: 'seller_ines',
-          user_name: 'Inés',
-          user_photo: 'https://randomuser.me/api/portraits/women/25.jpg',
-          car_brand: 'Peugeot',
-          car_model: '208',
-          car_plate: '1122 JKL',
-          car_color: 'gris',
-          price: 5,
-          address: 'Calle Pelayo, 12, Oviedo',
-          latitude: 43.3614,
-          longitude: -5.8462,
-          allow_phone_calls: true,
-          phone: '+34633333333',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'rejected',
-          created_date: new Date(now - 45 * 60000).toISOString()
-        },
-        {
-          id: 'alert_prorrogada_1',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          car_color: 'azul',
-          price: 6,
-          address: 'Calle Gascona, 19, Oviedo',
-          latitude: 43.36514,
-          longitude: -5.84688,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          reserved_by_id: 'buyer_nico',
-          reserved_by_name: 'Nico',
-          reserved_by_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-          status: 'extended',
-          created_date: new Date(now - 55 * 60000).toISOString()
-        },
-        {
-          id: 'alert_se_fue_1',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          car_color: 'azul',
-          price: 4,
-          address: 'Calle Independencia, 4, Oviedo',
-          latitude: 43.36188,
-          longitude: -5.84431,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          reserved_by_id: 'buyer_dani',
-          reserved_by_name: 'Dani',
-          reserved_by_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
-          status: 'left',
-          created_date: new Date(now - 70 * 60000).toISOString()
-        },
-        {
-          id: 'alert_agotada_1',
-          user_id: 'seller_juan',
-          user_name: 'Juan',
-          user_photo: 'https://randomuser.me/api/portraits/men/52.jpg',
-          car_brand: 'Volkswagen',
-          car_model: 'Golf',
-          car_plate: '3344 MNO',
-          car_color: 'gris',
-          price: 3,
-          address: 'Calle Cervantes, 2, Oviedo',
-          latitude: 43.3602,
-          longitude: -5.8454,
-          allow_phone_calls: false,
-          phone: '+34644444444',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'expired',
-          created_date: new Date(now - 90 * 60000).toISOString()
-        },
-        {
-          id: 'alert_cancelada_1',
-          user_id: 'seller_luis',
-          user_name: 'Luis',
-          user_photo: 'https://randomuser.me/api/portraits/men/41.jpg',
-          car_brand: 'Kia',
-          car_model: 'Rio',
-          car_plate: '7788 PQR',
-          car_color: 'rojo',
-          price: 4,
-          address: 'Calle Caveda, 18, Oviedo',
-          latitude: 43.36302,
-          longitude: -5.84395,
-          allow_phone_calls: true,
-          phone: '+34655555555',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          status: 'cancelled',
-          created_date: new Date(now - 110 * 60000).toISOString()
-        }
-      ];
-      
-      return [...mockAlerts, ...realAlerts];
+      const [asSeller, asBuyer] = await Promise.all([
+        base44.entities.Transaction.filter({ seller_id: user?.email }),
+        base44.entities.Transaction.filter({ buyer_id: user?.email })
+      ]);
+      return [...asSeller, ...asBuyer];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.email,
     staleTime: 30000,
     refetchInterval: false
   });
 
-  const alertsMap = React.useMemo(() => {
-    const map = new Map();
-    alerts.forEach((alert) => map.set(alert.id, alert));
-    return map;
-  }, [alerts]);
 
-  // Calcular total de no leídos
-  const totalUnread = React.useMemo(() => {
-    return conversations.reduce((sum, conv) => {
-      const isP1 = conv.participant1_id === user?.id;
-      const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-      return sum + (unread || 0);
-    }, 0);
-  }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
-  const filteredConversations = React.useMemo(() => {
-    let filtered = conversations;
+  const mockReservationsFinal = useMemo(() => {
+    const baseNow = Date.now();
+    return [
+      {
+        id: 'mock-res-fin-1',
+        status: 'completed',
+        reserved_by_id: user?.id,
+        user_id: 'seller-8',
+        user_email: 'seller8@test.com',
+        user_name: 'Hugo',
+        user_photo: avatarFor('Hugo'),
+        car_brand: 'BMW',
+        car_model: 'Serie 1',
+        car_color: 'gris',
+        car_plate: '2847BNM',
+        address: 'Calle Gran Vía, 25',
+        available_in_minutes: 8,
+        price: 4.0,
+        phone: '611111111',
+        allow_phone_calls: false,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
+      },
+      {
+        id: 'mock-res-fin-2',
+        status: 'cancelled',
+        reserved_by_id: user?.id,
+        user_id: 'seller-9',
+        user_email: 'seller9@test.com',
+        user_name: 'Nuria',
+        user_photo: avatarFor('Nuria'),
+        car_brand: 'Audi',
+        car_model: 'A3',
+        car_color: 'azul',
+        car_plate: '1209KLP',
+        address: 'Calle Uría, 10',
+        available_in_minutes: 12,
+        price: 3.0,
+        phone: '622222222',
+        allow_phone_calls: true,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 3).toISOString()
+      },
+      {
+        id: 'mock-res-fin-3',
+        status: 'expired',
+        reserved_by_id: user?.id,
+        user_id: 'seller-10',
+        user_email: 'seller10@test.com',
+        user_name: 'Iván',
+        user_photo: avatarFor('Iván'),
+        car_brand: 'Toyota',
+        car_model: 'Yaris',
+        car_color: 'blanco',
+        car_plate: '4444XYZ',
+        address: 'Calle Campoamor, 15',
+        available_in_minutes: 10,
+        price: 2.8,
+        phone: null,
+        allow_phone_calls: false,
+        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 5).toISOString()
+      }
+    ];
+  }, [user?.id]);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
-        const lastMessage = conv.last_message_text || '';
-
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
-      });
+  const mockTransactions = useMemo(() => {
+  const baseNow = Date.now();
+  return [
+    {
+      id: 'mock-tx-1',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-1',
+      buyer_name: 'Marco',
+      buyer_photo_url: avatarFor('Marco'),
+      buyer_car: 'BMW Serie 3',
+      buyer_car_color: 'gris',
+      buyer_plate: '2847BNM',
+      amount: 5.0,
+      seller_earnings: 4.0,
+      platform_fee: 1.0,
+      status: 'completed',
+      address: 'Calle Gran Vía, 25',
+      alert_id: 'mock-alert-1',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
+    },
+    {
+      id: 'mock-tx-2',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-2',
+      buyer_name: 'Hugo',
+      buyer_photo_url: avatarFor('Hugo'),
+      buyer_car: 'Audi A4',
+      buyer_car_color: 'negro',
+      buyer_plate: '5521LKP',
+      amount: 6.5,
+      seller_earnings: 5.2,
+      platform_fee: 1.3,
+      status: 'completed',
+      address: 'Calle Uría, 10',
+      alert_id: 'mock-alert-2',
+      created_date: new Date(baseNow - 1000 * 60 * 60 * 6).toISOString()
+    },
+    {
+      id: 'mock-tx-3',
+      seller_id: user?.id,
+      seller_name: 'Tu',
+      buyer_id: 'buyer-3',
+      buyer_name: 'Nuria',
+      buyer_photo_url: avatarFor('Nuria'),
+      buyer_car: 'Seat Ibiza',
+      buyer_car_color: 'rojo',
+      buyer_plate: '9032JHG',
+      amount: 3.8,
+      seller_earnings: 3.0,
+      platform_fee: 0.8,
+      status: 'completed',
+      address: 'Calle Campoamor, 15',
+      alert_id: 'mock-alert-3',
+      created_date: new Date(baseNow - 1000 * 60 * 30).toISOString()
     }
+  ];
+}, [user?.id]);
 
-    // Ordenar sin leer primero, después por timestamp más reciente
-    return filtered.sort((a, b) => {
-      const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
-      const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
-      if (bUnread !== aUnread) return bUnread - aUnread;
-      return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
+ 
+
+
+
+const myActiveAlerts = useMemo(() => {
+  const filtered = myAlerts.filter((a) => {
+    if (!a) return false;
+
+    const isMine =
+      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+      (user?.email && a.user_email === user.email);
+
+    if (!isMine) return false;
+
+    const status = String(a.status || '').toLowerCase();
+
+    return status === 'active' || status === 'reserved';
+  });
+  
+  // Solo mostrar la última alerta activa (la más reciente)
+  if (filtered.length === 0) return [];
+  
+  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  return [sorted[0]];
+}, [myAlerts, user?.id, user?.email]);
+const visibleActiveAlerts = useMemo(() => {
+  return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
+}, [myActiveAlerts, hiddenKeys]);
+const myFinalizedAlerts = useMemo(() => {
+  return myAlerts.filter((a) => {
+    if (!a) return false;
+
+    const isMine =
+      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+      (user?.email && a.user_email === user.email);
+
+    if (!isMine) return false;
+
+    return ['cancelled', 'completed', 'expired'].includes(
+      String(a.status || '').toLowerCase()
+    );
+  });
+}, [myAlerts, user?.id, user?.email]);
+    
+  // Reservas (tuyas como comprador)
+  const myReservationsReal = useMemo(() => {
+    return myAlerts.filter((a) => {
+      if (a.reserved_by_id !== user?.id) return false;
+      if (a.status !== 'reserved') return false;
+
+      return true;
     });
-  }, [conversations, searchQuery, user?.id]);
+  }, [myAlerts, user?.id]);
+  const reservationsActiveAll = myReservationsReal;
 
-  // Función para calcular minutos desde el último mensaje
-  const getMinutesSince = (timestamp) => {
-    if (!timestamp) return 1;
-    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
-    return Math.max(1, minutes);
-  };
+  const myFinalizedAsSellerTx = [
+    ...transactions.filter((t) => t.seller_id === user?.id),
+    ...mockTransactions
+  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  // Manejar cuando expira el contador
-  const handleCountdownExpired = (alert, isBuyer) => {
-    setCurrentExpiredAlert({ alert, isBuyer });
-    setShowProrrogaDialog(true);
-  };
+  const myFinalizedAll = [
+    ...myFinalizedAlerts.map((a) => ({
+      type: 'alert',
+      id: `final-alert-${a.id}`,
+    created_date: toMs(a.finalized_date) || toMs(a.updated_date) || Date.now(),
+      data: a
+    })),
+   
+    ...myFinalizedAsSellerTx.map((t) => ({
+      type: 'transaction',
+      id: `final-tx-${t.id}`,
+      created_date: t.created_date,
+      data: t
+    }))
+  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  // Manejar prórroga
-  const handleProrroga = async () => {
-    if (!selectedProrroga || !currentExpiredAlert) return;
+ 
     
-    const { minutes, price } = selectedProrroga;
-    const { alert, isBuyer } = currentExpiredAlert;
-    
-    // Aquí iría la lógica de crear notificación de prórroga
-    console.log(`Prórroga solicitada: ${minutes} min por ${price}€`);
-    
-    // Crear notificación para el otro usuario
-    try {
-      await base44.entities.Notification.create({
-        type: 'extension_request',
-        recipient_id: isBuyer ? alert.user_id : alert.reserved_by_id,
-        sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
-        alert_id: alert.id,
-        amount: price,
-        extension_minutes: minutes,
-        status: 'pending'
-      });
-    } catch (err) {
-      console.error('Error creando notificación de prórroga:', err);
+
+  const reservationsFinalAllBase = [
+  ...myAlerts
+    .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
+    .map((a) => ({
+      type: 'alert',
+      id: `res-final-alert-${a.id}`,
+      created_date: a.created_date,
+      data: a
+    })),
+  ...transactions
+    .filter((t) => t.buyer_id === user?.id)
+    .map((t) => ({
+      type: 'transaction',
+      id: `res-final-tx-${t.id}`,
+      created_date: t.created_date,
+      data: t
+    })),
+  ...mockReservationsFinal.map((a) => ({
+    type: 'alert',
+    id: `res-final-mock-${a.id}`,
+    created_date: a.created_date,
+    data: a
+  }))
+];
+  const reservationsFinalAll = reservationsFinalAllBase.sort(
+    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
+  );
+
+  const isLoading = loadingAlerts || loadingTransactions;
+
+  // ====== Mutations ======
+  const cancelAlertMutation = useMutation({
+    mutationFn: async (alertId) => {
+      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
-    
-    setShowProrrogaDialog(false);
-    setSelectedProrroga(null);
-    setCurrentExpiredAlert(null);
+  });
+
+  const expireAlertMutation = useMutation({
+    mutationFn: async (alertId) => {
+      await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
+  });
+
+  // ====== Badge ancho igual que la foto (95px) ======
+  const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
+
+  // ====== Map status a texto ======
+  const statusLabelFrom = (s) => {
+    const st = String(s || '').toLowerCase();
+    if (st === 'completed') return 'COMPLETADA';
+    if (st === 'cancelled') return 'CANCELADA';
+    if (st === 'expired') return 'EXPIRADA';
+    if (st === 'reserved') return 'EN CURSO';
+    return 'COMPLETADA';
   };
 
-
+  // ====== Dinero en "Tus reservas" según estado ======
+  const reservationMoneyModeFromStatus = (status) => {
+    const st = String(status || '').toLowerCase();
+    if (st === 'completed') return 'paid';
+    if (st === 'expired' || st === 'cancelled') return 'neutral';
+    return 'neutral';
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
+      <Header title="Alertas" showBackButton={true} backTo="Home" />
 
-      <main className="pt-[60px] pb-24">
-        <div className="px-4 pt-3 pb-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-            <input
-              type="text"
-              placeholder="Buscar conversaciones..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+      <main className="pt-[56px] pb-20 px-4">
+        <Tabs defaultValue="alerts" className="w-full">
+          <div className="sticky top-[56px] z-40 bg-black pt-[9px] pb-0">
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
+              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                Tus alertas
+              </TabsTrigger>
+              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+                Tus reservas
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </div>
 
-         <div className="px-4 space-y-3 pt-1">
-             {filteredConversations.map((conv, index) => {
-             const alert = alertsMap.get(conv.alert_id);
-             if (!alert) return null;
-             const isP1 = conv.participant1_id === user?.id;
-             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-             const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+          <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
+                <SectionTag variant="green" text="Activas" />
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
+                {visibleActiveAlerts.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {visibleActiveAlerts
+                       .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
+                       .map((alert, index) => {
+                         const createdTs = getCreatedTs(alert);
+                         const waitUntilTs = getWaitUntilTs(alert);
 
-            // Formatear fecha en formato "06 Feb - 12:42"
-            const formatCardDate = (ts) => {
-              if (!ts) return '--';
-              const date = new Date(ts);
-              const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
-              let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
-              // Capitalizar primera letra
-              month = month.charAt(0).toUpperCase() + month.slice(1);
-              const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-              return `${day} ${month} - ${time}`;
-            };
 
-            const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
 
-            // Determinar si es comprador o vendedor
-            const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.user_id === user?.id || conv.reservation_type === 'seller';
+                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
+if (
+  waitUntilTs &&
+  remainingMs === 0 &&
+  String(alert.status || '').toLowerCase() === 'active' &&
+  !autoFinalizedRef.current.has(alert.id)
+) {
+  autoFinalizedRef.current.add(alert.id);
 
-            const alertStatus = alert?.status;
-            const finalStatus = isFinalStatus(alertStatus);
-            const statusTextNode = finalStatus ? statusLabel(alertStatus) : (
-              <CountdownTimer
-                targetTime={alert.target_time}
-                onExpired={() => handleCountdownExpired(alert, isBuyer, isSeller)}
-              />
-            );
+  base44.entities.ParkingAlert
+    .update(alert.id, { status: 'expired' })
+    .finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+}
+                         const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
+                           timeZone: 'Europe/Madrid', 
+                           hour: '2-digit', 
+                           minute: '2-digit', 
+                           hour12: false 
+                         }) : '--:--';
+                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
 
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            let otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
 
-            // Generar foto con IA si no existe
-            if (!otherUserPhoto) {
-              const photoUrls = [
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-                'https://randomuser.me/api/portraits/women/68.jpg',
-                'https://randomuser.me/api/portraits/men/32.jpg',
-                'https://randomuser.me/api/portraits/women/44.jpg',
-                'https://randomuser.me/api/portraits/men/75.jpg'
-              ];
-              otherUserPhoto = photoUrls[(conv.id || '').charCodeAt(0) % photoUrls.length];
-            }
+                        const cardKey = `active-${alert.id}`;
+                        if (hiddenKeys.has(cardKey)) return null;
 
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+                        const dateText = formatCardDate(createdTs);
 
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
+                        return (
+                          <motion.div
+                            key={cardKey}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                          >
+                            {alert.status === 'reserved' && alert.reserved_by_name ? (
+                              <>
+                                <CardHeaderRow
+                                  left={
+                                    <Badge
+                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
+                                    >
+                                      Reservado por:
+                                    </Badge>
+                                  }
+                                  dateText={dateText}
+                                  dateClassName="text-white"
+                                  right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          hideKey(cardKey);
+                                          cancelAlertMutation.mutate(alert.id);
+                                        }}
+                                        disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  }
+                                />
 
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude) return null;
-              if (!userLocation) {
-                // Demo: distancias variadas
-                const demoDistances = ['150m', '320m', '480m', '650m', '800m'];
-                return demoDistances[(alert.id || '').charCodeAt(0) % demoDistances.length];
-              }
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return `${Math.min(meters, 999)}m`;
-            };
-            const distanceText = calculateDistance();
+                                <div className="border-t border-gray-700/80 mb-2" />
 
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
+                                {alert.reserved_by_name && (
+                                  <div className="mb-1.5 h-[220px]">
+                                    <UserCard
+                                      userName={alert.reserved_by_name}
+                                      userPhoto={null}
+                                      carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                                      carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                                      carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                                      carPlate={alert.reserved_by_plate}
+                                      vehicleType={alert.reserved_by_vehicle_type}
+                                      address={formatAddress(alert.address)}
+                                      availableInMinutes={alert.available_in_minutes}
+                                      price={alert.price}
+                                      showLocationInfo={false}
+                                      showContactButtons={true}
+                                      onChat={() =>
+                                        (window.location.href = createPageUrl(
+                                          `Chat?alertId=${alert.id}&userId=${
+                                            alert.reserved_by_email || alert.reserved_by_id
+                                          }`
+                                        ))
+                                      }
+                                      onCall={() =>
+                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
+                                      }
+                                      latitude={alert.latitude}
+                                      longitude={alert.longitude}
+                                      allowPhoneCalls={alert.allow_phone_calls}
+                                      isReserved={true}
+                                    />
+                                  </div>
+                                )}
 
-                <div className={`bg-gradient-to-br ${hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'} rounded-xl p-2.5 transition-all border-2 ${hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'}`}>
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
 
-                   <div className="flex flex-col h-full">
-                     {/* Header: "Info del usuario:" + fecha + distancia + precio */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex-shrink-0 w-[95px]">
-                          <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}>
-                            {alert?.reserved_by_id === user?.id ? 'Reservaste a:' : alert?.reserved_by_id ? 'Te reservó:' : 'Info usuario'}
-                          </Badge>
-                        </div>
-                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>
-                          {cardDate}
-                        </div>
-                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                          <Navigation className="w-3 h-3 text-purple-400" />
-                          <span className="text-white font-bold text-xs">{distanceText}</span>
-                        </div>
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                          <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price)}€</span>
-                        </div>
-                      </div>
+                                <div className="flex items-start justify-between text-xs">
+                                  <div className="flex items-start gap-1.5">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
+                                  </div>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
+                                </div>
 
-                      {/* Tarjeta de usuario con MarcoCard */}
-                      <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                      <MarcoCard
-                        photoUrl={isBuyer ? alert.user_photo : (alert.reserved_by_photo || otherUser.photo)}
-                        name={isBuyer ? alert.user_name : (alert.reserved_by_name || otherUserName)}
-                        carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                        plate={alert.car_plate}
-                        carColor={alert.car_color || 'gris'}
-                        address={alert.address}
-                        timeLine={
-                          isSeller ? (
-                            <>
-                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
-                                Te vas en {alert.available_in_minutes} min ·{' '}
-                                <span className="text-purple-400">
-                                  Debes esperar hasta las {format(new Date(alert.target_time || Date.now() + alert.available_in_minutes * 60000), 'HH:mm')}
-                                </span>
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
-                                Tiempo para llegar:
-                              </span>
-                            </>
-                          )
-                        }
-                        onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        statusText={
-                          finalStatus ? (
-                            statusTextNode
-                          ) : (
-                            <CountdownTimer
-                              targetTime={alert.target_time || Date.now() + alert.available_in_minutes * 60000}
-                              onExpired={() => handleCountdownExpired(alert, isBuyer)}
-                            />
-                          )
-                        }
-                        showNavigate={isBuyer}
-                        navigateEnabled={isBuyer && !finalStatus && !(!hasUnread)}
-                        onNavigate={() => {
-                          const qs = new URLSearchParams({
-                            alertId: String(alert?.id || ''),
-                            lat: String(alert?.latitude || ''),
-                            lon: String(alert?.longitude || ''),
-                            name: String(alert?.user_name || ''),
-                            photo: String(alert?.user_photo || ''),
-                            address: String(alert?.address || ''),
-                          }).toString();
-                          window.location.href = createPageUrl(`Navigate?${qs}`);
-                        }}
-                        phoneEnabled={alert.allow_phone_calls}
-                        onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                        dimmed={!hasUnread}
-                      />
-                      </div>
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <CardHeaderRow
+                                  left={
+                                    <Badge
+                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                                    >
+                                      Activa
+                                    </Badge>
+                                  }
+                                  dateText={dateText}
+                                  dateClassName="text-white"
+                                  right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          // 1) Quita la tarjeta al instante (UI)
+                                          hideKey(cardKey);
+                                          // 2) Cancela y refresca datos
+                                          cancelAlertMutation.mutate(alert.id, {
+                                            onSuccess: () => {
+                                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                            }
+                                          });
+                                        }}
+                                        disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  }
+                                />
 
-                      {/* Ultimos mensajes */}
-                      <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                        <div className="flex justify-between items-center">
-                          <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
-                          {unreadCount > 0 && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
-                              <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>{conv.last_message_text || 'Sin mensajes'}</p>
-                      </div>
-                    </div>
+                                <div className="border-t border-gray-700/80 mb-2" />
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-white leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start gap-1.5 text-xs">
+                                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-white leading-5">
+                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                  </span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
+                              </>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                      .slice(0, 1)}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
                 </div>
-              </motion.div>
-              );
-              })}
-              </div>
-              </main>
+
+                {myFinalizedAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta finalizada.</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {myFinalizedAll.map((item, index) => {
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
+
+                      if (item.type === 'alert') {
+  const a = item.data;
+  // 🔴 NO pintar alertas COMPLETADAS aquí (van como transacción)
+  if (String(a?.status || '').toLowerCase() === 'completed') return null;
+
+  const ts = item.created_date;
+  const dateText = ts ? formatCardDate(ts) : '--';
+
+                        return (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
+                          >
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${((a.price ?? 0) * 1).toFixed(2)}€`}
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      await deleteAlertSafe(a.id);
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              }
+                            />
+
+                            <div className="border-t border-gray-700/80 mb-2" />
+
+                            <div className="flex items-start gap-1.5 text-xs mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
+                              <span className="text-gray-400 leading-5">
+                                {formatAddress(a.address) || 'Ubicación marcada'}
+                              </span>
+                            </div>
+
+                            <div className="mt-2">
+                              <CountdownButton
+                                text={statusLabelFrom(a.status)}
+                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
+                              />
+                            </div>
+                          </motion.div>
+                        );
+                      }
+
+                      const tx = item.data;
+                      const isSeller = tx.seller_id === user?.id;
+
+                      const buyerName = tx.buyer_name || 'Usuario';
+                      const buyerPhoto = tx.buyer_photo_url || tx.buyerPhotoUrl || '';
+                      const buyerCarLabel =
+                        tx.buyer_car ||
+                        tx.buyerCar ||
+                        tx.buyer_car_label ||
+                        tx.buyerCarLabel ||
+                        (tx.buyer_car_brand
+                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
+                          : '');
+                      const buyerPlate =
+                        tx.buyer_plate ||
+                        tx.buyerPlate ||
+                        tx.buyer_car_plate ||
+                        tx.buyerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const buyerColor =
+                        tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
+
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                <MoneyChip
+                                  mode="green"
+                                  showUpIcon
+                                  amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                />
+                                <button
+                                  onClick={() => hideKey(key)}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <div className="mb-1.5">
+                            <MarcoContent
+                              photoUrl={buyerPhoto}
+                              name={buyerName}
+                              carLabel={buyerCarLabel || 'Sin datos'}
+                              plate={buyerPlate}
+                              carColor={buyerColor}
+                              address={tx.address}
+                              timeLine={`Transacción completada · ${
+                                ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                              }`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                ))
+                              }
+                              statusText="COMPLETADA"
+                              dimIcons={true}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  )}
+                  </TabsContent>
+
+                  <TabsContent value="reservations" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
+                  <SectionTag variant="green" text="Activas" />
+
+                {reservationsActiveAll.length === 0 ? (
+                  <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
+                    <div className="h-[110px] flex items-center justify-center">
+                      <p className="text-gray-500 font-semibold">No tienes reservas</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {reservationsActiveAll.map((alert, index) => {
+                      const createdTs = getCreatedTs(alert) || nowTs;
+                      const waitUntilTs = getWaitUntilTs(alert);
+                      const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+
+                      const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
+                      const waitUntilLabel = hasExpiry
+                       ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                       : '--:--';
+
+                      const countdownText =
+                        remainingMs === null
+                          ? '--:--'
+                          : remainingMs > 0
+                          ? formatRemaining(remainingMs)
+                          : 'Reserva finalizada';
+
+                      const key = `res-active-${alert.id}`;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const isMock = String(alert.id).startsWith('mock-');
+
+                      if (
+                        alert.status === 'reserved' &&
+                        hasExpiry &&
+                        remainingMs !== null &&
+                        remainingMs <= 0
+                      ) {
+                        if (!isMock) {
+                          if (!autoFinalizedReservationsRef.current.has(alert.id)) {
+                            autoFinalizedReservationsRef.current.add(alert.id);
+                            base44.entities.ParkingAlert
+                              .update(alert.id, { status: 'expired' })
+                              .finally(() => {
+                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                              });
+                          }
+                        }
+                        return null;
+                      }
+
+                      const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
+                      const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
+
+                      const dateText = formatCardDate(createdTs);
+                      const moneyMode = reservationMoneyModeFromStatus('reserved');
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Activa
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-white"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {moneyMode === 'paid' ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                  />
+                                )}
+
+                                <button
+                                  onClick={async () => {
+                                    hideKey(key);
+                                    if (isMock) return;
+
+                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                                    await base44.entities.ChatMessage.create({
+                                      alert_id: alert.id,
+                                      sender_id: user?.email || user?.id,
+                                      sender_name:
+                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                                      receiver_id: alert.user_email || alert.user_id,
+                                      message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
+                                      read: false
+                                    });
+
+                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                  }}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            bright={true}
+                            photoUrl={alert.user_photo}
+                            name={alert.user_name}
+                            carLabel={carLabel || 'Sin datos'}
+                            plate={alert.car_plate}
+                            carColor={alert.car_color}
+                            address={alert.address}
+                            timeLine={{
+                              main: `Se va en ${alert.available_in_minutes} min ·`,
+                              accent: `Te espera hasta las ${waitUntilLabel}`
+                            }}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
+                              ))
+                            }
+                            statusText={countdownText}
+                            statusEnabled={true}
+                            phoneEnabled={phoneEnabled}
+                            onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
+                          />
+
+                          {/* Línea horizontal y botón de navegación */}
+                          <div className="border-t border-gray-700/80 mt-2 pt-2">
+                            <Button
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
+                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
+                            >
+                              IR
+                              <Navigation className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
+                </div>
+
+                {reservationsFinalAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta finalizada.</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {reservationsFinalAll.map((item, index) => {
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+
+                      if (item.type === 'alert') {
+                        const a = item.data;
+                        const ts = toMs(a.created_date) || nowTs;
+                        const dateText = ts ? formatCardDate(ts) : '--';
+
+                        const waitUntilTs = getWaitUntilTs(a);
+                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
+                        const waitUntilLabel = hasExpiry
+                         ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                         : '--:--';
+
+                        const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+                        const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+
+                        const mode = reservationMoneyModeFromStatus(a.status);
+
+                        return (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
+                          >
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  {mode === 'paid' ? (
+                                    <MoneyChip
+                                      mode="red"
+                                      showDownIcon
+                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                    />
+                                  ) : (
+                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
+                                  )}
+
+                                  <button
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      const isMock = String(a.id).startsWith('mock-');
+                                      if (!isMock) {
+                                        await deleteAlertSafe(a.id);
+                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                      }
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              }
+                            />
+
+                            <div className="border-t border-gray-700/80 mb-2" />
+
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={carLabel || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={phoneEnabled}
+                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                              dimIcons={true}
+                            />
+                          </motion.div>
+                        );
+                      }
+
+                      const tx = item.data;
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      const sellerName = tx.seller_name || 'Usuario';
+                      const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
+                      const sellerCarLabel =
+                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                      const sellerPlate =
+                        tx.seller_plate ||
+                        tx.sellerPlate ||
+                        tx.seller_car_plate ||
+                        tx.sellerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const sellerColor =
+                        tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
+
+                      const txPaid = String(tx.status || '').toLowerCase() === 'completed';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {txPaid ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  />
+                                ) : (
+                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
+                                )}
+
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            photoUrl={sellerPhoto}
+                            name={sellerName}
+                            carLabel={sellerCarLabel || 'Sin datos'}
+                            plate={sellerPlate}
+                            carColor={sellerColor}
+                            address={tx.address}
+                            timeLine={`Transacción completada · ${
+                              ts ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
+                            }`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
+                              ))
+                            }
+                            statusText="COMPLETADA"
+                            statusEnabled={true}
+                            dimIcons={true}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                    </div>
+                    )}
+                    </TabsContent>
+                    </Tabs>
+                    </main>
 
       <BottomNav />
 
-      {/* Dialog de prórroga */}
-      <Dialog open={showProrrogaDialog} onOpenChange={setShowProrrogaDialog}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              {currentExpiredAlert?.isBuyer 
-                ? '⏱️ No te has presentado' 
-                : '⏱️ Usuario no se ha presentado'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {currentExpiredAlert?.isBuyer 
-                ? 'Se te devolverá tu importe menos la comisión de WaitMe! (33%)' 
-                : 'Se te ingresará el 33% del importe de la operación como compensación por tu espera'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-3">
-            <p className="text-sm text-gray-300 font-semibold">¿Deseas prorrogar el tiempo?</p>
-            
-            <div className="space-y-2">
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 5, price: 1 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 5
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">5 minutos más</span>
-                  <span className="text-purple-400 font-bold">1€</span>
-                </div>
-              </button>
+      {myActiveAlerts
+        .filter((a) => a.status === 'reserved')
+        .map((alert) => (
+          <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
+        ))}
 
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 10, price: 3 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 10
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">10 minutos más</span>
-                  <span className="text-purple-400 font-bold">3€</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 15, price: 5 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 15
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">15 minutos más</span>
-                  <span className="text-purple-400 font-bold">5€</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowProrrogaDialog(false)}
-              className="flex-1 border-gray-700"
-            >
-              {currentExpiredAlert?.isBuyer ? 'Aceptar devolución' : 'Aceptar compensación'}
-            </Button>
-            <Button
-              onClick={handleProrroga}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={!selectedProrroga}
-            >
-              Solicitar prórroga
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      
     </div>
   );
 }
