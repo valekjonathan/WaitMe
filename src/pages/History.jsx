@@ -506,113 +506,62 @@ const getCreatedTs = (alert) => {
 
   
 
-const {
-  data: myAlerts = [],
-  isLoading: loadingAlerts
-} = useQuery({
-  queryKey: ['myAlerts', user?.id, user?.email],
-  enabled: !!user?.id || !!user?.email,
-  staleTime: 30 * 1000,
-  gcTime: 10 * 60 * 1000,
-  refetchInterval: false,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-  refetchOnMount: false,
-  keepPreviousData: true,
-  placeholderData: [],
-  queryFn: async () => {
-    // ✅ OPT: evitamos list() global (muy lento). Hacemos filtros directos y merge.
-    // Fallback seguro a list() si el backend no soporta algún filtro.
-    try {
-      const tasks = [];
+  const {
+    data: myAlerts = [],
+    isLoading: loadingAlerts
+  } = useQuery({
+    queryKey: ['myAlerts', user?.id, user?.email],
+    enabled: !!user?.id || !!user?.email,
+    staleTime: 30000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    queryFn: async () => {
+      // Evitar list() (muy pesado). Pedimos solo lo necesario y unimos resultados.
+      const calls = [];
 
       if (user?.id) {
-        tasks.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
-        tasks.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+        calls.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+        calls.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+        calls.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
       }
 
       if (user?.email) {
-        tasks.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+        calls.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
       }
 
-      const settled = await Promise.allSettled(tasks);
-      const merged = [];
-      for (const r of settled) {
-        if (r.status === 'fulfilled') {
-          const v = r.value;
-          const arr = Array.isArray(v) ? v : (v?.data || []);
-          if (Array.isArray(arr)) merged.push(...arr);
-        }
-      }
+      const results = await Promise.all(calls);
+      const merged = results.flat().filter(Boolean);
 
-      const map = new Map();
+      // Dedup por id
+      const byId = new Map();
       for (const a of merged) {
-        if (a?.id && !map.has(a.id)) map.set(a.id, a);
+        if (a?.id != null && !byId.has(a.id)) byId.set(a.id, a);
       }
-      return Array.from(map.values());
-    } catch (e) {
-      const res = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(res) ? res : (res?.data || []);
-      return list.filter((a) => {
-        if (!a) return false;
-        if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
-        if (user?.email && a.user_email === user.email) return true;
-        return false;
-      });
+
+      return Array.from(byId.values());
     }
-  }
-});
-
-const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-  queryKey: ['myTransactions', user?.id, user?.email],
-  enabled: !!user?.id || !!user?.email,
-  staleTime: 30 * 1000,
-  gcTime: 10 * 60 * 1000,
-  refetchInterval: false,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-  refetchOnMount: false,
-  keepPreviousData: true,
-  placeholderData: [],
-  queryFn: async () => {
-    // ✅ OPT: traemos solo lo tuyo (id y/o email) y mergeamos.
-    try {
-      const tasks = [];
-      if (user?.id) {
-        tasks.push(base44.entities.Transaction.filter({ seller_id: user.id }));
-        tasks.push(base44.entities.Transaction.filter({ buyer_id: user.id }));
-      }
-      if (user?.email) {
-        tasks.push(base44.entities.Transaction.filter({ seller_id: user.email }));
-        tasks.push(base44.entities.Transaction.filter({ buyer_id: user.email }));
-      }
-
-      const settled = await Promise.allSettled(tasks);
-      const merged = [];
-      for (const r of settled) {
-        if (r.status === 'fulfilled') {
-          const v = r.value;
-          const arr = Array.isArray(v) ? v : (v?.data || []);
-          if (Array.isArray(arr)) merged.push(...arr);
-        }
-      }
-
-      const map = new Map();
-      for (const t of merged) {
-        if (t?.id && !map.has(t.id)) map.set(t.id, t);
-      }
-      return Array.from(map.values());
-    } catch (e) {
+  });
+ 
+  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
+    queryKey: ['myTransactions', user?.email],
+    queryFn: async () => {
       const [asSeller, asBuyer] = await Promise.all([
         base44.entities.Transaction.filter({ seller_id: user?.email }),
         base44.entities.Transaction.filter({ buyer_id: user?.email })
       ]);
       return [...asSeller, ...asBuyer];
-    }
-  }
-});
+    },
+    enabled: !!user?.email,
+    staleTime: 30000,
+    refetchInterval: false
+  });
 
-const mockReservationsFinal = useMemo(() => {
+
+
+  const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
       {
@@ -757,7 +706,7 @@ const myActiveAlerts = useMemo(() => {
   // Solo mostrar la última alerta activa (la más reciente)
   if (filtered.length === 0) return [];
   
-  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email]);
 const visibleActiveAlerts = useMemo(() => {
@@ -1070,14 +1019,17 @@ if (
                                         showUpIcon
                                         amountText={`${(alert.price ?? 0).toFixed(2)}€`}
                                       />
-                                      \1\2
-  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
-  cancelAlertMutation.mutate(alert.id, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
-    }
-  });
-}}
+                                      <button
+                                        onClick={() => {
+                                          // 1) Quita la tarjeta al instante (UI)
+                                          hideKey(cardKey);
+                                          // 2) Cancela y refresca datos
+                                          cancelAlertMutation.mutate(alert.id, {
+                                            onSuccess: () => {
+                                              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                            }
+                                          });
+                                        }}
                                         disabled={cancelAlertMutation.isPending}
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                       >
