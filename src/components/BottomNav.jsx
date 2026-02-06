@@ -56,9 +56,8 @@ export default function BottomNav() {
     refetchOnMount: false
   });
 
-  // 🔹 Botón base SIN hover blanco nunca
   const baseBtn =
-    "w-full relative flex flex-col items-center justify-center text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-[64px] px-3 rounded-lg transition-all duration-200";
+    "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg";
 
   const activeGlow =
     "bg-purple-500/20 shadow-[0_0_18px_rgba(168,85,247,0.65)]";
