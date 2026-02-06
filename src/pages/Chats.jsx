@@ -42,8 +42,8 @@ function CountdownTimer({ targetTime, onExpired }) {
   }, [targetTime, onExpired, expired]);
 
   return (
-    <div className={`w-full rounded-lg px-3 py-2 flex items-center justify-center ${expired ? 'bg-red-600/20 border border-red-500/30' : 'bg-purple-600/20 border border-purple-500/30'}`}>
-      <span className={`${expired ? 'text-red-400' : 'text-purple-300'} text-sm font-mono font-bold`}>{timeLeft}</span>
+    <div className={`w-full h-8 rounded-lg border-2 ${expired ? 'border-red-500 bg-red-900/20' : 'border-gray-700 bg-gray-800'} flex items-center justify-center px-3`}>
+      <span className={`${expired ? 'text-red-400' : 'text-purple-400'} text-sm font-mono font-bold`}>{timeLeft}</span>
     </div>
   );
 }
@@ -85,7 +85,7 @@ export default function Chats() {
       
       // 4 tarjetas demo: 2 con mensajes sin leer (encendidas), 2 con mensajes leídos (apagadas)
       const mockConversations = [
-        // TARJETA 1: RESERVASTE A Sofía (con mensajes sin leer - ENCENDIDA)
+        // TARJETA 1: RESERVASTE A (con mensajes sin leer - ENCENDIDA)
         {
           id: 'mock_reservaste_1',
           participant1_id: user?.id || 'user1',
@@ -97,11 +97,11 @@ export default function Chats() {
           alert_id: 'alert_reservaste_1',
           last_message_text: 'Perfecto, voy llegando',
           last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 3,
+          unread_count_p1: 2,
           unread_count_p2: 0,
           reservation_type: 'buyer' // Tú reservaste
         },
-        // TARJETA 2: TE RESERVÓ Marco (con mensajes sin leer - ENCENDIDA)
+        // TARJETA 2: TE RESERVÓ (con mensajes sin leer - ENCENDIDA)
         {
           id: 'mock_te_reservo_1',
           participant1_id: user?.id || 'user1',
@@ -113,7 +113,7 @@ export default function Chats() {
           alert_id: 'alert_te_reservo_1',
           last_message_text: '¿Sigues ahí?',
           last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 5,
+          unread_count_p1: 3,
           unread_count_p2: 0,
           reservation_type: 'seller' // Te reservaron
         },
@@ -493,13 +493,7 @@ export default function Chats() {
                      {/* Header: "Info del usuario:" + fecha + distancia + precio */}
                       <div className="flex items-center gap-2 mb-2">
                         <div className="flex-shrink-0 w-[95px]">
-                          <Badge className={`border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate ${
-                            alert?.reserved_by_id === user?.id 
-                              ? 'bg-purple-600/20 text-purple-300 border-purple-500/30' 
-                              : alert?.reserved_by_id 
-                              ? 'bg-green-600/20 text-green-300 border-green-500/30' 
-                              : 'bg-gray-600/20 text-gray-400 border-gray-500/30'
-                          }`}>
+                          <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}>
                             {alert?.reserved_by_id === user?.id ? 'Reservaste a:' : alert?.reserved_by_id ? 'Te reservó:' : 'Info usuario'}
                           </Badge>
                         </div>
