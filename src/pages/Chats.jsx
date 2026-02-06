@@ -3,32 +3,28 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, PhoneOff, Navigation, MapPin, Clock, Car, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, PhoneOff, Navigation, MapPin, Clock, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
 
-// Componente contador de cuenta atrás EN TIEMPO REAL
-function CountdownTimer({ endTime, onExpire, alertId }) {
+// Componente contador de cuenta atrás
+function CountdownTimer({ availableInMinutes }) {
   const [timeLeft, setTimeLeft] = useState('');
-  const [expired, setExpired] = useState(false);
 
   useEffect(() => {
     const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
-
-      if (remaining === 0 && !expired) {
-        setExpired(true);
-        onExpire();
-      }
+      const totalSeconds = availableInMinutes * 60;
+      const now = Math.floor(Date.now() / 1000);
+      const startTime = Math.floor((Date.now() - (availableInMinutes * 60000)) / 1000);
+      const elapsed = now - startTime;
+      const remaining = Math.max(0, totalSeconds - elapsed);
 
       const minutes = Math.floor(remaining / 60);
       const seconds = remaining % 60;
@@ -38,22 +34,19 @@ function CountdownTimer({ endTime, onExpire, alertId }) {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [endTime, expired, onExpire]);
+  }, [availableInMinutes]);
 
   return (
     <div className="w-full h-8 rounded-lg border-2 border-gray-700 bg-gray-800 flex items-center justify-center px-3">
       <span className="text-purple-400 text-sm font-mono font-bold">{timeLeft}</span>
-    </div>
-  );
+    </div>);
+
 }
 
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
-  const [prorrogaData, setProrrogaData] = useState(null);
-  const [expiredAlert, setExpiredAlert] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,91 +73,89 @@ export default function Chats() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: async () => {
+      // Obtener TODAS las conversaciones ordenadas por más reciente
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
       
-      // 4 TARJETAS DE EJEMPLO: 2 sin leer (encendidas) + 2 leídas (apagadas)
+      // Datos mock para demostración
       const mockConversations = [
-        // TARJETA 1: RESERVASTE A - CON MENSAJES SIN LEER
         {
-          id: 'mock_reservaste_unread',
+          id: 'mock1',
           participant1_id: user?.id || 'user1',
           participant1_name: 'Tu',
           participant1_photo: user?.photo_url,
-          participant2_id: 'seller_laura',
+          participant2_id: 'user2',
           participant2_name: 'Laura',
           participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          alert_id: 'alert_reservaste_1',
-          last_message_text: 'Perfecto, te espero aquí',
+          alert_id: 'alert1',
+          last_message_text: 'Genial, aguanto.',
           last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 3,
-          unread_count_p2: 0,
-          status: 'reserved',
-          reserved_by_me: true,
-          expires_at: new Date(Date.now() + 8 * 60000).toISOString() // 8 minutos para llegar
+          unread_count_p1: 0,
+          unread_count_p2: 0
         },
-        // TARJETA 2: TE RESERVÓ - CON MENSAJES SIN LEER
         {
-          id: 'mock_tereservo_unread',
+          id: 'mock2',
           participant1_id: user?.id || 'user1',
           participant1_name: 'Tu',
           participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_carlos',
+          participant2_id: 'user3',
+          participant2_name: 'Marta',
+          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          alert_id: 'alert2',
+          last_message_text: 'Vale, llego en 10 minutos',
+          last_message_at: new Date(Date.now() - 5 * 60000).toISOString(),
+          unread_count_p1: 1,
+          unread_count_p2: 0
+        },
+        {
+          id: 'mock3',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'user4',
           participant2_name: 'Carlos',
           participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          alert_id: 'alert_tereservo_1',
-          last_message_text: 'Voy en camino, 5 minutos!',
-          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
-          unread_count_p2: 0,
-          status: 'reserved',
-          reserved_by_me: false,
-          expires_at: new Date(Date.now() + 12 * 60000).toISOString() // 12 minutos debe esperar
-        },
-        // TARJETA 3: RESERVASTE A - MENSAJES LEÍDOS (APAGADA)
-        {
-          id: 'mock_reservaste_read',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_sofia',
-          participant2_name: 'Sofía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_reservaste_2',
-          last_message_text: 'Genial, nos vemos',
-          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
+          alert_id: 'alert3',
+          last_message_text: 'Perfecto, ya estoy ahí',
+          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
           unread_count_p1: 0,
-          unread_count_p2: 0,
-          status: 'reserved',
-          reserved_by_me: true,
-          expires_at: new Date(Date.now() + 15 * 60000).toISOString()
+          unread_count_p2: 0
         },
-        // TARJETA 4: TE RESERVÓ - MENSAJES LEÍDOS (APAGADA)
         {
-          id: 'mock_tereservo_read',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_marco',
-          participant2_name: 'Marco',
-          participant2_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-          alert_id: 'alert_tereservo_2',
-          last_message_text: 'Ok, aguanto hasta entonces',
-          last_message_at: new Date(Date.now() - 8 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          status: 'reserved',
-          reserved_by_me: false,
-          expires_at: new Date(Date.now() + 20 * 60000).toISOString()
-        }
-      ];
+            id: 'mock4',
+            participant1_id: user?.id || 'user1',
+            participant1_name: 'Tu',
+            participant1_photo: user?.photo_url,
+            participant2_id: 'user5',
+            participant2_name: 'Sofía',
+            participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+            alert_id: 'alert4',
+            last_message_text: 'Ya voy llegando, 2 minutos',
+            last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
+            unread_count_p1: 2,
+            unread_count_p2: 0
+          },
+          {
+            id: 'mock5',
+            participant1_id: user?.id || 'user1',
+            participant1_name: 'Tu',
+            participant1_photo: user?.photo_url,
+            participant2_id: 'user6',
+            participant2_name: 'Marco',
+            participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
+            alert_id: 'alert5',
+            last_message_text: '¿A qué hora te liberas?',
+            last_message_at: new Date(Date.now() - 3 * 60000).toISOString(),
+            unread_count_p1: 0,
+            unread_count_p2: 1,
+            status: 'reserved'
+          }
+        ];
 
       const combined = [...mockConversations, ...allConversations];
-      return combined.sort((a, b) => {
-        const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
-        const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
-        if (bUnread !== aUnread) return bUnread - aUnread;
-        return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
-      });
+      return combined.sort((a, b) =>
+      new Date(b.last_message_at || b.updated_date || b.created_date) -
+      new Date(a.last_message_at || a.updated_date || a.created_date)
+      );
     },
     staleTime: 10000,
     refetchInterval: false
@@ -191,87 +182,88 @@ export default function Chats() {
     queryFn: async () => {
       const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
       
-      // Datos mock de alertas correspondientes a las 4 conversaciones
+      // Datos mock de alertas
       const mockAlerts = [
         {
-          id: 'alert_reservaste_1',
-          user_id: 'seller_laura',
+          id: 'alert1',
           user_name: 'Laura',
           user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
           car_brand: 'Opel',
           car_model: 'Corsa',
-          car_plate: '9812GHJ',
-          car_color: 'azul',
+          car_plate: '9812 GHJ',
           price: 4,
-          available_in_minutes: 8,
-          address: 'Calle Uría, 33, Oviedo',
-          latitude: 43.362776,
-          longitude: -5.845890,
+          available_in_minutes: 28,
+          address: 'Paseo de la Castellana, 42',
+          latitude: 40.464667,
+          longitude: -3.632623,
           allow_phone_calls: true,
-          phone: '+34612345678',
-          reserved_by_id: user?.id,
-          status: 'reserved'
+          phone: '+34612345678'
         },
         {
-          id: 'alert_tereservo_1',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+          id: 'alert2',
+          user_name: 'Marta',
+          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
           car_brand: 'Seat',
           car_model: 'Ibiza',
-          car_plate: '1234ABC',
-          car_color: 'rojo',
-          price: 3.5,
-          available_in_minutes: 12,
-          address: 'Calle Campoamor, 15, Oviedo',
-          latitude: 43.357815,
-          longitude: -5.849790,
-          allow_phone_calls: true,
-          phone: '+34677889900',
-          reserved_by_id: 'buyer_carlos',
-          reserved_by_name: 'Carlos',
-          status: 'reserved'
+          car_plate: '1234 ABC',
+          price: 3,
+          available_in_minutes: 15,
+          address: 'Calle Mayor, 18',
+          latitude: 40.416775,
+          longitude: -3.703790,
+          allow_phone_calls: false,
+          phone: null
         },
         {
-          id: 'alert_reservaste_2',
-          user_id: 'seller_sofia',
+          id: 'alert3',
+          user_name: 'Carlos',
+          user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          car_brand: 'Toyota',
+          car_model: 'Yaris',
+          car_plate: '5678 DEF',
+          price: 5,
+          available_in_minutes: 45,
+          address: 'Avenida del Paseo, 25',
+          latitude: 40.456775,
+          longitude: -3.688790,
+          allow_phone_calls: true,
+          phone: '+34698765432'
+        },
+        {
+          id: 'alert4',
           user_name: 'Sofía',
           user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
           car_brand: 'Renault',
           car_model: 'Clio',
-          car_plate: '7733MNP',
-          car_color: 'blanco',
-          price: 5,
-          available_in_minutes: 15,
-          address: 'Plaza de la Escandalera, Oviedo',
-          latitude: 43.3609,
-          longitude: -5.8501,
-          allow_phone_calls: false,
-          phone: null,
-          reserved_by_id: user?.id,
-          status: 'reserved'
+          car_plate: '7733 MNP',
+          price: 6,
+          available_in_minutes: 8,
+          address: 'Calle Uría, 33',
+          latitude: 43.362776,
+          longitude: -5.845890,
+          allow_phone_calls: true,
+          phone: '+34677889900'
         },
         {
-          id: 'alert_tereservo_2',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
+          id: 'alert5',
+          user_name: 'Marco',
+          user_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80&w=400',
           car_brand: 'BMW',
           car_model: 'Serie 3',
-          car_plate: '5521LKP',
-          car_color: 'negro',
-          price: 6,
-          available_in_minutes: 20,
-          address: 'Calle Fruela, 7, Oviedo',
-          latitude: 43.3615,
-          longitude: -5.8505,
+          car_plate: '5521 LKP',
+          price: 5.5,
+          available_in_minutes: 12,
+          address: 'Calle Campoamor, 15',
+          latitude: 43.357815,
+          longitude: -5.849790,
           allow_phone_calls: true,
           phone: '+34666554433',
-          reserved_by_id: 'buyer_marco',
-          reserved_by_name: 'Marco',
+          reserved_by_id: user?.id || 'buyer1',
+          reserved_by_name: 'Tu',
+          reserved_by_email: user?.email,
           status: 'reserved'
         }
-      ];
+        ];
       
       return [...mockAlerts, ...realAlerts];
     },
@@ -321,34 +313,11 @@ export default function Chats() {
     });
   }, [conversations, searchQuery, user?.id]);
 
-  // Handlers para cuando expira el tiempo
-  const handleExpiredReservaste = (alert, conv) => {
-    setProrrogaData({
-      type: 'reservaste',
-      alert,
-      conv,
-      message: 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
-    });
-    setExpiredAlert(alert.id);
-    setShowProrrogaDialog(true);
-  };
-
-  const handleExpiredTeReservo = (alert, conv) => {
-    setProrrogaData({
-      type: 'te_reservo',
-      alert,
-      conv,
-      message: 'Usuario no se ha presentado, se te ingresará el 33% del importe de la operación como compensación por tu espera'
-    });
-    setExpiredAlert(alert.id);
-    setShowProrrogaDialog(true);
-  };
-
-  const handleProrroga = (minutes, price) => {
-    console.log(`Prórroga solicitada: ${minutes} minutos por ${price}€`);
-    setShowProrrogaDialog(false);
-    setProrrogaData(null);
-    setExpiredAlert(null);
+  // Función para calcular minutos desde el último mensaje
+  const getMinutesSince = (timestamp) => {
+    if (!timestamp) return 1;
+    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
+    return Math.max(1, minutes);
   };
 
 
@@ -387,24 +356,20 @@ export default function Chats() {
              const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
              const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
 
+            // Borde encendido SOLO si tiene mensajes no leídos
             const hasUnread = unreadCount > 0;
 
-            // Formatear fecha: "06 Feb - 12:42" con F mayúscula
-            const formatCardDate = (ts) => {
-              if (!ts) return '--';
-              const date = new Date(ts);
-              const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
-              let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
-              month = month.charAt(0).toUpperCase() + month.slice(1);
-              const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-              return `${day} ${month} - ${time}`;
-            };
+            // Formatear fecha creación/último mensaje
+             const formatCardDate = (ts) => {
+               if (!ts) return '--';
+               const date = new Date(ts);
+               const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
+               const month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
+               const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+               return `${day} ${month} - ${time}`;
+             };
 
             const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
-
-            // Determinar tipo de tarjeta
-            const isReservadoPorMi = alert?.reserved_by_id === user?.id;
-            const meReservaron = alert?.user_id === user?.id && alert?.reserved_by_id;
 
             // Resolver datos del otro usuario desde usersMap
             const otherUserData = usersMap.get(otherUserId);
@@ -489,44 +454,21 @@ export default function Chats() {
 
                       {/* Tarjeta de usuario con MarcoCard */}
                       <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                      <MarcoCard
-                        photoUrl={otherUser.photo}
-                        name={otherUserName}
-                        carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                        plate={alert.car_plate}
-                        carColor={alert.car_color || 'gris'}
-                        address={alert.address}
-                        timeLine={
-                          isReservadoPorMi ? (
-                            <><span className={hasUnread ? "text-white" : "text-gray-400"}>Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>
-                          ) : (
-                            <><span className={hasUnread ? "text-white" : "text-gray-400"}>Te vas en {alert.available_in_minutes} min ·</span> Debes esperar hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>
-                          )
-                        }
-                        onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
-                        phoneEnabled={alert.allow_phone_calls}
-                        onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                        dimmed={!hasUnread}
-                      />
+                       <MarcoCard
+                         photoUrl={otherUser.photo}
+                         name={otherUserName}
+                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
+                         plate={alert.car_plate}
+                         carColor={alert.car_color || 'gris'}
+                         address={alert.address}
+                         timeLine={<><span className={hasUnread ? "text-white" : "text-gray-400"}>Se va en {alert.available_in_minutes} min ·</span> Te espera hasta las {new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}</>}
+                         onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
+                         statusText={new Date(Date.now() + alert.available_in_minutes * 60000).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })}
+                         phoneEnabled={alert.allow_phone_calls}
+                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
+                         dimmed={!hasUnread}
+                       />
                       </div>
-
-                      {/* Cuenta atrás EN TIEMPO REAL */}
-                      {conv.expires_at && expiredAlert !== alert.id && (
-                       <div className="border-t border-gray-700/80 pt-2 mb-1.5">
-                         <CountdownTimer 
-                           endTime={new Date(conv.expires_at).getTime()}
-                           alertId={alert.id}
-                           onExpire={() => {
-                             if (isReservadoPorMi) {
-                               handleExpiredReservaste(alert, conv);
-                             } else {
-                               handleExpiredTeReservo(alert, conv);
-                             }
-                           }}
-                         />
-                       </div>
-                      )}
 
                       {/* Ultimos mensajes */}
                       <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
@@ -548,64 +490,7 @@ export default function Chats() {
               </div>
               </main>
 
-              <BottomNav />
+      <BottomNav />
+    </div>);
 
-              {/* Dialog de PRÓRROGA */}
-              <Dialog open={showProrrogaDialog} onOpenChange={setShowProrrogaDialog}>
-              <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-              <DialogHeader>
-              <DialogTitle className="text-xl flex items-center gap-2">
-              <AlertCircle className="w-6 h-6 text-red-500" />
-              Tiempo agotado
-              </DialogTitle>
-              <DialogDescription className="text-gray-400 mt-2">
-              {prorrogaData?.message}
-              </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-3 mt-4">
-              <p className="text-sm text-gray-300 font-semibold">Opciones de prórroga:</p>
-
-              <Button
-              onClick={() => handleProrroga(5, 1)}
-              className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-base justify-between"
-              >
-              <span>5 minutos más</span>
-              <span className="font-bold">1€</span>
-              </Button>
-
-              <Button
-              onClick={() => handleProrroga(10, 3)}
-              className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-base justify-between"
-              >
-              <span>10 minutos más</span>
-              <span className="font-bold">3€</span>
-              </Button>
-
-              <Button
-              onClick={() => handleProrroga(15, 5)}
-              className="w-full bg-purple-600 hover:bg-purple-700 h-12 text-base justify-between"
-              >
-              <span>15 minutos más</span>
-              <span className="font-bold">5€</span>
-              </Button>
-              </div>
-
-              <DialogFooter className="mt-4">
-              <Button
-              variant="outline"
-              onClick={() => {
-               setShowProrrogaDialog(false);
-               setProrrogaData(null);
-               setExpiredAlert(null);
-              }}
-              className="w-full border-gray-700"
-              >
-              Cancelar
-              </Button>
-              </DialogFooter>
-              </DialogContent>
-              </Dialog>
-              </div>);
-
-              }
+}
