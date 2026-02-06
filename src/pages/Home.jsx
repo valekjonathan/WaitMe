@@ -378,7 +378,7 @@ export default function Home() {
           alert_id: alert.id,
           sender_id: user?.id,
           receiver_id: alert.user_id || alert.created_by,
-          message: `Solicitud de reserva enviada (${Number(alert.price || 0).toFixed(2)}€).`,
+          message: `Ey! Te he enviado un WaitMe!`,
           read: false
         })
       ]);

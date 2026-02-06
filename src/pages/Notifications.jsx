@@ -145,8 +145,8 @@ export default function Notifications() {
           buyer_id: notification.sender_id,
           buyer_name: notification.sender_name,
           amount: notification.amount,
-          seller_earnings: notification.amount * 0.8,
-          platform_fee: notification.amount * 0.2,
+          seller_earnings: notification.amount * 0.67,
+          platform_fee: notification.amount * 0.33,
           status: 'pending'
         }),
         base44.entities.Notification.create({
@@ -221,7 +221,7 @@ export default function Notifications() {
           <>
             Pago completado.
             <br />
-            <span className="text-green-400">Has ganado {(notif.amount * 0.8).toFixed(2)}€</span>
+            <span className="text-green-400">Has ganado {(notif.amount * 0.67).toFixed(2)}€</span>
           </>
         );
       default:
@@ -489,7 +489,7 @@ export default function Notifications() {
               No te muevas de la ubicación hasta que llegue
             </p>
             <p className="text-sm text-green-400 font-medium">
-              Ganarás: {((selectedNotification?.amount || 0) * 0.8).toFixed(2)}€
+              Ganarás: {((selectedNotification?.amount || 0) * 0.67).toFixed(2)}€
             </p>
           </div>
 
