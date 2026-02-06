@@ -1,60 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MessageCircle, User, Settings, Search, X, Phone, PhoneOff, Navigation, MapPin, Clock, Car } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, X, Navigation } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
 
-// Componente contador de cuenta atrás EN TIEMPO REAL
-function CountdownTimer({ targetTime, onExpired }) {
-  const [timeLeft, setTimeLeft] = useState('');
-  const [expired, setExpired] = useState(false);
+// ======================
+// Helpers
+// ======================
+const pad2 = (n) => String(n).padStart(2, '0');
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, targetTime - now);
-      
-      if (remaining === 0 && !expired) {
-        setExpired(true);
-        onExpired?.();
-      }
+const formatMMSS = (ms) => {
+  const safe = Math.max(0, ms ?? 0);
+  const totalSeconds = Math.floor(safe / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${pad2(minutes)}:${pad2(seconds)}`;
+};
 
-      const totalSeconds = Math.floor(remaining / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-    };
+const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [targetTime, onExpired, expired]);
+const getTargetTimeMs = (alert) => {
+  const t = alert?.target_time;
+  if (!t) return null;
+  if (typeof t === 'number') return t;
+  const asDate = new Date(t);
+  const ms = asDate.getTime();
+  return Number.isFinite(ms) ? ms : null;
+};
 
-  return (
-    <div className={`w-full h-8 rounded-lg border-2 ${expired ? 'border-red-500 bg-red-900/20' : 'border-gray-700 bg-gray-800'} flex items-center justify-center px-3`}>
-      <span className={`${expired ? 'text-red-400' : 'text-purple-400'} text-sm font-mono font-bold`}>{timeLeft}</span>
-    </div>
-  );
+const hasLatLon = (obj, latKey = 'latitude', lonKey = 'longitude') => {
+  const lat = clampFinite(Number(obj?.[latKey]));
+  const lon = clampFinite(Number(obj?.[lonKey]));
+  return lat !== null && lon !== null;
+};
+
+const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
+  const lat = clampFinite(Number(obj?.[latKey]));
+  const lon = clampFinite(Number(obj?.[lonKey]));
+  if (lat === null || lon === null) return null;
+  return { lat, lon };
+};
+
+// OSRM (gratis) para ETA real por carretera
+const osrmRouteUrl = (from, to) =>
+  `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false&alternatives=false&steps=false`;
+
+async function fetchOsrmEtaSeconds(from, to, signal) {
+  const res = await fetch(osrmRouteUrl(from, to), { signal });
+  if (!res.ok) throw new Error(`OSRM ${res.status}`);
+  const data = await res.json();
+  const duration = data?.routes?.[0]?.duration;
+  if (typeof duration === 'number' && Number.isFinite(duration)) return Math.max(0, Math.round(duration));
+  throw new Error('OSRM duration inválido');
 }
 
 export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [nowTs, setNowTs] = useState(Date.now());
+
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
   const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
+
+  // ETA cache: alertId -> { etaSeconds, fetchedAt }
+  const [etaMap, setEtaMap] = useState({});
+
+  const expiredHandledRef = useRef(new Set());
+  const osrmAbortRef = useRef(null);
+  const hasEverHadTimeRef = useRef(new Map());
+
+  // Tick global (1 vez) para TODOS los contadores
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,25 +98,26 @@ export default function Chats() {
     };
     fetchUser();
 
-    // Obtener ubicación del usuario
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setUserLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
         },
-        (error) => console.log('Error obteniendo ubicación:', error)
+        (error) => console.log('Error obteniendo ubicación:', error),
+        { enableHighAccuracy: true, maximumAge: 15000, timeout: 5000 }
       );
     }
   }, []);
 
-  const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ['conversations'],
+  // ======================
+  // Datos: Conversaciones
+  // ======================
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['conversations', user?.id || 'anon'],
     queryFn: async () => {
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
-      
-      // 4 tarjetas demo: 2 con mensajes sin leer (encendidas), 2 con mensajes leídos (apagadas)
+
       const mockConversations = [
-        // TARJETA 1: RESERVASTE A (con mensajes sin leer - ENCENDIDA)
         {
           id: 'mock_reservaste_1',
           participant1_id: user?.id || 'user1',
@@ -99,9 +131,8 @@ export default function Chats() {
           last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
           unread_count_p1: 2,
           unread_count_p2: 0,
-          reservation_type: 'buyer' // Tú reservaste
+          reservation_type: 'buyer'
         },
-        // TARJETA 2: TE RESERVÓ (con mensajes sin leer - ENCENDIDA)
         {
           id: 'mock_te_reservo_1',
           participant1_id: user?.id || 'user1',
@@ -115,9 +146,8 @@ export default function Chats() {
           last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
           unread_count_p1: 3,
           unread_count_p2: 0,
-          reservation_type: 'seller' // Te reservaron
+          reservation_type: 'seller'
         },
-        // TARJETA 3: RESERVASTE A (todos los mensajes leídos - APAGADA)
         {
           id: 'mock_reservaste_2',
           participant1_id: user?.id || 'user1',
@@ -133,7 +163,6 @@ export default function Chats() {
           unread_count_p2: 0,
           reservation_type: 'buyer'
         },
-        // TARJETA 4: TE RESERVÓ (todos los mensajes leídos - APAGADA)
         {
           id: 'mock_te_reservo_2',
           participant1_id: user?.id || 'user1',
@@ -152,42 +181,28 @@ export default function Chats() {
       ];
 
       const combined = [...mockConversations, ...allConversations];
-      return combined.sort((a, b) =>
-        new Date(b.last_message_at || b.updated_date || b.created_date) -
-        new Date(a.last_message_at || a.updated_date || a.created_date)
+      return combined.sort(
+        (a, b) =>
+          new Date(b.last_message_at || b.updated_date || b.created_date) -
+          new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
     staleTime: 10000,
     refetchInterval: false
   });
 
-  // Obtener usuarios para resolver datos completos
-  const { data: users = [] } = useQuery({
-    queryKey: ['usersForChats'],
-    queryFn: () => base44.entities.User.list(),
-    enabled: !!user?.id,
-    staleTime: 60000,
-    refetchInterval: false
-  });
-
-  const usersMap = React.useMemo(() => {
-    const map = new Map();
-    users.forEach((u) => map.set(u.id, u));
-    return map;
-  }, [users]);
-
-  // Obtener alertas para mostrar info
+  // ======================
+  // Datos: Alertas (mocks + reales)
+  // ======================
   const { data: alerts = [] } = useQuery({
-    queryKey: ['alertsForChats'],
+    queryKey: ['alertsForChats', user?.id || 'anon'],
     queryFn: async () => {
-      const realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
-      
-      // Datos mock de alertas correspondientes a las 4 tarjetas
       const now = Date.now();
+
       const mockAlerts = [
-        // ALERT 1: RESERVASTE A Sofía (12 minutos para llegar)
         {
           id: 'alert_reservaste_1',
+          user_id: 'seller_sofia',
           user_name: 'Sofía',
           user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
           car_brand: 'Renault',
@@ -195,21 +210,22 @@ export default function Chats() {
           car_plate: '7733 MNP',
           car_color: 'rojo',
           price: 6,
-          available_in_minutes: 12,
-          target_time: now + (12 * 60 * 1000), // 12 minutos desde ahora
           address: 'Calle Uría, 33, Oviedo',
           latitude: 43.362776,
-          longitude: -5.845890,
+          longitude: -5.84589,
           allow_phone_calls: true,
           phone: '+34677889900',
           reserved_by_id: user?.id,
           reserved_by_name: 'Tu',
+          // posición aproximada del reservador (para demo)
+          reserved_by_latitude: 43.35954,
+          reserved_by_longitude: -5.85234,
           status: 'reserved',
           created_date: new Date(now - 1 * 60000).toISOString()
         },
-        // ALERT 2: TE RESERVÓ Marco (8 minutos para que llegue)
         {
           id: 'alert_te_reservo_1',
+          user_id: user?.id,
           user_name: 'Tu',
           user_photo: user?.photo_url,
           car_brand: 'Seat',
@@ -217,23 +233,22 @@ export default function Chats() {
           car_plate: '1234 ABC',
           car_color: 'azul',
           price: 4,
-          available_in_minutes: 8,
-          target_time: now + (8 * 60 * 1000), // 8 minutos desde ahora
           address: 'Calle Campoamor, 15, Oviedo',
           latitude: 43.357815,
-          longitude: -5.849790,
+          longitude: -5.84979,
           allow_phone_calls: true,
           phone: user?.phone,
-          user_id: user?.id,
           reserved_by_id: 'buyer_marco',
           reserved_by_name: 'Marco',
           reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          reserved_by_latitude: 43.36621,
+          reserved_by_longitude: -5.84312,
           status: 'reserved',
           created_date: new Date(now - 2 * 60000).toISOString()
         },
-        // ALERT 3: RESERVASTE A Laura (25 minutos para llegar)
         {
           id: 'alert_reservaste_2',
+          user_id: 'seller_laura',
           user_name: 'Laura',
           user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
           car_brand: 'Opel',
@@ -241,8 +256,6 @@ export default function Chats() {
           car_plate: '9812 GHJ',
           car_color: 'blanco',
           price: 4,
-          available_in_minutes: 25,
-          target_time: now + (25 * 60 * 1000),
           address: 'Paseo de la Castellana, 42, Madrid',
           latitude: 40.464667,
           longitude: -3.632623,
@@ -250,12 +263,14 @@ export default function Chats() {
           phone: '+34612345678',
           reserved_by_id: user?.id,
           reserved_by_name: 'Tu',
+          reserved_by_latitude: 40.45811,
+          reserved_by_longitude: -3.68843,
           status: 'reserved',
           created_date: new Date(now - 10 * 60000).toISOString()
         },
-        // ALERT 4: TE RESERVÓ Carlos (18 minutos para que llegue)
         {
           id: 'alert_te_reservo_2',
+          user_id: user?.id,
           user_name: 'Tu',
           user_photo: user?.photo_url,
           car_brand: 'Toyota',
@@ -263,37 +278,46 @@ export default function Chats() {
           car_plate: '5678 DEF',
           car_color: 'gris',
           price: 5,
-          available_in_minutes: 18,
-          target_time: now + (18 * 60 * 1000),
           address: 'Avenida del Paseo, 25, Madrid',
           latitude: 40.456775,
-          longitude: -3.688790,
+          longitude: -3.68879,
           allow_phone_calls: true,
           phone: user?.phone,
-          user_id: user?.id,
           reserved_by_id: 'buyer_carlos',
           reserved_by_name: 'Carlos',
           reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          reserved_by_latitude: 40.47002,
+          reserved_by_longitude: -3.67812,
           status: 'reserved',
           created_date: new Date(now - 15 * 60000).toISOString()
         }
       ];
-      
+
+      if (!user?.id) return mockAlerts;
+
+      let realAlerts = [];
+      try {
+        realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
+      } catch (e) {
+        console.log('Error cargando alertas:', e);
+      }
+
       return [...mockAlerts, ...realAlerts];
     },
-    enabled: !!user?.id,
     staleTime: 30000,
     refetchInterval: false
   });
 
-  const alertsMap = React.useMemo(() => {
+  const alertsMap = useMemo(() => {
     const map = new Map();
-    alerts.forEach((alert) => map.set(alert.id, alert));
+    alerts.forEach((a) => map.set(a.id, a));
     return map;
   }, [alerts]);
 
-  // Calcular total de no leídos
-  const totalUnread = React.useMemo(() => {
+  // ======================
+  // Unreads + filtrado
+  // ======================
+  const totalUnread = useMemo(() => {
     return conversations.reduce((sum, conv) => {
       const isP1 = conv.participant1_id === user?.id;
       const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
@@ -301,24 +325,19 @@ export default function Chats() {
     }, 0);
   }, [conversations, user?.id]);
 
-  // Filtrar conversaciones por búsqueda y ordenar sin leer primero
-  const filteredConversations = React.useMemo(() => {
+  const filteredConversations = useMemo(() => {
     let filtered = conversations;
 
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       filtered = conversations.filter((conv) => {
-        const otherUserName = conv.participant1_id === user?.id ?
-        conv.participant2_name :
-        conv.participant1_name;
-        const lastMessage = conv.last_message_text || '';
-
-        return otherUserName?.toLowerCase().includes(query) ||
-        lastMessage.toLowerCase().includes(query);
+        const isP1 = conv.participant1_id === user?.id;
+        const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
+        const lastMsg = conv.last_message_text || '';
+        return otherName?.toLowerCase().includes(q) || lastMsg.toLowerCase().includes(q);
       });
     }
 
-    // Ordenar sin leer primero, después por timestamp más reciente
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
@@ -327,52 +346,253 @@ export default function Chats() {
     });
   }, [conversations, searchQuery, user?.id]);
 
-  // Función para calcular minutos desde el último mensaje
-  const getMinutesSince = (timestamp) => {
-    if (!timestamp) return 1;
-    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
-    return Math.max(1, minutes);
-  };
+  // ======================
+  // Expiración + prórroga
+  // ======================
+  const openExpiredDialog = (alert, isBuyer) => {
+    if (!alert?.id) return;
 
-  // Manejar cuando expira el contador
-  const handleCountdownExpired = (alert, isBuyer) => {
+    if (expiredHandledRef.current.has(alert.id)) return;
+    expiredHandledRef.current.add(alert.id);
+
+    const title = isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado';
+    const desc = isBuyer
+      ? 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
+      : 'Usuario no se ha presentado, se te ingresará el 33% del importe de la operación como compensación por tu espera';
+
+    toast({ title, description: desc });
+
     setCurrentExpiredAlert({ alert, isBuyer });
+    setSelectedProrroga(null);
     setShowProrrogaDialog(true);
   };
 
-  // Manejar prórroga
   const handleProrroga = async () => {
     if (!selectedProrroga || !currentExpiredAlert) return;
-    
+
     const { minutes, price } = selectedProrroga;
     const { alert, isBuyer } = currentExpiredAlert;
-    
-    // Aquí iría la lógica de crear notificación de prórroga
-    console.log(`Prórroga solicitada: ${minutes} min por ${price}€`);
-    
-    // Crear notificación para el otro usuario
+
     try {
       await base44.entities.Notification.create({
         type: 'extension_request',
         recipient_id: isBuyer ? alert.user_id : alert.reserved_by_id,
         sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0],
+        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
         alert_id: alert.id,
         amount: price,
         extension_minutes: minutes,
         status: 'pending'
       });
+
+      toast({
+        title: '✅ PRÓRROGA ENVIADA',
+        description: `${minutes} min por ${price}€`
+      });
     } catch (err) {
       console.error('Error creando notificación de prórroga:', err);
+      toast({
+        title: 'Error',
+        description: 'No se pudo enviar la prórroga. Inténtalo de nuevo.',
+        variant: 'destructive'
+      });
     }
-    
+
     setShowProrrogaDialog(false);
     setSelectedProrroga(null);
     setCurrentExpiredAlert(null);
   };
 
+  // ======================
+  // UI helpers
+  // ======================
+  const formatCardDate = (ts) => {
+    if (!ts) return '--';
+    const date = new Date(ts);
+    const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
+    let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
+    month = month.charAt(0).toUpperCase() + month.slice(1);
+    const time = date.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${day} ${month} - ${time}`;
+  };
 
+  const calculateDistanceText = (alert) => {
+    if (!alert?.latitude || !alert?.longitude) return null;
+    if (!userLocation) {
+      const demoDistances = ['150m', '320m', '480m', '650m', '800m'];
+      return demoDistances[String(alert.id || '').charCodeAt(0) % demoDistances.length];
+    }
+    const R = 6371;
+    const dLat = ((alert.latitude - userLocation.lat) * Math.PI) / 180;
+    const dLon = ((alert.longitude - userLocation.lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((userLocation.lat * Math.PI) / 180) *
+        Math.cos((alert.latitude * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceKm = R * c;
+    const meters = Math.round(distanceKm * 1000);
+    return `${Math.min(meters, 999)}m`;
+  };
 
+  // Botón IR (buyer) -> abre navegación a la ubicación del alert
+  const openDirectionsToAlert = (alert) => {
+    const coords = hasLatLon(alert) ? pickCoords(alert) : null;
+    if (!coords) return;
+    const { lat, lon } = coords;
+
+    // Google Maps universal (en iPhone abre app si está)
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+    window.location.href = url;
+  };
+
+  // ======================
+  // ETA REAL (batch + cache) -> SIN hooks en map
+  // ======================
+  const visibleEtaRequests = useMemo(() => {
+    const items = [];
+    const max = 20; // límite para no reventar OSRM
+    for (const conv of filteredConversations.slice(0, max)) {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) continue;
+
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const isSeller = alert?.reserved_by_id && !isBuyer;
+
+      // buyer: tú -> ubicación del alert
+      const buyerFrom = userLocation;
+      const buyerTo = hasLatLon(alert) ? pickCoords(alert) : null;
+
+      // seller: otro -> ubicación del alert (tu plaza)
+      const sellerFrom = hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+        ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+        : null;
+      const sellerTo = hasLatLon(alert) ? pickCoords(alert) : null;
+
+      if (isBuyer && buyerFrom && buyerTo) {
+        items.push({ alertId: alert.id, from: buyerFrom, to: buyerTo });
+      } else if (isSeller && sellerFrom && sellerTo) {
+        items.push({ alertId: alert.id, from: sellerFrom, to: sellerTo });
+      }
+    }
+    return items;
+  }, [filteredConversations, alertsMap, user?.id, userLocation]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const abortPrev = () => {
+      try {
+        osrmAbortRef.current?.abort?.();
+      } catch (e) {}
+      osrmAbortRef.current = null;
+    };
+
+    const shouldRefresh = (alertId) => {
+      const entry = etaMap?.[alertId];
+      if (!entry) return true;
+      // refresco cada 20s
+      return Date.now() - entry.fetchedAt > 20000;
+    };
+
+    const run = async () => {
+      if (!visibleEtaRequests.length) return;
+
+      // abort anterior
+      abortPrev();
+      const controller = new AbortController();
+      osrmAbortRef.current = controller;
+
+      const toFetch = visibleEtaRequests.filter((it) => shouldRefresh(it.alertId));
+      if (!toFetch.length) return;
+
+      try {
+        const results = await Promise.all(
+          toFetch.map(async (it) => {
+            const etaSeconds = await fetchOsrmEtaSeconds(it.from, it.to, controller.signal);
+            return { alertId: it.alertId, etaSeconds };
+          })
+        );
+
+        if (!mounted) return;
+
+        setEtaMap((prev) => {
+          const next = { ...prev };
+          const now = Date.now();
+          for (const r of results) {
+            next[r.alertId] = { etaSeconds: r.etaSeconds, fetchedAt: now };
+          }
+          return next;
+        });
+      } catch (e) {
+        // Si OSRM falla, no rompemos nada
+      }
+    };
+
+    // primera vez + polling cada 20s
+    run();
+    const id = setInterval(run, 20000);
+
+    return () => {
+      mounted = false;
+      clearInterval(id);
+      abortPrev();
+    };
+    // NOTA: etaMap está dentro por refresh logic, pero controlado por shouldRefresh
+  }, [visibleEtaRequests, etaMap]);
+
+  const getRemainingMsForAlert = (alert, isBuyer) => {
+    const entry = etaMap?.[alert?.id];
+
+    // Caso ETA real
+    if (entry && Number.isFinite(entry.etaSeconds)) {
+      const elapsed = nowTs - entry.fetchedAt;
+      const base = entry.etaSeconds * 1000;
+      const remaining = Math.max(0, base - elapsed);
+
+      if (base > 0) {
+        hasEverHadTimeRef.current.set(alert.id, true);
+      }
+
+      return remaining;
+    }
+
+    // Caso target_time legacy
+    const targetMs = getTargetTimeMs(alert);
+    if (targetMs && targetMs > nowTs) {
+      hasEverHadTimeRef.current.set(alert.id, true);
+      return targetMs - nowTs;
+    }
+
+    // ❌ si nunca tuvo tiempo → NO expira
+    return null;
+  };
+
+  // Detectar expiraciones FUERA del render
+  useEffect(() => {
+    const max = 25;
+    for (const conv of filteredConversations.slice(0, max)) {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) continue;
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const remainingMs = getRemainingMsForAlert(alert, isBuyer);
+
+      if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
+        openExpiredDialog(alert, isBuyer);
+      }
+    }
+  }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
+
+  // ======================
+  // Render
+  // ======================
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
@@ -399,41 +619,25 @@ export default function Chats() {
           </div>
         </div>
 
-         <div className="px-4 space-y-3 pt-1">
-             {filteredConversations.map((conv, index) => {
-             const alert = alertsMap.get(conv.alert_id);
-             if (!alert) return null;
-             const isP1 = conv.participant1_id === user?.id;
-             const otherUserId = isP1 ? conv.participant2_id : conv.participant1_id;
-             const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+        <div className="px-4 space-y-3 pt-1">
+          {filteredConversations.map((conv, index) => {
+            const alert = alertsMap.get(conv.alert_id);
+            if (!alert) return null;
 
-            // Borde encendido SOLO si tiene mensajes no leídos
-            const hasUnread = unreadCount > 0;
-
-            // Formatear fecha en formato "06 Feb - 12:42"
-            const formatCardDate = (ts) => {
-              if (!ts) return '--';
-              const date = new Date(ts);
-              const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
-              let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
-              // Capitalizar primera letra
-              month = month.charAt(0).toUpperCase() + month.slice(1);
-              const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-              return `${day} ${month} - ${time}`;
-            };
+            const isP1 = conv.participant1_id === user?.id;
+            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+            const hasUnread = (unreadCount || 0) > 0;
 
             const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
 
-            // Determinar si es comprador o vendedor
+            // buyer = tú reservaste (tú viajas hacia la ubicación del alert)
             const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.user_id === user?.id || conv.reservation_type === 'seller';
+            // seller = te reservaron (el otro viaja hacia tu ubicación)
+            const isSeller = alert?.reserved_by_id && !isBuyer;
 
-            // Resolver datos del otro usuario desde usersMap
-            const otherUserData = usersMap.get(otherUserId);
-            const otherUserName = otherUserData?.display_name || (isP1 ? conv.participant2_name : conv.participant1_name);
-            let otherUserPhoto = otherUserData?.photo_url || (isP1 ? conv.participant2_photo : conv.participant1_photo);
+            const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
+            let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
 
-            // Generar foto con IA si no existe
             if (!otherUserPhoto) {
               const photoUrls = [
                 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -444,156 +648,160 @@ export default function Chats() {
                 'https://randomuser.me/api/portraits/women/44.jpg',
                 'https://randomuser.me/api/portraits/men/75.jpg'
               ];
-              otherUserPhoto = photoUrls[(conv.id || '').charCodeAt(0) % photoUrls.length];
+              otherUserPhoto = photoUrls[String(conv.id || '').charCodeAt(0) % photoUrls.length];
             }
 
-            const otherUserPhone = otherUserData?.phone || (isP1 ? conv.participant2_phone : conv.participant1_phone);
-            const allowCalls = otherUserData?.allow_phone_calls ?? false;
+            const distanceText = calculateDistanceText(alert);
 
-            // Construir objeto otherUser
-            const otherUser = {
-              name: otherUserName,
-              photo: otherUserPhoto,
-              phone: otherUserPhone,
-              allowCalls: allowCalls,
-              initial: otherUserName ? otherUserName[0].toUpperCase() : '?'
-            };
+            const remainingMs = getRemainingMsForAlert(alert, isBuyer);
+            const countdownText = formatMMSS(remainingMs);
 
-            // Calcular distancia (metros o km)
-            const calculateDistance = () => {
-              if (!alert?.latitude || !alert?.longitude) return null;
-              if (!userLocation) {
-                // Demo: distancias variadas
-                const demoDistances = ['150m', '320m', '480m', '650m', '800m'];
-                return demoDistances[(alert.id || '').charCodeAt(0) % demoDistances.length];
-              }
-              const R = 6371;
-              const dLat = (alert.latitude - userLocation[0]) * Math.PI / 180;
-              const dLon = (alert.longitude - userLocation[1]) * Math.PI / 180;
-              const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(alert.latitude * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              const distanceKm = R * c;
-              const meters = Math.round(distanceKm * 1000);
-              return `${Math.min(meters, 999)}m`;
-            };
-            const distanceText = calculateDistance();
+            const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
+            const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
             return (
               <motion.div
                 key={conv.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}>
-
-                <div className={`bg-gradient-to-br ${hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'} rounded-xl p-2.5 transition-all border-2 ${hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'}`}>
-
-                   <div className="flex flex-col h-full">
-                     {/* Header: "Info del usuario:" + fecha + distancia + precio */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex-shrink-0 w-[95px]">
-                          <Badge className={`${hasUnread ? 'bg-purple-500/20 text-purple-300 border-purple-400/50' : 'bg-red-500/20 text-red-400 border-red-500/30'} border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}>
-                            {alert?.reserved_by_id === user?.id ? 'Reservaste a:' : alert?.reserved_by_id ? 'Te reservó:' : 'Info usuario'}
-                          </Badge>
-                        </div>
-                        <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>
-                          {cardDate}
-                        </div>
-                        <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                          <Navigation className="w-3 h-3 text-purple-400" />
-                          <span className="text-white font-bold text-xs">{distanceText}</span>
-                        </div>
-                        <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                          <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price)}€</span>
-                        </div>
+                transition={{ delay: index * 0.05 }}
+              >
+                <div
+                  className={`bg-gradient-to-br ${
+                    hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
+                  } rounded-xl p-2.5 transition-all border-2 ${
+                    hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'
+                  }`}
+                >
+                  <div className="flex flex-col h-full">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex-shrink-0 w-[95px]">
+                        <Badge
+                          className={`${
+                            hasUnread
+                              ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+                              : 'bg-red-500/20 text-red-400 border-red-500/30'
+                          } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
+                        >
+                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
+                        </Badge>
                       </div>
+                      <div
+                        className={`flex-1 text-center text-xs ${
+                          hasUnread ? 'text-gray-300' : 'text-gray-400'
+                        } truncate`}
+                      >
+                        {cardDate}
+                      </div>
+                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                        <Navigation className="w-3 h-3 text-purple-400" />
+                        <span className="text-white font-bold text-xs">{distanceText}</span>
+                      </div>
+                      <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                        <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price || 0)}€</span>
+                      </div>
+                    </div>
 
-                      {/* Tarjeta de usuario con MarcoCard */}
-                      <div className="border-t border-gray-700/80 mb-1.5 pt-2">
+                    {/* Tarjeta usuario */}
+                    <div className="border-t border-gray-700/80 mb-1.5 pt-2">
                       <MarcoCard
-                        photoUrl={isBuyer ? alert.user_photo : (alert.reserved_by_photo || otherUser.photo)}
-                        name={isBuyer ? alert.user_name : (alert.reserved_by_name || otherUserName)}
+                        photoUrl={isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto}
+                        name={isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName}
                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
                         plate={alert.car_plate}
                         carColor={alert.car_color || 'gris'}
                         address={alert.address}
                         timeLine={
                           isSeller ? (
-                            <>
-                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
-                                Te vas en {alert.available_in_minutes} min · Debes esperar hasta las {format(new Date(alert.target_time || Date.now() + alert.available_in_minutes * 60000), 'HH:mm')}
-                              </span>
-                            </>
+                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
+                              Te vas en {remainingMinutes} min · Debes esperar hasta las {waitUntilText}
+                            </span>
                           ) : (
-                            <>
-                              <span className={hasUnread ? "text-white" : "text-gray-400"}>
-                                Tiempo para llegar:
-                              </span>
-                            </>
+                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}
-                        statusText={
-                          isSeller ? (
-                            <CountdownTimer 
-                              targetTime={alert.target_time || Date.now() + alert.available_in_minutes * 60000}
-                              onExpired={() => handleCountdownExpired(alert, false)}
-                            />
-                          ) : (
-                            <CountdownTimer 
-                              targetTime={alert.target_time || Date.now() + alert.available_in_minutes * 60000}
-                              onExpired={() => handleCountdownExpired(alert, true)}
-                            />
-                          )
-                        }
+                        onChat={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
+                        // MISMO FORMATO VISUAL de contador (texto "MM:SS")
+                        statusText={countdownText}
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
                       />
-                      </div>
 
-                      {/* Ultimos mensajes */}
-                      <div className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`)}>
-                        <div className="flex justify-between items-center">
-                          <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
-                          {unreadCount > 0 && (
-                            <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
-                              <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
-                            </div>
-                          )}
+                      {/* BOTÓN IR (solo en "Reservaste a:") */}
+                      {isBuyer && hasLatLon(alert) && (
+                        <div className="mt-2">
+                          <Button
+                            className="w-full bg-purple-600 hover:bg-purple-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openDirectionsToAlert(alert);
+                            }}
+                          >
+                            IR
+                          </Button>
                         </div>
-                        <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>{conv.last_message_text || 'Sin mensajes'}</p>
-                      </div>
+                      )}
                     </div>
+
+                    {/* Últimos mensajes */}
+                    <div
+                      className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
+                    >
+                      <div className="flex justify-between items-center">
+                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>
+                          Ultimos mensajes:
+                        </p>
+                        {unreadCount > 0 && (
+                          <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
+                            <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>
+                        {conv.last_message_text || 'Sin mensajes'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
-              );
-              })}
-              </div>
-              </main>
+            );
+          })}
+        </div>
+      </main>
 
       <BottomNav />
 
       {/* Dialog de prórroga */}
-      <Dialog open={showProrrogaDialog} onOpenChange={setShowProrrogaDialog}>
+      <Dialog
+        open={showProrrogaDialog}
+        onOpenChange={(open) => {
+          setShowProrrogaDialog(open);
+          if (!open) {
+            setSelectedProrroga(null);
+            setCurrentExpiredAlert(null);
+            expiredHandledRef.current.clear(); // 🔓 RESET
+          }
+        }}
+      >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {currentExpiredAlert?.isBuyer 
-                ? '⏱️ No te has presentado' 
-                : '⏱️ Usuario no se ha presentado'}
+              {currentExpiredAlert?.isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado'}
             </DialogTitle>
             <DialogDescription className="text-gray-400">
-              {currentExpiredAlert?.isBuyer 
-                ? 'Se te devolverá tu importe menos la comisión de WaitMe! (33%)' 
-                : 'Se te ingresará el 33% del importe de la operación como compensación por tu espera'}
+              {currentExpiredAlert?.isBuyer
+                ? 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
+                : 'Usuario no se ha presentado, se te ingresará el 33% del importe de la operación como compensación por tu espera'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3">
-            <p className="text-sm text-gray-300 font-semibold">¿Deseas prorrogar el tiempo?</p>
-            
+            <p className="text-sm text-gray-300 font-semibold">PRORROGAR</p>
+
             <div className="space-y-2">
               <button
                 onClick={() => setSelectedProrroga({ minutes: 5, price: 1 })}
@@ -640,19 +848,15 @@ export default function Chats() {
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowProrrogaDialog(false)}
-              className="flex-1 border-gray-700"
-            >
-              {currentExpiredAlert?.isBuyer ? 'Aceptar devolución' : 'Aceptar compensación'}
+            <Button variant="outline" onClick={() => setShowProrrogaDialog(false)} className="flex-1 border-gray-700">
+              {currentExpiredAlert?.isBuyer ? 'ACEPTAR DEVOLUCIÓN' : 'ACEPTAR COMPENSACIÓN'}
             </Button>
             <Button
               onClick={handleProrroga}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               disabled={!selectedProrroga}
             >
-              Solicitar prórroga
+              PRORROGAR
             </Button>
           </DialogFooter>
         </DialogContent>
