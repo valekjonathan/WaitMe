@@ -35,6 +35,22 @@ export default function BottomNav() {
     refetchInterval: false
   });
 
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['conversations', user?.id],
+    queryFn: async () => base44.entities.Conversation.list('-last_message_at', 50),
+    enabled: !!user?.id,
+    staleTime: 60000,
+    refetchInterval: false
+  });
+
+  const totalUnreadMessages = React.useMemo(() => {
+    return conversations.reduce((sum, conv) => {
+      const isP1 = conv.participant1_id === user?.id;
+      const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+      return sum + (unread || 0);
+    }, 0) + 4; // +4 por los mensajes mock de Sofía y Marco
+  }, [conversations, user?.id]);
+
   const baseBtn =
     "w-full relative flex flex-col items-center gap-1 text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 h-auto py-2 px-3 rounded-lg";
 
@@ -112,6 +128,12 @@ export default function BottomNav() {
           <Button variant="ghost" className={baseBtn}>
             <MessageCircle className="w-8 h-8" />
             <span className="text-[10px] font-bold whitespace-nowrap truncate">Chats</span>
+
+            {totalUnreadMessages > 0 && (
+              <span className="absolute top-1 right-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
+              </span>
+            )}
           </Button>
         </Link>
 

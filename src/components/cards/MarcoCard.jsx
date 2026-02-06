@@ -180,52 +180,13 @@ export default function MarcoCard({
       </div>
 
       <div className="mt-2">
-        <div className="flex gap-2">
-          <Button
-            size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-            onClick={() => {
-              if (conversationId) {
-                setShowChat(true);
-              } else {
-                onChat?.();
-              }
-            }}
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-
-          {phoneEnabled ? (
-            <Button
-              size="icon"
-              className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-              onClick={onCall}
-            >
-              <Phone className="w-4 h-4" />
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-              disabled
-            >
-              <PhoneOff className="w-4 h-4 text-white" />
-            </Button>
-          )}
-
-          <div className="flex-1">
-            <div
-              className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
-            >
-              <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>
-                {statusText}
-              </span>
-            </div>
+        {typeof statusText === 'object' ? (
+          statusText
+        ) : (
+          <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-2 flex items-center justify-center">
+            <span className="text-purple-300 text-sm font-mono font-bold">{statusText || 'Cuenta atrás'}</span>
           </div>
-
-          {priceChip ? <div className="hidden">{priceChip}</div> : null}
-        </div>
+        )}
       </div>
 
 
