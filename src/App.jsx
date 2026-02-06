@@ -25,18 +25,14 @@ const AuthenticatedApp = () => {
     navigateToLogin
   } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
+  // 🔥 CAMBIO CLAVE
+  // Antes bloqueaba toda la app con pantalla negra.
+  // Ahora simplemente deja renderizar mientras carga.
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
+
     if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
@@ -53,6 +49,7 @@ const AuthenticatedApp = () => {
           </LayoutWrapper>
         }
       />
+
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
@@ -64,6 +61,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
