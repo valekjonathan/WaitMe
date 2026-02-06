@@ -13,8 +13,7 @@ export default function BottomNav() {
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.id],
-    queryFn: async () =>
-      base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
+    queryFn: async () => base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -22,8 +21,7 @@ export default function BottomNav() {
 
   const { data: reservedAlerts = [] } = useQuery({
     queryKey: ['userReservedAlerts', user?.id],
-    queryFn: async () =>
-      base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
+    queryFn: async () => base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -31,8 +29,7 @@ export default function BottomNav() {
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
-    queryFn: async () =>
-      base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
+    queryFn: async () => base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
     enabled: !!user?.id,
     staleTime: 60000,
     refetchInterval: false
@@ -78,11 +75,11 @@ export default function BottomNav() {
 
         <div className="w-px h-10 bg-gray-700" />
 
-        {/* MAPA — navegación SPA, sin recarga */}
+        {/* MAPA — SIN reset (no remount, no recarga) */}
         <button
           type="button"
           className="flex-1 min-w-0"
-          onClick={() => navigate(homeUrl + '?reset=' + Date.now())}
+          onClick={() => navigate(homeUrl)}
         >
           <Button variant="ghost" className={baseBtn}>
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
