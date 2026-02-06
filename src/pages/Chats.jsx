@@ -20,7 +20,7 @@ import MarcoCard from '@/components/cards/MarcoCard';
 const pad2 = (n) => String(n).padStart(2, '0');
 
 const formatMMSS = (ms) => {
-  const safe = Math.max(0, ms);
+  const safe = Math.max(0, ms ?? 0);
   const totalSeconds = Math.floor(safe / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -412,7 +412,12 @@ export default function Chats() {
     const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
     let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
     month = month.charAt(0).toUpperCase() + month.slice(1);
-    const time = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+    const time = date.toLocaleString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
     return `${day} ${month} - ${time}`;
   };
 
@@ -423,18 +428,29 @@ export default function Chats() {
       return demoDistances[String(alert.id || '').charCodeAt(0) % demoDistances.length];
     }
     const R = 6371;
-    const dLat = (alert.latitude - userLocation.lat) * Math.PI / 180;
-    const dLon = (alert.longitude - userLocation.lon) * Math.PI / 180;
+    const dLat = ((alert.latitude - userLocation.lat) * Math.PI) / 180;
+    const dLon = ((alert.longitude - userLocation.lon) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLocation.lat * Math.PI / 180) *
-        Math.cos(alert.latitude * Math.PI / 180) *
+      Math.cos((userLocation.lat * Math.PI) / 180) *
+        Math.cos((alert.latitude * Math.PI) / 180) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distanceKm = R * c;
     const meters = Math.round(distanceKm * 1000);
     return `${Math.min(meters, 999)}m`;
+  };
+
+  // Botón IR (buyer) -> abre navegación a la ubicación del alert
+  const openDirectionsToAlert = (alert) => {
+    const coords = hasLatLon(alert) ? pickCoords(alert) : null;
+    if (!coords) return;
+    const { lat, lon } = coords;
+
+    // Google Maps universal (en iPhone abre app si está)
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
+    window.location.href = url;
   };
 
   // ======================
@@ -455,10 +471,9 @@ export default function Chats() {
       const buyerTo = hasLatLon(alert) ? pickCoords(alert) : null;
 
       // seller: otro -> ubicación del alert (tu plaza)
-      const sellerFrom =
-        hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude')
-          ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude')
-          : null;
+      const sellerFrom = hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+        ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude')
+        : null;
       const sellerTo = hasLatLon(alert) ? pickCoords(alert) : null;
 
       if (isBuyer && buyerFrom && buyerTo) {
@@ -534,31 +549,31 @@ export default function Chats() {
   }, [visibleEtaRequests, etaMap]);
 
   const getRemainingMsForAlert = (alert, isBuyer) => {
-  const entry = etaMap?.[alert?.id];
+    const entry = etaMap?.[alert?.id];
 
-  // Caso ETA real
-  if (entry && Number.isFinite(entry.etaSeconds)) {
-    const elapsed = nowTs - entry.fetchedAt;
-    const base = entry.etaSeconds * 1000;
-    const remaining = Math.max(0, base - elapsed);
+    // Caso ETA real
+    if (entry && Number.isFinite(entry.etaSeconds)) {
+      const elapsed = nowTs - entry.fetchedAt;
+      const base = entry.etaSeconds * 1000;
+      const remaining = Math.max(0, base - elapsed);
 
-    if (base > 0) {
-      hasEverHadTimeRef.set(alert.id, true);
+      if (base > 0) {
+        hasEverHadTimeRef.current.set(alert.id, true);
+      }
+
+      return remaining;
     }
 
-    return remaining;
-  }
+    // Caso target_time legacy
+    const targetMs = getTargetTimeMs(alert);
+    if (targetMs && targetMs > nowTs) {
+      hasEverHadTimeRef.current.set(alert.id, true);
+      return targetMs - nowTs;
+    }
 
-  // Caso target_time legacy
-  const targetMs = getTargetTimeMs(alert);
-  if (targetMs && targetMs > nowTs) {
-    hasEverHadTimeRef.set(alert.id, true);
-    return targetMs - nowTs;
-  }
-
-  // ❌ si nunca tuvo tiempo → NO expira
-  return null;
-};
+    // ❌ si nunca tuvo tiempo → NO expira
+    return null;
+  };
 
   // Detectar expiraciones FUERA del render
   useEffect(() => {
@@ -568,15 +583,12 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-      if (
-  remainingMs === 0 &&
-  hasEverHadTimeRef.get(alert.id) === true &&
-  !showProrrogaDialog
-) {
-  openExpiredDialog(alert, isBuyer);
-}
+
+      if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
+        openExpiredDialog(alert, isBuyer);
+      }
     }
-  }, [nowTs, filteredConversations, alertsMap, user?.id]);
+  }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
 
   // ======================
   // Render
@@ -644,8 +656,8 @@ export default function Chats() {
             const remainingMs = getRemainingMsForAlert(alert, isBuyer);
             const countdownText = formatMMSS(remainingMs);
 
-            const remainingMinutes = Math.max(0, Math.ceil(remainingMs / 60000));
-            const waitUntilText = format(new Date(nowTs + remainingMs), 'HH:mm', { locale: es });
+            const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
+            const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
             return (
               <motion.div
@@ -675,7 +687,11 @@ export default function Chats() {
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
-                      <div className={`flex-1 text-center text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-400'} truncate`}>
+                      <div
+                        className={`flex-1 text-center text-xs ${
+                          hasUnread ? 'text-gray-300' : 'text-gray-400'
+                        } truncate`}
+                      >
                         {cardDate}
                       </div>
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
@@ -712,6 +728,22 @@ export default function Chats() {
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
                       />
+
+                      {/* BOTÓN IR (solo en "Reservaste a:") */}
+                      {isBuyer && hasLatLon(alert) && (
+                        <div className="mt-2">
+                          <Button
+                            className="w-full bg-purple-600 hover:bg-purple-700"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              openDirectionsToAlert(alert);
+                            }}
+                          >
+                            IR
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Últimos mensajes */}
@@ -720,7 +752,9 @@ export default function Chats() {
                       onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
                     >
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>Ultimos mensajes:</p>
+                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>
+                          Ultimos mensajes:
+                        </p>
                         {unreadCount > 0 && (
                           <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
                             <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
@@ -745,13 +779,13 @@ export default function Chats() {
       <Dialog
         open={showProrrogaDialog}
         onOpenChange={(open) => {
-  setShowProrrogaDialog(open);
-  if (!open) {
-    setSelectedProrroga(null);
-    setCurrentExpiredAlert(null);
-    expiredHandledRef.current.clear(); // 🔓 RESET
-  }
-}}
+          setShowProrrogaDialog(open);
+          if (!open) {
+            setSelectedProrroga(null);
+            setCurrentExpiredAlert(null);
+            expiredHandledRef.current.clear(); // 🔓 RESET
+          }
+        }}
       >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
