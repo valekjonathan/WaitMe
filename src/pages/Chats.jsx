@@ -79,6 +79,7 @@ export default function Chats() {
 
   const expiredHandledRef = useRef(new Set());
   const osrmAbortRef = useRef(null);
+  const hasEverHadTimeRef = useRef(new Map());
 
   // Tick global (1 vez) para TODOS los contadores
   useEffect(() => {
@@ -533,21 +534,31 @@ export default function Chats() {
   }, [visibleEtaRequests, etaMap]);
 
   const getRemainingMsForAlert = (alert, isBuyer) => {
-    // 1) Si hay ETA cache -> descontamos tiempo real desde fetchedAt
-    const entry = etaMap?.[alert?.id];
-    if (entry && typeof entry.etaSeconds === 'number' && Number.isFinite(entry.etaSeconds)) {
-      const elapsed = nowTs - entry.fetchedAt;
-      const base = entry.etaSeconds * 1000;
-      return Math.max(0, base - elapsed);
+  const entry = etaMap?.[alert?.id];
+
+  // Caso ETA real
+  if (entry && Number.isFinite(entry.etaSeconds)) {
+    const elapsed = nowTs - entry.fetchedAt;
+    const base = entry.etaSeconds * 1000;
+    const remaining = Math.max(0, base - elapsed);
+
+    if (base > 0) {
+      hasEverHadTimeRef.set(alert.id, true);
     }
 
-    // 2) fallback legacy: target_time
-    const targetMs = getTargetTimeMs(alert);
-    if (targetMs) return Math.max(0, targetMs - nowTs);
+    return remaining;
+  }
 
-    // 3) si no hay nada, 0
-    return 0;
-  };
+  // Caso target_time legacy
+  const targetMs = getTargetTimeMs(alert);
+  if (targetMs && targetMs > nowTs) {
+    hasEverHadTimeRef.set(alert.id, true);
+    return targetMs - nowTs;
+  }
+
+  // ❌ si nunca tuvo tiempo → NO expira
+  return null;
+};
 
   // Detectar expiraciones FUERA del render
   useEffect(() => {
@@ -557,7 +568,13 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-      if (remainingMs === 0) openExpiredDialog(alert, isBuyer);
+      if (
+  remainingMs === 0 &&
+  hasEverHadTimeRef.get(alert.id) === true &&
+  !showProrrogaDialog
+) {
+  openExpiredDialog(alert, isBuyer);
+}
     }
   }, [nowTs, filteredConversations, alertsMap, user?.id]);
 
