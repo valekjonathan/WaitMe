@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPageUrl } from '@/utils';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Search, X, Navigation } from 'lucide-react';
@@ -65,6 +66,25 @@ const isFinalChatStatus = (status) => {
   return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
 
+const isIrEnabledForChat = (conv) => {
+  const s = String(conv?.status || '').toLowerCase();
+
+  const isCompleted = ['completed', 'completada'].includes(s);
+  const isRejected = ['rejected', 'rechazada'].includes(s);
+  const isMeLoPienso = ['me_lo_pienso', 'melo_pienso', 'thinking', 'pending', 'pensando'].includes(s);
+  const isProrrogada = ['prorrogada', 'extended', 'prorroga', 'prórroga'].includes(s);
+
+  // Reglas:
+  // - "Me lo pienso": IR SIEMPRE encendido
+  // - "Prorrogada": IR visible y encendido
+  // - Completada o Rechazada: IR visible pero apagado
+  // - Resto: encendido solo si hay mensajes (para evitar tarjetas apagadas)
+  if (isMeLoPienso || isProrrogada) return true;
+  if (isCompleted || isRejected) return false;
+  return Boolean(conv?.last_message_text);
+};
+
+
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
 const getTargetTimeMs = (alert) => {
@@ -103,6 +123,8 @@ async function fetchOsrmEtaSeconds(from, to, signal) {
 }
 
 export default function Chats() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -542,10 +564,40 @@ export default function Chats() {
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
+
+      // 1) Prioridad: conversaciones con mensajes sin leer
       if (bUnread !== aUnread) return bUnread - aUnread;
-      return new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0);
+
+      // 2) Orden: última acción arriba (mensaje o cambio de estado)
+      const toMs = (v) => {
+        if (!v) return 0;
+        if (typeof v === 'number') return v;
+        const d = new Date(v);
+        const ms = d.getTime();
+        return Number.isFinite(ms) ? ms : 0;
+      };
+
+      const aLast = Math.max(
+        toMs(a.last_message_at),
+        toMs(a.status_updated_at),
+        toMs(a.updated_date),
+        toMs(a.updated_at),
+        toMs(a.created_date),
+        toMs(a.created_at)
+      );
+
+      const bLast = Math.max(
+        toMs(b.last_message_at),
+        toMs(b.status_updated_at),
+        toMs(b.updated_date),
+        toMs(b.updated_at),
+        toMs(b.created_date),
+        toMs(b.created_at)
+      );
+
+      return bLast - aLast;
     });
-  }, [conversations, searchQuery, user?.id]);
+}, [conversations, searchQuery, user?.id]);
 
   // ======================
   // Expiración + prórroga
@@ -687,69 +739,12 @@ export default function Chats() {
   }, [filteredConversations, alertsMap, user?.id, userLocation]);
 
   useEffect(() => {
-    let mounted = true;
-
-    const abortPrev = () => {
-      try {
-        osrmAbortRef.current?.abort?.();
-      } catch (e) {}
-      osrmAbortRef.current = null;
-    };
-
-    const shouldRefresh = (alertId) => {
-      const entry = etaMap?.[alertId];
-      if (!entry) return true;
-      // refresco cada 20s
-      return Date.now() - entry.fetchedAt > 20000;
-    };
-
-    const run = async () => {
-      if (!visibleEtaRequests.length) return;
-
-      // abort anterior
-      abortPrev();
-      const controller = new AbortController();
-      osrmAbortRef.current = controller;
-
-      const toFetch = visibleEtaRequests.filter((it) => shouldRefresh(it.alertId));
-      if (!toFetch.length) return;
-
-      try {
-        const results = await Promise.all(
-          toFetch.map(async (it) => {
-            const etaSeconds = await fetchOsrmEtaSeconds(it.from, it.to, controller.signal);
-            return { alertId: it.alertId, etaSeconds };
-          })
-        );
-
-        if (!mounted) return;
-
-        setEtaMap((prev) => {
-          const next = { ...prev };
-          const now = Date.now();
-          for (const r of results) {
-            next[r.alertId] = { etaSeconds: r.etaSeconds, fetchedAt: now };
-          }
-          return next;
-        });
-      } catch (e) {
-        // Si OSRM falla, no rompemos nada
-      }
-    };
-
-    // primera vez + polling cada 20s
-    run();
-    const id = setInterval(run, 20000);
-
-    return () => {
-      mounted = false;
-      clearInterval(id);
-      abortPrev();
-    };
-    // NOTA: etaMap está dentro por refresh logic, pero controlado por shouldRefresh
-  }, [visibleEtaRequests, etaMap]);
-
-  const getRemainingMsForAlert = (alert, isBuyer) => {
+    // ⚡ Rendimiento: NO precargamos ETA por OSRM en la lista de chats.
+    // Esto evita esperas, pantallas en blanco y bloqueos en móvil/preview.
+    // La navegación/ETA se calcula solo cuando el usuario entra en "IR" (pantalla Navigate).
+    return () => {};
+  }, []);
+const getRemainingMsForAlert = (alert, isBuyer) => {
     const entry = etaMap?.[alert?.id];
 
     // Caso ETA real
@@ -934,7 +929,7 @@ export default function Chats() {
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
+                        onChat={() => (navigate(createPageUrl(`Chat?conversationId=${conv.id}`)))}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
                         statusText={statusBoxText}
                         phoneEnabled={alert.allow_phone_calls}
@@ -946,14 +941,14 @@ export default function Chats() {
                       {isBuyer && hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={!conv.last_message_text}
+                            disabled={!isIrEnabledForChat(conv)}
                             className={`w-full ${
-                              conv.last_message_text ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (!conv.last_message_text) return;
+                              if (!isIrEnabledForChat(conv)) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
@@ -969,7 +964,7 @@ export default function Chats() {
                     {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
+                      onClick={() => (navigate(createPageUrl(`Chat?conversationId=${conv.id}`)))}
                     >
                       <div className="flex justify-between items-center">
                         <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>

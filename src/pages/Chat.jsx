@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
+import { startDemoFlow, subscribeDemoFlow, getDemoConversation, getDemoMessages, markDemoRead, sendDemoMessage, demoFlow } from '@/lib/demoFlow';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -29,17 +30,47 @@ export default function Chat() {
   // Activar modo demo si no hay conversación real
   const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
+  // ======================
+  // Demo: estado en memoria (sin cargas)
+  // ======================
+  const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    if (!isDemo) return;
+    startDemoFlow();
+    const unsub = subscribeDemoFlow(() => forceTick((x) => x + 1));
+    return () => unsub?.();
+  }, [isDemo]);
+
+  const demoSt = isDemo ? demoFlow() : null;
+
+  // Si no viene conversationId en demo, abrimos la primera conversación disponible
+  const demoConversationId = isDemo ? (conversationId || demoSt?.conversations?.[0]?.id || null) : null;
+  const demoConversation = isDemo ? getDemoConversation(demoConversationId) : null;
+  const demoConv = demoConversation;
+  const demoMessages = isDemo ? getDemoMessages(demoConversationId) : null;
+  const demoOtherUser = isDemo && demoConv ? demoSt?.users?.[demoConv.otherUserId] : null;
+
+  useEffect(() => {
+    if (!isDemo) return;
+    if (!demoConversationId) return;
+    markDemoRead(demoConversationId);
+  }, [isDemo, demoConversationId]);
+
+
+
   // Usuario actual
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
-    staleTime: 60000
+    staleTime: 60000,
+    enabled: !isDemo
   });
 
   // Conversación
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
-    enabled: !!conversationId && !isDemo,
+    enabled: !!conversationId && !isDemo && !isDemo,
     queryFn: async () => {
       const conv = await base44.entities.Conversation.filter({ id: conversationId });
       return conv?.[0] || null;
@@ -160,6 +191,17 @@ export default function Chat() {
     return () => unsubscribe?.();
   }, [conversationId, isDemo, queryClient]);
 
+  // Datos a renderizar (demo o real)
+  const activeConversation = isDemo ? demoConv : conversation;
+  const activeMessages = isDemo ? (demoMessages || []) : (messages || []);
+  const activeOtherUser = isDemo
+    ? demoOtherUser
+    : (() => {
+        const otherId =
+          conversation?.participant1_id === user?.id ? conversation?.participant2_id : conversation?.participant1_id;
+        return otherId ? null : null;
+      })();
+
   // Enviar mensaje
   const sendMutation = useMutation({
     mutationFn: async (text) => {
@@ -167,7 +209,7 @@ export default function Chat() {
         const clean = String(text || '').trim();
         if (!clean) return;
         if (conversationId) {
-          sendDemoMessage(conversationId, clean);
+          if (demoConversationId) sendDemoMessage(demoConversationId, clean);
         }
         return;
       }
@@ -207,6 +249,18 @@ export default function Chat() {
 
   const handleSend = () => {
     if (!message.trim() && attachments.length === 0) return;
+
+    if (isDemo) {
+      // En demo, enviamos al motor local y generamos respuesta automática
+      if (demoConversationId) {
+        sendDemoMessage(demoConversationId, message, attachments);
+      }
+      setMessage('');
+      setAttachments([]);
+      setShowAttachMenu(false);
+      return;
+    }
+
     sendMutation.mutate(message);
   };
 
@@ -230,11 +284,14 @@ export default function Chat() {
   // Datos del otro usuario
   const isP1 = conversation?.participant1_id === user?.id;
   const otherUser = isDemo
-    ? { name: demoConversation?.other_name || 'Usuario', photo: demoConversation?.other_photo || null }
+    ? { name: demoOtherUser?.name || demoConversation?.other_name || 'Usuario', photo: demoOtherUser?.photo || demoConversation?.other_photo || null }
     : {
         name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
         photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
       };
+
+  // Mensajes a renderizar (demo o real)
+  const renderMessages = isDemo ? (demoMessages || demoConversation?.messages || []) : (messages || []);
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
