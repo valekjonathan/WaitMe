@@ -10,6 +10,26 @@ let started = false;
 let tickTimer = null;
 const replyTimers = new Map();
 
+// Persistencia simple del modo demo (por defecto ON)
+const DEMO_KEY = 'waitme_demo_mode';
+function readPersistedDemoEnabled() {
+  try {
+    const v = localStorage.getItem(DEMO_KEY);
+    if (v === null) return true;
+    return v === 'true';
+  } catch {
+    return true;
+  }
+}
+
+function persistDemoEnabled(enabled) {
+  try {
+    localStorage.setItem(DEMO_KEY, enabled ? 'true' : 'false');
+  } catch {
+    // ignore
+  }
+}
+
 function mkMsg({ id, ts, senderId, senderName, senderPhoto, mine, text, kind = 'text' }) {
   return { id, ts, senderId, senderName, senderPhoto, mine, text, kind };
 }
@@ -215,7 +235,16 @@ function initial() {
     { at: t0 + 36000, fn: (st) => completePayment(st, 'mock_reservaste_1') },
   ];
 
-  return { t0, users, conversations, notifications, script, scriptIdx: 0 };
+  return {
+    t0,
+    // Controla SOLO los eventos tipo "push"/toast (no los datos base de la app).
+    demoEnabled: readPersistedDemoEnabled(),
+    users,
+    conversations,
+    notifications,
+    script,
+    scriptIdx: 0
+  };
 }
 
 let state = initial();
@@ -412,9 +441,29 @@ export function getDemoNotifications() {
 // Exponemos una API mínima coherente con la anterior.
 export const demoFlow = {
   // Mantiene la forma antigua: { actionableNotifications: [...] }
-  getState: () => ({ actionableNotifications: getDemoNotifications() }),
-  subscribe: (fn) => subscribeDemoFlow(() => fn({ actionableNotifications: getDemoNotifications() })),
+  getState: () => ({
+    demoEnabled: !!state?.demoEnabled,
+    actionableNotifications: getDemoNotifications()
+  }),
+  subscribe: (fn) =>
+    subscribeDemoFlow(() =>
+      fn({ demoEnabled: !!state?.demoEnabled, actionableNotifications: getDemoNotifications() })
+    ),
   start: () => startDemoFlow(),
+  setDemoEnabled: (enabled) => {
+    const v = !!enabled;
+    state = { ...state, demoEnabled: v };
+    try {
+      localStorage.setItem(DEMO_KEY, v ? 'true' : 'false');
+    } catch {
+      // ignore
+    }
+    // Si se apaga, limpiamos push pendientes para que no queden "encima".
+    if (!v) {
+      state = { ...state, notifications: [] };
+    }
+    emit();
+  },
   // Alias útiles
   startDemoFlow,
   subscribeDemoFlow,

@@ -20,6 +20,7 @@ import Logo from '@/components/Logo';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/lib/AuthContext';
+import { demoFlow } from '@/lib/demoFlow';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -28,8 +29,25 @@ export default function Settings() {
   const [allowCalls, setAllowCalls] = useState(false);
   const [saving, setSaving] = useState(false);
   const [demoMode, setDemoMode] = useState(() => {
-    try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; }
+    try {
+      const v = localStorage.getItem('waitme_demo_mode');
+      if (v === null) return true; // por defecto ON
+      return v === 'true';
+    } catch {
+      return true;
+    }
   });
+
+  useEffect(() => {
+    try { localStorage.setItem('waitme_demo_mode', demoMode ? 'true' : 'false'); } catch {}
+    try { demoFlow.setDemoEnabled?.(demoMode); } catch {}
+  }, [demoMode]);
+
+  // Persistir y sincronizar con el motor demo
+  useEffect(() => {
+    try { localStorage.setItem('waitme_demo_mode', demoMode ? 'true' : 'false'); } catch {}
+    try { demoFlow.setDemoEnabled?.(!!demoMode); } catch {}
+  }, [demoMode]);
 
   useEffect(() => {
     setPhone(user?.phone || '');

@@ -130,6 +130,18 @@ export default function Chats() {
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
 
+  // Mantén la app "viva" y evita esperas: por defecto usamos modo demo/local.
+  // El switch de Ajustes controla los "push"/toasts, pero aquí evitamos llamadas lentas.
+  const demoMode = useMemo(() => {
+    try {
+      const v = localStorage.getItem('waitme_demo_mode');
+      if (v === null) return true; // default ON
+      return v === 'true';
+    } catch {
+      return true;
+    }
+  }, []);
+
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
   const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
@@ -175,7 +187,10 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id || 'anon'],
     queryFn: async () => {
-      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
+      // En modo demo evitamos llamadas remotas que meten pantallas blancas/neg...
+      const allConversations = demoMode
+        ? []
+        : await base44.entities.Conversation.list('-last_message_at', 50);
 
       const mockConversations = [
         {
@@ -929,7 +944,12 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => (navigate(createPageUrl(`Chat?conversationId=${conv.id}`)))}
+                        onChat={() => {
+                          const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
+                          const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                          const demo = demoMode ? 'demo=true&' : '';
+                          navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
+                        }}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
                         statusText={statusBoxText}
                         phoneEnabled={alert.allow_phone_calls}
@@ -964,7 +984,12 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                     {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => (navigate(createPageUrl(`Chat?conversationId=${conv.id}`)))}
+                      onClick={() => {
+                        const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
+                        const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                        const demo = demoMode ? 'demo=true&' : '';
+                        navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
+                      }}
                     >
                       <div className="flex justify-between items-center">
                         <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
