@@ -27,6 +27,44 @@ const formatMMSS = (ms) => {
   return `${pad2(minutes)}:${pad2(seconds)}`;
 };
 
+const getChatStatusLabel = (status) => {
+  const s = String(status || '').toLowerCase();
+  switch (s) {
+    case 'completed':
+    case 'completada':
+      return 'COMPLETADA';
+    case 'thinking':
+    case 'me_lo_pienso':
+    case 'pending':
+      return 'ME LO PIENSO';
+    case 'rejected':
+    case 'rechazada':
+      return 'RECHAZADA';
+    case 'extended':
+    case 'prorroga':
+    case 'prórroga':
+      return 'PRÓRROGA';
+    case 'cancelled':
+    case 'canceled':
+    case 'cancelada':
+      return 'CANCELADA';
+    case 'expired':
+    case 'agotada':
+    case 'expirada':
+      return 'AGOTADA';
+    case 'went_early':
+    case 'se_fue':
+      return 'SE FUE';
+    default:
+      return null;
+  }
+};
+
+const isFinalChatStatus = (status) => {
+  const s = String(status || '').toLowerCase();
+  return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
+};
+
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
 const getTargetTimeMs = (alert) => {
@@ -264,6 +302,7 @@ export default function Chats() {
     queryKey: ['alertsForChats', user?.id || 'anon'],
     queryFn: async () => {
       const now = Date.now();
+      const inMin = (m) => now + m * 60 * 1000;
 
       const mockAlerts = [
         {
@@ -286,6 +325,8 @@ export default function Chats() {
           // posición aproximada del reservador (para demo)
           reserved_by_latitude: 43.35954,
           reserved_by_longitude: -5.85234,
+          // 10 min restantes (sincroniza texto + contador)
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 1 * 60000).toISOString()
         },
@@ -309,6 +350,7 @@ export default function Chats() {
           reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
           reserved_by_latitude: 43.36621,
           reserved_by_longitude: -5.84312,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 2 * 60000).toISOString()
         },
@@ -331,6 +373,7 @@ export default function Chats() {
           reserved_by_name: 'Tu',
           reserved_by_latitude: 40.45811,
           reserved_by_longitude: -3.68843,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 10 * 60000).toISOString()
         },
@@ -354,6 +397,7 @@ export default function Chats() {
           reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
           reserved_by_latitude: 40.47002,
           reserved_by_longitude: -3.67812,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 15 * 60000).toISOString()
         },
@@ -816,6 +860,10 @@ export default function Chats() {
             const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
             const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
+            const finalLabel = getChatStatusLabel(alert?.status);
+            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
+            const statusBoxText = isFinal ? finalLabel : countdownText;
+
             return (
               <motion.div
                 key={conv.id}
@@ -875,12 +923,12 @@ export default function Chats() {
                           isSeller ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Te vas en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-400">Debes esperar hasta las: {waitUntilText}</span>
+                              <span className="text-purple-400 font-bold">Debes esperar hasta las {waitUntilText}</span>
                             </span>
                           ) : isBuyer ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Te vas en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-400">Debes esperar hasta las: {waitUntilText}</span>
+                              Se va en {remainingMinutes} min ·{' '}
+                              <span className="text-purple-400 font-bold">Te espera hasta las {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
@@ -888,7 +936,7 @@ export default function Chats() {
                         }
                         onChat={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
-                        statusText={countdownText}
+                        statusText={statusBoxText}
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
@@ -924,8 +972,8 @@ export default function Chats() {
                       onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
                     >
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>
-                          Ultimos mensajes:
+                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
+                          Últimos mensajes:
                         </p>
                         {unreadCount > 0 && (
                           <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
