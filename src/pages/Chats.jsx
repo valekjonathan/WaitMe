@@ -13,7 +13,6 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
-import { startDemoFlow, subscribeDemoFlow, getDemoConversationsForChats } from '@/lib/demoFlow';
 
 // ======================
 // Helpers
@@ -116,33 +115,6 @@ export default function Chats() {
   // ETA cache: alertId -> { etaSeconds, fetchedAt }
   const [etaMap, setEtaMap] = useState({});
 
-
-  // ======================
-  // Demo Flow (vida en la UI)
-  // ======================
-  useEffect(() => {
-    startDemoFlow();
-
-    const unsub = subscribeDemoFlow(() => {
-      // fuerza re-render con cambios del motor demo
-      setNowTs(Date.now());
-    });
-
-    const onToast = (e) => {
-      const title = e?.detail?.title;
-      const description = e?.detail?.description;
-      if (title || description) {
-        toast({ title: title || 'Notificación', description });
-      }
-    };
-    window.addEventListener('waitme:demoToast', onToast);
-
-    return () => {
-      unsub?.();
-      window.removeEventListener('waitme:demoToast', onToast);
-    };
-  }, []);
-
   const expiredHandledRef = useRef(new Set());
   const osrmAbortRef = useRef(null);
   const hasEverHadTimeRef = useRef(new Map());
@@ -178,10 +150,139 @@ export default function Chats() {
   // ======================
   // Datos: Conversaciones
   // ======================
-  const { data: realConversations = [] } = useQuery({
+  const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id || 'anon'],
     queryFn: async () => {
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
+
+      const mockConversations = [
+        {
+          id: 'mock_reservaste_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_sofia',
+          participant2_name: 'Sofía',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          alert_id: 'alert_reservaste_1',
+          last_message_text: 'Perfecto, voy llegando',
+          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
+          unread_count_p1: 2,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        {
+          id: 'mock_te_reservo_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'buyer_marco',
+          participant2_name: 'Marco',
+          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+          alert_id: 'alert_te_reservo_1',
+          last_message_text: '¿Sigues ahí?',
+          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
+          unread_count_p1: 3,
+          unread_count_p2: 0,
+          reservation_type: 'seller'
+        },
+        {
+          id: 'mock_reservaste_2',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_laura',
+          participant2_name: 'Laura',
+          participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+          alert_id: 'alert_reservaste_2',
+          last_message_text: 'Genial, aguanto',
+          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        {
+          id: 'mock_te_reservo_2',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'buyer_carlos',
+          participant2_name: 'Carlos',
+          participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+          alert_id: 'alert_te_reservo_2',
+          last_message_text: 'Estoy cerca',
+          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'seller'
+        },
+
+        // ====== Variantes para ver todos los estados en CHATS ======
+        // COMPLETADA
+        {
+          id: 'mock_completada_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_ana',
+          participant2_name: 'Ana',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+          alert_id: 'alert_completada_1',
+          last_message_text: 'Operación completada ✅',
+          last_message_at: new Date(Date.now() - 22 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // ME LO PIENSO (sin mensajes -> tarjeta apagada)
+        {
+          id: 'mock_pensar_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_lucia',
+          participant2_name: 'Lucía',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          alert_id: 'alert_pensar_1',
+          last_message_text: null,
+          last_message_at: new Date(Date.now() - 35 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // RECHAZADA
+        {
+          id: 'mock_rechazada_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_pablo',
+          participant2_name: 'Pablo',
+          participant2_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          alert_id: 'alert_rechazada_1',
+          last_message_text: 'Rechazada ❌',
+          last_message_at: new Date(Date.now() - 48 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // PRÓRROGA
+        {
+          id: 'mock_prorroga_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'buyer_dani',
+          participant2_name: 'Dani',
+          participant2_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+          alert_id: 'alert_prorroga_1',
+          last_message_text: 'Prórroga aceptada ⏱️',
+          last_message_at: new Date(Date.now() - 60 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'seller'
+        }
+      ];
 
       const combined = [...mockConversations, ...allConversations];
       return combined.sort(
@@ -197,17 +298,7 @@ export default function Chats() {
   // ======================
   // Datos: Alertas (mocks + reales)
   // ======================
-  
-  // Mezcla: conversaciones reales + demo (vivas)
-  const conversations = useMemo(() => {
-    const demo = getDemoConversationsForChats(user?.id, user?.photo_url);
-    // evita duplicados por id
-    const seen = new Set(demo.map((c) => c.id));
-    const real = (realConversations || []).filter((c) => !seen.has(c.id));
-    return [...demo, ...real];
-  }, [user?.id, user?.photo_url, realConversations, nowTs]);
-
-const { data: alerts = [] } = useQuery({
+  const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id || 'anon'],
     queryFn: async () => {
       const now = Date.now();
@@ -570,17 +661,7 @@ const { data: alerts = [] } = useQuery({
     const items = [];
     const max = 20; // límite para no reventar OSRM
     for (const conv of filteredConversations.slice(0, max)) {
-      let alert = alertsMap.get(conv.alert_id);
-      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
-      if (alert && conv?.demo_alert) {
-        alert = {
-          ...alert,
-          status: conv.demo_alert.status ?? alert.status,
-          target_time: conv.demo_alert.target_time ?? alert.target_time,
-          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
-          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
-        };
-      }
+      const alert = alertsMap.get(conv.alert_id);
       if (!alert) continue;
 
       const isBuyer = alert?.reserved_by_id === user?.id;
@@ -699,17 +780,7 @@ const { data: alerts = [] } = useQuery({
   useEffect(() => {
     const max = 25;
     for (const conv of filteredConversations.slice(0, max)) {
-      let alert = alertsMap.get(conv.alert_id);
-      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
-      if (alert && conv?.demo_alert) {
-        alert = {
-          ...alert,
-          status: conv.demo_alert.status ?? alert.status,
-          target_time: conv.demo_alert.target_time ?? alert.target_time,
-          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
-          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
-        };
-      }
+      const alert = alertsMap.get(conv.alert_id);
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
@@ -751,17 +822,7 @@ const { data: alerts = [] } = useQuery({
 
         <div className="px-4 space-y-3 pt-1">
           {filteredConversations.map((conv, index) => {
-      let alert = alertsMap.get(conv.alert_id);
-      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
-      if (alert && conv?.demo_alert) {
-        alert = {
-          ...alert,
-          status: conv.demo_alert.status ?? alert.status,
-          target_time: conv.demo_alert.target_time ?? alert.target_time,
-          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
-          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
-        };
-      }
+            const alert = alertsMap.get(conv.alert_id);
             if (!alert) return null;
 
             const isP1 = conv.participant1_id === user?.id;
