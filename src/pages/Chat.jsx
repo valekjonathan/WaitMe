@@ -32,8 +32,6 @@ export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
   const alertId = urlParams.get('alertId');
-  const otherNameParam = urlParams.get('otherName');
-  const otherPhotoParam = urlParams.get('otherPhoto');
   const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
   // ======================
@@ -150,20 +148,16 @@ export default function Chat() {
   const otherUser = useMemo(() => {
     if (isDemo) {
       return {
-        name: decodeURIComponent(otherNameParam || '') || demoOtherUser?.name || demoConv?.other_name || 'Usuario',
-        photo: decodeURIComponent(otherPhotoParam || '') || demoOtherUser?.photo || demoConv?.other_photo || null
+        name: demoOtherUser?.name || demoConv?.other_name || 'Usuario',
+        photo: demoOtherUser?.photo || demoConv?.other_photo || null
       };
     }
     const isP1 = conversation?.participant1_id === user?.id;
     return {
-      name:
-        decodeURIComponent(otherNameParam || '') ||
-        (isP1 ? conversation?.participant2_name : conversation?.participant1_name),
-      photo:
-        decodeURIComponent(otherPhotoParam || '') ||
-        (isP1 ? conversation?.participant2_photo : conversation?.participant1_photo)
+      name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
+      photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
     };
-  }, [isDemo, demoOtherUser, demoConv, conversation, user, otherNameParam, otherPhotoParam]);
+  }, [isDemo, demoOtherUser, demoConv, conversation, user]);
 
   // Scroll automático
   useEffect(() => {
