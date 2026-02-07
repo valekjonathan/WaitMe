@@ -177,6 +177,72 @@ export default function Chats() {
           unread_count_p1: 0,
           unread_count_p2: 0,
           reservation_type: 'seller'
+        },
+
+        // ====== Variantes para ver todos los estados en CHATS ======
+        // COMPLETADA
+        {
+          id: 'mock_completada_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_ana',
+          participant2_name: 'Ana',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+          alert_id: 'alert_completada_1',
+          last_message_text: 'Operación completada ✅',
+          last_message_at: new Date(Date.now() - 22 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // ME LO PIENSO (sin mensajes -> tarjeta apagada)
+        {
+          id: 'mock_pensar_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_lucia',
+          participant2_name: 'Lucía',
+          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          alert_id: 'alert_pensar_1',
+          last_message_text: null,
+          last_message_at: new Date(Date.now() - 35 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // RECHAZADA
+        {
+          id: 'mock_rechazada_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'seller_pablo',
+          participant2_name: 'Pablo',
+          participant2_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          alert_id: 'alert_rechazada_1',
+          last_message_text: 'Rechazada ❌',
+          last_message_at: new Date(Date.now() - 48 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'buyer'
+        },
+        // PRÓRROGA
+        {
+          id: 'mock_prorroga_1',
+          participant1_id: user?.id || 'user1',
+          participant1_name: 'Tu',
+          participant1_photo: user?.photo_url,
+          participant2_id: 'buyer_dani',
+          participant2_name: 'Dani',
+          participant2_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+          alert_id: 'alert_prorroga_1',
+          last_message_text: 'Prórroga aceptada ⏱️',
+          last_message_at: new Date(Date.now() - 60 * 60000).toISOString(),
+          unread_count_p1: 0,
+          unread_count_p2: 0,
+          reservation_type: 'seller'
         }
       ];
 
@@ -290,6 +356,97 @@ export default function Chats() {
           reserved_by_longitude: -3.67812,
           status: 'reserved',
           created_date: new Date(now - 15 * 60000).toISOString()
+        },
+
+        // ====== Variantes para CHATS (completada / me lo pienso / rechazada / prórroga) ======
+        {
+          id: 'alert_completada_1',
+          user_id: 'seller_ana',
+          user_name: 'Ana',
+          user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+          car_brand: 'Peugeot',
+          car_model: '208',
+          car_plate: '4455 KLM',
+          car_color: 'negro',
+          price: 3,
+          address: 'Calle Jovellanos, 8, Oviedo',
+          latitude: 43.36321,
+          longitude: -5.84511,
+          allow_phone_calls: false,
+          phone: null,
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3621,
+          reserved_by_longitude: -5.8482,
+          status: 'completed',
+          created_date: new Date(now - 22 * 60000).toISOString()
+        },
+        {
+          id: 'alert_pensar_1',
+          user_id: 'seller_lucia',
+          user_name: 'Lucía',
+          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          car_brand: 'Volkswagen',
+          car_model: 'Polo',
+          car_plate: '9988 QRS',
+          car_color: 'gris',
+          price: 5,
+          address: 'Calle San Francisco, 12, Oviedo',
+          latitude: 43.36191,
+          longitude: -5.84672,
+          allow_phone_calls: true,
+          phone: '+34600111222',
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3598,
+          reserved_by_longitude: -5.8491,
+          status: 'thinking',
+          created_date: new Date(now - 35 * 60000).toISOString()
+        },
+        {
+          id: 'alert_rechazada_1',
+          user_id: 'seller_pablo',
+          user_name: 'Pablo',
+          user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          car_brand: 'Ford',
+          car_model: 'Fiesta',
+          car_plate: '1100 TUV',
+          car_color: 'blanco',
+          price: 4,
+          address: 'Calle Rosal, 3, Oviedo',
+          latitude: 43.36402,
+          longitude: -5.8442,
+          allow_phone_calls: true,
+          phone: '+34600999888',
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3632,
+          reserved_by_longitude: -5.8479,
+          status: 'rejected',
+          created_date: new Date(now - 48 * 60000).toISOString()
+        },
+        {
+          id: 'alert_prorroga_1',
+          user_id: user?.id,
+          user_name: 'Tu',
+          user_photo: user?.photo_url,
+          car_brand: 'Seat',
+          car_model: 'Ibiza',
+          car_plate: '1234 ABC',
+          car_color: 'azul',
+          price: 7,
+          address: 'Calle Pelayo, 19, Oviedo',
+          latitude: 43.35992,
+          longitude: -5.8504,
+          allow_phone_calls: true,
+          phone: user?.phone,
+          reserved_by_id: 'buyer_dani',
+          reserved_by_name: 'Dani',
+          reserved_by_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+          reserved_by_latitude: 43.3665,
+          reserved_by_longitude: -5.8439,
+          status: 'extended',
+          created_date: new Date(now - 60 * 60000).toISOString()
         }
       ];
 
@@ -679,9 +836,11 @@ export default function Chats() {
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
                           className={`${
-                            hasUnread
-                              ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-                              : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            isSeller
+                              ? 'bg-green-500/20 text-green-300 border-green-400/50'
+                              : hasUnread
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+                                : 'bg-red-500/20 text-red-400 border-red-500/30'
                           } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
                         >
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
@@ -715,7 +874,13 @@ export default function Chats() {
                         timeLine={
                           isSeller ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Te vas en {remainingMinutes} min · Debes esperar hasta las {waitUntilText}
+                              Te vas en {remainingMinutes} min ·{' '}
+                              <span className="text-purple-400">Debes esperar hasta las: {waitUntilText}</span>
+                            </span>
+                          ) : isBuyer ? (
+                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
+                              Te vas en {remainingMinutes} min ·{' '}
+                              <span className="text-purple-400">Debes esperar hasta las: {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
@@ -733,14 +898,21 @@ export default function Chats() {
                       {isBuyer && hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            className="w-full bg-purple-600 hover:bg-purple-700"
+                            disabled={!conv.last_message_text}
+                            className={`w-full ${
+                              conv.last_message_text ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                            }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
+                              if (!conv.last_message_text) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
-                            IR
+                            <span className="flex items-center justify-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              IR
+                            </span>
                           </Button>
                         </div>
                       )}
