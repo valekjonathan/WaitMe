@@ -129,7 +129,18 @@ export default function Chat() {
     }
   }, [isDemo, user]);
 
-  const displayMessages = isDemo ? demoMessages : messages;
+  const displayMessages = isDemo
+    ? (demoMessages || []).map((m) => ({
+        id: m.id,
+        sender_id: m.senderId,
+        sender_name: m.senderName,
+        sender_photo: m.senderPhoto,
+        message: m.text,
+        created_date: new Date(m.ts).toISOString(),
+        read: true,
+        message_type: m.kind === 'system' ? 'system' : 'user'
+      }))
+    : messages;
 
   // Scroll automático
   useEffect(() => {
@@ -153,37 +164,11 @@ export default function Chat() {
   const sendMutation = useMutation({
     mutationFn: async (text) => {
       if (isDemo) {
-        // Demo: simular envío
-        const newMsg = {
-          id: Date.now().toString(),
-          sender_id: user?.id || 'you',
-          sender_name: user?.display_name || 'Tú',
-          sender_photo: user?.photo_url,
-          message: text,
-          created_date: new Date().toISOString()
-        };
-        setDemoMessages(prev => [...prev, newMsg]);
-
-        // Respuesta automática de Marta
-        setTimeout(() => {
-          const replies = [
-            '¡Perfecto! Te espero entonces 😊',
-            'Vale, sin problema 👍',
-            'Entendido, nos vemos pronto',
-            'Claro, cuando quieras',
-            'Genial, aquí estaré 🚗'
-          ];
-          const reply = {
-            id: (Date.now() + 1).toString(),
-            sender_id: 'marta',
-            sender_name: 'Marta',
-            sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-            message: replies[Math.floor(Math.random() * replies.length)],
-            created_date: new Date().toISOString()
-          };
-          setDemoMessages(prev => [...prev, reply]);
-        }, 1500);
-
+        const clean = String(text || '').trim();
+        if (!clean) return;
+        if (conversationId) {
+          sendDemoMessage(conversationId, clean);
+        }
         return;
       }
 
@@ -244,8 +229,8 @@ export default function Chat() {
 
   // Datos del otro usuario
   const isP1 = conversation?.participant1_id === user?.id;
-  const otherUser = isDemo 
-    ? { name: 'Marta', photo: 'https://randomuser.me/api/portraits/women/65.jpg' }
+  const otherUser = isDemo
+    ? { name: demoConversation?.other_name || 'Usuario', photo: demoConversation?.other_photo || null }
     : {
         name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
         photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
