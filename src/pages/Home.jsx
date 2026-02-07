@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -87,6 +88,8 @@ const buildDemoAlerts = (lat, lng) => {
 
 export default function Home() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -106,7 +109,9 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => base44.auth.me()
+    queryFn: () => base44.auth.me(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 
   const { data: unreadCount } = useQuery({
@@ -118,7 +123,10 @@ export default function Home() {
         read: false
       });
       return notifications?.length || 0;
-    }
+    },
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: 30000
   });
 
   const { data: rawAlerts } = useQuery({
@@ -127,7 +135,10 @@ export default function Home() {
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
       return list.filter(a => (a?.status || 'active') === 'active');
-    }
+    },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 60000
   });
 
   const { data: myActiveAlerts = [] } = useQuery({
@@ -141,7 +152,9 @@ export default function Home() {
         const isActive = a.status === 'active' || a.status === 'reserved';
         return isMine && isActive;
       });
-    }
+    },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 
   const handleSearchInputChange = async (e) => {
@@ -205,6 +218,16 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('reset')) {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [location.search]);
+
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
@@ -245,7 +268,6 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      // Validar que el usuario no tenga otra alerta activa
       if (myActiveAlerts && myActiveAlerts.length > 0) {
         throw new Error('ALREADY_HAS_ALERT');
       }
@@ -273,23 +295,56 @@ export default function Home() {
         status: 'active'
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      window.location.href = createPageUrl('History');
+    onMutate: async (data) => {
+      navigate(createPageUrl('History'), { replace: true });
+      
+      await queryClient.cancelQueries({ queryKey: ['alerts'] });
+      await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
+      
+      const now = Date.now();
+      const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+      
+      const optimisticAlert = {
+        id: `temp_${Date.now()}`,
+        ...data,
+        wait_until: futureTime.toISOString(),
+        status: 'active',
+        created_date: new Date().toISOString()
+      };
+      
+      queryClient.setQueryData(['alerts'], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [optimisticAlert, ...list];
+      });
+
+      queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [optimisticAlert, ...list];
+      });
+    },
+    onSuccess: (newAlert) => {
+      queryClient.setQueryData(['alerts'], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+      });
+
+      queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+      });
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
         alert('Solo puedes tener 1 alerta activa');
       }
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
     }
   });
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
       if (alert?.is_demo) {
-        await new Promise(resolve => setTimeout(resolve, 500));
         return { demo: true };
       }
 
@@ -300,9 +355,6 @@ export default function Home() {
       const buyerPlate = user?.car_plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
-      // 1) Marcar la alerta como RESERVADA (para que en "Tus alertas" aparezca como Reservado por...)
-      // 2) Guardar datos del comprador para pintar la tarjeta sin depender de otras tablas
-      // 3) Crear transacción + mensaje
       return Promise.all([
         base44.entities.ParkingAlert.update(alert.id, {
           status: 'reserved',
@@ -326,22 +378,35 @@ export default function Home() {
           alert_id: alert.id,
           sender_id: user?.id,
           receiver_id: alert.user_id || alert.created_by,
-          message: `Solicitud de reserva enviada (${Number(alert.price || 0).toFixed(2)}€).`,
+          message: `Ey! Te he enviado un WaitMe!`,
           read: false
         })
       ]);
     },
-    onSuccess: (data, alert) => {
+    onMutate: async (alert) => {
       setConfirmDialog({ open: false, alert: null });
+      navigate(createPageUrl('History'));
       
-      if (alert?.is_demo) {
-        const demoConvId = `demo_conv_${alert.id}`;
-        window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}&justReserved=true`);
-      }
+      await queryClient.cancelQueries({ queryKey: ['alerts'] });
+      
+      const previousAlerts = queryClient.getQueryData(['alerts']);
+      
+      queryClient.setQueryData(['alerts'], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
+      });
+      
+      return { previousAlerts };
     },
-    onError: () => {
-      setConfirmDialog({ open: false, alert: null });
+    onError: (err, alert, context) => {
+      if (context?.previousAlerts) {
+        queryClient.setQueryData(['alerts'], context.previousAlerts);
+      }
       setSelectedAlert(null);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
     }
   });
 
@@ -350,27 +415,19 @@ export default function Home() {
   };
 
   const handleChat = async (alert) => {
-    // Si es demo, ir a conversación demo
-    if (alert?.is_demo) {
-      const demoConvId = `demo_conv_${alert.id}`;
-      window.location.href = createPageUrl(`Chat?conversationId=${demoConvId}&demo=true&userName=${alert.user_name}&userPhoto=${encodeURIComponent(alert.user_photo)}&alertId=${alert.id}`);
-      return;
-    }
+    navigate(createPageUrl('History'));
+    
+    if (alert?.is_demo) return;
     
     const otherUserId = alert.user_id || alert.user_email || alert.created_by;
     
-    // Buscar conversación existente rápidamente
     const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
     const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
                         (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
     
-    if (existingConv) {
-      window.location.href = createPageUrl(`Chat?conversationId=${existingConv.id}`);
-      return;
-    }
+    if (existingConv) return;
     
-    // Crear nueva conversación
-    const newConv = await base44.entities.Conversation.create({
+    await base44.entities.Conversation.create({
       participant1_id: user.id,
       participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
       participant1_photo: user.photo_url,
@@ -383,13 +440,11 @@ export default function Home() {
       unread_count_p1: 0,
       unread_count_p2: 0
     });
-    
-    window.location.href = createPageUrl(`Chat?conversationId=${newConv.id}`);
   };
 
   const handleCall = (alert) => {
     const phone = alert?.phone || '+34612345678';
-    window.location.href = `tel:${phone}`;
+    navigate(createPageUrl('History'));
   };
 
   return (
@@ -431,7 +486,7 @@ export default function Home() {
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                   alt="WaitMe!"
-                  className="w-48 h-48 mb-0 object-contain"
+                  className="w-[202px] h-[202px] mb-0 object-contain"
                 />
                 <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
                   Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
@@ -657,9 +712,8 @@ export default function Home() {
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
               className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={buyAlertMutation.isPending}
             >
-              {buyAlertMutation.isPending ? 'Enviando...' : 'Enviar solicitud'}
+              Enviar solicitud
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,10 +1,7 @@
 import React from 'react';
-import { AuthProvider } from '@/components/AuthContext';
 
+// NO metas AuthProvider aquí.
+// El provider debe vivir una sola vez (normalmente en src/App.jsx).
 export default function Layout({ children }) {
-  return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
-  );
+  return <>{children}</>;
 }

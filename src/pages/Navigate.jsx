@@ -316,9 +316,9 @@ export default function Navigate() {
         // Actualizar alerta a completada
         await base44.entities.ParkingAlert.update(alert.id, { status: 'completed' });
         
-        // Crear transacción
-        const sellerEarnings = alert.price * 0.8;
-        const platformFee = alert.price * 0.2;
+        // Crear transacción con comisión del 33%
+        const sellerEarnings = alert.price * 0.67;
+        const platformFee = alert.price * 0.33;
         
         await base44.entities.Transaction.create({
           alert_id: alert.id,

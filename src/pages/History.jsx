@@ -24,7 +24,7 @@ import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
-import { useAuth } from '@/components/AuthContext';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function History() {
   const { user } = useAuth();
@@ -189,11 +189,21 @@ const getCreatedTs = (alert) => {
 
   const key = `alert-created-${alert.id}`;
 
-  // 1. Si ya existe en localStorage, usarlo SIEMPRE
-  const stored = localStorage.getItem(key);
-  if (stored) return Number(stored);
+  // 0) Cache en memoria (evita leer localStorage en cada render)
+  const cached = createdFallbackRef.current.get(key);
+  if (typeof cached === 'number' && cached > 0) return cached;
 
-  // 2. Guardar SOLO la primera vez
+  // 1) Si ya existe en localStorage, usarlo SIEMPRE
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    const t = Number(stored);
+    if (Number.isFinite(t) && t > 0) {
+      createdFallbackRef.current.set(key, t);
+      return t;
+    }
+  }
+
+  // 2) Guardar SOLO la primera vez
   const candidates = [
     alert?.created_date,
     alert?.created_at,
@@ -206,13 +216,15 @@ const getCreatedTs = (alert) => {
     const t = toMs(v);
     if (typeof t === 'number' && t > 0) {
       localStorage.setItem(key, String(t));
+      createdFallbackRef.current.set(key, t);
       return t;
     }
   }
 
-  // 3. Último fallback (una sola vez)
+  // 3) Último fallback (una sola vez)
   const now = Date.now();
   localStorage.setItem(key, String(now));
+  createdFallbackRef.current.set(key, now);
   return now;
 };
 
@@ -327,7 +339,8 @@ const getCreatedTs = (alert) => {
     phoneEnabled = false,
     onCall,
     statusEnabled = false,
-    bright = false
+    bright = false,
+    dimIcons = false
   }) => {
     const stUpper = String(statusText || '').trim().toUpperCase();
     const isCountdownLike =
@@ -415,14 +428,14 @@ const getCreatedTs = (alert) => {
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
                 <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
               </div>
             ) : null}
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
                 {isTimeObj ? (
                   <span className={lineTextCls}>
                     {timeLine.main}{' '}
@@ -507,43 +520,95 @@ const getCreatedTs = (alert) => {
 
 const {
   data: myAlerts = [],
-  isLoading: loadingAlerts,
-  refetch: refetchMyAlerts
+  isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 5000,
-  refetchInterval: 5000,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  // Evita “parpadeos”/vacíos mientras refresca
+  placeholderData: (prev) => prev,
   queryFn: async () => {
-    const res = await base44.entities.ParkingAlert.list();
-    const list = Array.isArray(res) ? res : (res?.data || []);
+    // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
+    // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
+    const queries = [];
 
-    return list.filter(a => {
+    if (user?.id) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
+      queries.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
+      // Para "Tus reservas" (comprador)
+      queries.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
+    }
+    if (user?.email) {
+      queries.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
+    }
+
+    let results = [];
+    try {
+      if (queries.length > 0) {
+        const res = await Promise.allSettled(queries);
+        for (const r of res) {
+          if (r.status === 'fulfilled') {
+            const list = Array.isArray(r.value) ? r.value : (r.value?.data || []);
+            if (Array.isArray(list) && list.length) results.push(...list);
+          }
+        }
+      } else {
+        results = [];
+      }
+    } catch (e) {
+      results = [];
+    }
+
+    // Fallback seguro si la API no soporta bien algún filtro (no rompe nada)
+    if (!results.length) {
+      const res = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      results = Array.isArray(list) ? list : [];
+    }
+
+    // Deduplicar por id
+    const map = new Map();
+    for (const a of results) {
+      if (a?.id != null) map.set(a.id, a);
+    }
+    const merged = Array.from(map.values());
+
+    // Filtrado final (igual que antes)
+    return merged.filter((a) => {
       if (!a) return false;
       if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
       if (user?.email && a.user_email === user.email) return true;
+      if (user?.id && a.reserved_by_id === user.id) return true;
       return false;
     });
   }
 });
- 
-  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-    queryKey: ['myTransactions', user?.email],
-    queryFn: async () => {
-      const [asSeller, asBuyer] = await Promise.all([
-        base44.entities.Transaction.filter({ seller_id: user?.email }),
-        base44.entities.Transaction.filter({ buyer_id: user?.email })
-      ]);
-      return [...asSeller, ...asBuyer];
-    },
-    enabled: !!user?.email,
-    staleTime: 30000,
-    refetchInterval: false
-  });
-
-
-
-  const mockReservationsFinal = useMemo(() => {
+const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
+  queryKey: ['myTransactions', user?.email],
+  enabled: !!user?.email,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchInterval: false,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
+  refetchOnMount: false,
+  placeholderData: (prev) => prev,
+  queryFn: async () => {
+    const [asSeller, asBuyer] = await Promise.all([
+      base44.entities.Transaction.filter({ seller_id: user?.email }),
+      base44.entities.Transaction.filter({ buyer_id: user?.email })
+    ]);
+    const s = Array.isArray(asSeller) ? asSeller : (asSeller?.data || []);
+    const b = Array.isArray(asBuyer) ? asBuyer : (asBuyer?.data || []);
+    return [...s, ...b];
+  }
+});
+const mockReservationsFinal = useMemo(() => {
     const baseNow = Date.now();
     return [
       {
@@ -688,12 +753,43 @@ const myActiveAlerts = useMemo(() => {
   // Solo mostrar la última alerta activa (la más reciente)
   if (filtered.length === 0) return [];
   
-  const sorted = filtered.sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
   return [sorted[0]];
-}, [myAlerts, user?.id, user?.email, nowTs]);
+}, [myAlerts, user?.id, user?.email]);
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
+
+  // ====== Auto-expirar alertas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!visibleActiveAlerts || visibleActiveAlerts.length === 0) return;
+
+    const toExpire = visibleActiveAlerts.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'active') return false;
+      if (autoFinalizedRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, visibleActiveAlerts, queryClient]);
+
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
     if (!a) return false;
@@ -720,6 +816,38 @@ const myFinalizedAlerts = useMemo(() => {
     });
   }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
+
+  // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  useEffect(() => {
+    if (!reservationsActiveAll || reservationsActiveAll.length === 0) return;
+
+    const toExpire = reservationsActiveAll.filter((a) => {
+      if (!a) return false;
+      if (String(a.status || '').toLowerCase() !== 'reserved') return false;
+      if (String(a.id || '').startsWith('mock-')) return false;
+      if (autoFinalizedReservationsRef.current.has(a.id)) return false;
+
+      const createdTs = getCreatedTs(a);
+      const waitUntilTs = getWaitUntilTs(a);
+      if (!waitUntilTs || !createdTs) return false;
+
+      const remainingMs = Math.max(0, waitUntilTs - nowTs);
+      return remainingMs === 0;
+    });
+
+    if (toExpire.length === 0) return;
+
+    toExpire.forEach((a) => autoFinalizedReservationsRef.current.add(a.id));
+
+    Promise.all(
+      toExpire.map((a) =>
+        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+      )
+    ).finally(() => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    });
+  }, [nowTs, reservationsActiveAll, queryClient]);
+
 
   const myFinalizedAsSellerTx = [
     ...transactions.filter((t) => t.seller_id === user?.id),
@@ -821,8 +949,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          {/* FIX: sin borde negro debajo */}
-          <div className="sticky top-[56px] z-40 bg-black pt-4 pb-1">
+          <div className="sticky top-[56px] z-40 bg-black pt-[9px] pb-0">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -833,19 +960,7 @@ const myFinalizedAlerts = useMemo(() => {
             </TabsList>
           </div>
 
-          {/* ===================== TUS ALERTAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
-          <TabsContent
-            value="alerts"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
-          >
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
+          <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
 
                 {visibleActiveAlerts.length === 0 ? (
@@ -867,21 +982,6 @@ const myFinalizedAlerts = useMemo(() => {
 
 
                          const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         // ⏱ Auto-expirar cuando llega a 0 (DESPUÉS de calcular remainingMs)
-if (
-  waitUntilTs &&
-  remainingMs === 0 &&
-  String(alert.status || '').toLowerCase() === 'active' &&
-  !autoFinalizedRef.current.has(alert.id)
-) {
-  autoFinalizedRef.current.add(alert.id);
-
-  base44.entities.ParkingAlert
-    .update(alert.id, { status: 'expired' })
-    .finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    });
-}
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1133,7 +1233,7 @@ if (
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
                               <span className="text-gray-400 leading-5">
                                 {formatAddress(a.address) || 'Ubicación marcada'}
                               </span>
@@ -1184,7 +1284,32 @@ if (
                           transition={{ delay: index * 0.05 }}
                           className={finalizedCardClass}
                         >
-
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                <MoneyChip
+                                  mode="green"
+                                  showUpIcon
+                                  amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                />
+                                <button
+                                  onClick={() => hideKey(key)}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
 
                           <div className="border-t border-gray-700/80 mb-2" />
 
@@ -1205,31 +1330,18 @@ if (
                                 ))
                               }
                               statusText="COMPLETADA"
+                              dimIcons={true}
                             />
                           </div>
                         </motion.div>
                       );
                     })}
                   </div>
-                )}
-              </>
-            )}
-          </TabsContent>
+                  )}
+                  </TabsContent>
 
-          {/* ===================== TUS RESERVAS ===================== */}
-          {/* FIX: más aire abajo para que la última tarjeta se vea entera */}
-          <TabsContent
-            value="reservations"
-            className={`space-y-1.5 pb-24 max-h-[calc(100vh-126px)] overflow-y-auto pr-0 ${noScrollBar}`}
-          >
-            {isLoading ? (
-              <div className="text-center py-12 text-gray-500">
-                <Loader className="w-8 h-8 animate-spin mx-auto mb-2" />
-                Cargando...
-              </div>
-            ) : (
-              <>
-                <SectionTag variant="green" text="Activas" />
+                  <TabsContent value="reservations" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
+                  <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
                   <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
@@ -1270,13 +1382,8 @@ if (
                         if (!isMock) {
                           if (!autoFinalizedReservationsRef.current.has(alert.id)) {
                             autoFinalizedReservationsRef.current.add(alert.id);
-                            base44.entities.ParkingAlert
-                              .update(alert.id, { status: 'expired' })
-                              .finally(() => {
-                                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                              });
                           }
-                        }
+}
                         return null;
                       }
 
@@ -1489,6 +1596,7 @@ if (
                               phoneEnabled={phoneEnabled}
                               onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
                               statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                              dimIcons={true}
                             />
                           </motion.div>
                         );
@@ -1575,17 +1683,16 @@ if (
                             }
                             statusText="COMPLETADA"
                             statusEnabled={true}
+                            dimIcons={true}
                           />
                         </motion.div>
                       );
                     })}
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
+                    </div>
+                    )}
+                    </TabsContent>
+                    </Tabs>
+                    </main>
 
       <BottomNav />
 
