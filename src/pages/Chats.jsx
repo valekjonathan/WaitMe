@@ -13,6 +13,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
+import { startDemoFlow, subscribeDemoFlow, getDemoConversationsForChats } from '@/lib/demoFlow';
 
 // ======================
 // Helpers
@@ -25,6 +26,44 @@ const formatMMSS = (ms) => {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${pad2(minutes)}:${pad2(seconds)}`;
+};
+
+const getChatStatusLabel = (status) => {
+  const s = String(status || '').toLowerCase();
+  switch (s) {
+    case 'completed':
+    case 'completada':
+      return 'COMPLETADA';
+    case 'thinking':
+    case 'me_lo_pienso':
+    case 'pending':
+      return 'ME LO PIENSO';
+    case 'rejected':
+    case 'rechazada':
+      return 'RECHAZADA';
+    case 'extended':
+    case 'prorroga':
+    case 'prórroga':
+      return 'PRÓRROGA';
+    case 'cancelled':
+    case 'canceled':
+    case 'cancelada':
+      return 'CANCELADA';
+    case 'expired':
+    case 'agotada':
+    case 'expirada':
+      return 'AGOTADA';
+    case 'went_early':
+    case 'se_fue':
+      return 'SE FUE';
+    default:
+      return null;
+  }
+};
+
+const isFinalChatStatus = (status) => {
+  const s = String(status || '').toLowerCase();
+  return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
 
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
@@ -68,7 +107,6 @@ export default function Chats() {
   const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const demoMode = (() => { try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; } })();
   const [nowTs, setNowTs] = useState(Date.now());
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
@@ -77,6 +115,33 @@ export default function Chats() {
 
   // ETA cache: alertId -> { etaSeconds, fetchedAt }
   const [etaMap, setEtaMap] = useState({});
+
+
+  // ======================
+  // Demo Flow (vida en la UI)
+  // ======================
+  useEffect(() => {
+    startDemoFlow();
+
+    const unsub = subscribeDemoFlow(() => {
+      // fuerza re-render con cambios del motor demo
+      setNowTs(Date.now());
+    });
+
+    const onToast = (e) => {
+      const title = e?.detail?.title;
+      const description = e?.detail?.description;
+      if (title || description) {
+        toast({ title: title || 'Notificación', description });
+      }
+    };
+    window.addEventListener('waitme:demoToast', onToast);
+
+    return () => {
+      unsub?.();
+      window.removeEventListener('waitme:demoToast', onToast);
+    };
+  }, []);
 
   const expiredHandledRef = useRef(new Set());
   const osrmAbortRef = useRef(null);
@@ -113,73 +178,10 @@ export default function Chats() {
   // ======================
   // Datos: Conversaciones
   // ======================
-  const { data: conversations = [] } = useQuery({
+  const { data: realConversations = [] } = useQuery({
     queryKey: ['conversations', user?.id || 'anon'],
     queryFn: async () => {
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
-
-      const mockConversations = [
-        {
-          id: 'mock_reservaste_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_sofia',
-          participant2_name: 'Sofía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_reservaste_1',
-          last_message_text: 'Perfecto, voy llegando',
-          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_te_reservo_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_marco',
-          participant2_name: 'Marco',
-          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_1',
-          last_message_text: '¿Sigues ahí?',
-          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 3,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        },
-        {
-          id: 'mock_reservaste_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_laura',
-          participant2_name: 'Laura',
-          participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          alert_id: 'alert_reservaste_2',
-          last_message_text: 'Genial, aguanto',
-          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_te_reservo_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_carlos',
-          participant2_name: 'Carlos',
-          participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_2',
-          last_message_text: 'Estoy cerca',
-          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        }
-      ];
 
       const combined = [...mockConversations, ...allConversations];
       return combined.sort(
@@ -195,10 +197,21 @@ export default function Chats() {
   // ======================
   // Datos: Alertas (mocks + reales)
   // ======================
-  const { data: alerts = [] } = useQuery({
+  
+  // Mezcla: conversaciones reales + demo (vivas)
+  const conversations = useMemo(() => {
+    const demo = getDemoConversationsForChats(user?.id, user?.photo_url);
+    // evita duplicados por id
+    const seen = new Set(demo.map((c) => c.id));
+    const real = (realConversations || []).filter((c) => !seen.has(c.id));
+    return [...demo, ...real];
+  }, [user?.id, user?.photo_url, realConversations, nowTs]);
+
+const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id || 'anon'],
     queryFn: async () => {
       const now = Date.now();
+      const inMin = (m) => now + m * 60 * 1000;
 
       const mockAlerts = [
         {
@@ -221,6 +234,8 @@ export default function Chats() {
           // posición aproximada del reservador (para demo)
           reserved_by_latitude: 43.35954,
           reserved_by_longitude: -5.85234,
+          // 10 min restantes (sincroniza texto + contador)
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 1 * 60000).toISOString()
         },
@@ -244,6 +259,7 @@ export default function Chats() {
           reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
           reserved_by_latitude: 43.36621,
           reserved_by_longitude: -5.84312,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 2 * 60000).toISOString()
         },
@@ -266,6 +282,7 @@ export default function Chats() {
           reserved_by_name: 'Tu',
           reserved_by_latitude: 40.45811,
           reserved_by_longitude: -3.68843,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 10 * 60000).toISOString()
         },
@@ -289,8 +306,100 @@ export default function Chats() {
           reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
           reserved_by_latitude: 40.47002,
           reserved_by_longitude: -3.67812,
+          target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 15 * 60000).toISOString()
+        },
+
+        // ====== Variantes para CHATS (completada / me lo pienso / rechazada / prórroga) ======
+        {
+          id: 'alert_completada_1',
+          user_id: 'seller_ana',
+          user_name: 'Ana',
+          user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+          car_brand: 'Peugeot',
+          car_model: '208',
+          car_plate: '4455 KLM',
+          car_color: 'negro',
+          price: 3,
+          address: 'Calle Jovellanos, 8, Oviedo',
+          latitude: 43.36321,
+          longitude: -5.84511,
+          allow_phone_calls: false,
+          phone: null,
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3621,
+          reserved_by_longitude: -5.8482,
+          status: 'completed',
+          created_date: new Date(now - 22 * 60000).toISOString()
+        },
+        {
+          id: 'alert_pensar_1',
+          user_id: 'seller_lucia',
+          user_name: 'Lucía',
+          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+          car_brand: 'Volkswagen',
+          car_model: 'Polo',
+          car_plate: '9988 QRS',
+          car_color: 'gris',
+          price: 5,
+          address: 'Calle San Francisco, 12, Oviedo',
+          latitude: 43.36191,
+          longitude: -5.84672,
+          allow_phone_calls: true,
+          phone: '+34600111222',
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3598,
+          reserved_by_longitude: -5.8491,
+          status: 'thinking',
+          created_date: new Date(now - 35 * 60000).toISOString()
+        },
+        {
+          id: 'alert_rechazada_1',
+          user_id: 'seller_pablo',
+          user_name: 'Pablo',
+          user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+          car_brand: 'Ford',
+          car_model: 'Fiesta',
+          car_plate: '1100 TUV',
+          car_color: 'blanco',
+          price: 4,
+          address: 'Calle Rosal, 3, Oviedo',
+          latitude: 43.36402,
+          longitude: -5.8442,
+          allow_phone_calls: true,
+          phone: '+34600999888',
+          reserved_by_id: user?.id,
+          reserved_by_name: 'Tu',
+          reserved_by_latitude: 43.3632,
+          reserved_by_longitude: -5.8479,
+          status: 'rejected',
+          created_date: new Date(now - 48 * 60000).toISOString()
+        },
+        {
+          id: 'alert_prorroga_1',
+          user_id: user?.id,
+          user_name: 'Tu',
+          user_photo: user?.photo_url,
+          car_brand: 'Seat',
+          car_model: 'Ibiza',
+          car_plate: '1234 ABC',
+          car_color: 'azul',
+          price: 7,
+          address: 'Calle Pelayo, 19, Oviedo',
+          latitude: 43.35992,
+          longitude: -5.8504,
+          allow_phone_calls: true,
+          phone: user?.phone,
+          reserved_by_id: 'buyer_dani',
+          reserved_by_name: 'Dani',
+          reserved_by_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
+          reserved_by_latitude: 43.3665,
+          reserved_by_longitude: -5.8439,
+          status: 'extended',
+          created_date: new Date(now - 60 * 60000).toISOString()
         }
       ];
 
@@ -461,7 +570,17 @@ export default function Chats() {
     const items = [];
     const max = 20; // límite para no reventar OSRM
     for (const conv of filteredConversations.slice(0, max)) {
-      const alert = alertsMap.get(conv.alert_id);
+      let alert = alertsMap.get(conv.alert_id);
+      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
+      if (alert && conv?.demo_alert) {
+        alert = {
+          ...alert,
+          status: conv.demo_alert.status ?? alert.status,
+          target_time: conv.demo_alert.target_time ?? alert.target_time,
+          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
+          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
+        };
+      }
       if (!alert) continue;
 
       const isBuyer = alert?.reserved_by_id === user?.id;
@@ -580,7 +699,17 @@ export default function Chats() {
   useEffect(() => {
     const max = 25;
     for (const conv of filteredConversations.slice(0, max)) {
-      const alert = alertsMap.get(conv.alert_id);
+      let alert = alertsMap.get(conv.alert_id);
+      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
+      if (alert && conv?.demo_alert) {
+        alert = {
+          ...alert,
+          status: conv.demo_alert.status ?? alert.status,
+          target_time: conv.demo_alert.target_time ?? alert.target_time,
+          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
+          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
+        };
+      }
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
@@ -622,7 +751,17 @@ export default function Chats() {
 
         <div className="px-4 space-y-3 pt-1">
           {filteredConversations.map((conv, index) => {
-            const alert = alertsMap.get(conv.alert_id);
+      let alert = alertsMap.get(conv.alert_id);
+      // Demo: permitir que el motor cambie estado/tiempos sin tocar el backend
+      if (alert && conv?.demo_alert) {
+        alert = {
+          ...alert,
+          status: conv.demo_alert.status ?? alert.status,
+          target_time: conv.demo_alert.target_time ?? alert.target_time,
+          wait_until: conv.demo_alert.wait_until ?? alert.wait_until,
+          leave_in_min: conv.demo_alert.leave_in_min ?? alert.leave_in_min
+        };
+      }
             if (!alert) return null;
 
             const isP1 = conv.participant1_id === user?.id;
@@ -660,6 +799,10 @@ export default function Chats() {
             const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
             const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
+            const finalLabel = getChatStatusLabel(alert?.status);
+            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
+            const statusBoxText = isFinal ? finalLabel : countdownText;
+
             return (
               <motion.div
                 key={conv.id}
@@ -680,9 +823,11 @@ export default function Chats() {
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
                           className={`${
-                            hasUnread
-                              ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-                              : 'bg-red-500/20 text-red-400 border-red-500/30'
+                            isSeller
+                              ? 'bg-green-500/20 text-green-300 border-green-400/50'
+                              : hasUnread
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+                                : 'bg-red-500/20 text-red-400 border-red-500/30'
                           } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
                         >
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
@@ -716,15 +861,21 @@ export default function Chats() {
                         timeLine={
                           isSeller ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Te vas en {remainingMinutes} min · Debes esperar hasta las {waitUntilText}
+                              Te vas en {remainingMinutes} min ·{' '}
+                              <span className="text-purple-400 font-bold">Debes esperar hasta las {waitUntilText}</span>
+                            </span>
+                          ) : isBuyer ? (
+                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
+                              Se va en {remainingMinutes} min ·{' '}
+                              <span className="text-purple-400 font-bold">Te espera hasta las {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}${demoMode ? '&demo=true' : ''}`))}
+                        onChat={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
-                        statusText={countdownText}
+                        statusText={statusBoxText}
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
@@ -734,14 +885,21 @@ export default function Chats() {
                       {isBuyer && hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            className="w-full bg-purple-600 hover:bg-purple-700"
+                            disabled={!conv.last_message_text}
+                            className={`w-full ${
+                              conv.last_message_text ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                            }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
+                              if (!conv.last_message_text) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
-                            IR
+                            <span className="flex items-center justify-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              IR
+                            </span>
                           </Button>
                         </div>
                       )}
@@ -750,11 +908,11 @@ export default function Chats() {
                     {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}${demoMode ? '&demo=true' : ''}`))}
+                      onClick={() => (window.location.href = createPageUrl(`Chat?conversationId=${conv.id}`))}
                     >
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-gray-500'}`}>
-                          Ultimos mensajes:
+                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
+                          Últimos mensajes:
                         </p>
                         {unreadCount > 0 && (
                           <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">

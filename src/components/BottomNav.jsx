@@ -59,8 +59,9 @@ export default function BottomNav() {
   const baseBtn =
     "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg";
 
+  // Solo sombra morada, sin brillo fuerte ni blanco
   const activeGlow =
-    "bg-purple-500/20 shadow-[0_0_18px_rgba(168,85,247,0.65)]";
+    "bg-purple-500/10 shadow-[0_6px_14px_rgba(168,85,247,0.28)]";
 
   const labelClass =
     "text-[10px] font-bold leading-none mt-[3px]";
@@ -109,7 +110,8 @@ export default function BottomNav() {
         <button
           type="button"
           className="flex-1"
-          onClick={() => navigate(homeUrl)}
+          // Mapa: siempre vuelve al Home (logo) forzando remount
+          onClick={() => navigate(`${homeUrl}?reset=${Date.now()}`)}
         >
           <Button
             variant="ghost"
