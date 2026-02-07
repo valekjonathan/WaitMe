@@ -14,6 +14,7 @@ import {
   Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
 import Header from '@/components/Header';
@@ -26,6 +27,9 @@ export default function Settings() {
   const [phone, setPhone] = useState('');
   const [allowCalls, setAllowCalls] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [demoMode, setDemoMode] = useState(() => {
+    try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; }
+  });
 
   useEffect(() => {
     setPhone(user?.phone || '');
@@ -96,6 +100,16 @@ export default function Settings() {
               <span className="flex-1">Notificaciones</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </Link>
+
+
+            <div className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+              <Bell className="w-5 h-5 text-purple-500" />
+              <div className="flex-1">
+                <div className="font-medium">Modo demo</div>
+                <div className="text-xs text-gray-400">Activa eventos simulados (push + flujo)</div>
+              </div>
+              <Switch checked={demoMode} onCheckedChange={setDemoMode} />
+            </div>
 
             <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Shield className="w-5 h-5 text-purple-500" />

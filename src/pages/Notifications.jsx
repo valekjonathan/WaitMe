@@ -13,12 +13,20 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import { useAuth } from '@/lib/AuthContext';
+import { demoFlow } from '@/lib/demoFlow';
 
 export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const demoMode = (() => { try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; } })();
+  const [demoActionables, setDemoActionables] = useState(() => demoFlow.getState()?.actionableNotifications || []);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (!demoMode) return;
+    return demoFlow.subscribe((s) => setDemoActionables(s.actionableNotifications || []));
+  }, [demoMode]);
 
   // Demo notifications (solo para cuando NO hay user logueado)
   const demoNotifications = useMemo(() => [

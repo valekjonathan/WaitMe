@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
+import { demoFlow } from '@/lib/demoFlow';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ export default function Chat() {
   const conversationId = urlParams.get('conversationId');
   const alertId = urlParams.get('alertId');
   const userId = urlParams.get('userId');
-  // Activar modo demo si no hay conversación real
-  const isDemo = !conversationId || urlParams.get('demo') === 'true';
+  // Activar modo demo si: ?demo=true o toggle global
+  const isDemo = urlParams.get('demo') === 'true' || (() => { try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; } })();
 
   // Usuario actual
   const { data: user } = useQuery({
@@ -64,83 +65,56 @@ export default function Chat() {
 
   // Demo: mensajes de Marta
   const [demoMessages, setDemoMessages] = useState([]);
+  useEffect(() => {
+    if (!isDemo) return;
+    const convId = conversationId || 'mock_reservaste_1';
+    return demoFlow.subscribe((s) => {
+      const msgs = s?.messagesByConv?.[convId] || [];
+      setDemoMessages(msgs);
+    });
+  }, [isDemo, conversationId]);
+
   
   useEffect(() => {
-    if (isDemo) {
-      const now = Date.now();
+    if (!isDemo) return;
+
+    const st = demoFlow.getState();
+    const convId = conversationId || 'mock_reservaste_1';
+    const msgs = st?.messagesByConv?.[convId] || [];
+    const otherId = (st?.conversations || []).find(c => c.id === convId)?.otherUserId || 'marta';
+    const other = st?.users?.[otherId] || { id: otherId, name: 'Usuario', photo: null };
+
+    // Si no hay mensajes, crea un hilo mínimo coherente
+    if (!msgs.length) {
       setDemoMessages([
         {
-          id: '1',
-          sender_id: 'marta',
-          sender_name: 'Marta',
-          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-          message: '¡Hola! He visto que buscas parking 🚗',
-          created_date: new Date(now - 300000).toISOString()
+          id: 'sys_1',
+          type: 'system',
+          sender_id: 'system',
+          sender_name: 'WaitMe!',
+          sender_photo: null,
+          message: 'Operación creada.',
+          created_date: new Date(Date.now() - 120000).toISOString(),
+          read: true
         },
         {
-          id: '2',
-          sender_id: 'marta',
-          sender_name: 'Marta',
-          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-          message: 'Tengo un sitio perfecto en la calle Principal 💜',
-          created_date: new Date(now - 240000).toISOString()
-        },
-        {
-          id: '3',
-          sender_id: 'marta',
-          sender_name: 'Marta',
-          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-          message: 'Me voy en 20 minutos. ¿Te interesa? Son 3€',
-          created_date: new Date(now - 180000).toISOString()
-        },
-        {
-          id: '4',
-          sender_id: user?.id || 'you',
-          sender_name: user?.display_name || 'Tú',
-          sender_photo: user?.photo_url,
-          message: '¡Me interesa! ¿Dónde exactamente?',
-          created_date: new Date(now - 170000).toISOString()
-        },
-        {
-          id: '5',
-          sender_id: 'marta',
-          sender_name: 'Marta',
-          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-          message: 'En Calle Gran Vía, número 25. Es justo al lado del banco 🏦',
-          created_date: new Date(now - 160000).toISOString()
-        },
-        {
-          id: '6',
-          sender_id: user?.id || 'you',
-          sender_name: user?.display_name || 'Tú',
-          sender_photo: user?.photo_url,
-          message: 'Perfecto, voy para allá ahora mismo',
-          created_date: new Date(now - 150000).toISOString()
-        },
-        {
-          id: '7',
-          sender_id: 'marta',
-          sender_name: 'Marta',
-          sender_photo: 'https://randomuser.me/api/portraits/women/65.jpg',
-          message: '¡Genial! Te espero 😊',
-          created_date: new Date(now - 140000).toISOString()
+          id: 'm_1',
+          type: 'message',
+          sender_id: other.id,
+          sender_name: other.name,
+          sender_photo: other.photo,
+          message: 'Ey! Te he enviado un WaitMe!',
+          created_date: new Date(Date.now() - 90000).toISOString(),
+          read: false
         }
       ]);
+      return;
     }
-  }, [isDemo, user]);
 
-  const displayMessages = isDemo
-    ? (demoMessages || []).map((m) => ({
-        id: m.id,
-        sender_id: m.senderId,
-        sender_name: m.senderName,
-        sender_photo: m.senderPhoto,
-        message: m.text,
-        created_date: new Date(m.ts).toISOString(),
-        read: true,
-        message_type: m.kind === 'system' ? 'system' : 'user'
-      }))
-    : messages;
+    setDemoMessages(msgs);
+  }, [isDemo, conversationId]);
+
+  const displayMessages = isDemo ? demoMessages : messages;
 
   // Scroll automático
   useEffect(() => {
@@ -164,11 +138,47 @@ export default function Chat() {
   const sendMutation = useMutation({
     mutationFn: async (text) => {
       if (isDemo) {
-        const clean = String(text || '').trim();
-        if (!clean) return;
-        if (conversationId) {
-          sendDemoMessage(conversationId, clean);
-        }
+        const convId = conversationId || 'mock_reservaste_1';
+        const st = demoFlow.getState();
+        const otherId = (st?.conversations || []).find(c => c.id === convId)?.otherUserId || 'marta';
+        const other = st?.users?.[otherId] || { id: otherId, name: 'Usuario', photo: null };
+
+        // Demo: guardar en el motor global
+        const newMsg = {
+          id: Date.now().toString(),
+          type: 'message',
+          sender_id: 'you',
+          sender_name: user?.display_name || 'Tú',
+          sender_photo: user?.photo_url,
+          message: text,
+          created_date: new Date().toISOString(),
+          read: true
+        };
+        demoFlow.appendMessage(convId, newMsg);
+
+        // Respuesta automática del otro usuario (coherente)
+        setTimeout(() => {
+          const replies = [
+            'Perfecto, te espero 😊',
+            'Vale, sin problema 👍',
+            'Entendido, voy mirando por dónde vienes',
+            'Ok, avísame cuando estés cerca',
+            'Genial, aquí estaré 🚗'
+          ];
+          const reply = {
+            id: (Date.now() + 1).toString(),
+            type: 'message',
+            sender_id: other.id,
+            sender_name: other.name,
+            sender_photo: other.photo,
+            message: replies[Math.floor(Math.random() * replies.length)],
+            created_date: new Date().toISOString(),
+            read: false
+          };
+          demoFlow.appendMessage(convId, reply);
+          demoFlow.bumpUnread(convId, 1);
+        }, 1500);
+
         return;
       }
 
@@ -229,8 +239,14 @@ export default function Chat() {
 
   // Datos del otro usuario
   const isP1 = conversation?.participant1_id === user?.id;
-  const otherUser = isDemo
-    ? { name: demoConversation?.other_name || 'Usuario', photo: demoConversation?.other_photo || null }
+  const otherUser = isDemo 
+    ? (() => {
+        const st = demoFlow.getState();
+        const convId = conversationId || 'mock_reservaste_1';
+        const otherId = (st?.conversations || []).find(c => c.id === convId)?.otherUserId || 'marta';
+        const other = st?.users?.[otherId] || { name: 'Usuario', photo: null };
+        return { name: other.name, photo: other.photo };
+      })()
     : {
         name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
         photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
