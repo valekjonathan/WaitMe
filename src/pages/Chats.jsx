@@ -904,15 +904,6 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
-                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-lg px-2 py-0.5 flex flex-col items-center justify-center h-auto min-h-[28px]">
-                        <span className="text-white font-semibold text-[9px] leading-tight">
-                          {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
-                        </span>
-                        <span className="text-purple-300 font-bold text-[10px] leading-tight">
-                          {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                        </span>
-                      </div>
-                      
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
@@ -979,14 +970,14 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                       {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={!isIrEnabledForChat(conv)}
+                            disabled={isSeller}
                             className={`w-full ${
-                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                              !isSeller ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (!isIrEnabledForChat(conv)) return;
+                              if (isSeller) return;
                               openDirectionsToAlert(alert);
                             }}
                           >

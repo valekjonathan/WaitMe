@@ -213,14 +213,6 @@ export default function MarcoCard({
             </Button>
           )}
 
-          <Button
-            size="icon"
-            disabled={role === 'seller'}
-            className={`${role === 'seller' ? 'bg-blue-500/30 text-blue-300/50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} rounded-lg h-8 w-[42px]`}
-          >
-            <span className="text-xs font-bold">IR</span>
-          </Button>
-
           <div className="flex-1">
             <div
               className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
