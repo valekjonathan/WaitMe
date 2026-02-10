@@ -358,23 +358,7 @@ export default function Chat() {
           <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-2 hover:bg-purple-600/30 cursor-pointer transition-colors">
             <Phone className="w-5 h-5 text-purple-300" />
           </div>
-        
-      {/* Datos de la tarjeta */}
-      {cardInfo && (
-        <div className="fixed top-[112px] left-0 right-0 z-30 bg-black border-b border-gray-700 px-4 py-2 text-xs text-gray-300">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 truncate">
-              <span className="font-semibold text-white">{cardInfo.car}</span>
-              {cardInfo.plate && <span className="ml-2 text-gray-400">({cardInfo.plate})</span>}
-            </div>
-            {Number.isFinite(cardInfo.price) && (
-              <div className="text-purple-400 font-bold">{cardInfo.price}€</div>
-            )}
-          </div>
         </div>
-      )}
-
-</div>
       </div>
 
       {/* Mensajes */}
@@ -481,7 +465,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-[81px]">
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-20">
         <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">
