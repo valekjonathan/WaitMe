@@ -806,7 +806,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
   // ======================
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Chats" showBackButton={false} unreadCount={totalUnread} />
+      <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
         <div className="px-4 pt-3 pb-2">
@@ -918,6 +918,16 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                       <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                         <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price || 0)}€</span>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // TODO: Cerrar/eliminar conversación
+                          console.log('Cerrar conversación:', conv.id);
+                        }}
+                        className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                      >
+                        <X className="w-4 h-4 text-red-400" />
+                      </button>
                     </div>
 
                     {/* Tarjeta usuario */}
@@ -944,7 +954,9 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => {
+                        onChat={(e) => {
+                          e?.preventDefault();
+                          e?.stopPropagation();
                           const isP1 = conv.participant1_id === user?.id;
                           const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
                           const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
