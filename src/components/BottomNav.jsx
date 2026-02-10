@@ -6,11 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Bell, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { getDemoMode } from '@/lib/demoMode';
 
 export default function BottomNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const demoMode = getDemoMode();
 
   const currentPath = location.pathname;
 
@@ -24,7 +26,7 @@ export default function BottomNav() {
     queryKey: ['userActiveAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
-    enabled: !!user?.id,
+    enabled: !!user?.id && !demoMode,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -36,7 +38,7 @@ export default function BottomNav() {
     queryKey: ['userReservedAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
-    enabled: !!user?.id,
+    enabled: !!user?.id && !demoMode,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -48,7 +50,7 @@ export default function BottomNav() {
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () =>
       base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
-    enabled: !!user?.id,
+    enabled: !!user?.id && !demoMode,
     staleTime: 30000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,

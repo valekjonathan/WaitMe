@@ -13,98 +13,28 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import { useAuth } from '@/lib/AuthContext';
-import { demoFlow } from '@/lib/demoFlow';
+import { demoFlow } from '@/components/DemoFlowManager';
+import { resolveDemoNotification } from '@/components/DemoFlowManager';
+import { getDemoMode } from '@/lib/demoMode';
 
 export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const demoMode = (() => { try { return localStorage.getItem('waitme_demo_mode') === 'true'; } catch { return false; } })();
-  const [demoActionables, setDemoActionables] = useState(() => demoFlow.getState()?.actionableNotifications || []);
+  const demoMode = getDemoMode();
+  const [demoState, setDemoState] = useState(() => demoFlow.getState() || {});
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
     if (!demoMode) return;
-    return demoFlow.subscribe((s) => setDemoActionables(s.actionableNotifications || []));
+    return demoFlow.subscribe((s) => setDemoState({ ...(s || {}) }));
   }, [demoMode]);
 
-  // Demo notifications (solo para cuando NO hay user logueado)
-  const demoNotifications = useMemo(() => [
-    {
-      id: 'demo_notif_1',
-      type: 'reservation_request',
-      sender_id: 'demo_user_sofia',
-      sender_name: 'Sofía',
-      sender_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
-      recipient_id: user?.id,
-      alert_id: 'demo_alert_req_1',
-      amount: 5.0,
-      status: 'pending',
-      read: false,
-      created_date: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      alert: {
-        id: 'demo_alert_req_1',
-        car_brand: 'Seat',
-        car_model: 'Ibiza',
-        car_color: 'azul',
-        car_plate: '1234ABC',
-        available_in_minutes: 8,
-        allow_phone_calls: true,
-        phone: '+34612345678',
-        address: 'Calle Uría, Oviedo'
-      }
-    },
-    {
-      id: 'demo_notif_2',
-      type: 'reservation_accepted',
-      sender_id: 'demo_user_marco',
-      sender_name: 'Marco',
-      sender_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-      recipient_id: user?.id,
-      alert_id: 'demo_alert_acc_1',
-      amount: 4.0,
-      status: 'completed',
-      read: false,
-      created_date: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      alert: {
-        id: 'demo_alert_acc_1',
-        car_brand: 'BMW',
-        car_model: 'Serie 1',
-        car_color: 'negro',
-        car_plate: '5678DEF',
-        available_in_minutes: 12,
-        allow_phone_calls: false,
-        phone: null,
-        address: 'Calle Campoamor, Oviedo'
-      }
-    },
-    {
-      id: 'demo_notif_3',
-      type: 'buyer_nearby',
-      sender_id: 'demo_user_lucia',
-      sender_name: 'Lucía',
-      sender_photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-      recipient_id: user?.id,
-      alert_id: 'demo_alert_nearby',
-      amount: 3.5,
-      status: 'completed',
-      read: false,
-      created_date: new Date(Date.now() - 10 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'demo_notif_4',
-      type: 'payment_completed',
-      sender_id: 'demo_user_carlos',
-      sender_name: 'Carlos',
-      sender_photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
-      recipient_id: user?.id,
-      alert_id: 'demo_alert_payment',
-      amount: 6.0,
-      status: 'completed',
-      read: true,
-      created_date: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-    }
-  ], [user?.id]);
+  // Demo: viene del DemoFlowManager (vivo y sincronizado con Chats/Chat)
+  const demoNotifications = useMemo(() => {
+    const list = demoState?.notifications || [];
+    return Array.isArray(list) ? list : [];
+  }, [demoState]);
 
   const { data: realNotifications = [] } = useQuery({
     queryKey: ['notifications', user?.id],
@@ -125,8 +55,8 @@ export default function Notifications() {
     cacheTime: 300000,
   });
 
-  // ✅ CLAVE: si estás logueado, NUNCA enseñamos demo
-  const notifications = user?.id ? realNotifications : demoNotifications;
+  // Demo manda sobre todo (queremos paridad preview/iPhone y app "viva")
+  const notifications = demoMode ? demoNotifications : realNotifications;
 
   const acceptMutation = useMutation({
     mutationFn: async (notification) => {
@@ -207,6 +137,16 @@ export default function Notifications() {
         return null; // Se mostrará la tarjeta del usuario
       case 'reservation_rejected':
         return `Rechazó tu reserva.`;
+      case 'reservation_thinking':
+        return 'Se lo está pensando.';
+      case 'payment_frozen':
+        return (
+          <>
+            Pago retenido.
+            <br />
+            Se liberará al cumplir la distancia.
+          </>
+        );
       case 'buyer_nearby':
         return (
           <>
@@ -252,9 +192,7 @@ export default function Notifications() {
                   className={`bg-gray-900 rounded-xl p-4 border ${notif.read ? 'border-gray-800' : 'border-purple-500'}`}
                   onClick={() => {
                     if (!notif.read) markAsReadMutation.mutate(notif.id);
-                    if (notif.type === 'reservation_request' && notif.status === 'pending') {
-                      setSelectedNotification(notif);
-                    }
+                    if (notif.type === 'reservation_request' && notif.status === 'pending') setSelectedNotification(notif);
                   }}
                 >
                   {notif.type === 'reservation_accepted' && notif.alert ? (
@@ -334,7 +272,9 @@ export default function Notifications() {
                                 className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+                                  const name = encodeURIComponent(notif.sender_name || 'Usuario');
+                                  const photo = encodeURIComponent(notif.sender_photo || '');
+                                  navigate(createPageUrl(`Chat?demo=true&conversationId=conv_${notif.sender_id}&otherName=${name}&otherPhoto=${photo}`));
                                 }}
                               >
                                 <MessageCircle className="w-4 h-4" />
@@ -384,7 +324,9 @@ export default function Notifications() {
                                   className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+                                    const name = encodeURIComponent(notif.sender_name || 'Usuario');
+                                    const photo = encodeURIComponent(notif.sender_photo || '');
+                                    navigate(createPageUrl(`Chat?demo=true&conversationId=conv_${notif.sender_id}&otherName=${name}&otherPhoto=${photo}`));
                                   }}
                                 >
                                   <MessageCircle className="w-4 h-4" />
@@ -433,11 +375,32 @@ export default function Notifications() {
                                     className="bg-red-600 hover:bg-red-700 border-2 border-red-500 h-7 px-2 text-xs"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      rejectMutation.mutate(notif);
+                                      if (demoMode) {
+                                        resolveDemoNotification(notif.id, 'rejected');
+                                      } else {
+                                        rejectMutation.mutate(notif);
+                                      }
                                     }}
                                   >
                                     <X className="w-3 h-3 mr-1" />
                                     Rechazar
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    className="bg-gray-700 hover:bg-gray-600 border-2 border-gray-500 h-7 px-2 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (demoMode) {
+                                        resolveDemoNotification(notif.id, 'thinking');
+                                      } else {
+                                        // Real: solo lo marcamos como leído (estado visual)
+                                        markAsReadMutation.mutate(notif.id);
+                                      }
+                                    }}
+                                  >
+                                    ⏳
+                                    <span className="ml-1">Me lo pienso</span>
                                   </Button>
                                 </div>
                               </>
@@ -503,12 +466,17 @@ export default function Notifications() {
             </Button>
             <Button
               onClick={() => {
-                acceptMutation.mutate(selectedNotification);
+                if (demoMode) {
+                  resolveDemoNotification(selectedNotification.id, 'accepted');
+                  setSelectedNotification(null);
+                } else {
+                  acceptMutation.mutate(selectedNotification);
+                }
               }}
               className="flex-1 bg-green-600 hover:bg-green-700"
-              disabled={acceptMutation.isPending}
+              disabled={!demoMode && acceptMutation.isPending}
             >
-              {acceptMutation.isPending ? 'Aceptando...' : 'Aceptar y esperar'}
+              {!demoMode && acceptMutation.isPending ? 'Aceptando...' : 'Aceptar y esperar'}
             </Button>
           </DialogFooter>
         </DialogContent>
