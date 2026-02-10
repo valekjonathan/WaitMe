@@ -948,9 +948,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={(e) => {
-                          e?.preventDefault();
-                          e?.stopPropagation();
+                        onChat={() => {
                           const isP1 = conv.participant1_id === user?.id;
                           const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
                           const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
