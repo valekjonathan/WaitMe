@@ -878,14 +878,14 @@ export default function Chats() {
                       {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={isSeller}
+                            disabled={isSeller || isFinal}
                             className={`w-full border-2 ${
-                              !isSeller ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
+                              !isSeller && !isFinal ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (isSeller) return;
+                              if (isSeller || isFinal) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
