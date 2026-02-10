@@ -6,37 +6,34 @@ import VisualEditAgent from '@/lib/VisualEditAgent'
 import AppFlowEngine from '@/lib/appFlowEngine'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { Route, Routes } from 'react-router-dom'
+import PageNotFound from './lib/PageNotFound'
+import { AuthProvider, useAuth } from '@/lib/AuthContext'
+import UserNotRegisteredError from '@/components/UserNotRegisteredError'
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const { Pages, Layout, mainPage } = pagesConfig
+const mainPageKey = mainPage ?? Object.keys(Pages)[0]
+const MainPage = mainPageKey ? Pages[mainPageKey] : <></>
 
 const LayoutWrapper = ({ children, currentPageName }) =>
-  Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
+  Layout
+    ? <Layout currentPageName={currentPageName}>{children}</Layout>
+    : <>{children}</>
 
 const AuthenticatedApp = () => {
   const {
-    isLoadingAuth,
-    isLoadingPublicSettings,
     authError,
     navigateToLogin
-  } = useAuth();
+  } = useAuth()
 
-  // 🔥 CAMBIO CLAVE
-  // Antes bloqueaba toda la app con pantalla negra.
-  // Ahora simplemente deja renderizar mientras carga.
   if (authError) {
     if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
+      return <UserNotRegisteredError />
     }
 
     if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      navigateToLogin()
+      return null
     }
   }
 
@@ -65,23 +62,21 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
-  );
-};
+  )
+}
 
 function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
+        <NavigationTracker />
+        <AuthenticatedApp />
         <Toaster />
         <AppFlowEngine />
         <VisualEditAgent />
       </AuthProvider>
     </QueryClientProvider>
-  );
+  )
 }
 
-export default App;
+export default App
