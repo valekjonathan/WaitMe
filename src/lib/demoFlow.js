@@ -239,6 +239,8 @@ function initial() {
     t0,
     // Controla SOLO los eventos tipo "push"/toast (no los datos base de la app).
     demoEnabled: readPersistedDemoEnabled(),
+    // Paso global para motores externos (p.ej. appFlowEngine)
+    step: 0,
     users,
     conversations,
     notifications,
@@ -440,14 +442,19 @@ export function getDemoNotifications() {
 // Compatibilidad: algunas pantallas importan { demoFlow } como objeto.
 // Exponemos una API mínima coherente con la anterior.
 export const demoFlow = {
-  // Mantiene la forma antigua: { actionableNotifications: [...] }
+  // Mantiene compatibilidad y además expone el estado completo para motores globales.
   getState: () => ({
+    ...(state || {}),
     demoEnabled: !!state?.demoEnabled,
     actionableNotifications: getDemoNotifications()
   }),
   subscribe: (fn) =>
     subscribeDemoFlow(() =>
-      fn({ demoEnabled: !!state?.demoEnabled, actionableNotifications: getDemoNotifications() })
+      fn({
+        ...(state || {}),
+        demoEnabled: !!state?.demoEnabled,
+        actionableNotifications: getDemoNotifications()
+      })
     ),
   start: () => startDemoFlow(),
   setDemoEnabled: (enabled) => {
@@ -464,6 +471,93 @@ export const demoFlow = {
     }
     emit();
   },
+
+  // --- API esperada por src/lib/appFlowEngine.jsx (sin tocar UI) ---
+  setStep: (step) => {
+    const v = typeof step === 'number' ? step : 0;
+    setState({ ...state, step: v });
+  },
+
+  addActionableNotification: (payload = {}) => {
+    // Acción visible en pantalla Notificaciones.
+    const n = {
+      id: `n_${now()}_${Math.random().toString(16).slice(2)}`,
+      ts: now(),
+      type: payload.kind || 'actionable',
+      title: payload.title || 'Notificación',
+      body: payload.subtitle || payload.body || '',
+      conversationId: payload.conversationId || null,
+      data: payload,
+    };
+    setState({ ...state, notifications: [n, ...(state.notifications || [])] });
+  },
+
+  enqueuePush: ({ title, description, conversationId } = {}) => {
+    // Push/toast informativo + entrada en notificaciones.
+    if (title || description) dispatchToast(title || 'WaitMe!', description || '');
+    const n = {
+      id: `n_${now()}_${Math.random().toString(16).slice(2)}`,
+      ts: now(),
+      type: 'info',
+      title: title || 'WaitMe!',
+      body: description || '',
+      conversationId: conversationId || null,
+    };
+    setState({ ...state, notifications: [n, ...(state.notifications || [])] });
+  },
+
+  appendMessage: (conversationId, message) => {
+    if (!conversationId || !message) return;
+    // Normalizamos el formato (appFlowEngine usa { sender_id, sender_name, message, created_date, type }).
+    const ts = message.created_date ? new Date(message.created_date).getTime() : now();
+    const isMine = message.sender_id === 'me_demo' || message.sender_id === state?.users?.me?.id;
+    const kind = message.type === 'system' ? 'system' : 'text';
+    const normalized = mkMsg({
+      id: message.id || `m_${ts}_${Math.random().toString(16).slice(2)}`,
+      ts,
+      senderId: message.sender_id || 'system',
+      senderName: message.sender_name || (isMine ? 'Tu' : 'Usuario'),
+      senderPhoto: message.sender_photo || null,
+      mine: isMine,
+      text: message.message || message.text || '',
+      kind,
+    });
+
+    const next = { ...state };
+    next.conversations = (next.conversations || []).map((c) => {
+      if (c.id !== conversationId) return c;
+      const msgs = [...(c.messages || []), normalized];
+      return {
+        ...c,
+        messages: msgs,
+        last_message_text: normalized.text,
+        last_message_at: ts,
+      };
+    });
+    setState(next);
+  },
+
+  bumpUnread: (conversationId, by = 1) => {
+    const inc = Number.isFinite(by) ? by : 1;
+    const next = { ...state };
+    next.conversations = (next.conversations || []).map((c) => {
+      if (c.id !== conversationId) return c;
+      return { ...c, unread: Math.min(99, (c.unread || 0) + inc) };
+    });
+    setState(next);
+  },
+
+  setConversationFinal: (conversationId, statusLabel) => {
+    const next = { ...state };
+    next.conversations = (next.conversations || []).map((c) => {
+      if (c.id !== conversationId) return c;
+      const st = (statusLabel || '').toString().toLowerCase();
+      const status = st.includes('complet') ? 'completed' : st;
+      return { ...c, alert_meta: { ...(c.alert_meta || {}), status } };
+    });
+    setState(next);
+  },
+
   // Alias útiles
   startDemoFlow,
   subscribeDemoFlow,
