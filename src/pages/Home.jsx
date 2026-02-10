@@ -448,7 +448,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen w-full bg-black text-white">
       <NotificationManager user={user} />
 
       <Header
@@ -461,7 +461,7 @@ export default function Home() {
         }}
       />
 
-      <main className="fixed inset-0">
+      <main className="fixed inset-0 top-0 bottom-0">
         <AnimatePresence mode="wait">
           {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
