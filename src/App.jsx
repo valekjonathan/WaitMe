@@ -1,5 +1,4 @@
 import './App.css'
-import { useEffect } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -70,26 +69,6 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
-  
-  useEffect(() => {
-    // Forzar que iPhone y Preview carguen EXACTAMENTE la misma build (evita cachés viejas)
-    const WAITME_BUILD_ID = '2026-02-10-viewportfix';
-    try {
-      const key = '__waitme_build_id__';
-      const prev = window.localStorage.getItem(key);
-      if (prev !== WAITME_BUILD_ID) {
-        window.localStorage.setItem(key, WAITME_BUILD_ID);
-
-        // Recarga dura con cache-bust
-        const url = new URL(window.location.href);
-        url.searchParams.set('__b', WAITME_BUILD_ID);
-        window.location.replace(url.toString());
-      }
-    } catch {
-      // no-op
-    }
-  }, []);
-
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
