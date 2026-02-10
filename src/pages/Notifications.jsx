@@ -14,8 +14,6 @@ import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import { useAuth } from '@/lib/AuthContext';
 import { demoFlow } from '@/components/DemoFlowManager';
-import { resolveDemoNotification } from '@/components/DemoFlowManager';
-import { getDemoMode } from '@/lib/demoMode';
 
 export default function Notifications() {
   const navigate = useNavigate();

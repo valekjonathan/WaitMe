@@ -10,7 +10,6 @@ let state = {
   conversations: [],
   messages: {},
   users: {},
-  notifications: [],
   actionableNotifications: [],
   lastNotificationTime: Date.now()
 };
@@ -71,68 +70,16 @@ export function startDemoFlow() {
   
   state.users = DEMO_USERS;
   
-  // Conversaciones demo (2 tipos: "Te reservó" y "Reservaste")
+  // Crear conversación demo con Sofía
   state.conversations = [
     {
       id: 'conv_sofia',
       otherUserId: 'demo_sofia',
       other_name: 'Sofía',
       other_photo: DEMO_USERS.sofia.photo,
-      // seller: alguien reservó tu alerta (tu IR desactivado)
-      waitmeRole: 'seller',
-      alert: {
-        id: 'demo_alert_seller',
-        user_id: 'you',
-        user_name: 'Tú',
-        reserved_by_id: DEMO_USERS.sofia.id,
-        reserved_by_name: DEMO_USERS.sofia.name,
-        car_brand: 'Seat',
-        car_model: 'Ibiza',
-        car_color: 'azul',
-        car_plate: '1234ABC',
-        available_in_minutes: 8,
-        price: 5,
-        latitude: 43.3619,
-        longitude: -5.8494,
-        address: 'Calle Uría, Oviedo',
-        allow_phone_calls: true,
-        phone: '+34612345678'
-      },
-      // cuenta atrás de ejemplo (10 min)
-      countdownEndsAt: now + 10 * 60 * 1000,
       lastMessageText: 'Perfecto, voy llegando',
       lastMessageAt: now - 60000,
       unreadCount: 2
-    },
-    {
-      id: 'conv_marco',
-      otherUserId: 'demo_marco',
-      other_name: 'Marco',
-      other_photo: DEMO_USERS.marco.photo,
-      // buyer: tú reservaste la alerta del otro (tu IR activado)
-      waitmeRole: 'buyer',
-      alert: {
-        id: 'demo_alert_buyer',
-        user_id: DEMO_USERS.marco.id,
-        user_name: DEMO_USERS.marco.name,
-        reserved_by_id: 'you',
-        reserved_by_name: 'Tú',
-        car_brand: 'BMW',
-        car_model: 'Serie 1',
-        car_color: 'negro',
-        car_plate: '5678DEF',
-        available_in_minutes: 12,
-        price: 4,
-        latitude: 43.3613,
-        longitude: -5.8502,
-        address: 'Calle Campoamor, Oviedo',
-        allow_phone_calls: false,
-        phone: null
-      },
-      countdownEndsAt: now + 14 * 60 * 1000,
-      lastMessageText: 'Estoy en camino',
-      lastMessageAt: now - 90000,
-      unreadCount: 0
     }
   ];
 
@@ -180,173 +127,7 @@ export function startDemoFlow() {
         kind: 'text'
       }
     ]
-    ,
-    conv_marco: [
-      {
-        id: `msg_${now - 200000}`,
-        senderId: 'you',
-        senderName: 'Tú',
-        senderPhoto: null,
-        text: 'Hola, he reservado tu alerta. Voy de camino.',
-        ts: now - 200000,
-        mine: true,
-        kind: 'text'
-      },
-      {
-        id: `msg_${now - 90000}`,
-        senderId: DEMO_USERS.marco.id,
-        senderName: DEMO_USERS.marco.name,
-        senderPhoto: DEMO_USERS.marco.photo,
-        text: 'Perfecto, te espero.',
-        ts: now - 90000,
-        mine: false,
-        kind: 'text'
-      }
-    ]
   };
-
-  // Notificaciones iniciales (para que la pantalla esté "llena")
-  state.notifications = [
-    {
-      id: `notif_init_${now - 120000}`,
-      type: 'reservation_request',
-      sender_id: DEMO_USERS.sofia.id,
-      sender_name: DEMO_USERS.sofia.name,
-      sender_photo: DEMO_USERS.sofia.photo,
-      recipient_id: 'you',
-      alert_id: 'demo_alert_seller',
-      amount: 5,
-      status: 'pending',
-      read: false,
-      created_date: new Date(now - 120000).toISOString(),
-      alert: state.conversations[0].alert
-    },
-    {
-      id: `notif_init_${now - 300000}`,
-      type: 'payment_frozen',
-      sender_id: DEMO_USERS.marco.id,
-      sender_name: DEMO_USERS.marco.name,
-      sender_photo: DEMO_USERS.marco.photo,
-      recipient_id: 'you',
-      alert_id: 'demo_alert_buyer',
-      amount: 4,
-      status: 'completed',
-      read: true,
-      created_date: new Date(now - 300000).toISOString(),
-      alert: state.conversations[1].alert
-    },
-    {
-      id: `notif_init_${now - 420000}`,
-      type: 'buyer_nearby',
-      sender_id: DEMO_USERS.marco.id,
-      sender_name: DEMO_USERS.marco.name,
-      sender_photo: DEMO_USERS.marco.photo,
-      recipient_id: 'you',
-      alert_id: 'demo_alert_buyer',
-      amount: 4,
-      status: 'completed',
-      read: false,
-      created_date: new Date(now - 420000).toISOString(),
-      alert: state.conversations[1].alert
-    },
-    {
-      id: `notif_init_${now - 540000}`,
-      type: 'payment_completed',
-      sender_id: DEMO_USERS.laura.id,
-      sender_name: DEMO_USERS.laura.name,
-      sender_photo: DEMO_USERS.laura.photo,
-      recipient_id: 'you',
-      alert_id: 'demo_alert_old',
-      amount: 6,
-      status: 'completed',
-      read: false,
-      created_date: new Date(now - 540000).toISOString(),
-      alert: {
-        id: 'demo_alert_old',
-        car_brand: 'Audi',
-        car_model: 'A3',
-        car_color: 'gris',
-        car_plate: '9090GHI',
-        available_in_minutes: 0,
-        price: 6,
-        address: 'Plaza de España, Oviedo'
-      }
-    }
-  ];
-
-  state.actionableNotifications = state.notifications.filter(
-    (n) => n.type === 'reservation_request' && n.status === 'pending'
-  );
-
-  notifyListeners();
-}
-
-// Resolver una notificación (demo) y reflejarlo en Notificaciones + Chat
-export function resolveDemoNotification(notificationId, decision) {
-  const n = state.notifications.find((x) => x.id === notificationId);
-  if (!n) return;
-
-  // Marcar solicitud como leída y no accionable
-  n.read = true;
-  if (n.type === 'reservation_request') {
-    n.status = decision === 'accepted' ? 'accepted' : decision === 'rejected' ? 'rejected' : 'thinking';
-  }
-
-  state.actionableNotifications = state.notifications.filter(
-    (x) => x.type === 'reservation_request' && x.status === 'pending'
-  );
-
-  // Mensaje en el chat correspondiente
-  const conv = state.conversations.find((c) => c.otherUserId === n.sender_id);
-  const now = Date.now();
-  const convId = conv?.id;
-
-  const decisionText =
-    decision === 'accepted'
-      ? '✅ Acepté tu WaitMe!'
-      : decision === 'rejected'
-      ? '❌ Rechacé tu WaitMe!'
-      : '⏳ Me lo pienso, te digo ahora.';
-
-  if (convId) {
-    if (!state.messages[convId]) state.messages[convId] = [];
-    state.messages[convId].push({
-      id: `msg_${now}`,
-      senderId: 'you',
-      senderName: 'Tú',
-      senderPhoto: null,
-      text: decisionText,
-      ts: now,
-      mine: true,
-      kind: 'system'
-    });
-
-    conv.lastMessageText = decisionText;
-    conv.lastMessageAt = now;
-  }
-
-  // Notificación de resultado (para que se vea el flujo)
-  const resultType =
-    decision === 'accepted'
-      ? 'reservation_accepted'
-      : decision === 'rejected'
-      ? 'reservation_rejected'
-      : 'reservation_thinking';
-
-  state.notifications.unshift({
-    id: `notif_${now}`,
-    type: resultType,
-    sender_id: 'you',
-    sender_name: 'Tú',
-    sender_photo: null,
-    recipient_id: 'you',
-    alert_id: n.alert_id,
-    amount: n.amount,
-    status: 'completed',
-    read: false,
-    created_date: new Date(now).toISOString(),
-    alert: n.alert || null
-  });
 
   notifyListeners();
 }
@@ -477,12 +258,7 @@ export function createDemoNotification(data) {
     }
   };
 
-  state.notifications.unshift(notification);
-
-  // Solo las pendientes se pueden accionar
-  if (notification.type === 'reservation_request' && notification.status === 'pending') {
-    state.actionableNotifications.unshift(notification);
-  }
+  state.actionableNotifications.unshift(notification);
   
   // Crear/actualizar conversación
   const existingConv = state.conversations.find(c => c.otherUserId === notification.sender_id);
@@ -494,10 +270,7 @@ export function createDemoNotification(data) {
       other_photo: notification.sender_photo,
       lastMessageText: `Ey! Te he enviado un WaitMe!`,
       lastMessageAt: now,
-      unreadCount: 1,
-      waitmeRole: notification.type === 'reservation_request' ? 'seller' : 'buyer',
-      alert: notification.alert || null,
-      countdownEndsAt: Date.now() + 10 * 60 * 1000
+      unreadCount: 1
     };
     state.conversations.push(newConv);
     
