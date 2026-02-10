@@ -904,13 +904,15 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
-                      <div
-                        className={`flex-1 text-center text-xs ${
-                          hasUnread ? 'text-gray-300' : 'text-gray-400'
-                        } truncate`}
-                      >
-                        {cardDate}
+                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-lg px-2 py-0.5 flex flex-col items-center justify-center h-auto min-h-[28px]">
+                        <span className="text-white font-semibold text-[9px] leading-tight">
+                          {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+                        </span>
+                        <span className="text-purple-300 font-bold text-[10px] leading-tight">
+                          {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                        </span>
                       </div>
+                      
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
