@@ -25,12 +25,8 @@ let state = {
     }
   ],
   messages: {
-    conv_marco: [
-      { from: 'Marco', text: '¿Sigues ahí?' }
-    ],
-    conv_sofia: [
-      { from: 'Sofía', text: 'Voy para allá' }
-    ]
+    conv_marco: [{ from: 'Marco', text: '¿Sigues ahí?' }],
+    conv_sofia: [{ from: 'Sofía', text: 'Voy para allá' }]
   },
   notifications: [
     {
@@ -48,6 +44,10 @@ let state = {
   ]
 };
 
+export function demoFlow() {
+  return state;
+}
+
 export function getDemoState() {
   return state;
 }
@@ -56,16 +56,7 @@ export default function DemoFlowManager() {
   useEffect(() => {
     toast({
       title: 'Pago completado',
-      description: 'Has ganado 2.01€',
-      action: (
-        <button
-          onClick={() => {
-            document.dispatchEvent(new CustomEvent('waitme:toastClosed'));
-          }}
-        >
-          ✕
-        </button>
-      )
+      description: 'Has ganado 2.01€'
     });
   }, []);
 
