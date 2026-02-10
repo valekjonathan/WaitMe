@@ -39,25 +39,22 @@ export default function Profile() {
     email_notifications: true
   });
 
-  // ✅ Relleno instantáneo desde AuthContext (cero pantallas de carga)
+  // ✅ Datos de demo para JONATHAN
   useEffect(() => {
-    if (!user) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      display_name: user.display_name || user.full_name?.split(' ')[0] || prev.display_name,
-      car_brand: user.car_brand || prev.car_brand,
-      car_model: user.car_model || prev.car_model,
-      car_color: user.car_color || prev.car_color,
-      vehicle_type: user.vehicle_type || prev.vehicle_type,
-      car_plate: user.car_plate || prev.car_plate,
-      photo_url: user.photo_url || prev.photo_url,
-      phone: user.phone || prev.phone,
-      allow_phone_calls: user.allow_phone_calls || false,
-      notifications_enabled: user.notifications_enabled !== false,
-      email_notifications: user.email_notifications !== false
-    }));
-  }, [user]);
+    setFormData({
+      display_name: 'JONATHAN',
+      car_brand: 'Seat',
+      car_model: 'Ibiza',
+      car_color: 'azul',
+      vehicle_type: 'car',
+      car_plate: '1234ABC',
+      photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      phone: '+34 612 345 678',
+      allow_phone_calls: true,
+      notifications_enabled: true,
+      email_notifications: true
+    });
+  }, []);
 
   const autoSave = async (data) => {
     try {

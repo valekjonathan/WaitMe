@@ -448,7 +448,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen w-full bg-black text-white">
       <NotificationManager user={user} />
 
       <Header
@@ -461,7 +461,7 @@ export default function Home() {
         }}
       />
 
-      <main className="fixed inset-0">
+      <main className="fixed inset-0 top-0 bottom-0">
         <AnimatePresence mode="wait">
           {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
           {!mode && (
@@ -471,13 +471,14 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              <div className="absolute top-0 left-0 right-0 bottom-0 opacity-20 pointer-events-none">
-                <ParkingMap
-                  alerts={homeMapAlerts}
-                  userLocation={userLocation}
-                  className="absolute inset-0 w-full h-full"
-                  zoomControl={false}
-                />
+              <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                <div className="w-full h-full">
+                  <ParkingMap
+                    alerts={homeMapAlerts}
+                    userLocation={userLocation}
+                    zoomControl={false}
+                  />
+                </div>
               </div>
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
