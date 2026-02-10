@@ -18,7 +18,12 @@ export default function MarcoCard({
   statusEnabled = false,
   bright = false,
   dimmed = false,
-  conversationId
+  conversationId,
+  // IR (solo si se pasa desde la pantalla Chats)
+  showIr = false,
+  irEnabled = false,
+  onIr,
+  irLabel = 'IR',
 }) {
   const [showChat, setShowChat] = useState(false);
   const [newMessage, setNewMessage] = useState('');

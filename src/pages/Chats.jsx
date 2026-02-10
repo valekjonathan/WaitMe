@@ -963,8 +963,10 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           const isP1 = conv.participant1_id === user?.id;
                           const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
                           const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                          const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
-                          const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
+                          const rawName = (isBuyer ? alert.user_name : alert.reserved_by_name) || otherName || otherUserName || 'Usuario';
+                          const rawPhoto = (isBuyer ? alert.user_photo : alert.reserved_by_photo) || otherPhoto || otherUserPhoto || '';
+                          const name = encodeURIComponent(String(rawName || 'Usuario'));
+                          const photo = encodeURIComponent(String(rawPhoto || ''));
                           const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
                           navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                         }}
@@ -984,7 +986,23 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           <div className="mt-2">
                             <Button
                               disabled={!enabled}
-                    </div>
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!enabled) return;
+                                openDirectionsToAlert(alert);
+                              }}
+                              className={`w-full h-10 rounded-lg flex items-center justify-center gap-2 ${
+                                enabled
+                                  ? 'bg-gray-800/70 hover:bg-gray-800 text-white'
+                                  : 'bg-gray-800/30 text-white/40'
+                              }`}
+                            >
+                              <Navigation className="w-4 h-4" />
+                              <span className="font-semibold tracking-wide">IR</span>
+                            </Button>
+                          </div>
+                        );
+                      })()}
 
                     {/* Últimos mensajes */}
                     <div
