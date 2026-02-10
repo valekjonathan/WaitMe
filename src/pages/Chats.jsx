@@ -66,22 +66,37 @@ const isFinalChatStatus = (status) => {
   return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
 
-const isIrEnabledForChat = (conv) => {
-  const s = String(conv?.status || '').toLowerCase();
+const getDemoAlertStatus = (alertId) => {
+  try {
+    if (!alertId) return null;
+    return localStorage.getItem(`waitme_demo_alert_status_${alertId}`) || null;
+  } catch {
+    return null;
+  }
+};
 
-  const isCompleted = ['completed', 'completada'].includes(s);
-  const isRejected = ['rejected', 'rechazada'].includes(s);
-  const isMeLoPienso = ['me_lo_pienso', 'melo_pienso', 'thinking', 'pending', 'pensando'].includes(s);
-  const isProrrogada = ['prorrogada', 'extended', 'prorroga', 'prórroga'].includes(s);
+const setDemoAlertStatus = (alertId, status) => {
+  try {
+    if (!alertId) return;
+    localStorage.setItem(`waitme_demo_alert_status_${alertId}`, String(status || ''));
+  } catch {}
+};
 
-  // Reglas:
-  // - "Me lo pienso": IR SIEMPRE encendido
-  // - "Prorrogada": IR visible y encendido
-  // - Completada o Rechazada: IR visible pero apagado
-  // - Resto: encendido solo si hay mensajes (para evitar tarjetas apagadas)
-  if (isMeLoPienso || isProrrogada) return true;
-  if (isCompleted || isRejected) return false;
-  return Boolean(conv?.last_message_text);
+
+const isIrEnabledForChat = (status, isBuyer) => {
+  const s = String(status || '').toLowerCase();
+
+  // Estados finales => IR apagado siempre
+  if (['completed', 'rejected', 'expired', 'no_show', 'completada', 'rechazada', 'expirada'].includes(s)) return false;
+
+  // Me lo pienso => IR encendido
+  if (s === 'me_lo_pienso' || s === 'thinking' || s === 'me lo pienso') return true;
+
+  // Si tú reservaste => IR encendido
+  if (isBuyer) return true;
+
+  // Si te reservaron => IR apagado
+  return false;
 };
 
 
@@ -950,7 +965,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
                           const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
                           const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                          const demo = demoMode ? 'demo=true&' : '';
+                          const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
                           navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                         }}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
@@ -960,28 +975,15 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         dimmed={!hasUnread}
                       />
 
-                      {/* BOTÓN IR (solo en "Reservaste a:") */}
-                      {isBuyer && hasLatLon(alert) && (
-                        <div className="mt-2">
-                          <Button
-                            disabled={!isIrEnabledForChat(conv)}
-                            className={`w-full ${
-                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (!isIrEnabledForChat(conv)) return;
-                              openDirectionsToAlert(alert);
-                            }}
-                          >
-                            <span className="flex items-center justify-center gap-2">
-                              <Navigation className="w-4 h-4" />
-                              IR
-                            </span>
-                          </Button>
-                        </div>
-                      )}
+                      {/* BOTÓN IR (SIEMPRE visible; encendido/apagado según tu lógica) */}
+                      {(() => {
+                        const hasCoords = hasLatLon(alert);
+                        const enabled = hasCoords && isIrEnabledForChat(currentStatus, isBuyer);
+
+                        return (
+                          <div className="mt-2">
+                            <Button
+                              disabled={!enabled}
                     </div>
 
                     {/* Últimos mensajes */}
@@ -993,7 +995,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
                         const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
                         const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                        const demo = demoMode ? 'demo=true&' : '';
+                        const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
                         navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                       }}
                     >

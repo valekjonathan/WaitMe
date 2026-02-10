@@ -34,7 +34,7 @@ export default function Chat() {
   const alertId = urlParams.get('alertId');
   const otherNameParam = urlParams.get('otherName');
   const otherPhotoParam = urlParams.get('otherPhoto');
-  const isDemo = !conversationId || urlParams.get('demo') === 'true';
+  const isDemo = !conversationId || urlParams.get('demo') === 'true' || String(conversationId || '').startsWith('mock_');
 
   // ======================
   // DEMO: estado en memoria (sin cargas)
@@ -149,7 +149,7 @@ export default function Chat() {
   // Datos del otro usuario (header)
   const otherUser = useMemo(() => {
     // Prioridad 1: Parámetros de URL
-    if (otherNameParam && otherPhotoParam) {
+    if (otherNameParam || otherPhotoParam) {
       try {
         return {
           name: decodeURIComponent(otherNameParam),
