@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
-let state = {
+/**
+ * ESTADO DEMO CENTRAL
+ * Base44 importa funciones concretas.
+ * TODAS deben existir o rompe el preview.
+ */
+const demoState = {
   conversations: [
     {
       id: 'conv_marco',
@@ -44,14 +49,28 @@ let state = {
   ]
 };
 
+// === EXPORTS QUE BASE44 ESPERA ===
 export function demoFlow() {
-  return state;
+  return demoState;
 }
 
 export function getDemoState() {
-  return state;
+  return demoState;
 }
 
+export function getDemoConversation(conversationId) {
+  return demoState.conversations.find(c => c.id === conversationId) || null;
+}
+
+export function getDemoMessages(conversationId) {
+  return demoState.messages[conversationId] || [];
+}
+
+export function getDemoNotifications() {
+  return demoState.notifications;
+}
+
+// === COMPONENTE ===
 export default function DemoFlowManager() {
   useEffect(() => {
     toast({
