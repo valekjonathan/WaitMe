@@ -14,9 +14,6 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
-import { useAuth } from '@/lib/AuthContext';
-import { demoFlow, subscribeDemoFlow, startDemoFlow } from '@/components/DemoFlowManager';
-import { getDemoMode } from '@/lib/demoMode';
 
 // ======================
 // Helpers
@@ -128,14 +125,22 @@ async function fetchOsrmEtaSeconds(from, to, signal) {
 export default function Chats() {
   const navigate = useNavigate();
 
-  const { user } = useAuth();
+  const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
 
-  // Demo por defecto ON (app viva y sin cargas)
-  const demoMode = getDemoMode();
-  const [demoState, setDemoState] = useState(() => demoFlow.getState() || {});
+  // Mantén la app "viva" y evita esperas: por defecto usamos modo demo/local.
+  // El switch de Ajustes controla los "push"/toasts, pero aquí evitamos llamadas lentas.
+  const demoMode = useMemo(() => {
+    try {
+      const v = localStorage.getItem('waitme_demo_mode');
+      if (v === null) return true; // default ON
+      return v === 'true';
+    } catch {
+      return true;
+    }
+  }, []);
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
@@ -155,11 +160,16 @@ export default function Chats() {
   }, []);
 
   useEffect(() => {
-    let unsub;
-    if (demoMode) {
-      startDemoFlow();
-      unsub = subscribeDemoFlow((s) => setDemoState({ ...(s || {}) }));
-    }
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('Error:', error);
+      }
+    };
+    fetchUser();
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -169,8 +179,7 @@ export default function Chats() {
         { enableHighAccuracy: true, maximumAge: 15000, timeout: 5000 }
       );
     }
-    return () => unsub?.();
-  }, [demoMode]);
+  }, []);
 
   // ======================
   // Datos: Conversaciones
@@ -312,26 +321,7 @@ export default function Chats() {
         }
       ];
 
-      const demoConversations = (demoState?.conversations || []).map((c) => ({
-        id: `demo_${c.id}`,
-        participant1_id: user?.id || 'you',
-        participant1_name: 'Tu',
-        participant1_photo: user?.photo_url || null,
-        participant2_id: c.otherUserId,
-        participant2_name: c.other_name,
-        participant2_photo: c.other_photo,
-        alert_id: c.alert?.id || null,
-        last_message_text: c.lastMessageText || '',
-        last_message_at: new Date(c.lastMessageAt || Date.now()).toISOString(),
-        unread_count_p1: c.unreadCount || 0,
-        unread_count_p2: 0,
-        reservation_type: c.waitmeRole === 'buyer' ? 'buyer' : 'seller',
-        countdownEndsAt: c.countdownEndsAt || null
-      }));
-
-      const combined = demoMode
-        ? [...demoConversations, ...mockConversations]
-        : [...mockConversations, ...allConversations];
+      const combined = [...mockConversations, ...allConversations];
       return combined.sort(
         (a, b) =>
           new Date(b.last_message_at || b.updated_date || b.created_date) -
@@ -349,16 +339,6 @@ export default function Chats() {
     queryKey: ['alertsForChats', user?.id || 'anon'],
     queryFn: async () => {
       const now = Date.now();
-
-      // DemoFlow: alertas vivas para que Chats/Notificaciones/Chat estén sincronizados
-      const demoAlerts = (demoState?.conversations || [])
-        .map((c) => c.alert)
-        .filter(Boolean)
-        .map((a) => ({
-          ...a,
-          status: a.status || (a.reserved_by_id === 'you' ? 'reserved' : 'active'),
-          created_date: a.created_date || new Date(now - 2 * 60000).toISOString()
-        }));
       const inMin = (m) => now + m * 60 * 1000;
 
       const mockAlerts = [
@@ -551,8 +531,6 @@ export default function Chats() {
         }
       ];
 
-      if (demoMode) return [...demoAlerts, ...mockAlerts];
-      if (demoMode) return [...demoAlerts, ...mockAlerts];
       if (!user?.id) return mockAlerts;
 
       let realAlerts = [];
@@ -562,7 +540,7 @@ export default function Chats() {
         console.log('Error cargando alertas:', e);
       }
 
-      return [...demoAlerts, ...mockAlerts, ...realAlerts];
+      return [...mockAlerts, ...realAlerts];
     },
     staleTime: 30000,
     refetchInterval: false
@@ -982,20 +960,18 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         dimmed={!hasUnread}
                       />
 
-                      {/* BOTÓN IR (siempre visible en buyer/seller; activo solo para buyer) */}
-                      {(isBuyer || isSeller) && hasLatLon(alert) && (
+                      {/* BOTÓN IR (solo en "Reservaste a:") */}
+                      {isBuyer && hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={!isBuyer || !isIrEnabledForChat(conv)}
+                            disabled={!isIrEnabledForChat(conv)}
                             className={`w-full ${
-                              isBuyer && isIrEnabledForChat(conv)
-                                ? 'bg-blue-600 hover:bg-blue-700'
-                                : 'bg-blue-600/30 text-white/50'
+                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (!isBuyer || !isIrEnabledForChat(conv)) return;
+                              if (!isIrEnabledForChat(conv)) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
