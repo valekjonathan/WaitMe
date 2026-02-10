@@ -963,10 +963,8 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           const isP1 = conv.participant1_id === user?.id;
                           const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
                           const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                          const rawName = (isBuyer ? alert.user_name : alert.reserved_by_name) || otherName || otherUserName || 'Usuario';
-                          const rawPhoto = (isBuyer ? alert.user_photo : alert.reserved_by_photo) || otherPhoto || otherUserPhoto || '';
-                          const name = encodeURIComponent(String(rawName || 'Usuario'));
-                          const photo = encodeURIComponent(String(rawPhoto || ''));
+                          const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
+                          const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
                           const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
                           navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                         }}
@@ -975,12 +973,34 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
-                      showIr={true}
-                        irEnabled={hasLatLon(alert) && isIrEnabledForChat(currentStatus, isBuyer)}
-                        onIr={() => openDirectionsToAlert(alert)}
                       />
-                        );
-                      })()}
+
+                      {/* BOTÓN IR (SIEMPRE visible; encendido/apagado según tu lógica) */}
+	                      {(() => {
+	                        const hasCoords = hasLatLon(alert);
+	                        const enabled = hasCoords && isIrEnabledForChat(currentStatus, isBuyer);
+
+	                        return (
+	                          <div className="mt-2">
+	                            <Button
+	                              disabled={!enabled}
+	                              onClick={(e) => {
+	                                e.stopPropagation();
+	                                if (!enabled) return;
+	                                openDirectionsToAlert(alert);
+	                              }}
+	                              className={`w-full h-9 rounded-xl border flex items-center justify-center gap-2 transition ${
+	                                enabled
+	                                  ? 'bg-[#111827]/60 border-purple-500/40 text-purple-200 hover:bg-[#111827]/80'
+	                                  : 'bg-[#111827]/30 border-white/10 text-white/30 cursor-not-allowed'
+	                              }`}
+	                            >
+	                              <Navigation className="w-4 h-4" />
+	                              IR
+	                            </Button>
+	                          </div>
+	                        );
+	                      })()}
 
                     {/* Últimos mensajes */}
                     <div
