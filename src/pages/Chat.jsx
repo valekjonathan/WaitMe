@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check } from 'lucide-react';
+import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
@@ -348,6 +348,13 @@ export default function Chat() {
             <p className="text-xs text-gray-400">En línea</p>
           </div>
 
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 border-2 border-blue-400/70 text-white rounded-lg h-9 px-3"
+          >
+            <Navigation className="w-4 h-4 mr-1" />
+            IR
+          </Button>
+
           <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-2 hover:bg-purple-600/30 cursor-pointer transition-colors">
             <Phone className="w-5 h-5 text-purple-300" />
           </div>
@@ -459,7 +466,7 @@ export default function Chat() {
 
       {/* Input */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-20">
-        <div className="max-w-3xl mx-auto px-4 py-3 pt-[10px]">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">
               {attachments.map((att, i) => (
@@ -546,13 +553,13 @@ export default function Chat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
               placeholder="Escribe un mensaje..."
-              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400"
+              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400 h-[42px]"
             />
 
             <Button
               onClick={handleSend}
               disabled={!String(message || '').trim() && attachments.length === 0}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-10 w-10 p-0 disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-[42px] w-10 p-0 disabled:opacity-50"
             >
               <Send className="w-5 h-5" />
             </Button>
