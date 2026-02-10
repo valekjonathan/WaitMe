@@ -970,6 +970,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
+                        role={isSeller ? 'seller' : 'buyer'}
                       />
 
                       {/* BOTÓN IR (en TODAS las tarjetas) */}

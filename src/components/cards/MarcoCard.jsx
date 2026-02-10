@@ -18,7 +18,8 @@ export default function MarcoCard({
   statusEnabled = false,
   bright = false,
   dimmed = false,
-  conversationId
+  conversationId,
+  role
 }) {
   const [showChat, setShowChat] = useState(false);
   const [newMessage, setNewMessage] = useState('');
@@ -211,6 +212,14 @@ export default function MarcoCard({
               <PhoneOff className="w-4 h-4 text-white" />
             </Button>
           )}
+
+          <Button
+            size="icon"
+            disabled={role === 'seller'}
+            className={`${role === 'seller' ? 'bg-blue-500/30 text-blue-300/50 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'} rounded-lg h-8 w-[42px]`}
+          >
+            <span className="text-xs font-bold">IR</span>
+          </Button>
 
           <div className="flex-1">
             <div
