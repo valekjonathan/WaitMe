@@ -904,6 +904,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
+                      <div className="flex-1"></div>
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
@@ -971,8 +972,8 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         <div className="mt-2">
                           <Button
                             disabled={isSeller}
-                            className={`w-full ${
-                              !isSeller ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                            className={`w-full border-2 ${
+                              !isSeller ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
