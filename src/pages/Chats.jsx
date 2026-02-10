@@ -517,6 +517,56 @@ export default function Chats() {
       });
     }
 
+    // Aplicar lógica de negocio: solo UNA reserva activa como buyer y UNA como seller
+    const buyerReservations = [];
+    const sellerReservations = [];
+    const others = [];
+
+    filtered.forEach((conv) => {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) return;
+
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const isSeller = alert?.user_id === user?.id && alert?.reserved_by_id;
+      const isActive = alert?.status === 'reserved';
+
+      if (isBuyer && isActive) {
+        buyerReservations.push(conv);
+      } else if (isSeller && isActive) {
+        sellerReservations.push(conv);
+      } else {
+        others.push(conv);
+      }
+    });
+
+    // Mantener solo la reserva buyer más reciente como activa
+    if (buyerReservations.length > 1) {
+      buyerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      const [activeBuyer, ...restBuyer] = buyerReservations;
+      filtered = filtered.map((conv) => {
+        if (restBuyer.find((c) => c.id === conv.id)) {
+          const alert = alertsMap.get(conv.alert_id);
+          if (alert) alert.status = 'cancelled';
+        }
+        return conv;
+      });
+      buyerReservations.length = 1;
+    }
+
+    // Mantener solo la reserva seller más reciente como activa
+    if (sellerReservations.length > 1) {
+      sellerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      const [activeSeller, ...restSeller] = sellerReservations;
+      filtered = filtered.map((conv) => {
+        if (restSeller.find((c) => c.id === conv.id)) {
+          const alert = alertsMap.get(conv.alert_id);
+          if (alert) alert.status = 'cancelled';
+        }
+        return conv;
+      });
+      sellerReservations.length = 1;
+    }
+
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
@@ -551,7 +601,7 @@ export default function Chats() {
 
       return bLast - aLast;
     });
-  }, [conversations, searchQuery, user?.id]);
+  }, [conversations, searchQuery, user?.id, alertsMap]);
 
   const openExpiredDialog = (alert, isBuyer) => {
     if (!alert?.id) return;
