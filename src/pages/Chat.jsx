@@ -35,6 +35,19 @@ export default function Chat() {
   const alertId = urlParams.get('alertId');
   const otherNameParam = urlParams.get('otherName');
   const otherPhotoParam = urlParams.get('otherPhoto');
+  const carLabelParam = urlParams.get('carLabel');
+  const plateParam = urlParams.get('plate');
+  const priceParam = urlParams.get('price');
+
+  const cardInfo = useMemo(() => {
+    const car = carLabelParam ? decodeURIComponent(carLabelParam) : null;
+    const plate = plateParam ? decodeURIComponent(plateParam) : null;
+    const price = priceParam != null ? Number(priceParam) : null;
+    const hasAny = !!car || !!plate || Number.isFinite(price);
+    if (!hasAny) return null;
+    return { car, plate, price };
+  }, [carLabelParam, plateParam, priceParam]);
+
   const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
   // ======================
@@ -149,23 +162,45 @@ export default function Chat() {
 
   // Datos del otro usuario (header)
   const otherUser = useMemo(() => {
-    // Prioridad 1: Parámetros de URL
-    if (otherNameParam && otherPhotoParam) {
+    // Prioridad 1: Parámetros de URL (acepta nombre aunque no venga foto)
+    if (otherNameParam || otherPhotoParam) {
+      let decodedName = null;
+      let decodedPhoto = null;
+
       try {
-        return {
-          name: decodeURIComponent(otherNameParam),
-          photo: decodeURIComponent(otherPhotoParam)
-        };
+        decodedName = otherNameParam ? decodeURIComponent(otherNameParam) : null;
       } catch (e) {
-        console.error('Error decodificando parámetros:', e);
+        console.error('Error decodificando otherName:', e);
+        decodedName = otherNameParam || null;
       }
+
+      try {
+        decodedPhoto = otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null;
+      } catch (e) {
+        console.error('Error decodificando otherPhoto:', e);
+        decodedPhoto = otherPhotoParam || null;
+      }
+
+      return {
+        name: decodedName || 'Usuario',
+        photo: decodedPhoto || null
+      };
     }
 
     // Prioridad 2: Demo
     if (isDemo) {
+      const fallbackPhotos = [
+        'https://randomuser.me/api/portraits/women/44.jpg',
+        'https://randomuser.me/api/portraits/men/32.jpg',
+        'https://randomuser.me/api/portraits/women/68.jpg',
+        'https://randomuser.me/api/portraits/men/75.jpg'
+      ];
+      const seed = String(demoConversationId || alertId || 'x').charCodeAt(0) || 0;
+      const fallbackPhoto = fallbackPhotos[seed % fallbackPhotos.length];
+
       return {
-        name: demoOtherUser?.name || demoConv?.other_name || 'Usuario',
-        photo: demoOtherUser?.photo || demoConv?.other_photo || null
+        name: demoOtherUser?.name || demoConv?.other_name || otherNameParam || 'Sofía',
+        photo: demoOtherUser?.photo || demoConv?.other_photo || otherPhotoParam || fallbackPhoto
       };
     }
 
@@ -361,8 +396,23 @@ export default function Chat() {
         </div>
       </div>
 
+      {/* Datos de la tarjeta */}
+      {cardInfo && (
+        <div className="fixed top-[112px] left-0 right-0 z-30 bg-black border-b border-gray-700 px-4 py-2 text-xs text-gray-300">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 truncate">
+              {cardInfo.car && <span className="font-semibold text-white">{cardInfo.car}</span>}
+              {cardInfo.plate && <span className="ml-2 text-gray-400">({cardInfo.plate})</span>}
+            </div>
+            {Number.isFinite(cardInfo.price) && (
+              <div className="text-purple-400 font-bold">{cardInfo.price}€</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto pt-[130px] pb-[160px] px-4">
+      <div className="flex-1 overflow-y-auto pt-[156px] pb-[160px] px-4">
         <div className="max-w-3xl mx-auto space-y-4 py-4">
           {displayMessages.map((msg, idx) => {
             const isMine = !!msg.mine;
@@ -465,7 +515,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-[81px]">
         <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">
