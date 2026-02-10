@@ -960,8 +960,8 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         dimmed={!hasUnread}
                       />
 
-                      {/* BOTÓN IR (solo en "Reservaste a:") */}
-                      {isBuyer && hasLatLon(alert) && (
+                      {/* BOTÓN IR (en TODAS las tarjetas) */}
+                      {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
                             disabled={!isIrEnabledForChat(conv)}
