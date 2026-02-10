@@ -291,6 +291,18 @@ export default function UserAlertCard({
             </Button>
           }
 
+          <Button
+            size="icon"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
+            onClick={() => {
+              if (alert?.latitude && alert?.longitude) {
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
+              }
+            }}>
+
+            <Navigation className="w-4 h-4" />
+          </Button>
+
           <div className="flex-1">
             <Button
               className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
