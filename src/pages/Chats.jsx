@@ -145,7 +145,7 @@ export default function Chats() {
   }, []);
 
   const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations', user?.id || 'anon'],
+    queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
       const allConversations = demoMode ? [] : await base44.entities.Conversation.list('-last_message_at', 50);
 
@@ -279,12 +279,18 @@ export default function Chats() {
           new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
-    staleTime: 10000,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    keepPreviousData: true,
     refetchInterval: false
   });
 
   const { data: alerts = [] } = useQuery({
-    queryKey: ['alertsForChats', user?.id || 'anon'],
+    queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
       const now = Date.now();
       const inMin = (m) => now + m * 60 * 1000;
@@ -486,7 +492,13 @@ export default function Chats() {
 
       return [...mockAlerts, ...realAlerts];
     },
-    staleTime: 30000,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    keepPreviousData: true,
     refetchInterval: false
   });
 
