@@ -1,53 +1,42 @@
 import './App.css'
-import { Toaster } from "./components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from './lib/query-client'
+import { queryClientInstance } from '@/lib/query-client'
+import VisualEditAgent from '@/lib/VisualEditAgent'
+import AppFlowEngine from '@/lib/appFlowEngine'
+import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { Route, Routes } from 'react-router-dom'
-import PageNotFound from './lib/PageNotFound'
-import { AuthProvider, useAuth } from './lib/AuthContext'
-import UserNotRegisteredError from './components/UserNotRegisteredError'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import PageNotFound from './lib/PageNotFound';
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
-// ⚠️ Herramientas Base44 (solo en editor)
-import VisualEditAgent from './lib/VisualEditAgent'
-import AppFlowEngine from './lib/appFlowEngine'
-import NavigationTracker from './lib/NavigationTracker'
-
-const { Pages, Layout, mainPage } = pagesConfig
-const mainPageKey = mainPage ?? Object.keys(Pages)[0]
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>
-
-const isBrowser = typeof window !== 'undefined'
-
-// 👉 Detectar editor Base44 (iframe)
-const isInEditor = (() => {
-  if (!isBrowser) return false
-  try {
-    return window.self !== window.top
-  } catch {
-    return false
-  }
-})()
+const { Pages, Layout, mainPage } = pagesConfig;
+const mainPageKey = mainPage ?? Object.keys(Pages)[0];
+const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 const LayoutWrapper = ({ children, currentPageName }) =>
-  Layout
-    ? <Layout currentPageName={currentPageName}>{children}</Layout>
-    : <>{children}</>
+  Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { authError, navigateToLogin } = useAuth()
+  const {
+    isLoadingAuth,
+    isLoadingPublicSettings,
+    authError,
+    navigateToLogin
+  } = useAuth();
 
-  // ⚠️ EN IPHONE: NO redirigir en frío
+  // 🔥 CAMBIO CLAVE
+  // Antes bloqueaba toda la app con pantalla negra.
+  // Ahora simplemente deja renderizar mientras carga.
   if (authError) {
     if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />
+      return <UserNotRegisteredError />;
     }
 
     if (authError.type === 'auth_required') {
-      if (isInEditor) {
-        navigateToLogin()
-      }
-      return null
+      navigateToLogin();
+      return null;
     }
   }
 
@@ -76,26 +65,23 @@ const AuthenticatedApp = () => {
 
       <Route path="*" element={<PageNotFound />} />
     </Routes>
-  )
-}
+  );
+};
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        {/* App real */}
-        <AuthenticatedApp />
+        <Router>
+          <NavigationTracker />
+          <AuthenticatedApp />
+        </Router>
         <Toaster />
-
-        {/* SOLO editor Base44 */}
-        {isInEditor && (
-          <>
-            <NavigationTracker />
-            <AppFlowEngine />
-            <VisualEditAgent />
-          </>
-        )}
+        <AppFlowEngine />
+        <VisualEditAgent />
       </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }
+
+export default App;

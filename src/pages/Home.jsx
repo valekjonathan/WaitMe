@@ -586,8 +586,8 @@ export default function Home() {
               </div>
 
               {/* SIN SCROLL: tarjeta encaja en el resto */}
-              <div className="flex-1 px-4 min-h-0 overflow-hidden flex items-start pt-2">
-                <div className="w-full">
+              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
+                <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
                     isEmpty={!selectedAlert}
@@ -638,7 +638,7 @@ export default function Home() {
                 ¿ Dónde estas aparcado ?
               </h3>
 
-              <div className="px-4 flex-1 min-h-0 overflow-hidden flex items-start pt-2">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
