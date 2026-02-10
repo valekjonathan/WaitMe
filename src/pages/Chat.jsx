@@ -16,7 +16,7 @@ import {
   markDemoRead,
   sendDemoMessage,
   demoFlow
-} from '@/components/DemoFlowManager';
+} from '@/lib/demoFlow';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -32,9 +32,7 @@ export default function Chat() {
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
   const alertId = urlParams.get('alertId');
-  const otherNameParam = urlParams.get('otherName');
-  const otherPhotoParam = urlParams.get('otherPhoto');
-  const isDemo = !conversationId || urlParams.get('demo') === 'true' || String(conversationId || '').startsWith('mock_');
+  const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
   // ======================
   // DEMO: estado en memoria (sin cargas)
@@ -148,33 +146,18 @@ export default function Chat() {
 
   // Datos del otro usuario (header)
   const otherUser = useMemo(() => {
-    // Prioridad 1: Parámetros de URL
-    if (otherNameParam || otherPhotoParam) {
-      try {
-        return {
-          name: decodeURIComponent(otherNameParam),
-          photo: decodeURIComponent(otherPhotoParam)
-        };
-      } catch (e) {
-        console.error('Error decodificando parámetros:', e);
-      }
-    }
-
-    // Prioridad 2: Demo
     if (isDemo) {
       return {
         name: demoOtherUser?.name || demoConv?.other_name || 'Usuario',
         photo: demoOtherUser?.photo || demoConv?.other_photo || null
       };
     }
-
-    // Prioridad 3: Conversación real
     const isP1 = conversation?.participant1_id === user?.id;
     return {
       name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
       photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
     };
-  }, [isDemo, demoOtherUser, demoConv, conversation, user, otherNameParam, otherPhotoParam]);
+  }, [isDemo, demoOtherUser, demoConv, conversation, user]);
 
   // Scroll automático
   useEffect(() => {
@@ -278,7 +261,7 @@ export default function Chat() {
 
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
-        <div className="flex items-center gap-3 px-4 py-1">
+        <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
             {otherUser?.photo ? (
               <img src={otherUser.photo} alt={otherUser.name} className="w-full h-full object-cover" />

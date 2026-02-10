@@ -66,37 +66,22 @@ const isFinalChatStatus = (status) => {
   return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
 
-const getDemoAlertStatus = (alertId) => {
-  try {
-    if (!alertId) return null;
-    return localStorage.getItem(`waitme_demo_alert_status_${alertId}`) || null;
-  } catch {
-    return null;
-  }
-};
+const isIrEnabledForChat = (conv) => {
+  const s = String(conv?.status || '').toLowerCase();
 
-const setDemoAlertStatus = (alertId, status) => {
-  try {
-    if (!alertId) return;
-    localStorage.setItem(`waitme_demo_alert_status_${alertId}`, String(status || ''));
-  } catch {}
-};
+  const isCompleted = ['completed', 'completada'].includes(s);
+  const isRejected = ['rejected', 'rechazada'].includes(s);
+  const isMeLoPienso = ['me_lo_pienso', 'melo_pienso', 'thinking', 'pending', 'pensando'].includes(s);
+  const isProrrogada = ['prorrogada', 'extended', 'prorroga', 'prórroga'].includes(s);
 
-
-const isIrEnabledForChat = (status, isBuyer) => {
-  const s = String(status || '').toLowerCase();
-
-  // Estados finales => IR apagado siempre
-  if (['completed', 'rejected', 'expired', 'no_show', 'completada', 'rechazada', 'expirada'].includes(s)) return false;
-
-  // Me lo pienso => IR encendido
-  if (s === 'me_lo_pienso' || s === 'thinking' || s === 'me lo pienso') return true;
-
-  // Si tú reservaste => IR encendido
-  if (isBuyer) return true;
-
-  // Si te reservaron => IR apagado
-  return false;
+  // Reglas:
+  // - "Me lo pienso": IR SIEMPRE encendido
+  // - "Prorrogada": IR visible y encendido
+  // - Completada o Rechazada: IR visible pero apagado
+  // - Resto: encendido solo si hay mensajes (para evitar tarjetas apagadas)
+  if (isMeLoPienso || isProrrogada) return true;
+  if (isCompleted || isRejected) return false;
+  return Boolean(conv?.last_message_text);
 };
 
 
@@ -960,12 +945,9 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           )
                         }
                         onChat={() => {
-                          const isP1 = conv.participant1_id === user?.id;
-                          const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
-                          const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                          const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
-                          const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                          const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
+                          const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
+                          const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                          const demo = demoMode ? 'demo=true&' : '';
                           navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                         }}
                         // MISMO FORMATO VISUAL de contador (texto "MM:SS")
@@ -975,42 +957,37 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         dimmed={!hasUnread}
                       />
 
-                      {/* BOTÓN IR (SIEMPRE visible; encendido/apagado según tu lógica) */}
-	                      {(() => {
-	                        const hasCoords = hasLatLon(alert);
-	                        const enabled = hasCoords && isIrEnabledForChat(alert.status, isBuyer);
-	                        return (
-	                          <div className="mt-2">
-	                            <Button
-	                              disabled={!enabled}
-	                              onClick={(e) => {
-	                                e.stopPropagation();
-	                                if (!enabled) return;
-	                                openDirectionsToAlert(alert);
-	                              }}
-	                              className={`w-full h-9 rounded-xl border flex items-center justify-center gap-2 transition ${
-	                                enabled
-	                                  ? 'bg-[#111827]/60 border-purple-500/40 text-purple-200 hover:bg-[#111827]/80'
-	                                  : 'bg-[#111827]/30 border-white/10 text-white/30 cursor-not-allowed'
-	                              }`}
-	                            >
-	                              <Navigation className="w-4 h-4" />
-	                              IR
-	                            </Button>
-	                          </div>
-	                        );
-	                      })()}
-</div>
+                      {/* BOTÓN IR (solo en "Reservaste a:") */}
+                      {isBuyer && hasLatLon(alert) && (
+                        <div className="mt-2">
+                          <Button
+                            disabled={!isIrEnabledForChat(conv)}
+                            className={`w-full ${
+                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                            }`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!isIrEnabledForChat(conv)) return;
+                              openDirectionsToAlert(alert);
+                            }}
+                          >
+                            <span className="flex items-center justify-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              IR
+                            </span>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => {
-                        const isP1 = conv.participant1_id === user?.id;
-                        const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
-                        const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                        const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
-                        const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                        const demo = (demoMode || String(conv.id || '').startsWith('mock_')) ? 'demo=true&' : '';
+                        const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
+                        const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                        const demo = demoMode ? 'demo=true&' : '';
                         navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                       }}
                     >

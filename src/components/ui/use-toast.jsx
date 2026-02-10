@@ -119,19 +119,8 @@ function toast({ ...props }) {
       toast: { ...props, id },
     });
 
-  const dismiss = () => {
+  const dismiss = () =>
     dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
-    
-    // Cuando se cierra un toast, crear notificación
-    if (props.createNotificationOnClose && typeof window !== 'undefined') {
-      setTimeout(() => {
-        const event = new CustomEvent('waitme:toastClosed', {
-          detail: props.notificationData || {}
-        });
-        window.dispatchEvent(event);
-      }, 100);
-    }
-  };
 
   dispatch({
     type: actionTypes.ADD_TOAST,
@@ -172,4 +161,4 @@ function useToast() {
   };
 }
 
-export { useToast, toast };
+export { useToast, toast }; 
