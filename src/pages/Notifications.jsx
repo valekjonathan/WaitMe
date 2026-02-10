@@ -13,7 +13,7 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import UserCard from '@/components/cards/UserCard';
 import { useAuth } from '@/lib/AuthContext';
-import { demoFlow } from '@/lib/demoFlow';
+import { demoFlow } from '@/components/DemoFlowManager';
 
 export default function Notifications() {
   const navigate = useNavigate();

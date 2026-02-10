@@ -16,7 +16,7 @@ import {
   markDemoRead,
   sendDemoMessage,
   demoFlow
-} from '@/lib/demoFlow';
+} from '@/components/DemoFlowManager';
 
 export default function Chat() {
   const navigate = useNavigate();

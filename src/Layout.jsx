@@ -1,14 +1,11 @@
 import React, { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { demoFlow } from '@/lib/demoFlow';
+import DemoFlowManager, { demoFlow } from '@/components/DemoFlowManager';
 
 // NO metas AuthProvider aquí.
 // El provider debe vivir una sola vez (normalmente en src/App.jsx).
 export default function Layout({ children }) {
   useEffect(() => {
-    // Iniciar notificaciones automáticas cada 20 segundos
-    demoFlow.startAutoNotifications(20000);
-
     const onDemoToast = (e) => {
       const title = e?.detail?.title;
       const description = e?.detail?.description;
@@ -28,21 +25,17 @@ export default function Layout({ children }) {
       });
     };
 
-    const onToastClosed = (e) => {
-      // Cuando se cierra un toast, crear notificación en el sistema
-      const data = e?.detail || {};
-      demoFlow.createNotification(data);
-    };
-
     window.addEventListener('waitme:demoToast', onDemoToast);
-    window.addEventListener('waitme:toastClosed', onToastClosed);
     
     return () => {
       window.removeEventListener('waitme:demoToast', onDemoToast);
-      window.removeEventListener('waitme:toastClosed', onToastClosed);
-      demoFlow.stopAutoNotifications();
     };
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <DemoFlowManager />
+      {children}
+    </>
+  );
 }
