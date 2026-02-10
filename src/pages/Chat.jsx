@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check } from 'lucide-react';
+import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
@@ -28,6 +28,7 @@ export default function Chat() {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const attachMenuRef = useRef(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const conversationId = urlParams.get('conversationId');
@@ -181,6 +182,61 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [displayMessages]);
 
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showAttachMenu && attachMenuRef.current && !attachMenuRef.current.contains(e.target)) {
+        setShowAttachMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAttachMenu]);
+
+  // ======================
+  // RESPUESTAS AUTOMÁTICAS DEMO
+  // ======================
+  const autoRespond = (convId, userMessage) => {
+    const responses = {
+      'mock_reservaste_1': [
+        'Perfecto, ya voy de camino 🚗',
+        '¿A qué distancia estás?',
+        'Llego en 5 minutos',
+        'Gracias por esperarme 😊',
+        '¿Sigues ahí?'
+      ],
+      'mock_te_reservo_1': [
+        'Estoy esperando aquí',
+        '¿Cuánto tardas?',
+        'Veo que te acercas en el mapa',
+        'Perfecto, te espero',
+        'No hay problema 👍'
+      ],
+      'mock_reservaste_2': [
+        'Ok, voy llegando',
+        'Genial, aguanto',
+        '¿Cuánto falta?',
+        'Ya casi estoy',
+        'Muchas gracias'
+      ],
+      'mock_te_reservo_2': [
+        'Estoy cerca',
+        'Llego en 2 minutos',
+        '¿Sigues ahí?',
+        'Ya te veo',
+        'Gracias por la paciencia'
+      ]
+    };
+
+    const convResponses = responses[convId];
+    if (!convResponses) return;
+
+    setTimeout(() => {
+      const randomResponse = convResponses[Math.floor(Math.random() * convResponses.length)];
+      sendDemoMessage(convId, randomResponse, [], false);
+    }, 1500 + Math.random() * 2000);
+  };
+
   // ======================
   // ENVIAR
   // ======================
@@ -192,6 +248,7 @@ export default function Chat() {
       if (isDemo) {
         if (demoConversationId) {
           sendDemoMessage(demoConversationId, clean, attachments);
+          autoRespond(demoConversationId, clean);
         }
         return;
       }
@@ -278,7 +335,7 @@ export default function Chat() {
 
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
-        <div className="flex items-center gap-3 px-4 py-1">
+        <div className="flex items-center gap-3 px-4 py-1 pt-[10px]">
           <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
             {otherUser?.photo ? (
               <img src={otherUser.photo} alt={otherUser.name} className="w-full h-full object-cover" />
@@ -291,6 +348,13 @@ export default function Chat() {
             <p className="text-xs text-gray-400">En línea</p>
           </div>
 
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 border-2 border-blue-400/70 text-white rounded-lg h-9 px-3"
+          >
+            <Navigation className="w-4 h-4 mr-1" />
+            IR
+          </Button>
+
           <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-2 hover:bg-purple-600/30 cursor-pointer transition-colors">
             <Phone className="w-5 h-5 text-purple-300" />
           </div>
@@ -298,7 +362,7 @@ export default function Chat() {
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto pt-[128px] pb-[160px] px-4">
+      <div className="flex-1 overflow-y-auto pt-[130px] pb-[160px] px-4">
         <div className="max-w-3xl mx-auto space-y-4 py-4">
           {displayMessages.map((msg, idx) => {
             const isMine = !!msg.mine;
@@ -402,7 +466,7 @@ export default function Chat() {
 
       {/* Input */}
       <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-20">
-        <div className="max-w-3xl mx-auto px-4 py-3">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">
               {attachments.map((att, i) => (
@@ -424,7 +488,7 @@ export default function Chat() {
           )}
 
           <div className="flex items-center gap-2">
-            <div className="relative">
+            <div className="relative" ref={attachMenuRef}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -489,13 +553,13 @@ export default function Chat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
               placeholder="Escribe un mensaje..."
-              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400"
+              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400 h-[42px]"
             />
 
             <Button
               onClick={handleSend}
               disabled={!String(message || '').trim() && attachments.length === 0}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-10 w-10 p-0 disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-[42px] w-10 p-0 disabled:opacity-50"
             >
               <Send className="w-5 h-5" />
             </Button>

@@ -66,25 +66,6 @@ const isFinalChatStatus = (status) => {
   return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
 
-const isIrEnabledForChat = (conv) => {
-  const s = String(conv?.status || '').toLowerCase();
-
-  const isCompleted = ['completed', 'completada'].includes(s);
-  const isRejected = ['rejected', 'rechazada'].includes(s);
-  const isMeLoPienso = ['me_lo_pienso', 'melo_pienso', 'thinking', 'pending', 'pensando'].includes(s);
-  const isProrrogada = ['prorrogada', 'extended', 'prorroga', 'prórroga'].includes(s);
-
-  // Reglas:
-  // - "Me lo pienso": IR SIEMPRE encendido
-  // - "Prorrogada": IR visible y encendido
-  // - Completada o Rechazada: IR visible pero apagado
-  // - Resto: encendido solo si hay mensajes (para evitar tarjetas apagadas)
-  if (isMeLoPienso || isProrrogada) return true;
-  if (isCompleted || isRejected) return false;
-  return Boolean(conv?.last_message_text);
-};
-
-
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
 const getTargetTimeMs = (alert) => {
@@ -109,19 +90,6 @@ const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
   return { lat, lon };
 };
 
-// OSRM (gratis) para ETA real por carretera
-const osrmRouteUrl = (from, to) =>
-  `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false&alternatives=false&steps=false`;
-
-async function fetchOsrmEtaSeconds(from, to, signal) {
-  const res = await fetch(osrmRouteUrl(from, to), { signal });
-  if (!res.ok) throw new Error(`OSRM ${res.status}`);
-  const data = await res.json();
-  const duration = data?.routes?.[0]?.duration;
-  if (typeof duration === 'number' && Number.isFinite(duration)) return Math.max(0, Math.round(duration));
-  throw new Error('OSRM duration inválido');
-}
-
 export default function Chats() {
   const navigate = useNavigate();
 
@@ -130,12 +98,10 @@ export default function Chats() {
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
 
-  // Mantén la app "viva" y evita esperas: por defecto usamos modo demo/local.
-  // El switch de Ajustes controla los "push"/toasts, pero aquí evitamos llamadas lentas.
   const demoMode = useMemo(() => {
     try {
       const v = localStorage.getItem('waitme_demo_mode');
-      if (v === null) return true; // default ON
+      if (v === null) return true;
       return v === 'true';
     } catch {
       return true;
@@ -146,14 +112,11 @@ export default function Chats() {
   const [selectedProrroga, setSelectedProrroga] = useState(null);
   const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
 
-  // ETA cache: alertId -> { etaSeconds, fetchedAt }
   const [etaMap, setEtaMap] = useState({});
 
   const expiredHandledRef = useRef(new Set());
-  const osrmAbortRef = useRef(null);
   const hasEverHadTimeRef = useRef(new Map());
 
-  // Tick global (1 vez) para TODOS los contadores
   useEffect(() => {
     const id = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(id);
@@ -181,16 +144,10 @@ export default function Chats() {
     }
   }, []);
 
-  // ======================
-  // Datos: Conversaciones
-  // ======================
   const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations', user?.id || 'anon'],
+    queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
-      // En modo demo evitamos llamadas remotas que meten pantallas blancas/neg...
-      const allConversations = demoMode
-        ? []
-        : await base44.entities.Conversation.list('-last_message_at', 50);
+      const allConversations = demoMode ? [] : await base44.entities.Conversation.list('-last_message_at', 50);
 
       const mockConversations = [
         {
@@ -253,9 +210,6 @@ export default function Chats() {
           unread_count_p2: 0,
           reservation_type: 'seller'
         },
-
-        // ====== Variantes para ver todos los estados en CHATS ======
-        // COMPLETADA
         {
           id: 'mock_completada_1',
           participant1_id: user?.id || 'user1',
@@ -271,7 +225,6 @@ export default function Chats() {
           unread_count_p2: 0,
           reservation_type: 'buyer'
         },
-        // ME LO PIENSO (sin mensajes -> tarjeta apagada)
         {
           id: 'mock_pensar_1',
           participant1_id: user?.id || 'user1',
@@ -287,7 +240,6 @@ export default function Chats() {
           unread_count_p2: 0,
           reservation_type: 'buyer'
         },
-        // RECHAZADA
         {
           id: 'mock_rechazada_1',
           participant1_id: user?.id || 'user1',
@@ -303,7 +255,6 @@ export default function Chats() {
           unread_count_p2: 0,
           reservation_type: 'buyer'
         },
-        // PRÓRROGA
         {
           id: 'mock_prorroga_1',
           participant1_id: user?.id || 'user1',
@@ -328,15 +279,18 @@ export default function Chats() {
           new Date(a.last_message_at || a.updated_date || a.created_date)
       );
     },
-    staleTime: 10000,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    keepPreviousData: true,
     refetchInterval: false
   });
 
-  // ======================
-  // Datos: Alertas (mocks + reales)
-  // ======================
   const { data: alerts = [] } = useQuery({
-    queryKey: ['alertsForChats', user?.id || 'anon'],
+    queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
       const now = Date.now();
       const inMin = (m) => now + m * 60 * 1000;
@@ -359,10 +313,8 @@ export default function Chats() {
           phone: '+34677889900',
           reserved_by_id: user?.id,
           reserved_by_name: 'Tu',
-          // posición aproximada del reservador (para demo)
           reserved_by_latitude: 43.35954,
           reserved_by_longitude: -5.85234,
-          // 10 min restantes (sincroniza texto + contador)
           target_time: inMin(10),
           status: 'reserved',
           created_date: new Date(now - 1 * 60000).toISOString()
@@ -438,8 +390,6 @@ export default function Chats() {
           status: 'reserved',
           created_date: new Date(now - 15 * 60000).toISOString()
         },
-
-        // ====== Variantes para CHATS (completada / me lo pienso / rechazada / prórroga) ======
         {
           id: 'alert_completada_1',
           user_id: 'seller_ana',
@@ -542,7 +492,13 @@ export default function Chats() {
 
       return [...mockAlerts, ...realAlerts];
     },
-    staleTime: 30000,
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    keepPreviousData: true,
     refetchInterval: false
   });
 
@@ -552,9 +508,6 @@ export default function Chats() {
     return map;
   }, [alerts]);
 
-  // ======================
-  // Unreads + filtrado
-  // ======================
   const totalUnread = useMemo(() => {
     return conversations.reduce((sum, conv) => {
       const isP1 = conv.participant1_id === user?.id;
@@ -576,14 +529,62 @@ export default function Chats() {
       });
     }
 
+    // Aplicar lógica de negocio: solo UNA reserva activa como buyer y UNA como seller
+    const buyerReservations = [];
+    const sellerReservations = [];
+    const others = [];
+
+    filtered.forEach((conv) => {
+      const alert = alertsMap.get(conv.alert_id);
+      if (!alert) return;
+
+      const isBuyer = alert?.reserved_by_id === user?.id;
+      const isSeller = alert?.user_id === user?.id && alert?.reserved_by_id;
+      const isActive = alert?.status === 'reserved';
+
+      if (isBuyer && isActive) {
+        buyerReservations.push(conv);
+      } else if (isSeller && isActive) {
+        sellerReservations.push(conv);
+      } else {
+        others.push(conv);
+      }
+    });
+
+    // Mantener solo la reserva buyer más reciente como activa
+    if (buyerReservations.length > 1) {
+      buyerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      const [activeBuyer, ...restBuyer] = buyerReservations;
+      filtered = filtered.map((conv) => {
+        if (restBuyer.find((c) => c.id === conv.id)) {
+          const alert = alertsMap.get(conv.alert_id);
+          if (alert) alert.status = 'cancelled';
+        }
+        return conv;
+      });
+      buyerReservations.length = 1;
+    }
+
+    // Mantener solo la reserva seller más reciente como activa
+    if (sellerReservations.length > 1) {
+      sellerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      const [activeSeller, ...restSeller] = sellerReservations;
+      filtered = filtered.map((conv) => {
+        if (restSeller.find((c) => c.id === conv.id)) {
+          const alert = alertsMap.get(conv.alert_id);
+          if (alert) alert.status = 'cancelled';
+        }
+        return conv;
+      });
+      sellerReservations.length = 1;
+    }
+
     return filtered.sort((a, b) => {
       const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
       const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
 
-      // 1) Prioridad: conversaciones con mensajes sin leer
       if (bUnread !== aUnread) return bUnread - aUnread;
 
-      // 2) Orden: última acción arriba (mensaje o cambio de estado)
       const toMs = (v) => {
         if (!v) return 0;
         if (typeof v === 'number') return v;
@@ -612,14 +613,10 @@ export default function Chats() {
 
       return bLast - aLast;
     });
-}, [conversations, searchQuery, user?.id]);
+  }, [conversations, searchQuery, user?.id, alertsMap]);
 
-  // ======================
-  // Expiración + prórroga
-  // ======================
   const openExpiredDialog = (alert, isBuyer) => {
     if (!alert?.id) return;
-
     if (expiredHandledRef.current.has(alert.id)) return;
     expiredHandledRef.current.add(alert.id);
 
@@ -671,24 +668,6 @@ export default function Chats() {
     setCurrentExpiredAlert(null);
   };
 
-  // ======================
-  // UI helpers
-  // ======================
-  const formatCardDate = (ts) => {
-    if (!ts) return '--';
-    const date = new Date(ts);
-    const day = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: '2-digit' });
-    let month = date.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', month: 'short' }).replace('.', '');
-    month = month.charAt(0).toUpperCase() + month.slice(1);
-    const time = date.toLocaleString('es-ES', {
-      timeZone: 'Europe/Madrid',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-    return `${day} ${month} - ${time}`;
-  };
-
   const calculateDistanceText = (alert) => {
     if (!alert?.latitude || !alert?.longitude) return null;
     if (!userLocation) {
@@ -710,59 +689,17 @@ export default function Chats() {
     return `${Math.min(meters, 999)}m`;
   };
 
-  // Botón IR (buyer) -> abre navegación a la ubicación del alert
   const openDirectionsToAlert = (alert) => {
     const coords = hasLatLon(alert) ? pickCoords(alert) : null;
     if (!coords) return;
     const { lat, lon } = coords;
-
-    // Google Maps universal (en iPhone abre app si está)
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
     window.location.href = url;
   };
 
-  // ======================
-  // ETA REAL (batch + cache) -> SIN hooks en map
-  // ======================
-  const visibleEtaRequests = useMemo(() => {
-    const items = [];
-    const max = 20; // límite para no reventar OSRM
-    for (const conv of filteredConversations.slice(0, max)) {
-      const alert = alertsMap.get(conv.alert_id);
-      if (!alert) continue;
-
-      const isBuyer = alert?.reserved_by_id === user?.id;
-      const isSeller = alert?.reserved_by_id && !isBuyer;
-
-      // buyer: tú -> ubicación del alert
-      const buyerFrom = userLocation;
-      const buyerTo = hasLatLon(alert) ? pickCoords(alert) : null;
-
-      // seller: otro -> ubicación del alert (tu plaza)
-      const sellerFrom = hasLatLon(alert, 'reserved_by_latitude', 'reserved_by_longitude')
-        ? pickCoords(alert, 'reserved_by_latitude', 'reserved_by_longitude')
-        : null;
-      const sellerTo = hasLatLon(alert) ? pickCoords(alert) : null;
-
-      if (isBuyer && buyerFrom && buyerTo) {
-        items.push({ alertId: alert.id, from: buyerFrom, to: buyerTo });
-      } else if (isSeller && sellerFrom && sellerTo) {
-        items.push({ alertId: alert.id, from: sellerFrom, to: sellerTo });
-      }
-    }
-    return items;
-  }, [filteredConversations, alertsMap, user?.id, userLocation]);
-
-  useEffect(() => {
-    // ⚡ Rendimiento: NO precargamos ETA por OSRM en la lista de chats.
-    // Esto evita esperas, pantallas en blanco y bloqueos en móvil/preview.
-    // La navegación/ETA se calcula solo cuando el usuario entra en "IR" (pantalla Navigate).
-    return () => {};
-  }, []);
-const getRemainingMsForAlert = (alert, isBuyer) => {
+  const getRemainingMsForAlert = (alert, isBuyer) => {
     const entry = etaMap?.[alert?.id];
 
-    // Caso ETA real
     if (entry && Number.isFinite(entry.etaSeconds)) {
       const elapsed = nowTs - entry.fetchedAt;
       const base = entry.etaSeconds * 1000;
@@ -775,18 +712,15 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
       return remaining;
     }
 
-    // Caso target_time legacy
     const targetMs = getTargetTimeMs(alert);
     if (targetMs && targetMs > nowTs) {
       hasEverHadTimeRef.current.set(alert.id, true);
       return targetMs - nowTs;
     }
 
-    // ❌ si nunca tuvo tiempo → NO expira
     return null;
   };
 
-  // Detectar expiraciones FUERA del render
   useEffect(() => {
     const max = 25;
     for (const conv of filteredConversations.slice(0, max)) {
@@ -801,9 +735,6 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
     }
   }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
 
-  // ======================
-  // Render
-  // ======================
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
@@ -839,11 +770,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
             const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
             const hasUnread = (unreadCount || 0) > 0;
 
-            const cardDate = formatCardDate(conv.last_message_at || conv.created_date);
-
-            // buyer = tú reservaste (tú viajas hacia la ubicación del alert)
             const isBuyer = alert?.reserved_by_id === user?.id;
-            // seller = te reservaron (el otro viaja hacia tu ubicación)
             const isSeller = alert?.reserved_by_id && !isBuyer;
 
             const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
@@ -874,6 +801,13 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
             const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
             const statusBoxText = isFinal ? finalLabel : countdownText;
 
+            const navigateToChat = () => {
+              const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName || '');
+              const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto || '');
+              const demo = demoMode ? 'demo=true&' : '';
+              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
+            };
+
             return (
               <motion.div
                 key={conv.id}
@@ -889,7 +823,6 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                   }`}
                 >
                   <div className="flex flex-col h-full">
-                    {/* Header */}
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
@@ -904,13 +837,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
-                      <div
-                        className={`flex-1 text-center text-xs ${
-                          hasUnread ? 'text-gray-300' : 'text-gray-400'
-                        } truncate`}
-                      >
-                        {cardDate}
-                      </div>
+                      <div className="flex-1"></div>
                       <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
@@ -918,9 +845,17 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                       <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
                         <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price || 0)}€</span>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Cerrar conversación:', conv.id);
+                        }}
+                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5 text-red-400" />
+                      </button>
                     </div>
 
-                    {/* Tarjeta usuario */}
                     <div className="border-t border-gray-700/80 mb-1.5 pt-2">
                       <MarcoCard
                         photoUrl={isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto}
@@ -944,34 +879,25 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
                           )
                         }
-                        onChat={() => {
-                          const isP1 = conv.participant1_id === user?.id;
-                          const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
-                          const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                          const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
-                          const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                          const demo = demoMode ? 'demo=true&' : '';
-                          navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
-                        }}
-                        // MISMO FORMATO VISUAL de contador (texto "MM:SS")
+                        onChat={navigateToChat}
                         statusText={statusBoxText}
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
+                        role={isSeller ? 'seller' : 'buyer'}
                       />
 
-                      {/* BOTÓN IR (solo en "Reservaste a:") */}
-                      {isBuyer && hasLatLon(alert) && (
+                      {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={!isIrEnabledForChat(conv)}
-                            className={`w-full ${
-                              isIrEnabledForChat(conv) ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600/30 text-white/50'
+                            disabled={isSeller || isFinal}
+                            className={`w-full border-2 ${
+                              !isSeller && !isFinal ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (!isIrEnabledForChat(conv)) return;
+                              if (isSeller || isFinal) return;
                               openDirectionsToAlert(alert);
                             }}
                           >
@@ -984,18 +910,9 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                       )}
                     </div>
 
-                    {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => {
-                        const isP1 = conv.participant1_id === user?.id;
-                        const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
-                        const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-                        const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
-                        const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
-                        const demo = demoMode ? 'demo=true&' : '';
-                        navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
-                      }}
+                      onClick={navigateToChat}
                     >
                       <div className="flex justify-between items-center">
                         <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
@@ -1021,7 +938,6 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
 
       <BottomNav />
 
-      {/* Dialog de prórroga */}
       <Dialog
         open={showProrrogaDialog}
         onOpenChange={(open) => {
@@ -1029,7 +945,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
           if (!open) {
             setSelectedProrroga(null);
             setCurrentExpiredAlert(null);
-            expiredHandledRef.current.clear(); // 🔓 RESET
+            expiredHandledRef.current.clear();
           }
         }}
       >

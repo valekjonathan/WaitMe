@@ -11,38 +11,82 @@ let started = false;
 const listeners = new Set();
 
 const demoState = {
+  users: {
+    marco: {
+      id: 'marco',
+      name: 'Marco',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
+    },
+    sofia: {
+      id: 'sofia',
+      name: 'Sofía',
+      photo: 'https://randomuser.me/api/portraits/women/68.jpg'
+    },
+    laura: {
+      id: 'laura',
+      name: 'Laura',
+      photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop'
+    },
+    carlos: {
+      id: 'carlos',
+      name: 'Carlos',
+      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop'
+    }
+  },
   conversations: [
-    // "Te reservo:" -> seller (IR apagado para ti)
     {
-      id: 'conv_marco',
-      otherUser: {
-        id: 'marco',
-        name: 'Marco',
-        photo: 'https://randomuser.me/api/portraits/men/32.jpg'
-      },
+      id: 'mock_te_reservo_1',
+      otherUserId: 'marco',
+      other_name: 'Marco',
+      other_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
       role: 'seller',
       irEnabled: false
     },
-    // "Reservaste a:" -> buyer (IR encendido para ti)
     {
-      id: 'conv_sofia',
-      otherUser: {
-        id: 'sofia',
-        name: 'Sofía',
-        photo: 'https://randomuser.me/api/portraits/women/44.jpg'
-      },
+      id: 'mock_reservaste_1',
+      otherUserId: 'sofia',
+      other_name: 'Sofía',
+      other_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
       role: 'buyer',
       irEnabled: true
+    },
+    {
+      id: 'mock_reservaste_2',
+      otherUserId: 'laura',
+      other_name: 'Laura',
+      other_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      role: 'buyer',
+      irEnabled: true
+    },
+    {
+      id: 'mock_te_reservo_2',
+      otherUserId: 'carlos',
+      other_name: 'Carlos',
+      other_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+      role: 'seller',
+      irEnabled: false
     }
   ],
   messages: {
-    conv_marco: [
-      { id: 'm1', from: 'Marco', text: '¿Sigues ahí?', createdAt: Date.now() - 120000 },
-      { id: 'm2', from: 'Tú', text: 'Sí, dime.', createdAt: Date.now() - 90000 }
+    mock_te_reservo_1: [
+      { id: 'm1', mine: false, senderName: 'Marco', senderPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop', text: '¿Sigues ahí?', ts: Date.now() - 120000 },
+      { id: 'm2', mine: true, senderName: 'Tú', text: 'Sí, estoy aquí esperando.', ts: Date.now() - 90000 },
+      { id: 'm3', mine: false, senderName: 'Marco', senderPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop', text: 'Perfecto, voy llegando en 5 min', ts: Date.now() - 60000 }
     ],
-    conv_sofia: [
-      { id: 'm3', from: 'Sofía', text: 'Voy para allá.', createdAt: Date.now() - 60000 },
-      { id: 'm4', from: 'Tú', text: 'Perfecto, avísame al llegar.', createdAt: Date.now() - 30000 }
+    mock_reservaste_1: [
+      { id: 'm4', mine: false, senderName: 'Sofía', senderPhoto: 'https://randomuser.me/api/portraits/women/68.jpg', text: 'Hola! Ya estoy saliendo del parking', ts: Date.now() - 150000 },
+      { id: 'm5', mine: true, senderName: 'Tú', text: 'Genial! Voy para allá', ts: Date.now() - 120000 },
+      { id: 'm6', mine: false, senderName: 'Sofía', senderPhoto: 'https://randomuser.me/api/portraits/women/68.jpg', text: 'Te espero aquí 😊', ts: Date.now() - 60000 },
+      { id: 'm7', mine: true, senderName: 'Tú', text: 'Perfecto, voy llegando', ts: Date.now() - 30000 }
+    ],
+    mock_reservaste_2: [
+      { id: 'm8', mine: false, senderName: 'Laura', senderPhoto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop', text: 'Estoy en el coche blanco', ts: Date.now() - 600000 },
+      { id: 'm9', mine: true, senderName: 'Tú', text: 'Vale, te veo!', ts: Date.now() - 580000 },
+      { id: 'm10', mine: false, senderName: 'Laura', senderPhoto: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop', text: 'Genial, aguanto un poco más', ts: Date.now() - 550000 }
+    ],
+    mock_te_reservo_2: [
+      { id: 'm11', mine: false, senderName: 'Carlos', senderPhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop', text: 'Hola, estoy cerca', ts: Date.now() - 900000 },
+      { id: 'm12', mine: true, senderName: 'Tú', text: 'Ok, estoy en el Seat azul', ts: Date.now() - 880000 }
     ]
   },
   notifications: [
@@ -118,26 +162,29 @@ export function markDemoRead(notificationId) {
  * La pantalla Chat llama a esto al enviar un mensaje.
  * Debe añadirlo al hilo y refrescar la UI.
  */
-export function sendDemoMessage(conversationId, text, attachments = []) {
+export function sendDemoMessage(conversationId, text, attachments = [], isMine = true) {
   const clean = String(text || '').trim();
   if (!conversationId || !clean) return;
 
+  const conv = demoState.conversations.find((c) => c.id === conversationId);
+
   const msg = {
     id: genId('msg'),
-    from: 'Tú',
+    mine: isMine,
+    senderName: isMine ? 'Tú' : (conv?.other_name || 'Usuario'),
+    senderPhoto: isMine ? null : (conv?.other_photo || null),
     text: clean,
     attachments,
-    createdAt: Date.now()
+    ts: Date.now()
   };
 
   if (!demoState.messages[conversationId]) demoState.messages[conversationId] = [];
   demoState.messages[conversationId].push(msg);
 
   // Para que Chats tenga "last_message_text" visible en tarjetas (si tu UI lo usa)
-  const conv = demoState.conversations.find((c) => c.id === conversationId);
   if (conv) {
     conv.last_message_text = clean;
-    conv.last_message_at = msg.createdAt;
+    conv.last_message_at = msg.ts;
   }
 
   emit();
