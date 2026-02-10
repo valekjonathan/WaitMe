@@ -254,11 +254,11 @@ export function createDemoNotification(data) {
       available_in_minutes: 10,
       allow_phone_calls: true,
       phone: '+34612345678',
-      address: 'Calle Uría, Oviedo'
+      address: 'Calle Uría'
     }
   };
 
-  state.actionableNotifications.push(notification);
+  state.actionableNotifications.unshift(notification);
   
   // Crear/actualizar conversación
   const existingConv = state.conversations.find(c => c.otherUserId === notification.sender_id);

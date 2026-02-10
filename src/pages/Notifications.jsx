@@ -334,7 +334,9 @@ export default function Notifications() {
                                 className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+                                  const name = encodeURIComponent(notif.sender_name || 'Usuario');
+                                  const photo = encodeURIComponent(notif.sender_photo || '');
+                                  navigate(createPageUrl(`Chat?demo=true&conversationId=conv_${notif.sender_id}&otherName=${name}&otherPhoto=${photo}`));
                                 }}
                               >
                                 <MessageCircle className="w-4 h-4" />
@@ -384,7 +386,9 @@ export default function Notifications() {
                                   className="bg-green-600 hover:bg-green-700 text-white h-7 w-11 rounded-lg flex items-center justify-center p-0"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(createPageUrl(`Chat?alertId=${notif.alert_id}&userId=${notif.sender_id}`));
+                                    const name = encodeURIComponent(notif.sender_name || 'Usuario');
+                                    const photo = encodeURIComponent(notif.sender_photo || '');
+                                    navigate(createPageUrl(`Chat?demo=true&conversationId=conv_${notif.sender_id}&otherName=${name}&otherPhoto=${photo}`));
                                   }}
                                 >
                                   <MessageCircle className="w-4 h-4" />

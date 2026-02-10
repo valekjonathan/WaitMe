@@ -945,8 +945,11 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           )
                         }
                         onChat={() => {
-                          const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
-                          const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                          const isP1 = conv.participant1_id === user?.id;
+                          const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
+                          const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
+                          const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
+                          const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
                           const demo = demoMode ? 'demo=true&' : '';
                           navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                         }}
@@ -985,8 +988,11 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => {
-                        const name = encodeURIComponent(conv.other_name || conv.otherUserName || '');
-                        const photo = encodeURIComponent(conv.other_photo || conv.otherUserPhoto || '');
+                        const isP1 = conv.participant1_id === user?.id;
+                        const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
+                        const otherPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
+                        const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherName || '');
+                        const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherPhoto || '');
                         const demo = demoMode ? 'demo=true&' : '';
                         navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
                       }}
