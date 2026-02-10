@@ -1,87 +1,70 @@
-import './App.css'
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
-import VisualEditAgent from '@/lib/VisualEditAgent'
-import AppFlowEngine from '@/lib/appFlowEngine'
-import NavigationTracker from '@/lib/NavigationTracker'
-import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+// src/App.jsx
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/lib/AuthContext';
+import { getDemoMode } from '@/lib/demoMode';
 
-const { Pages, Layout, mainPage } = pagesConfig;
-const mainPageKey = mainPage ?? Object.keys(Pages)[0];
-const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+// Pages
+import Home from '@/pages/Home';
+import Chats from '@/pages/Chats';
+import History from '@/pages/History';
+import Profile from '@/pages/Profile';
+import Settings from '@/pages/Settings';
+import Login from '@/pages/Login';
 
-const LayoutWrapper = ({ children, currentPageName }) =>
-  Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
+export default function App() {
+  const { user, loading } = useAuth();
+  const isDemo = getDemoMode();
 
-const AuthenticatedApp = () => {
-  const {
-    isLoadingAuth,
-    isLoadingPublicSettings,
-    authError,
-    navigateToLogin
-  } = useAuth();
-
-  // 🔥 CAMBIO CLAVE
-  // Antes bloqueaba toda la app con pantalla negra.
-  // Ahora simplemente deja renderizar mientras carga.
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    }
-
-    if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
-    }
+  // ⚠️ NUNCA BLOQUEAR EL RENDER
+  // En preview/editor siempre renderizamos algo
+  if (loading && !isDemo) {
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center text-white">
+        Cargando…
+      </div>
+    );
   }
 
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <LayoutWrapper currentPageName={mainPageKey}>
-            <MainPage />
-          </LayoutWrapper>
-        }
-      />
+  const isLogged = isDemo || !!user;
 
-      {Object.entries(Pages).map(([path, Page]) => (
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Público */}
         <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
+          path="/login"
+          element={isLogged ? <Navigate to="/" replace /> : <Login />}
         />
-      ))}
 
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
-  );
-};
+        {/* Privado */}
+        <Route
+          path="/"
+          element={isLogged ? <Home /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/chats"
+          element={isLogged ? <Chats /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/history"
+          element={isLogged ? <History /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile"
+          element={isLogged ? <Profile /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/settings"
+          element={isLogged ? <Settings /> : <Navigate to="/login" replace />}
+        />
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClientInstance}>
-      <AuthProvider>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-        <AppFlowEngine />
-        <VisualEditAgent />
-      </AuthProvider>
-    </QueryClientProvider>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      <Toaster />
+    </BrowserRouter>
   );
 }
-
-export default App;
