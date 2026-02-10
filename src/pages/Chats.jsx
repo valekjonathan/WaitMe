@@ -978,8 +978,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                       {/* BOTÓN IR (SIEMPRE visible; encendido/apagado según tu lógica) */}
 	                      {(() => {
 	                        const hasCoords = hasLatLon(alert);
-	                        const enabled = hasCoords && isIrEnabledForChat(currentStatus, isBuyer);
-
+	                        const enabled = hasCoords && isIrEnabledForChat(alert.status, isBuyer);
 	                        return (
 	                          <div className="mt-2">
 	                            <Button
@@ -1001,7 +1000,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
 	                          </div>
 	                        );
 	                      })()}
-
+</div>
                     {/* Últimos mensajes */}
                     <div
                       className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"

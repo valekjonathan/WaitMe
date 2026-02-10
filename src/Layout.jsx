@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import DemoFlowManager, { demoFlow } from '@/components/DemoFlowManager';
+import DemoFlowManager from '@/components/DemoFlowManager';
 
 // NO metas AuthProvider aquí.
 // El provider debe vivir una sola vez (normalmente en src/App.jsx).
@@ -10,9 +10,9 @@ export default function Layout({ children }) {
       const title = e?.detail?.title;
       const description = e?.detail?.description;
       const notificationData = e?.detail?.notificationData;
-      
+
       if (!title && !description) return;
-      
+
       toast({
         title: title || 'Notificación',
         description: description || '',
@@ -26,16 +26,16 @@ export default function Layout({ children }) {
     };
 
     window.addEventListener('waitme:demoToast', onDemoToast);
-    
+
     return () => {
       window.removeEventListener('waitme:demoToast', onDemoToast);
     };
   }, []);
 
   return (
-    <>
+    <div className="waitme-viewport">
       <DemoFlowManager />
-      {children}
-    </>
+      <div className="waitme-shell">{children}</div>
+    </div>
   );
 }

@@ -156,3 +156,46 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* =========================
+   Preview = iPhone (misma maqueta)
+   - Altura real en iOS (Safari) usando --app-height (JS)
+   - Safe-area real en iPhone, y fallback en Preview para que coincida
+   - En desktop grande se centra como "teléfono" sin cambiar la app móvil
+========================= */
+
+html, body, #root { height: 100%; }
+#root { width: 100%; }
+
+/* Contenedor general */
+.waitme-viewport {
+  min-height: var(--app-height, 100dvh);
+  width: 100%;
+}
+
+/* En móvil: ocupa todo el ancho (igual que iPhone) */
+.waitme-shell {
+  width: 100%;
+  min-height: var(--app-height, 100dvh);
+  padding-top: max(env(safe-area-inset-top), var(--safe-top, 0px));
+  padding-bottom: max(env(safe-area-inset-bottom), var(--safe-bottom, 0px));
+}
+
+/* En desktop: lo centramos a ancho iPhone para que el preview sea 1:1 */
+@media (min-width: 501px) {
+  .waitme-shell {
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Utilidades: sustituye h-screen/min-h-screen por altura real */
+.h-screen { height: var(--app-height, 100vh); }
+.min-h-screen { min-height: var(--app-height, 100vh); }
+
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+body { overflow-x: hidden; }
