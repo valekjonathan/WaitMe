@@ -806,7 +806,7 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
   // ======================
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
+      <Header title="Chats" showBackButton={false} unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
         <div className="px-4 pt-3 pb-2">

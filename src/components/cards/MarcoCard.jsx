@@ -184,12 +184,10 @@ export default function MarcoCard({
           <Button
             size="icon"
             className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-            onClick={() => {
-              if (conversationId) {
-                setShowChat(true);
-              } else {
-                onChat?.();
-              }
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onChat?.();
             }}
           >
             <MessageCircle className="w-4 h-4" />
