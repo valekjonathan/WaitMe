@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 // Pages (las que SÍ existen)
 import Home from '@/pages/Home';
 import Chats from '@/pages/Chats';
+import Chat from '@/pages/Chat';
 import History from '@/pages/History';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
@@ -16,6 +17,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/chats" element={<Chats />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
