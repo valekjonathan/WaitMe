@@ -924,9 +924,9 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                           // TODO: Cerrar/eliminar conversación
                           console.log('Cerrar conversación:', conv.id);
                         }}
-                        className="w-7 h-7 rounded-full bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
                       >
-                        <X className="w-4 h-4 text-red-400" />
+                        <X className="w-3.5 h-3.5 text-red-400" />
                       </button>
                     </div>
 
