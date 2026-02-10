@@ -162,26 +162,29 @@ export function markDemoRead(notificationId) {
  * La pantalla Chat llama a esto al enviar un mensaje.
  * Debe añadirlo al hilo y refrescar la UI.
  */
-export function sendDemoMessage(conversationId, text, attachments = []) {
+export function sendDemoMessage(conversationId, text, attachments = [], isMine = true) {
   const clean = String(text || '').trim();
   if (!conversationId || !clean) return;
 
+  const conv = demoState.conversations.find((c) => c.id === conversationId);
+
   const msg = {
     id: genId('msg'),
-    from: 'Tú',
+    mine: isMine,
+    senderName: isMine ? 'Tú' : (conv?.other_name || 'Usuario'),
+    senderPhoto: isMine ? null : (conv?.other_photo || null),
     text: clean,
     attachments,
-    createdAt: Date.now()
+    ts: Date.now()
   };
 
   if (!demoState.messages[conversationId]) demoState.messages[conversationId] = [];
   demoState.messages[conversationId].push(msg);
 
   // Para que Chats tenga "last_message_text" visible en tarjetas (si tu UI lo usa)
-  const conv = demoState.conversations.find((c) => c.id === conversationId);
   if (conv) {
     conv.last_message_text = clean;
-    conv.last_message_at = msg.createdAt;
+    conv.last_message_at = msg.ts;
   }
 
   emit();
