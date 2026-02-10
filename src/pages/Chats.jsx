@@ -975,32 +975,10 @@ const getRemainingMsForAlert = (alert, isBuyer) => {
                         phoneEnabled={alert.allow_phone_calls}
                         onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
                         dimmed={!hasUnread}
+                      showIr={true}
+                        irEnabled={hasLatLon(alert) && isIrEnabledForChat(currentStatus, isBuyer)}
+                        onIr={() => openDirectionsToAlert(alert)}
                       />
-
-                      {/* BOTÓN IR (SIEMPRE visible; encendido/apagado según tu lógica) */}
-                      {(() => {
-                        const hasCoords = hasLatLon(alert);
-                        const enabled = hasCoords && isIrEnabledForChat(currentStatus, isBuyer);
-
-                        return (
-                          <div className="mt-2">
-                            <Button
-                              disabled={!enabled}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!enabled) return;
-                                openDirectionsToAlert(alert);
-                              }}
-                              className={`w-full h-10 rounded-lg flex items-center justify-center gap-2 ${
-                                enabled
-                                  ? 'bg-gray-800/70 hover:bg-gray-800 text-white'
-                                  : 'bg-gray-800/30 text-white/40'
-                              }`}
-                            >
-                              <Navigation className="w-4 h-4" />
-                              <span className="font-semibold tracking-wide">IR</span>
-                            </Button>
-                          </div>
                         );
                       })()}
 

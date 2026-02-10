@@ -219,7 +219,23 @@ export default function MarcoCard({
             </Button>
           )}
 
-          <div className="flex-1">
+        {showIr && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!irEnabled) return;
+              onIr?.();
+            }}
+            disabled={!irEnabled}
+            className={`bg-white/10 border border-white/10 rounded-xl h-9 w-9 ${!irEnabled ? 'opacity-40' : ''}`}
+          >
+            <Navigation className="h-4 w-4 text-purple-400" />
+          </Button>
+        )}
+
+        <div className="flex-1">
             <div
               className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}
             >
