@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const ToastProvider = React.forwardRef(({ ...props }, ref) => (
   <div
     ref={ref}
-    className="fixed top-16 z-[100] flex max-h-[calc(100vh-4rem)] w-full flex-col gap-2 p-4 pointer-events-none md:right-0 md:max-w-[420px]"
+    className="fixed top-16 z-[100] flex max-h-[calc(100vh-4rem)] w-full flex-col gap-2 p-4 pointer-events-auto md:right-0 md:max-w-[420px]"
     {...props}
   />
 ));

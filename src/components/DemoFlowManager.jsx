@@ -2,12 +2,17 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /**
- * ESTADO DEMO CENTRAL
- * Base44 está importando varias funciones por nombre desde este módulo.
- * Para que NO vuelva a romper el preview, exportamos todas las que Base44 está pidiendo.
+ * Base44 importa funciones por nombre desde este módulo.
+ * Si falta UNA, el preview se rompe.
+ * Aquí exportamos TODO lo que está pidiendo tu proyecto actual.
  */
+
+let started = false;
+const listeners = new Set();
+
 const demoState = {
   conversations: [
+    // "Te reservo:" -> seller (IR apagado para ti)
     {
       id: 'conv_marco',
       otherUser: {
@@ -15,9 +20,10 @@ const demoState = {
         name: 'Marco',
         photo: 'https://randomuser.me/api/portraits/men/32.jpg'
       },
-      role: 'seller', // "te reservo" => IR apagado para ti
+      role: 'seller',
       irEnabled: false
     },
+    // "Reservaste a:" -> buyer (IR encendido para ti)
     {
       id: 'conv_sofia',
       otherUser: {
@@ -25,18 +31,18 @@ const demoState = {
         name: 'Sofía',
         photo: 'https://randomuser.me/api/portraits/women/44.jpg'
       },
-      role: 'buyer', // "reservaste a" => IR encendido para ti
+      role: 'buyer',
       irEnabled: true
     }
   ],
   messages: {
     conv_marco: [
-      { id: 'm1', from: 'Marco', text: '¿Sigues ahí?' },
-      { id: 'm2', from: 'Tú', text: 'Sí, dime.' }
+      { id: 'm1', from: 'Marco', text: '¿Sigues ahí?', createdAt: Date.now() - 120000 },
+      { id: 'm2', from: 'Tú', text: 'Sí, dime.', createdAt: Date.now() - 90000 }
     ],
     conv_sofia: [
-      { id: 'm3', from: 'Sofía', text: 'Voy para allá.' },
-      { id: 'm4', from: 'Tú', text: 'Perfecto, avísame al llegar.' }
+      { id: 'm3', from: 'Sofía', text: 'Voy para allá.', createdAt: Date.now() - 60000 },
+      { id: 'm4', from: 'Tú', text: 'Perfecto, avísame al llegar.', createdAt: Date.now() - 30000 }
     ]
   },
   notifications: [
@@ -45,31 +51,45 @@ const demoState = {
       type: 'reservation_request',
       user: 'Marco',
       conversationId: 'conv_marco',
-      read: false
+      read: false,
+      createdAt: Date.now() - 180000
     },
     {
       id: 'n2',
       type: 'payment_completed',
       user: 'Sofía',
       conversationId: 'conv_sofia',
-      read: false
+      read: false,
+      createdAt: Date.now() - 150000
     }
   ]
 };
 
-// ====== HELPERS INTERNOS ======
-function removeNotification(id) {
-  demoState.notifications = demoState.notifications.filter(n => n.id !== id);
+function emit() {
+  listeners.forEach((fn) => {
+    try { fn(); } catch {}
+  });
 }
 
-function markRead(id) {
-  const n = demoState.notifications.find(x => x.id === id);
-  if (n) n.read = true;
+function genId(prefix) {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-// ====== EXPORTS QUE BASE44 PUEDE PEDIR (blindado) ======
+// ====== EXPORTS QUE BASE44/tu app ESTÁ PIDIENDO ======
 export function demoFlow() {
   return demoState;
+}
+
+export function startDemoFlow() {
+  if (started) return;
+  started = true;
+  // Estado demo ya precargado. Emit inicial por si alguien se suscribe después.
+  emit();
+}
+
+export function subscribeDemoFlow(cb) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
 }
 
 export function getDemoState() {
@@ -77,7 +97,7 @@ export function getDemoState() {
 }
 
 export function getDemoConversation(conversationId) {
-  return demoState.conversations.find(c => c.id === conversationId) || null;
+  return demoState.conversations.find((c) => c.id === conversationId) || null;
 }
 
 export function getDemoMessages(conversationId) {
@@ -88,42 +108,69 @@ export function getDemoNotifications() {
   return demoState.notifications;
 }
 
-// NUEVO: Base44 lo está pidiendo
 export function markDemoRead(notificationId) {
-  // Marcar como leído (y opcionalmente quitarlo si quieres “vaciar”)
-  markRead(notificationId);
+  const n = demoState.notifications.find((x) => x.id === notificationId);
+  if (n) n.read = true;
+  emit();
 }
 
-// Extras defensivos (por si Base44 pide más, no rompen nada)
+/**
+ * La pantalla Chat llama a esto al enviar un mensaje.
+ * Debe añadirlo al hilo y refrescar la UI.
+ */
+export function sendDemoMessage(conversationId, text, attachments = []) {
+  const clean = String(text || '').trim();
+  if (!conversationId || !clean) return;
+
+  const msg = {
+    id: genId('msg'),
+    from: 'Tú',
+    text: clean,
+    attachments,
+    createdAt: Date.now()
+  };
+
+  if (!demoState.messages[conversationId]) demoState.messages[conversationId] = [];
+  demoState.messages[conversationId].push(msg);
+
+  // Para que Chats tenga "last_message_text" visible en tarjetas (si tu UI lo usa)
+  const conv = demoState.conversations.find((c) => c.id === conversationId);
+  if (conv) {
+    conv.last_message_text = clean;
+    conv.last_message_at = msg.createdAt;
+  }
+
+  emit();
+}
+
+// ====== Extras defensivos (no rompen nada si Base44 los llama) ======
 export function markAllDemoRead() {
-  demoState.notifications.forEach(n => (n.read = true));
+  demoState.notifications.forEach((n) => (n.read = true));
+  emit();
 }
-
 export function clearDemoNotifications() {
   demoState.notifications = [];
+  emit();
 }
-
 export function addDemoNotification(notification) {
   if (!notification?.id) return;
   demoState.notifications = [notification, ...demoState.notifications];
+  emit();
 }
-
 export function removeDemoNotification(notificationId) {
-  removeNotification(notificationId);
+  demoState.notifications = demoState.notifications.filter((n) => n.id !== notificationId);
+  emit();
 }
-
-export function isDemoMode() {
-  return true;
-}
-
-export function setDemoMode() {
-  // demo siempre ON (no-op)
-  return true;
-}
+export function isDemoMode() { return true; }
+export function setDemoMode() { return true; }
 
 // ====== COMPONENTE ======
 export default function DemoFlowManager() {
   useEffect(() => {
+    // Asegura demo vivo
+    startDemoFlow();
+
+    // Toast demo (cerrable). La X ya funciona por el fix de pointer-events.
     toast({
       title: 'Pago completado',
       description: 'Has ganado 2.01€'

@@ -1,4 +1,4 @@
-import { getDemoState } from '@/components/DemoFlowManager';
+import { getDemoState, getDemoNotifications } from '@/components/DemoFlowManager';
 
 export default function Notifications() {
   const { notifications } = getDemoState();
