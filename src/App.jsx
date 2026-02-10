@@ -1,5 +1,5 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 
 export default function App() {
   return (
@@ -13,12 +13,13 @@ export default function App() {
             color: 'white',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            fontSize: 24
           }}>
             HOME OK
           </div>
         }
       />
     </Routes>
-  )
+  );
 }
