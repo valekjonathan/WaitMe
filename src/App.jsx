@@ -16,21 +16,25 @@ const mainPageKey = mainPage ?? Object.keys(Pages)[0]
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>
 
 const LayoutWrapper = ({ children, currentPageName }) =>
-  Layout
-    ? <Layout currentPageName={currentPageName}>{children}</Layout>
-    : <>{children}</>
+  Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>
+
+// ✅ Solo activar herramientas del editor cuando estamos dentro del iframe del editor
+const isBrowser = typeof window !== 'undefined'
+const isInEditorIframe = (() => {
+  if (!isBrowser) return false
+  try {
+    return window.self !== window.top
+  } catch {
+    // Si Safari bloquea el acceso a window.top en algún contexto raro, asumimos NO editor
+    return false
+  }
+})()
 
 const AuthenticatedApp = () => {
-  const {
-    authError,
-    navigateToLogin
-  } = useAuth()
+  const { authError, navigateToLogin } = useAuth()
 
   if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />
-    }
-
+    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />
     if (authError.type === 'auth_required') {
       navigateToLogin()
       return null
@@ -69,11 +73,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        <NavigationTracker />
+        {/* ✅ Esto sí debe ejecutarse siempre */}
         <AuthenticatedApp />
         <Toaster />
-        <AppFlowEngine />
-        <VisualEditAgent />
+
+        {/* ✅ Esto SOLO en el editor (iframe). En iPhone live lo quitamos para evitar pantalla blanca */}
+        {isInEditorIframe && (
+          <>
+            <NavigationTracker />
+            <AppFlowEngine />
+            <VisualEditAgent />
+          </>
+        )}
       </AuthProvider>
     </QueryClientProvider>
   )
