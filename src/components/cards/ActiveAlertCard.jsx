@@ -1,7 +1,7 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Clock, X } from 'lucide-react';
+import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -52,13 +52,26 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
                 <span className="truncate">{alert.address || 'Sin ubicación'}</span>
               </div>
             </div>
-            <Button
-              size="icon"
-              onClick={() => handleCancel(alert.id)}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-8 w-8"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="icon"
+                onClick={() => {
+                  if (alert.latitude && alert.longitude) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-8"
+              >
+                <Navigation className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => handleCancel(alert.id)}
+                className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-8 w-8"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       ))}
