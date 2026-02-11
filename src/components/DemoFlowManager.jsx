@@ -47,7 +47,7 @@ function statusToTitle(status) {
    ESTADO DEMO (estructura estable)
 ====================================================== */
 
-const demoFlow = {
+export const demoFlow = {
   me: {
     id: 'me',
     name: 'Tú',
@@ -446,6 +446,104 @@ export function getDemoAlerts() {
 export function getDemoAlertById(alertId) {
   return (demoFlow.alerts || []).find((a) => a.id === alertId) || null;
 }
+
+// ======================================================
+// Helpers: crear conversación para una alerta y meter el primer mensaje "WaitMe!"
+// ======================================================
+
+export function ensureConversationForAlert(alertId, notification = null) {
+  const alert = getDemoAlertById(alertId);
+  if (!alert) return null;
+
+  // ¿Quién es "el otro" en la conversación?
+  const meId = demoFlow?.me?.id || 'me';
+
+  // Si la alerta la creó "yo" (user_id === me), el otro es quien reservó (reserved_by_*)
+  const isMineAlert = String(alert.user_id || '') === String(meId);
+
+  const otherId = isMineAlert ? (alert.reserved_by_id || 'user') : (alert.user_id || 'user');
+  const otherName = isMineAlert ? (alert.reserved_by_name || 'Usuario') : (alert.user_name || 'Usuario');
+  const otherPhoto = isMineAlert ? (alert.reserved_by_photo || null) : (alert.user_photo || null);
+
+  // Reusar conversación existente por alert_id
+  let conv = (demoFlow.conversations || []).find((c) => String(c.alert_id || '') === String(alertId));
+
+  // Si no hay por alert_id, intenta por "otro usuario" (por si venía de una versión vieja)
+  if (!conv) {
+    conv = (demoFlow.conversations || []).find(
+      (c) => String(c.otherUserId || c.other_id || '') === String(otherId) || String(c.other_name || '') === String(otherName)
+    );
+  }
+
+  if (!conv) {
+    const convId = `conv_${alertId}`;
+    conv = {
+      id: convId,
+      alert_id: alertId,
+      otherUserId: otherId,
+      other_id: otherId,
+      other_name: otherName,
+      other_photo: otherPhoto,
+      role: isMineAlert ? 'seller' : 'buyer',
+      irEnabled: !isMineAlert,
+      unread_count_p1: 0,
+      last_message_text: '',
+      last_message_at: Date.now()
+    };
+
+    demoFlow.conversations = [conv, ...(demoFlow.conversations || [])];
+
+    if (!demoFlow.messages) demoFlow.messages = {};
+    if (!demoFlow.messages[convId]) demoFlow.messages[convId] = [];
+
+    // Si venimos desde una notificación, la marcamos como enlazada a esta conversación
+    if (notification && typeof notification === 'object') {
+      notification.conversationId = convId;
+      notification.alertId = alertId;
+    }
+
+    notify();
+  }
+
+  return conv;
+}
+
+export function ensureInitialWaitMeMessage(conversationId) {
+  if (!conversationId) return;
+
+  const msgs = (demoFlow.messages && demoFlow.messages[conversationId]) ? demoFlow.messages[conversationId] : [];
+  const hasAny = Array.isArray(msgs) && msgs.length > 0;
+
+  // Si ya hay mensajes, no metemos el inicial
+  if (hasAny) return;
+
+  const conv = (demoFlow.conversations || []).find((c) => c.id === conversationId);
+  const otherName = conv?.other_name || 'Usuario';
+  const otherPhoto = conv?.other_photo || null;
+
+  const msg = {
+    id: genId('msg'),
+    mine: false,
+    senderName: otherName,
+    senderPhoto: otherPhoto,
+    text: 'Ey! te he enviado un WaitMe!',
+    attachments: null,
+    ts: Date.now(),
+    __initial_waitme: true
+  };
+
+  if (!demoFlow.messages) demoFlow.messages = {};
+  demoFlow.messages[conversationId] = [msg];
+
+  if (conv) {
+    conv.last_message_text = msg.text;
+    conv.last_message_at = msg.ts;
+    conv.unread_count_p1 = Math.min(99, (conv.unread_count_p1 || 0) + 1);
+  }
+
+  notify();
+}
+
 
 // notifications
 export function getDemoNotifications() {
