@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Bell, MessageCircle } from 'lucide-react';
+import { Bell, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
@@ -59,7 +59,6 @@ export default function BottomNav() {
   const baseBtn =
     "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg";
 
-  // Solo sombra morada, sin brillo fuerte ni blanco
   const activeGlow =
     "bg-purple-500/10 shadow-[0_6px_14px_rgba(168,85,247,0.28)]";
 
@@ -87,7 +86,6 @@ export default function BottomNav() {
                 <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
               </svg>
             </div>
-
             <span className={labelClass}>Alertas</span>
 
             {activeAlerts.length > 0 && (
@@ -110,7 +108,6 @@ export default function BottomNav() {
         <button
           type="button"
           className="flex-1"
-          // Mapa: siempre vuelve al Home (logo) forzando remount
           onClick={() => navigate(`${homeUrl}?reset=${Date.now()}`)}
         >
           <Button
@@ -124,7 +121,6 @@ export default function BottomNav() {
                 />
               </svg>
             </div>
-
             <span className={labelClass}>Mapa</span>
           </Button>
         </button>
@@ -140,7 +136,6 @@ export default function BottomNav() {
             <div className={iconWrapper}>
               <Bell className="w-9 h-9" />
             </div>
-
             <span className={labelClass}>Notificaciones</span>
 
             {unreadNotifications.length > 0 && (
@@ -162,8 +157,22 @@ export default function BottomNav() {
             <div className={iconWrapper}>
               <MessageCircle className="w-9 h-9" />
             </div>
-
             <span className={labelClass}>Chats</span>
+          </Button>
+        </Link>
+
+        {divider}
+
+        {/* PERFIL */}
+        <Link to={createPageUrl('Profile')} className="flex-1">
+          <Button
+            variant="ghost"
+            className={`${baseBtn} ${isActive('Profile') ? activeGlow : ''}`}
+          >
+            <div className={iconWrapper}>
+              <User className="w-9 h-9" />
+            </div>
+            <span className={labelClass}>Perfil</span>
           </Button>
         </Link>
 
