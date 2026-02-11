@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Bell, MessageCircle, User } from 'lucide-react';
+import { Bell, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
@@ -24,36 +24,21 @@ export default function BottomNav() {
     queryKey: ['userActiveAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false
+    enabled: !!user?.id
   });
 
   const { data: reservedAlerts = [] } = useQuery({
     queryKey: ['userReservedAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false
+    enabled: !!user?.id
   });
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () =>
       base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
-    enabled: !!user?.id,
-    staleTime: 30000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false
+    enabled: !!user?.id
   });
 
   const baseBtn =
@@ -87,18 +72,6 @@ export default function BottomNav() {
               </svg>
             </div>
             <span className={labelClass}>Alertas</span>
-
-            {activeAlerts.length > 0 && (
-              <span className="absolute top-1 left-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
-              </span>
-            )}
-
-            {reservedAlerts.length > 0 && (
-              <span className="absolute top-1 right-2 bg-purple-500/20 border-2 border-purple-500/30 text-purple-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                {reservedAlerts.length > 9 ? '9+' : reservedAlerts.length}
-              </span>
-            )}
           </Button>
         </Link>
 
@@ -137,12 +110,6 @@ export default function BottomNav() {
               <Bell className="w-9 h-9" />
             </div>
             <span className={labelClass}>Notificaciones</span>
-
-            {unreadNotifications.length > 0 && (
-              <span className="absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
-              </span>
-            )}
           </Button>
         </Link>
 
@@ -158,21 +125,6 @@ export default function BottomNav() {
               <MessageCircle className="w-9 h-9" />
             </div>
             <span className={labelClass}>Chats</span>
-          </Button>
-        </Link>
-
-        {divider}
-
-        {/* PERFIL */}
-        <Link to={createPageUrl('Profile')} className="flex-1">
-          <Button
-            variant="ghost"
-            className={`${baseBtn} ${isActive('Profile') ? activeGlow : ''}`}
-          >
-            <div className={iconWrapper}>
-              <User className="w-9 h-9" />
-            </div>
-            <span className={labelClass}>Perfil</span>
           </Button>
         </Link>
 
