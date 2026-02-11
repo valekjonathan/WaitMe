@@ -30,15 +30,25 @@ export default function BottomNav() {
     enabled: !!user?.id
   });
 
+  // Botón base SIN hover blanco / SIN sombras / SIN fondos
   const baseBtn =
-    "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg shadow-none hover:bg-transparent focus:bg-transparent active:bg-transparent hover:shadow-none";
+    "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg " +
+    "bg-transparent shadow-none ring-0 outline-none " +
+    "hover:bg-transparent hover:shadow-none hover:text-purple-400 " +
+    "focus:bg-transparent focus:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 " +
+    "active:bg-transparent active:shadow-none";
 
   const activeGlow =
     "bg-purple-500/10 shadow-[0_6px_14px_rgba(168,85,247,0.28)]";
 
+  // Misma altura para TODOS los textos (evita saltos)
   const labelClass =
-    "text-[10px] font-bold leading-none mt-[3px]";
+    "text-[10px] font-bold leading-none mt-[3px] whitespace-nowrap";
 
+  const labelClassLong =
+    "text-[9px] font-bold leading-none mt-[3px] whitespace-nowrap tracking-tight";
+
+  // Wrapper para icono (subido con el padding del nav)
   const iconWrapper =
     "h-10 flex items-center justify-center";
 
@@ -56,8 +66,8 @@ export default function BottomNav() {
           >
             <div className={iconWrapper}>
               <svg className="w-10 h-10" viewBox="0 0 32 32" fill="none">
-                <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
-                <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
+                <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor" />
+                <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor" />
               </svg>
             </div>
             <span className={labelClass}>Alertas</span>
@@ -83,7 +93,10 @@ export default function BottomNav() {
           >
             <div className={iconWrapper}>
               <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
                   d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
                 />
               </svg>
@@ -94,7 +107,7 @@ export default function BottomNav() {
 
         {divider}
 
-        {/* AVISOS */}
+        {/* NOTIFICACIONES (antes Avisos) */}
         <Link to={createPageUrl('Notifications')} className="flex-1">
           <Button
             variant="ghost"
@@ -103,7 +116,7 @@ export default function BottomNav() {
             <div className={iconWrapper}>
               <Bell className="w-10 h-10" />
             </div>
-            <span className={labelClass}>Avisos</span>
+            <span className={labelClassLong}>Notificaciones</span>
             {unreadNotifications.length > 0 && (
               <span className="absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                 {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
