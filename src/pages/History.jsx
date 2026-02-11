@@ -25,11 +25,13 @@ import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
 export default function History() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
+  const [demoTick, setDemoTick] = useState(0);
 
 useEffect(() => {
   const id = setInterval(() => {
@@ -37,6 +39,14 @@ useEffect(() => {
   }, 1000);
   return () => clearInterval(id);
 }, []);
+
+useEffect(() => {
+  if (!isDemoMode()) return;
+  startDemoFlow();
+  const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+  return () => unsub?.();
+}, []);
+
 
 const queryClient = useQueryClient();
 
@@ -522,7 +532,7 @@ const {
   data: myAlerts = [],
   isLoading: loadingAlerts
 } = useQuery({
-  queryKey: ['myAlerts', user?.id, user?.email],
+  queryKey: ['myAlerts', user?.id, user?.email, demoTick],
   enabled: !!user?.id || !!user?.email,
   staleTime: 5 * 60 * 1000,
   gcTime: 10 * 60 * 1000,
@@ -533,6 +543,11 @@ const {
   // Evita “parpadeos”/vacíos mientras refresca
   placeholderData: (prev) => prev,
   queryFn: async () => {
+    if (isDemoMode()) {
+      const list = getDemoAlerts() || [];
+      return list;
+    }
+
     // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
     // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
     const queries = [];

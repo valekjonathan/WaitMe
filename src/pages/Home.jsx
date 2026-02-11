@@ -14,6 +14,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoNotifications, reserveDemoAlert } from '@/components/DemoFlowManager';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -91,7 +92,8 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
-  const [selectedAlert, setSelectedAlert] = useState(null);
+    const [demoTick, setDemoTick] = useState(0);
+const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -132,6 +134,10 @@ export default function Home() {
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
+      if (isDemoMode()) {
+        const list = getDemoAlerts() || [];
+        return list.filter(a => (a?.status || 'active') === 'active');
+      }
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
       return list.filter(a => (a?.status || 'active') === 'active');
@@ -145,6 +151,14 @@ export default function Home() {
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
+      if (isDemoMode()) {
+        const list = getDemoAlerts() || [];
+        return list.filter(a => {
+          const isMine = a.user_id === 'me' || a.user_id === user?.id || a.user_name === 'Tú';
+          const isActive = (a?.status || 'active') === 'active';
+          return isMine && isActive;
+        });
+      }
       const alerts = await base44.entities.ParkingAlert.list();
       const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
       return list.filter(a => {
@@ -217,6 +231,14 @@ export default function Home() {
     getCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    startDemoFlow();
+    const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+    return () => unsub?.();
+  }, []);
+
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);

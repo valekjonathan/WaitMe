@@ -5,63 +5,72 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Check, X, Clock, MessageCircle } from 'lucide-react';
-
+import { Bell, CheckCircle, XCircle, MapPin, Timer, TrendingUp, AlertCircle, MessageCircle, Navigation } from 'lucide-react';
+import MarcoCard from '@/components/cards/MarcoCard';
 import {
-  isDemoMode,
   startDemoFlow,
   subscribeDemoFlow,
   getDemoNotifications,
-  markDemoNotificationRead,
-  applyDemoAction,
+  getDemoAlert,
   ensureConversationForAlert,
-  ensureInitialWaitMeMessage
+  ensureInitialWaitMeMessage,
+  markDemoNotificationRead,
+  applyDemoAction
 } from '@/components/DemoFlowManager';
+
+const iconMap = {
+  incoming_waitme: <Bell className="w-5 h-5 text-purple-400" />,
+  reservation_accepted: <CheckCircle className="w-5 h-5 text-green-400" />,
+  reservation_rejected: <XCircle className="w-5 h-5 text-red-400" />,
+  buyer_nearby: <MapPin className="w-5 h-5 text-blue-400" />,
+  prorroga_request: <Timer className="w-5 h-5 text-orange-400" />,
+  payment_completed: <TrendingUp className="w-5 h-5 text-green-400" />,
+  time_expired: <AlertCircle className="w-5 h-5 text-red-400" />,
+  cancellation: <XCircle className="w-5 h-5 text-gray-400" />,
+  status_update: <Bell className="w-5 h-5 text-purple-400" />
+};
+
+function normalize(s) {
+  return String(s || '').trim().toLowerCase();
+}
 
 export default function Notifications() {
   const navigate = useNavigate();
-
-  const demoEnabled = isDemoMode();
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!demoEnabled) return;
     startDemoFlow();
     const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
     return () => unsub?.();
-  }, [demoEnabled]);
+  }, []);
 
   const notifications = useMemo(() => {
-    if (!demoEnabled) return [];
     return getDemoNotifications() || [];
-  }, [demoEnabled, tick]);
+  }, [tick]);
 
-  const openChat = (conversationId, otherName, otherPhoto, alertId) => {
-    const name = encodeURIComponent(otherName || '');
-    const photo = encodeURIComponent(otherPhoto || '');
-    const a = alertId ? `&alertId=${encodeURIComponent(alertId)}` : '';
-    navigate(createPageUrl(`Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}${a}&otherName=${name}&otherPhoto=${photo}`));
+  const openChat = (conversationId, alertId) => {
+    if (!conversationId) return;
+    navigate(createPageUrl(`Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}&alertId=${encodeURIComponent(alertId || '')}`));
   };
 
-  const onAction = ({ notification, action }) => {
-    // 1) asegurar conversación
-    const conv = ensureConversationForAlert(notification?.alertId, notification);
+  const openNavigate = (alertId) => {
+    if (!alertId) return;
+    navigate(createPageUrl(`Navigate?alertId=${encodeURIComponent(alertId)}`));
+  };
 
-    // 2) si viene de "incoming_waitme", aseguramos mensaje inicial
+  const runAction = (n, action) => {
+    if (!n) return;
+
+    const alertId = n.alertId || null;
+    const conv = ensureConversationForAlert(alertId, { fromName: n.fromName });
     ensureInitialWaitMeMessage(conv?.id);
 
-    // 3) aplicar acción sincronizada
-    applyDemoAction({
-      conversationId: conv?.id,
-      alertId: notification?.alertId,
-      action
-    });
+    applyDemoAction({ conversationId: conv?.id, alertId, action });
 
-    // 4) marcar leída
-    if (notification?.id) markDemoNotificationRead(notification.id);
+    if (n?.id) markDemoNotificationRead(n.id);
 
-    // 5) abrir chat directo para ver el flujo
-    openChat(conv?.id, conv?.other_name, conv?.other_photo, notification?.alertId);
+    // casi siempre acabas en chat
+    openChat(conv?.id, alertId);
   };
 
   return (
@@ -69,98 +78,174 @@ export default function Notifications() {
       <Header title="Notificaciones" showBackButton={true} backTo="Home" />
 
       <main className="pt-[60px] pb-24">
-        <div className="px-4 pt-3 pb-2">
+
+        <div className="px-4 pt-3 pb-2 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-purple-400" />
-              <p className="text-sm text-gray-300">Modo demo: todo se sincroniza con Chats y Chat</p>
+              <p className="text-sm text-gray-300">
+                {notifications.filter(n => !n.read).length} sin leer
+              </p>
             </div>
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-purple-400 hover:text-purple-300"
+                onClick={() => notifications.forEach(n => n?.id && markDemoNotificationRead(n.id))}
+              >
+                Marcar todas como leídas
+              </Button>
+            )}
           </div>
         </div>
 
-        <div className="px-4 space-y-3 pt-1">
+        <div className="px-4 space-y-5 pt-4">
           {notifications.length === 0 ? (
-            <div className="text-gray-400 text-sm bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-              No hay notificaciones.
+            <div className="text-center py-12">
+              <Bell className="w-16 h-16 text-gray-700 mx-auto mb-4" />
+              <p className="text-gray-400 text-sm">No hay notificaciones</p>
             </div>
           ) : (
             notifications.map((n) => {
-              const isIncoming = n?.type === 'incoming_waitme';
+              const type = n?.type || 'status_update';
               const isUnread = !n?.read;
-              const badgeCls = isUnread
-                ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-                : 'bg-gray-700/30 text-gray-300 border-gray-600/30';
+              const alert = n?.alertId ? getDemoAlert(n.alertId) : null;
+
+              const otherName = alert?.user_name || n?.fromName || 'Usuario';
+              const otherPhoto = alert?.user_photo || null;
+
+              const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim();
+              const plate = alert?.car_plate || '';
+              const carColor = alert?.car_color || 'gris';
+              const address = alert?.address || '';
+              const phoneEnabled = !!alert?.allow_phone_calls;
+              const phone = alert?.phone || null;
+
+              const statusText = n?.title || 'ACTIVA';
+              const hasLatLon = typeof alert?.latitude === 'number' && typeof alert?.longitude === 'number';
+
+              // Botones por tipo (sin inventar UI nueva fuera de lo necesario)
+              const t = normalize(type);
 
               return (
                 <div
                   key={n.id}
-                  className={`rounded-xl border-2 p-3 bg-gradient-to-br ${
-                    isUnread ? 'from-gray-800 to-gray-900 border-purple-400/70' : 'from-gray-900/50 to-gray-900/50 border-purple-500/30'
+                  className={`rounded-xl border-2 p-4 transition-all ${
+                    isUnread
+                      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-purple-400/70 shadow-lg'
+                      : 'bg-gradient-to-br from-gray-900/50 to-gray-900/50 border-gray-700'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Badge className={badgeCls}>{n.title || 'NOTIFICACIÓN'}</Badge>
-                        {isIncoming && <span className="text-xs text-purple-300 font-bold">WAITME</span>}
-                      </div>
-                      <p className="text-sm text-gray-200 font-semibold mt-2 break-words">{n.text || '—'}</p>
-                      {n.fromName && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          De: <span className="text-gray-300 font-semibold">{n.fromName}</span>
-                        </p>
-                      )}
+                  {/* header de la notificación */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className={`p-2 rounded-full ${isUnread ? 'bg-purple-500/20' : 'bg-gray-800'}`}>
+                      {iconMap[type] || iconMap.status_update}
                     </div>
 
-                    <Button
-                      variant="outline"
-                      className="border-gray-700"
-                      onClick={() => {
-                        if (n?.id) markDemoNotificationRead(n.id);
-                        if (n?.conversationId) {
-                          openChat(n.conversationId, n.otherName, n.otherPhoto, n.alertId);
-                        }
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Chat
-                    </Button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
+                          {n?.title || 'NOTIFICACIÓN'}
+                        </Badge>
+                        {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />}
+                      </div>
+
+                      <p className="text-sm text-white font-medium break-words">
+                        {n?.text || '—'}
+                      </p>
+
+                      <p className="text-xs text-gray-400 mt-1">
+                        De: <span className="text-purple-300 font-semibold">{otherName}</span>
+                      </p>
+                    </div>
                   </div>
 
-                  {isIncoming ? (
-                    <div className="grid grid-cols-3 gap-2 mt-3">
+                  {/* tarjeta EXACTA de Chats */}
+                  <MarcoCard
+                    photoUrl={otherPhoto}
+                    name={otherName}
+                    carLabel={carLabel}
+                    plate={plate}
+                    carColor={carColor}
+                    address={address}
+                    timeLine={<span className="text-gray-400">Operación en curso</span>}
+                    onChat={() => openChat(n?.conversationId || ensureConversationForAlert(n?.alertId)?.id, n?.alertId)}
+                    statusText={statusText}
+                    phoneEnabled={phoneEnabled}
+                    onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
+                    dimmed={!isUnread}
+                    role="buyer"
+                  />
+
+                  {/* botón IR como en Chats (solo si hay coords) */}
+                  {hasLatLon && (
+                    <div className="mt-2">
                       <Button
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => onAction({ notification: n, action: 'reserved' })}
+                        className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openNavigate(n?.alertId);
+                        }}
                       >
-                        <Check className="w-4 h-4 mr-2" />
+                        <Navigation className="w-4 h-4 mr-2" />
+                        IR
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* acciones específicas por tipo */}
+                  {t === 'incoming_waitme' && (
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <Button className="w-full" onClick={() => runAction(n, 'reserved')}>
                         Aceptar
                       </Button>
-                      <Button
-                        className="bg-purple-600 hover:bg-purple-700"
-                        onClick={() => onAction({ notification: n, action: 'thinking' })}
-                      >
-                        <Clock className="w-4 h-4 mr-2" />
+                      <Button variant="outline" className="w-full border-gray-600" onClick={() => runAction(n, 'thinking')}>
                         Me lo pienso
                       </Button>
-                      <Button
-                        className="bg-red-600 hover:bg-red-700"
-                        onClick={() => onAction({ notification: n, action: 'cancelled' })}
-                      >
-                        <X className="w-4 h-4 mr-2" />
+                      <Button variant="destructive" className="w-full" onClick={() => runAction(n, 'rejected')}>
                         Rechazar
                       </Button>
                     </div>
-                  ) : (
-                    <div className="flex justify-end mt-3">
-                      <Button
-                        variant="outline"
-                        className="border-gray-700"
-                        onClick={() => {
-                          if (n?.id) markDemoNotificationRead(n.id);
-                        }}
-                      >
-                        Marcar como leída
+                  )}
+
+                  {t === 'prorroga_request' && (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <Button className="w-full" onClick={() => runAction(n, 'extended')}>
+                        Aceptar +1€
+                      </Button>
+                      <Button variant="destructive" className="w-full" onClick={() => runAction(n, 'rejected')}>
+                        Rechazar
+                      </Button>
+                    </div>
+                  )}
+
+                  {t === 'reservation_accepted' && (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <Button className="w-full" onClick={() => openChat(n?.conversationId, n?.alertId)}>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Ver chat
+                      </Button>
+                      <Button className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70" onClick={() => openNavigate(n?.alertId)}>
+                        <Navigation className="w-4 h-4 mr-2" />
+                        IR
+                      </Button>
+                    </div>
+                  )}
+
+                  {t === 'payment_completed' && (
+                    <div className="mt-3">
+                      <Button className="w-full" onClick={() => openChat(n?.conversationId, n?.alertId)}>
+                        Ver detalles en chat
+                      </Button>
+                    </div>
+                  )}
+
+                  {(t === 'reservation_rejected' || t === 'time_expired' || t === 'cancellation') && (
+                    <div className="mt-3">
+                      <Button variant="outline" className="w-full border-gray-600" onClick={() => openChat(n?.conversationId, n?.alertId)}>
+                        Ver qué pasó (chat)
                       </Button>
                     </div>
                   )}
