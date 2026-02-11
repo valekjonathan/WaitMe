@@ -12,17 +12,20 @@ export default function BottomNav() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const isActive = (page) => currentPath === createPageUrl(page);
+  // ✅ FIX REAL: tu "activo" no se veía porque a veces el path NO coincide exacto (mayúsculas/minúsculas / slash final)
+  const norm = (p) => (p || '').toLowerCase().replace(/\/+$/, '');
+  const isActive = (page) => norm(currentPath) === norm(createPageUrl(page));
+
   const homeUrl = useMemo(() => createPageUrl('Home'), []);
 
-  const { data: activeAlerts = [] } = useQuery({
+  useQuery({
     queryKey: ['userActiveAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
     enabled: !!user?.id
   });
 
-  const { data: unreadNotifications = [] } = useQuery({
+  useQuery({
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () =>
       base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
@@ -33,11 +36,11 @@ export default function BottomNav() {
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] bg-transparent shadow-none outline-none border-none " +
     "hover:bg-transparent hover:shadow-none hover:text-purple-400 " +
-    "focus:bg-transparent focus:shadow-none focus:ring-0 active:bg-transparent";
+    "focus:bg-transparent focus:shadow-none focus:ring-0 active:bg-transparent " +
+    "rounded-lg transition-colors";
 
-  // ✅ Activo = fondo morado apagado (SIN sombra, SIN texto blanco)
-  const activeStyle =
-    "bg-purple-500/20";
+  // ✅ LO QUE ME PEDISTE: botón entero con fondo morado apagado tipo contador (sin sombra)
+  const activeStyle = "bg-purple-600/30";
 
   const labelClass =
     "text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap";
