@@ -1,18 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { Bell, MessageCircle } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ FIX: en Base44 a veces el path viene con hash / query / mayúsculas.
-  // Esto hace que el "activo" funcione SIEMPRE.
   const norm = (p) =>
     (p || '')
       .toLowerCase()
@@ -20,40 +14,27 @@ export default function BottomNav() {
       .replace(/\?.*$/, '')
       .replace(/\/+$/, '');
 
-  const current = norm(location.pathname || '') || norm(location.hash || '');
+  const currentPath = norm(location.pathname || location.hash || '');
 
-  const isActive = (page) => {
-    const target = norm(createPageUrl(page));
-    // match exacto o terminación (por si Base44 mete prefijos)
-    return current === target || current.endsWith(target);
-  };
+  const [activePage, setActivePage] = useState(currentPath);
+
+  // sincroniza cuando cambia la ruta
+  useEffect(() => {
+    setActivePage(currentPath);
+  }, [currentPath]);
+
+  const isActive = (page) =>
+    activePage === norm(createPageUrl(page));
 
   const homeUrl = useMemo(() => createPageUrl('Home'), []);
 
-  useQuery({
-    queryKey: ['userActiveAlerts', user?.id],
-    queryFn: async () =>
-      base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
-    enabled: !!user?.id
-  });
-
-  useQuery({
-    queryKey: ['unreadNotifications', user?.id],
-    queryFn: async () =>
-      base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
-    enabled: !!user?.id
-  });
-
-  // Base (sin hover blanco, sin sombras)
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] bg-transparent shadow-none outline-none border-none " +
     "hover:bg-transparent hover:shadow-none hover:text-purple-400 " +
     "focus:bg-transparent focus:shadow-none focus:ring-0 active:bg-transparent " +
-    "rounded-lg transition-colors";
+    "rounded-lg transition-colors duration-150";
 
-  // ✅ EXACTO lo que pides: “fondo como el botón del tiempo”
-  // (morado apagado + borde morado suave, sin sombras)
   const activeStyle =
     "bg-purple-700/30 border border-purple-500/40";
 
@@ -65,12 +46,17 @@ export default function BottomNav() {
 
   const divider = <div className="w-px h-8 bg-gray-700" />;
 
+  const handleNav = (page) => {
+    const url = createPageUrl(page);
+    setActivePage(norm(url)); // 🔥 activa al instante
+    navigate(url);
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-50">
       <div className="flex items-center max-w-md mx-auto">
 
-        {/* ALERTAS */}
-        <Link to={createPageUrl('History')} className="flex-1">
+        <button className="flex-1" onClick={() => handleNav('History')}>
           <div className={`${baseBtn} ${isActive('History') ? activeStyle : ''}`}>
             <svg className="w-10 h-10" viewBox="0 0 32 32" fill="none">
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
@@ -78,16 +64,11 @@ export default function BottomNav() {
             </svg>
             <span className={labelClass}>Alertas</span>
           </div>
-        </Link>
+        </button>
 
         {divider}
 
-        {/* MAPA */}
-        <button
-          type="button"
-          className="flex-1"
-          onClick={() => navigate(`${homeUrl}?reset=${Date.now()}`)}
-        >
+        <button className="flex-1" onClick={() => handleNav('Home')}>
           <div className={`${baseBtn} ${isActive('Home') ? activeStyle : ''}`}>
             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -100,23 +81,21 @@ export default function BottomNav() {
 
         {divider}
 
-        {/* NOTIFICACIONES */}
-        <Link to={createPageUrl('Notifications')} className="flex-1">
+        <button className="flex-1" onClick={() => handleNav('Notifications')}>
           <div className={`${baseBtn} ${isActive('Notifications') ? activeStyle : ''}`}>
             <Bell className="w-10 h-10" />
             <span className={labelClassLong}>Notificaciones</span>
           </div>
-        </Link>
+        </button>
 
         {divider}
 
-        {/* CHATS */}
-        <Link to={createPageUrl('Chats')} className="flex-1">
+        <button className="flex-1" onClick={() => handleNav('Chats')}>
           <div className={`${baseBtn} ${isActive('Chats') ? activeStyle : ''}`}>
             <MessageCircle className="w-10 h-10" />
             <span className={labelClass}>Chats</span>
           </div>
-        </Link>
+        </button>
 
       </div>
     </nav>
