@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
-import { Camera, Car, Phone } from "lucide-react";
+import { Camera, Car, Bike, Truck, Phone } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function Profile() {
@@ -11,12 +11,19 @@ export default function Profile() {
 
   const { data: profile } = useQuery({
     queryKey: ["userProfile", user?.id],
-    queryFn: async () =>
-      base44.entities.User.get(user.id),
-    enabled: !!user?.id
+    queryFn: async () => base44.entities.User.get(user.id),
+    enabled: !!user?.id,
   });
 
+  const [vehicleType, setVehicleType] = useState(profile?.vehicle_type || "car");
+
   if (!profile) return null;
+
+  const VehicleIcon = () => {
+    if (vehicleType === "bike") return <Bike size={60} className="text-gray-300 opacity-70" />;
+    if (vehicleType === "truck") return <Truck size={60} className="text-gray-300 opacity-70" />;
+    return <Car size={60} className="text-gray-300 opacity-70" />;
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -24,11 +31,11 @@ export default function Profile() {
 
       <div className="flex-1 px-4 pt-4 pb-24">
 
-        {/* CARD SUPERIOR PERFIL */}
+        {/* CARD SUPERIOR EXACTA */}
         <div className="relative rounded-3xl p-[2px] bg-gradient-to-r from-purple-600 to-purple-400 mb-6">
           <div className="bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-3xl p-6 flex items-center gap-6">
 
-            {/* FOTO */}
+            {/* FOTO GRANDE */}
             <div className="relative">
               <img
                 src={profile.photo || "/default-avatar.png"}
@@ -40,7 +47,7 @@ export default function Profile() {
               </button>
             </div>
 
-            {/* DATOS */}
+            {/* INFO CENTRAL */}
             <div className="flex-1">
               <h2 className="text-3xl font-bold tracking-wide">
                 {profile.name?.toUpperCase()}
@@ -50,6 +57,7 @@ export default function Profile() {
                 {profile.brand} {profile.model}
               </p>
 
+              {/* MATRÍCULA REAL */}
               <div className="mt-4 inline-flex items-center bg-white rounded-lg overflow-hidden shadow-md">
                 <div className="bg-blue-700 text-white px-3 py-2 text-sm font-semibold">
                   E
@@ -60,7 +68,8 @@ export default function Profile() {
               </div>
             </div>
 
-            <Car size={60} className="text-gray-300 opacity-70" />
+            {/* ICONO VEHÍCULO DINÁMICO */}
+            <VehicleIcon />
           </div>
         </div>
 
@@ -91,27 +100,18 @@ export default function Profile() {
             <div className="w-12 h-6 bg-red-500 rounded-full"></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-400 mb-2">Marca</p>
-              <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {profile.brand}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-gray-400 mb-2">Modelo</p>
-              <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {profile.model}
-              </div>
-            </div>
-          </div>
-
+          {/* SELECT VEHÍCULO */}
           <div>
-            <p className="text-gray-400 mb-2">Matrícula</p>
-            <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-              {profile.plate}
-            </div>
+            <p className="text-gray-400 mb-2">Tipo de vehículo</p>
+            <select
+              value={vehicleType}
+              onChange={(e) => setVehicleType(e.target.value)}
+              className="w-full bg-[#0f172a] rounded-xl px-4 py-3 text-white outline-none"
+            >
+              <option value="car">Coche</option>
+              <option value="bike">Moto</option>
+              <option value="truck">Furgoneta</option>
+            </select>
           </div>
 
         </div>
