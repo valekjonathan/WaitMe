@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   SISTEMA DEMO CENTRALIZADO
-   Fuente única para CHATS / CHAT / NOTIFICACIONES
+   SISTEMA DEMO CENTRALIZADO - BLINDADO
 ====================================================== */
 
 let started = false;
@@ -18,7 +17,7 @@ function genId(prefix = 'id') {
 }
 
 /* ======================================================
-   SUSCRIPCIONES
+   SUSCRIPCIÓN
 ====================================================== */
 
 export function subscribeToDemoFlow(cb) {
@@ -26,14 +25,14 @@ export function subscribeToDemoFlow(cb) {
   return () => listeners.delete(cb);
 }
 
-export function getDemoState() {
-  return demoState;
-}
-
 export function startDemoFlow() {
   if (started) return;
   started = true;
   notify();
+}
+
+export function getDemoState() {
+  return demoState;
 }
 
 /* ======================================================
@@ -44,16 +43,11 @@ const demoState = {
   conversations: [
     {
       id: 'mock_reservaste_1',
-      participant1_id: 'me',
-      participant2_id: 'sofia',
-      participant1_name: 'Tú',
-      participant2_name: 'Sofía',
-      participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+      other_name: 'Sofía',
+      other_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
       alert_id: 'alert_reservaste_1',
       last_message_text: 'Te espero aquí 😊',
-      last_message_at: Date.now(),
-      unread_count_p1: 0,
-      unread_count_p2: 0
+      last_message_at: Date.now()
     }
   ],
 
@@ -96,20 +90,36 @@ const demoState = {
 };
 
 /* ======================================================
+   CONVERSACIONES
+====================================================== */
+
+export function getDemoConversations() {
+  return demoState.conversations;
+}
+
+export function getDemoConversation(conversationId) {
+  return demoState.conversations.find(c => c.id === conversationId) || null;
+}
+
+/* ======================================================
    MENSAJES
 ====================================================== */
+
+export function getDemoMessages(conversationId) {
+  return demoState.messages[conversationId] || [];
+}
 
 export function sendDemoMessage({ conversationId, text, isMine = true }) {
   const clean = String(text || '').trim();
   if (!conversationId || !clean) return;
 
-  const conv = demoState.conversations.find((c) => c.id === conversationId);
+  const conv = getDemoConversation(conversationId);
 
   const msg = {
     id: genId('msg'),
     mine: isMine,
-    senderName: isMine ? 'Tú' : conv?.participant2_name || 'Usuario',
-    senderPhoto: isMine ? null : conv?.participant2_photo || null,
+    senderName: isMine ? 'Tú' : conv?.other_name || 'Usuario',
+    senderPhoto: isMine ? null : conv?.other_photo || null,
     text: clean,
     ts: Date.now()
   };
@@ -137,11 +147,11 @@ export function getDemoAlerts() {
 }
 
 export function getDemoAlertById(alertId) {
-  return demoState.alerts.find((a) => a.id === alertId) || null;
+  return demoState.alerts.find(a => a.id === alertId) || null;
 }
 
 export function setDemoAlertStatus(alertId, status) {
-  const alert = demoState.alerts.find((a) => a.id === alertId);
+  const alert = getDemoAlertById(alertId);
   if (!alert) return null;
 
   alert.status = status;
@@ -153,8 +163,12 @@ export function setDemoAlertStatus(alertId, status) {
    NOTIFICACIONES
 ====================================================== */
 
+export function getDemoNotifications() {
+  return demoState.notifications;
+}
+
 export function markDemoNotificationRead(notificationId) {
-  const noti = demoState.notifications.find((n) => n.id === notificationId);
+  const noti = demoState.notifications.find(n => n.id === notificationId);
   if (!noti) return;
   noti.read = true;
   notify();
@@ -172,9 +186,7 @@ export function clearDemoNotifications() {
 }
 
 export function applyDemoAction({ conversationId, alertId, action }) {
-  if (alertId) {
-    setDemoAlertStatus(alertId, action);
-  }
+  if (alertId) setDemoAlertStatus(alertId, action);
 
   const titleMap = {
     thinking: 'ME LO PIENSO',
@@ -211,12 +223,18 @@ export function setDemoMode() {
 }
 
 /* ======================================================
-   EXPORT QUE BASE44 NECESITA
+   EXPORT GLOBAL QUE BASE44 PUEDE PEDIR
 ====================================================== */
 
 export const demoFlow = {
   start: startDemoFlow,
   getState: getDemoState,
+  getConversations: getDemoConversations,
+  getConversation: getDemoConversation,
+  getMessages: getDemoMessages,
+  getAlerts: getDemoAlerts,
+  getAlertById: getDemoAlertById,
+  getNotifications: getDemoNotifications,
   subscribe: subscribeToDemoFlow,
   isDemoMode
 };
