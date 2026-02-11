@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO
-   - Mantiene la app "viva" siempre
-   - Unifica datos para Home / History / Chats / Chat / Notifications
+   DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
+   - Unifica datos para Chats / Chat / Notifications
+   - Mantiene la app “viva” siempre
+   - Compatibilidad: exports legacy + campos alias
 ====================================================== */
 
 let started = false;
@@ -15,7 +16,7 @@ function safeCall(fn) { try { fn?.(); } catch {} }
 function notify() { listeners.forEach((l) => safeCall(l)); }
 
 function genId(prefix = 'id') {
-  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 }
 
 function normalize(s) { return String(s || '').trim().toLowerCase(); }
@@ -25,14 +26,14 @@ function statusToTitle(status) {
   if (s === 'thinking' || s === 'me_lo_pienso' || s === 'me lo pienso' || s === 'pending') return 'ME LO PIENSO';
   if (s === 'extended' || s === 'prorroga' || s === 'prórroga' || s === 'prorrogada') return 'PRÓRROGA';
   if (s === 'cancelled' || s === 'canceled' || s === 'cancelada') return 'CANCELADA';
-  if (s === 'expired' || s === 'expirada') return 'EXPIRADA';
+  if (s === 'expired' || s === 'expirada' || s === 'agotada') return 'AGOTADA';
   if (s === 'rejected' || s === 'rechazada') return 'RECHAZADA';
   if (s === 'completed' || s === 'completada') return 'COMPLETADA';
-  if (s === 'reserved' || s === 'activa') return 'ACTIVA';
+  if (s === 'reserved' || s === 'activa' || s === 'active') return 'ACTIVA';
   return 'ACTUALIZACIÓN';
 }
 
-const BASE_LAT = 43.3623;   // Oviedo centro (aprox)
+const BASE_LAT = 43.3623;   // Oviedo aprox
 const BASE_LNG = -5.8489;
 
 function rnd(min, max) { return Math.random() * (max - min) + min; }
@@ -40,28 +41,24 @@ function nearLat() { return BASE_LAT + rnd(-0.0045, 0.0045); }
 function nearLng() { return BASE_LNG + rnd(-0.0060, 0.0060); }
 
 /* ======================================================
-   ESTADO DEMO (estructura estable)
+   ESTADO DEMO (ÚNICA FUENTE DE VERDAD)
 ====================================================== */
 
-const demoFlow = {
+export const demoFlow = {
   me: { id: 'me', name: 'Tú', photo: null },
 
   users: [],
-
-  // conversations: listado para Chats
-  conversations: [],
-
-  // mensajes por conversación
-  messages: {},
-
-  // alerts: listado para Home/History/Chats
   alerts: [],
 
-  // notificaciones
+  // lista para Chats
+  conversations: [],
+
+  // messages[conversationId] = []
+  messages: {},
+
+  // lista para Notifications
   notifications: []
 };
-
-export { demoFlow };
 
 /* ======================================================
    HELPERS INTERNOS
@@ -83,6 +80,7 @@ function ensureMessagesArray(conversationId) {
 
 function pushMessage(conversationId, { mine, senderName, senderPhoto, text, attachments = null }) {
   const arr = ensureMessagesArray(conversationId);
+
   const msg = {
     id: genId('msg'),
     mine: !!mine,
@@ -92,13 +90,16 @@ function pushMessage(conversationId, { mine, senderName, senderPhoto, text, atta
     attachments,
     ts: Date.now()
   };
+
+  if (!msg.text) return null;
+
   arr.push(msg);
 
-  // actualiza last message en conversation
   const conv = getConversation(conversationId);
   if (conv) {
     conv.last_message_text = msg.text;
     conv.last_message_at = msg.ts;
+    if (!msg.mine) conv.unread_count_p1 = Math.min(99, (conv.unread_count_p1 || 0) + 1);
   }
 
   return msg;
@@ -115,15 +116,23 @@ function addNotification({ type, title, text, conversationId, alertId, read = fa
     createdAt: Date.now(),
     read: !!read
   };
+
   demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
   return noti;
 }
 
+function pickUser(userId) {
+  return (demoFlow.users || []).find((u) => u.id === userId) || null;
+}
+
+/* ======================================================
+   SEED (10 USUARIOS + ALERTAS + CONVERS + MENSAJES + NOTIS)
+====================================================== */
+
 function buildUsers() {
-  // 10 usuarios nuevos
   demoFlow.users = [
     { id: 'u1', name: 'Sofía', photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault', car_model: 'Clio', car_color: 'rojo', car_plate: '7733 MNP', phone: '+34677889901' },
-    { id: 'u2', name: 'Marco', photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902' },
+    { id: 'u2', name: 'Marco', photo: 'https://randomuser.me/api/portraits/men/12.jpg', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902' },
     { id: 'u3', name: 'Laura', photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes', car_model: 'Clase A', car_color: 'negro', car_plate: '7788 RTY', phone: '+34677889903' },
     { id: 'u4', name: 'Carlos', photo: 'https://randomuser.me/api/portraits/men/55.jpg', car_brand: 'Seat', car_model: 'León', car_color: 'azul', car_plate: '4321 PQR', phone: '+34677889904' },
     { id: 'u5', name: 'Elena', photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini', car_model: 'Cooper', car_color: 'blanco', car_plate: '5567 ZXC', phone: '+34677889905' },
@@ -135,15 +144,9 @@ function buildUsers() {
   ];
 }
 
-function pickUser(id) {
-  return demoFlow.users.find((u) => u.id === id) || null;
-}
-
 function seedAlerts() {
-  // limpiamos
   demoFlow.alerts = [];
 
-  // 10 alerts alrededor de tu zona, con estados variados
   const defs = [
     { userId: 'u1', status: 'active', price: 3, address: 'Calle Uría, Oviedo', available_in_minutes: 5 },
     { userId: 'u2', status: 'active', price: 4, address: 'Calle Campoamor, Oviedo', available_in_minutes: 3 },
@@ -161,6 +164,7 @@ function seedAlerts() {
   defs.forEach((d, i) => {
     const u = pickUser(d.userId);
     const id = `alert_${i + 1}`;
+
     demoFlow.alerts.push({
       id,
       is_demo: true,
@@ -179,12 +183,10 @@ function seedAlerts() {
       allow_phone_calls: true,
       phone: u?.phone || null,
 
-      // reserva
       reserved_by_id: null,
       reserved_by_name: null,
       reserved_by_photo: null,
 
-      // time/estado
       target_time: Date.now() + (10 * 60 * 1000),
       status: d.status
     });
@@ -195,57 +197,67 @@ function seedConversationsAndMessages() {
   demoFlow.conversations = [];
   demoFlow.messages = {};
 
-  // Creamos conversaciones para alerts no "active"
-  const linked = demoFlow.alerts.filter((a) => a.status !== 'active');
+  const linked = demoFlow.alerts.filter((a) => normalize(a.status) !== 'active');
 
   linked.forEach((a) => {
     const other = pickUser(a.user_id);
     const convId = `conv_${a.id}_me`;
 
-    // si es reserved/thinking/extended/completed/cancelled: asumimos que tú ya interactuaste
+    // asumimos que “tú” ya interactuaste con esos estados
     a.reserved_by_id = 'me';
     a.reserved_by_name = demoFlow.me.name;
     a.reserved_by_photo = demoFlow.me.photo;
 
-    demoFlow.conversations.push({
+    const conv = {
       id: convId,
+
       participant1_id: 'me',
       participant2_id: other?.id,
       participant1_name: demoFlow.me.name,
       participant2_name: other?.name,
       participant1_photo: demoFlow.me.photo,
       participant2_photo: other?.photo,
+
+      // aliases para pantallas que esperan snake/other_*
+      other_name: other?.name,
+      other_photo: other?.photo,
+
       alert_id: a.id,
+
       last_message_text: '',
       last_message_at: Date.now() - 60_000,
       unread_count_p1: 0,
       unread_count_p2: 0
-    });
+    };
 
-    // mensajes base
+    demoFlow.conversations.push(conv);
+    ensureMessagesArray(convId);
+
+    // mensaje automático base (lo quieres SIEMPRE)
     pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ey! te he enviado un WaitMe!' });
     pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Perfecto, lo tengo. Te leo por aquí.' });
 
-    // mensajes según estado
     const st = normalize(a.status);
     if (st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Me lo estoy pensando… ahora te digo.' });
     if (st === 'extended') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'He pagado la prórroga.' });
     if (st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Cancelo la operación.' });
     if (st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅' });
-
-    // last_message ya se setea con pushMessage
   });
+
+  demoFlow.conversations.sort((a, b) => (b.last_message_at || 0) - (a.last_message_at || 0));
 }
 
 function seedNotifications() {
   demoFlow.notifications = [];
 
-  // Para mostrar TODAS las posibilidades
-  const aReserved = demoFlow.alerts.find((a) => a.status === 'reserved');
-  const aThinking = demoFlow.alerts.find((a) => normalize(a.status) === 'thinking');
-  const aExtended = demoFlow.alerts.find((a) => normalize(a.status) === 'extended');
-  const aCancelled = demoFlow.alerts.find((a) => normalize(a.status) === 'cancelled');
-  const aCompleted = demoFlow.alerts.find((a) => normalize(a.status) === 'completed');
+  const findBy = (st) => demoFlow.alerts.find((a) => normalize(a.status) === st);
+
+  const aReserved = findBy('reserved');
+  const aThinking = findBy('thinking');
+  const aExtended = findBy('extended');
+  const aCancelled = findBy('cancelled');
+  const aCompleted = findBy('completed');
+
   const convReserved = aReserved ? `conv_${aReserved.id}_me` : null;
   const convThinking = aThinking ? `conv_${aThinking.id}_me` : null;
   const convExtended = aExtended ? `conv_${aExtended.id}_me` : null;
@@ -258,7 +270,7 @@ function seedNotifications() {
   if (aCompleted) addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${aCompleted.price}€).`, conversationId: convCompleted, alertId: aCompleted.id, read: true });
   if (aCancelled) addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, conversationId: convCancelled, alertId: aCancelled.id, read: true });
 
-  // extras para completar
+  // extras “mix”
   if (aReserved) addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador está llegando.`, conversationId: convReserved, alertId: aReserved.id, read: false });
   if (aReserved) addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `Reserva aceptada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
   if (aReserved) addNotification({ type: 'reservation_rejected', title: 'RESERVA RECHAZADA', text: `Reserva rechazada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
@@ -273,8 +285,12 @@ function resetDemo() {
 }
 
 /* ======================================================
-   START / SUBSCRIBE
+   API (EXPORTS) - lo que usan tus pantallas
 ====================================================== */
+
+export function isDemoMode() {
+  return true;
+}
 
 export function startDemoFlow() {
   if (started) return;
@@ -285,6 +301,7 @@ export function startDemoFlow() {
   if (!tickTimer) {
     tickTimer = setInterval(() => notify(), 1000);
   }
+
   notify();
 }
 
@@ -298,29 +315,24 @@ export function subscribeToDemoFlow(cb) {
   return subscribeDemoFlow(cb);
 }
 
-export function getDemoState() {
-  return demoFlow;
-}
-
-/* ======================================================
-   GETTERS
-====================================================== */
-
-// conversations
+// Chats
 export function getDemoConversations() {
   return demoFlow.conversations || [];
 }
 
+export function getDemoAlerts() {
+  return demoFlow.alerts || [];
+}
+
+// Chat
 export function getDemoConversation(conversationId) {
   return getConversation(conversationId);
 }
 
-// alias legacy
 export function getDemoConversationById(conversationId) {
   return getConversation(conversationId);
 }
 
-// messages
 export function getDemoMessages(conversationId) {
   return (demoFlow.messages && demoFlow.messages[conversationId]) ? demoFlow.messages[conversationId] : [];
 }
@@ -341,23 +353,10 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
   notify();
 }
 
-// alerts
-export function getDemoAlerts() {
-  return demoFlow.alerts || [];
-}
-
-export function getDemoAlert(alertId) {
-  return getAlert(alertId);
-}
-
-// notifications
+// Notifications
 export function getDemoNotifications() {
   return demoFlow.notifications || [];
 }
-
-/* ======================================================
-   MARCAR LEÍDAS
-====================================================== */
 
 export function markDemoRead(notificationId) {
   const n = (demoFlow.notifications || []).find((x) => x.id === notificationId);
@@ -365,40 +364,57 @@ export function markDemoRead(notificationId) {
   notify();
 }
 
-// alias legacy
 export function markDemoNotificationRead(notificationId) {
   return markDemoRead(notificationId);
 }
 
+// Compat (por si algo lo usa)
 export function markAllDemoRead() {
   (demoFlow.notifications || []).forEach((n) => (n.read = true));
   notify();
 }
 
 /* ======================================================
-   CONVERSACIÓN ↔ ALERTA
+   CONVERSACIÓN ↔ ALERTA (para Notifications)
 ====================================================== */
 
 export function ensureConversationForAlert(alertId, hint = null) {
   if (!alertId) return null;
 
-  // ya existe?
+  // ya existe
   const existing = (demoFlow.conversations || []).find((c) => c.alert_id === alertId);
   if (existing) return existing;
 
   const alert = getAlert(alertId);
-  const otherName = hint?.fromName || hint?.otherName || alert?.user_name || 'Usuario';
-  const otherPhoto = hint?.otherPhoto || alert?.user_photo || null;
+
+  const otherName =
+    hint?.fromName ||
+    hint?.otherName ||
+    alert?.user_name ||
+    'Usuario';
+
+  const otherPhoto =
+    hint?.otherPhoto ||
+    hint?.fromPhoto ||
+    alert?.user_photo ||
+    null;
 
   const convId = `conv_${alertId}_me`;
+
   const conv = {
     id: convId,
+
     participant1_id: 'me',
     participant2_id: alert?.user_id || genId('u'),
     participant1_name: demoFlow.me.name,
     participant2_name: otherName,
     participant1_photo: demoFlow.me.photo,
     participant2_photo: otherPhoto,
+
+    // aliases para evitar pantallas rotas
+    other_name: otherName,
+    other_photo: otherPhoto,
+
     alert_id: alertId,
     last_message_text: '',
     last_message_at: Date.now(),
@@ -412,6 +428,12 @@ export function ensureConversationForAlert(alertId, hint = null) {
   return conv;
 }
 
+// legacy: si algún código espera ID string
+export function ensureConversationForAlertId(alertId) {
+  const conv = ensureConversationForAlert(alertId);
+  return conv?.id || null;
+}
+
 export function ensureInitialWaitMeMessage(conversationId) {
   const conv = getConversation(conversationId);
   if (!conv) return null;
@@ -420,17 +442,24 @@ export function ensureInitialWaitMeMessage(conversationId) {
   const already = arr.some((m) => String(m?.text || '').toLowerCase().includes('te he enviado un waitme'));
   if (already) return null;
 
-  const msg = pushMessage(conversationId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ey! te he enviado un WaitMe!' });
+  const msg = pushMessage(conversationId, {
+    mine: true,
+    senderName: demoFlow.me.name,
+    senderPhoto: demoFlow.me.photo,
+    text: 'Ey! te he enviado un WaitMe!'
+  });
+
   notify();
   return msg?.id || null;
 }
 
 /* ======================================================
-   ACCIONES (aceptar / pensar / rechazar / prórroga / etc)
+   ACCIONES (Notifications -> applyDemoAction)
 ====================================================== */
 
 export function applyDemoAction({ conversationId, alertId, action }) {
   const a = normalize(action);
+  const title = statusToTitle(a);
 
   const alert = alertId ? getAlert(alertId) : null;
   if (alert) alert.status = a;
@@ -438,7 +467,6 @@ export function applyDemoAction({ conversationId, alertId, action }) {
   const conv = conversationId ? getConversation(conversationId) : (alertId ? ensureConversationForAlert(alertId) : null);
   const convId = conv?.id || null;
 
-  const title = statusToTitle(a);
   addNotification({
     type: 'status_update',
     title,
@@ -450,30 +478,32 @@ export function applyDemoAction({ conversationId, alertId, action }) {
 
   if (convId) {
     let msgText = '';
-    if (title === 'ME LO PIENSO') msgText = 'Me lo pienso…';
-    else if (title === 'PRÓRROGA') msgText = 'He pagado una prórroga.';
-    else if (title === 'CANCELADA') msgText = 'He cancelado la operación.';
-    else if (title === 'RECHAZADA') msgText = 'He rechazado la operación.';
+    if (title === 'ME LO PIENSO') msgText = 'Me lo estoy pensando…';
+    else if (title === 'PRÓRROGA') msgText = 'Pido una prórroga.';
+    else if (title === 'CANCELADA') msgText = 'Cancelo la operación.';
+    else if (title === 'RECHAZADA') msgText = 'Rechazo la operación.';
     else if (title === 'COMPLETADA') msgText = 'Operación completada ✅';
     else if (title === 'ACTIVA') msgText = 'Operación activa.';
     else msgText = 'Actualización de estado.';
 
-    // lo mandamos como el otro usuario (para que se vea movimiento)
-    pushMessage(convId, { mine: false, senderName: conv?.participant2_name, senderPhoto: conv?.participant2_photo, text: msgText });
+    pushMessage(convId, {
+      mine: false,
+      senderName: conv?.participant2_name || 'Usuario',
+      senderPhoto: conv?.participant2_photo || null,
+      text: msgText
+    });
   }
 
   notify();
 }
 
 /* ======================================================
-   RESERVAR (cuando tú envías un WaitMe desde Home)
+   RESERVAR (por si Home/Mapa lo llama luego)
 ====================================================== */
 
 export function reserveDemoAlert(alertId) {
   const alert = getAlert(alertId);
   if (!alert) return null;
-
-  // ya reservado?
   if (normalize(alert.status) !== 'active') return null;
 
   alert.status = 'reserved';
@@ -501,14 +531,7 @@ export function reserveDemoAlert(alertId) {
   return conv?.id || null;
 }
 
-/* ======================================================
-   FLAGS
-====================================================== */
-
-export function isDemoMode() {
-  return true;
-}
-
+// flags legacy
 export function setDemoMode() {
   return true;
 }

@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, CheckCircle, XCircle, MapPin, Timer, TrendingUp, AlertCircle, MessageCircle, Navigation } from 'lucide-react';
 import MarcoCard from '@/components/cards/MarcoCard';
+
 import {
   startDemoFlow,
   subscribeDemoFlow,
   getDemoNotifications,
-  getDemoAlert,
+  getDemoAlertById,
   ensureConversationForAlert,
   ensureInitialWaitMeMessage,
   markDemoNotificationRead,
@@ -40,7 +41,7 @@ export default function Notifications() {
 
   useEffect(() => {
     startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
+    const unsub = subscribeDemoFlow(() => setTick(t => t + 1));
     return () => unsub?.();
   }, []);
 
@@ -50,7 +51,11 @@ export default function Notifications() {
 
   const openChat = (conversationId, alertId) => {
     if (!conversationId) return;
-    navigate(createPageUrl(`Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}&alertId=${encodeURIComponent(alertId || '')}`));
+    navigate(
+      createPageUrl(
+        `Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}&alertId=${encodeURIComponent(alertId || '')}`
+      )
+    );
   };
 
   const openNavigate = (alertId) => {
@@ -65,17 +70,20 @@ export default function Notifications() {
     const conv = ensureConversationForAlert(alertId, { fromName: n.fromName });
     ensureInitialWaitMeMessage(conv?.id);
 
-    applyDemoAction({ conversationId: conv?.id, alertId, action });
+    applyDemoAction({
+      conversationId: conv?.id,
+      alertId,
+      action
+    });
 
     if (n?.id) markDemoNotificationRead(n.id);
 
-    // casi siempre acabas en chat
     openChat(conv?.id, alertId);
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Notificaciones" showBackButton={true} backTo="Home" />
+      <Header title="Notificaciones" showBackButton backTo="Home" />
 
       <main className="pt-[60px] pb-24">
 
@@ -87,12 +95,15 @@ export default function Notifications() {
                 {notifications.filter(n => !n.read).length} sin leer
               </p>
             </div>
+
             {notifications.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-purple-400 hover:text-purple-300"
-                onClick={() => notifications.forEach(n => n?.id && markDemoNotificationRead(n.id))}
+                onClick={() =>
+                  notifications.forEach(n => n?.id && markDemoNotificationRead(n.id))
+                }
               >
                 Marcar todas como leídas
               </Button>
@@ -110,7 +121,7 @@ export default function Notifications() {
             notifications.map((n) => {
               const type = n?.type || 'status_update';
               const isUnread = !n?.read;
-              const alert = n?.alertId ? getDemoAlert(n.alertId) : null;
+              const alert = n?.alertId ? getDemoAlertById(n.alertId) : null;
 
               const otherName = alert?.user_name || n?.fromName || 'Usuario';
               const otherPhoto = alert?.user_photo || null;
@@ -123,9 +134,10 @@ export default function Notifications() {
               const phone = alert?.phone || null;
 
               const statusText = n?.title || 'ACTIVA';
-              const hasLatLon = typeof alert?.latitude === 'number' && typeof alert?.longitude === 'number';
+              const hasLatLon =
+                typeof alert?.latitude === 'number' &&
+                typeof alert?.longitude === 'number';
 
-              // Botones por tipo (sin inventar UI nueva fuera de lo necesario)
               const t = normalize(type);
 
               return (
@@ -137,7 +149,6 @@ export default function Notifications() {
                       : 'bg-gradient-to-br from-gray-900/50 to-gray-900/50 border-gray-700'
                   }`}
                 >
-                  {/* header de la notificación */}
                   <div className="flex items-start gap-3 mb-4">
                     <div className={`p-2 rounded-full ${isUnread ? 'bg-purple-500/20' : 'bg-gray-800'}`}>
                       {iconMap[type] || iconMap.status_update}
@@ -161,7 +172,6 @@ export default function Notifications() {
                     </div>
                   </div>
 
-                  {/* tarjeta EXACTA de Chats */}
                   <MarcoCard
                     photoUrl={otherPhoto}
                     name={otherName}
@@ -170,7 +180,12 @@ export default function Notifications() {
                     carColor={carColor}
                     address={address}
                     timeLine={<span className="text-gray-400">Operación en curso</span>}
-                    onChat={() => openChat(n?.conversationId || ensureConversationForAlert(n?.alertId)?.id, n?.alertId)}
+                    onChat={() =>
+                      openChat(
+                        n?.conversationId || ensureConversationForAlert(n?.alertId)?.id,
+                        n?.alertId
+                      )
+                    }
                     statusText={statusText}
                     phoneEnabled={phoneEnabled}
                     onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
@@ -178,7 +193,6 @@ export default function Notifications() {
                     role="buyer"
                   />
 
-                  {/* botón IR como en Chats (solo si hay coords) */}
                   {hasLatLon && (
                     <div className="mt-2">
                       <Button
@@ -195,60 +209,18 @@ export default function Notifications() {
                     </div>
                   )}
 
-                  {/* acciones específicas por tipo */}
                   {t === 'incoming_waitme' && (
                     <div className="mt-3 grid grid-cols-3 gap-2">
-                      <Button className="w-full" onClick={() => runAction(n, 'reserved')}>
-                        Aceptar
-                      </Button>
-                      <Button variant="outline" className="w-full border-gray-600" onClick={() => runAction(n, 'thinking')}>
+                      <Button onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
+                      <Button variant="outline" className="border-gray-600" onClick={() => runAction(n, 'thinking')}>
                         Me lo pienso
                       </Button>
-                      <Button variant="destructive" className="w-full" onClick={() => runAction(n, 'rejected')}>
+                      <Button variant="destructive" onClick={() => runAction(n, 'rejected')}>
                         Rechazar
                       </Button>
                     </div>
                   )}
 
-                  {t === 'prorroga_request' && (
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <Button className="w-full" onClick={() => runAction(n, 'extended')}>
-                        Aceptar +1€
-                      </Button>
-                      <Button variant="destructive" className="w-full" onClick={() => runAction(n, 'rejected')}>
-                        Rechazar
-                      </Button>
-                    </div>
-                  )}
-
-                  {t === 'reservation_accepted' && (
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <Button className="w-full" onClick={() => openChat(n?.conversationId, n?.alertId)}>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Ver chat
-                      </Button>
-                      <Button className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70" onClick={() => openNavigate(n?.alertId)}>
-                        <Navigation className="w-4 h-4 mr-2" />
-                        IR
-                      </Button>
-                    </div>
-                  )}
-
-                  {t === 'payment_completed' && (
-                    <div className="mt-3">
-                      <Button className="w-full" onClick={() => openChat(n?.conversationId, n?.alertId)}>
-                        Ver detalles en chat
-                      </Button>
-                    </div>
-                  )}
-
-                  {(t === 'reservation_rejected' || t === 'time_expired' || t === 'cancellation') && (
-                    <div className="mt-3">
-                      <Button variant="outline" className="w-full border-gray-600" onClick={() => openChat(n?.conversationId, n?.alertId)}>
-                        Ver qué pasó (chat)
-                      </Button>
-                    </div>
-                  )}
                 </div>
               );
             })
