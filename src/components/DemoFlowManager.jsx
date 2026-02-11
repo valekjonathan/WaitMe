@@ -176,7 +176,7 @@ export function addDemoNotification(notification) {
 ====================================================== */
 
 export function ensureConversationForAlert(alertId) {
-  const alert = getDemoAlertById(alertId);
+  const alert = getDemoAlertById(alertId); 
   if (!alert) return null;
 
   const existing = demoFlow.conversations.find(c => c.alert_id === alert.id);
