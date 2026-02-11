@@ -4,21 +4,22 @@ import { base44 } from "@/api/base44Client";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { Camera, Car, Phone } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Profile() {
-  const { data: user } = useQuery({
-    queryKey: ["currentUser"],
-    queryFn: async () => {
-      const { data } = await base44.from("users").select("*").single();
-      return data;
-    },
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ["userProfile", user?.id],
+    queryFn: async () =>
+      base44.entities.User.get(user.id),
+    enabled: !!user?.id
   });
 
-  if (!user) return null;
+  if (!profile) return null;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      
       <Header title="Mi Perfil" />
 
       <div className="flex-1 px-4 pt-4 pb-24">
@@ -30,7 +31,7 @@ export default function Profile() {
             {/* FOTO */}
             <div className="relative">
               <img
-                src={user.photo || "/default-avatar.png"}
+                src={profile.photo || "/default-avatar.png"}
                 className="w-32 h-32 object-cover rounded-2xl border-2 border-purple-500"
                 alt="Foto perfil"
               />
@@ -42,27 +43,24 @@ export default function Profile() {
             {/* DATOS */}
             <div className="flex-1">
               <h2 className="text-3xl font-bold tracking-wide">
-                {user.name?.toUpperCase()}
+                {profile.name?.toUpperCase()}
               </h2>
 
               <p className="text-gray-300 mt-2 text-lg">
-                {user.brand} {user.model}
+                {profile.brand} {profile.model}
               </p>
 
-              {/* MATRÍCULA ESTILO REAL */}
               <div className="mt-4 inline-flex items-center bg-white rounded-lg overflow-hidden shadow-md">
                 <div className="bg-blue-700 text-white px-3 py-2 text-sm font-semibold">
                   E
                 </div>
                 <div className="px-4 py-2 font-mono text-lg tracking-widest text-black">
-                  {user.plate}
+                  {profile.plate}
                 </div>
               </div>
             </div>
 
-            {/* ICONO COCHE */}
             <Car size={60} className="text-gray-300 opacity-70" />
-
           </div>
         </div>
 
@@ -73,14 +71,14 @@ export default function Profile() {
             <div>
               <p className="text-gray-400 mb-2">Nombre</p>
               <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {user.name}
+                {profile.name}
               </div>
             </div>
 
             <div>
               <p className="text-gray-400 mb-2">Teléfono</p>
               <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {user.phone}
+                {profile.phone}
               </div>
             </div>
           </div>
@@ -97,14 +95,14 @@ export default function Profile() {
             <div>
               <p className="text-gray-400 mb-2">Marca</p>
               <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {user.brand}
+                {profile.brand}
               </div>
             </div>
 
             <div>
               <p className="text-gray-400 mb-2">Modelo</p>
               <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {user.model}
+                {profile.model}
               </div>
             </div>
           </div>
@@ -112,15 +110,14 @@ export default function Profile() {
           <div>
             <p className="text-gray-400 mb-2">Matrícula</p>
             <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-              {user.plate}
+              {profile.plate}
             </div>
           </div>
 
         </div>
-
       </div>
 
-      <BottomNav active="profile" />
+      <BottomNav />
     </div>
   );
 }
