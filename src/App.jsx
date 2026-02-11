@@ -9,6 +9,7 @@ import Chats from '@/pages/Chats';
 import Chat from '@/pages/Chat';
 import History from '@/pages/History';
 import Profile from '@/pages/Profile';
+import Notifications from '@/pages/Notifications';
 import Settings from '@/pages/Settings';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/chats" element={<Chats />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />

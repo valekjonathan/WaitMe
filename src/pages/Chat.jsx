@@ -18,6 +18,33 @@ import {
   demoFlow
 } from '@/components/DemoFlowManager';
 
+
+// ======================
+// Helpers (estatus)
+// ======================
+const getChatStatusLabel = (status) => {
+  const s = String(status || '').toLowerCase();
+  switch (s) {
+    case 'completed':
+    case 'completada':
+      return 'COMPLETADA';
+    case 'thinking':
+    case 'me_lo_pienso':
+    case 'pending':
+      return 'ME LO PIENSO';
+    case 'extended':
+    case 'prorroga':
+    case 'prórroga':
+      return 'PRÓRROGA';
+    case 'cancelled':
+    case 'canceled':
+    case 'cancelada':
+      return 'CANCELADA';
+    default:
+      return null;
+  }
+};
+
 export default function Chat() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -118,6 +145,22 @@ export default function Chat() {
     },
     staleTime: 10000
   });
+
+  const effectiveAlertId = useMemo(
+    () => (alertId ? String(alertId) : conversation?.alert_id ? String(conversation.alert_id) : null),
+    [alertId, conversation]
+  );
+
+  const { data: chatAlert } = useQuery({
+    queryKey: ['chatAlert', effectiveAlertId],
+    enabled: !!effectiveAlertId && !isDemo,
+    queryFn: async () => {
+      const res = await base44.entities.ParkingAlert.filter({ id: effectiveAlertId });
+      return res?.[0] || null;
+    },
+    staleTime: 15000
+  });
+
 
   // Suscripción en tiempo real
   useEffect(() => {
@@ -323,6 +366,68 @@ export default function Chat() {
     }
   });
 
+
+  // ======================
+  // ACCIONES (sincroniza Chats / Chat / Notificaciones)
+  // ======================
+  const actionMutation = useMutation({
+    mutationFn: async ({ nextStatus, systemText, notifyType }) => {
+      if (isDemo) return;
+      if (!effectiveAlertId || !conversation?.id) return;
+
+      const otherUserId =
+        conversation?.participant1_id === user?.id ? conversation?.participant2_id : conversation?.participant1_id;
+
+      // 1) Actualiza el estado del ParkingAlert
+      if (chatAlert?.id) {
+        await base44.entities.ParkingAlert.update(chatAlert.id, { status: nextStatus });
+      }
+
+      // 2) Mensaje de sistema en el chat (para que lo veas en Chat y se refleje en Chats)
+      if (systemText) {
+        await base44.entities.ChatMessage.create({
+          conversation_id: conversation.id,
+          alert_id: effectiveAlertId,
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+          sender_photo: user?.photo_url,
+          receiver_id: otherUserId,
+          message: systemText,
+          read: false,
+          message_type: 'system'
+        });
+
+        await base44.entities.Conversation.update(conversation.id, {
+          last_message_text: systemText,
+          last_message_at: new Date().toISOString()
+        });
+      }
+
+      // 3) Notificación para el otro usuario
+      if (notifyType) {
+        await base44.entities.Notification.create({
+          type: notifyType,
+          recipient_id: otherUserId,
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+          alert_id: effectiveAlertId,
+          status: 'pending',
+          read: false
+        });
+      }
+    },
+    onSuccess: () => {
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['chatAlert', effectiveAlertId] });
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['alertsForChats'] });
+        queryClient.invalidateQueries({ queryKey: ['unreadNotifications', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      }
+    }
+  });
+
   const handleSend = () => {
     sendMutation.mutate(message);
   };
@@ -367,6 +472,70 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-black flex flex-col">
       <Header title="Chat" showBackButton={true} backTo="Chats" />
+
+      {/* Acciones rápidas (misma lógica que Chats/Notificaciones) */}
+      {!isDemo && chatAlert && conversation && user && (
+        <div className="px-4 pt-2">
+          <div className="bg-black/40 border-2 border-purple-500/30 rounded-xl p-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-purple-300">
+                Estado: {getChatStatusLabel(chatAlert?.status) || 'EN CURSO'}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 bg-purple-600/20 border border-purple-500/30 text-purple-200 hover:bg-purple-600/30"
+                  onClick={() => actionMutation.mutate({
+                    nextStatus: 'me_lo_pienso',
+                    systemText: 'Ey! me lo pienso 🤔',
+                    notifyType: 'status_update'
+                  })}
+                >
+                  ME LO PIENSO
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 bg-blue-600/20 border border-blue-500/30 text-blue-100 hover:bg-blue-600/30"
+                  onClick={() => actionMutation.mutate({
+                    nextStatus: 'prorroga',
+                    systemText: '⏱️ Prórroga solicitada',
+                    notifyType: 'extension_request'
+                  })}
+                >
+                  PRÓRROGA
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 bg-red-500/20 border border-red-500/30 text-red-200 hover:bg-red-500/30"
+                  onClick={() => actionMutation.mutate({
+                    nextStatus: 'cancelada',
+                    systemText: '❌ Operación cancelada',
+                    notifyType: 'status_update'
+                  })}
+                >
+                  CANCELAR
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 bg-green-500/20 border border-green-500/30 text-green-200 hover:bg-green-500/30"
+                  onClick={() => actionMutation.mutate({
+                    nextStatus: 'completed',
+                    systemText: '✅ Operación completada',
+                    notifyType: 'payment_completed'
+                  })}
+                >
+                  COMPLETAR
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
