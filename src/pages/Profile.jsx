@@ -3,18 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-
-const carColors = [
-  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
-  { value: 'blanco', label: 'Blanco', fill: '#ffffff' },
-  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
-  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
-  { value: 'gris', label: 'Gris', fill: '#6b7280' }
-];
 
 export default function Profile() {
 
@@ -25,8 +16,6 @@ export default function Profile() {
     display_name: '',
     car_brand: '',
     car_model: '',
-    car_color: 'negro',
-    vehicle_type: 'car',
     car_plate: '',
     photo_url: '',
     phone: '',
@@ -42,8 +31,6 @@ export default function Profile() {
         display_name: currentUser.display_name || '',
         car_brand: currentUser.car_brand || '',
         car_model: currentUser.car_model || '',
-        car_color: currentUser.car_color || 'negro',
-        vehicle_type: currentUser.vehicle_type || 'car',
         car_plate: currentUser.car_plate || '',
         photo_url: currentUser.photo_url || '',
         phone: currentUser.phone || '',
@@ -69,23 +56,12 @@ export default function Profile() {
     updateField('photo_url', file_url);
   };
 
-  const selectedColor = carColors.find(c => c.value === formData.car_color);
-
-  const CarIcon = () => (
-    <svg viewBox="0 0 48 24" className="w-14 h-8" fill="none">
-      <path
-        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-        fill="transparent"
-        stroke="white"
-        strokeWidth="2"
-      />
-      <circle cx="14" cy="18" r="3" fill="white" />
-      <circle cx="36" cy="18" r="3" fill="white" />
-    </svg>
-  );
-
   if (loading) {
-    return <div className="min-h-screen bg-black flex items-center justify-center text-purple-500">Cargando...</div>;
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-purple-500">
+        Cargando...
+      </div>
+    );
   }
 
   return (
@@ -94,44 +70,49 @@ export default function Profile() {
 
       <div className="pt-[70px] pb-28 px-4 max-w-md mx-auto space-y-6">
 
-        {/* TARJETA SUPERIOR EXACTA */}
-        <div className="relative rounded-3xl p-[1px] bg-purple-600">
-          <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl p-6 flex gap-6 items-center">
+        {/* TARJETA EXACTA */}
+        <div className="relative rounded-[28px] p-[2px] bg-purple-600">
+          <div className="rounded-[26px] bg-gradient-to-r from-[#1e293b] via-[#1b2740] to-[#111827] px-6 py-5 flex items-center gap-6">
 
             {/* FOTO */}
             <div className="relative">
-              <div className="w-32 h-36 rounded-2xl overflow-hidden border-2 border-purple-500">
+              <div className="w-[120px] h-[140px] rounded-2xl overflow-hidden border-2 border-purple-500">
                 {formData.photo_url ? (
-                  <img src={formData.photo_url} className="w-full h-full object-cover" />
+                  <img
+                    src={formData.photo_url}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <div className="w-full h-full bg-gray-800 flex items-center justify-center text-4xl">👤</div>
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center text-4xl">
+                    👤
+                  </div>
                 )}
               </div>
 
-              <label className="absolute -bottom-3 -right-3 w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-lg cursor-pointer">
+              <label className="absolute -bottom-4 -right-4 w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center shadow-xl cursor-pointer">
                 <Camera className="w-5 h-5 text-white" />
                 <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
               </label>
             </div>
 
-            {/* INFO */}
-            <div className="flex-1 space-y-3">
+            {/* INFO CENTRAL */}
+            <div className="flex-1 flex flex-col justify-center">
 
-              <h2 className="text-3xl font-bold tracking-wide">
+              <h2 className="text-[30px] font-extrabold tracking-wide text-white leading-tight">
                 {formData.display_name || 'JONATHAN'}
               </h2>
 
-              <p className="text-lg text-gray-300">
+              <p className="text-gray-300 text-[18px] mt-2">
                 {formData.car_brand || 'Porsche'} {formData.car_model || 'Macan'}
               </p>
 
-              {/* MATRÍCULA */}
-              <div className="flex items-center">
-                <div className="bg-white rounded-md overflow-hidden border border-gray-300 flex items-center h-9">
-                  <div className="bg-blue-700 w-8 h-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">E</span>
+              {/* MATRÍCULA EXACTA */}
+              <div className="mt-4">
+                <div className="bg-white rounded-md overflow-hidden border border-gray-300 flex items-center h-[40px]">
+                  <div className="bg-blue-700 w-[36px] h-full flex items-center justify-center">
+                    <span className="text-white text-[11px] font-bold">E</span>
                   </div>
-                  <span className="px-4 text-black font-mono font-bold tracking-widest text-base">
+                  <span className="px-5 text-black font-mono font-bold tracking-[3px] text-[18px]">
                     {formData.car_plate || '2026 VSR'}
                   </span>
                 </div>
@@ -139,13 +120,23 @@ export default function Profile() {
 
             </div>
 
-            {/* ICONO */}
-            <CarIcon />
+            {/* ICONO COCHE EXACTO */}
+            <div className="opacity-90 flex items-center justify-center">
+              <svg viewBox="0 0 48 24" className="w-[70px] h-[38px]" fill="none">
+                <path
+                  d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                  stroke="white"
+                  strokeWidth="2.5"
+                />
+                <circle cx="14" cy="18" r="4" stroke="white" strokeWidth="2.5" fill="none"/>
+                <circle cx="36" cy="18" r="4" stroke="white" strokeWidth="2.5" fill="none"/>
+              </svg>
+            </div>
 
           </div>
         </div>
 
-        {/* FORMULARIO EXACTO */}
+        {/* FORMULARIO */}
         <div className="space-y-4">
 
           <div className="grid grid-cols-2 gap-4">
