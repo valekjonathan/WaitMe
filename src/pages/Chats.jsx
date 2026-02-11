@@ -3,7 +3,7 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, Navigation } from 'lucide-react';
+import { Search, X, Navigation, TrendingUp, TrendingDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +14,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
+import { getDemoState, isDemoMode, subscribeToDemoFlow } from '@/components/DemoFlowManager';
 
 // ======================
 // Helpers
@@ -63,8 +64,94 @@ const getChatStatusLabel = (status) => {
 
 const isFinalChatStatus = (status) => {
   const s = String(status || '').toLowerCase();
-  return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
+  return ['completed', 'completada', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
+
+// ====== Estilos sincronizados (CHATS / CHAT / NOTIFICACIONES) ======
+const PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
+const PURPLE_ACTIVE_TEXT = 'text-purple-400';
+const PURPLE_ACTIVE_TEXT_DIM = 'text-purple-400/70';
+
+const normalizeStatus = (status) => String(status || '').trim().toLowerCase();
+
+const isStatusMeLoPienso = (status) => {
+  const s = normalizeStatus(status);
+  return s === 'thinking' || s === 'me_lo_pienso' || s === 'me lo pienso' || s === 'pending';
+};
+
+const isStatusProrrogada = (status) => {
+  const s = normalizeStatus(status);
+  return s === 'extended' || s === 'prorroga' || s === 'prórroga' || s === 'prorrogada';
+};
+
+const isStatusCancelada = (status) => {
+  const s = normalizeStatus(status);
+  return s === 'cancelled' || s === 'canceled' || s === 'cancelada';
+};
+
+const isStatusCompletada = (status) => {
+  const s = normalizeStatus(status);
+  return s === 'completed' || s === 'completada';
+};
+
+const getRoleBoxClasses = ({ status, isSeller, isBuyer }) => {
+  // Caja izquierda: "Te reservo:" (vendes/ganas) o "Reservaste a:" (compras/pagas)
+  const base =
+    'border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate';
+
+  // COMPLETADAS / CANCELADAS => rojo (ambas)
+  if (isStatusCompletada(status) || isStatusCancelada(status)) {
+    return `${base} bg-red-500/20 text-red-300 border-red-400/50`;
+  }
+
+  // ME LO PIENSO / PRORROGADA => seller verde, buyer morado
+  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) {
+    if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
+    if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
+  }
+
+  // Por defecto: seller verde (ganas) / buyer morado (pagas) / otros rojo suave
+  if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
+  if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
+  return `${base} bg-red-500/20 text-red-400 border-red-500/30`;
+};
+
+const PricePill = ({ direction = 'up', amount = 0 }) => {
+  const isUp = direction === 'up';
+  const wrapCls = isUp ? 'bg-green-500/15 border border-green-400/40' : 'bg-red-500/15 border border-red-400/40';
+  const textCls = isUp ? 'text-green-400' : 'text-red-400';
+  return (
+    <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
+      {isUp ? <TrendingUpIcon className={`w-4 h-4 ${textCls}`} /> : <TrendingDownIcon className={`w-4 h-4 ${textCls}`} />}
+      <span className={`font-bold text-sm ${textCls}`}>{Math.floor(amount || 0)}€</span>
+    </div>
+  );
+};
+
+// Íconos (SVG) para mantener este archivo autocontenido sin tocar imports
+const TrendingUpIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+);
+
+const TrendingDownIcon = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+    <polyline points="17 18 23 18 23 12" />
+  </svg>
+);
+
+const shouldEnableIR = ({ status, isSeller, isFinal }) => {
+  if (isFinal) return false;
+  if (isSeller) return false;
+  // En ME LO PIENSO / PRORROGA el botón debe estar encendido (comprador)
+  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) return true;
+  // En el resto de estados no finales, también lo dejamos activo (comprador)
+  return true;
+};
+
 
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
@@ -90,6 +177,27 @@ const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
   return { lat, lon };
 };
 
+const PriceChip = ({ amount, direction }) => {
+  const n = Number(amount || 0);
+  const amountText = `${Math.floor(Math.abs(n))}€`;
+  const isGreen = direction === 'up';
+  const isRed = direction === 'down';
+  const wrapCls = isGreen
+    ? 'bg-green-500/20 border border-green-500/30'
+    : isRed
+    ? 'bg-red-500/20 border border-red-500/30'
+    : 'bg-purple-600/20 border border-purple-500/30';
+  const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-purple-300';
+  return (
+    <div className={`${wrapCls} rounded-lg px-3 py-0.5 flex items-center gap-1 h-7`}>
+      {isGreen ? <TrendingUp className={`w-4 h-4 ${textCls}`} /> : null}
+      {isRed ? <TrendingDown className={`w-4 h-4 ${textCls}`} /> : null}
+      <span className={`font-bold text-xs ${textCls}`}>{amountText}</span>
+    </div>
+  );
+};
+
+
 export default function Chats() {
   const navigate = useNavigate();
 
@@ -97,6 +205,15 @@ export default function Chats() {
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
+
+  const [demoTick, setDemoTick] = useState(0);
+  const demoEnabled = isDemoMode();
+
+  useEffect(() => {
+    if (!demoEnabled) return;
+    const unsub = subscribeToDemoFlow(() => setDemoTick((t) => t + 1));
+    return () => unsub?.();
+  }, [demoEnabled]);
 
   const demoMode = useMemo(() => {
     try {
@@ -129,6 +246,8 @@ export default function Chats() {
         setUser(currentUser);
       } catch (error) {
         console.log('Error:', error);
+        // En demo, si no hay sesión, usamos un usuario local para que todo funcione
+        setUser({ id: 'me', display_name: 'Tú', photo_url: null });
       }
     };
     fetchUser();
@@ -147,137 +266,19 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
-      const allConversations = demoMode ? [] : await base44.entities.Conversation.list('-last_message_at', 50);
+      // DEMO: estado único compartido (CHATS / CHAT / NOTIFICACIONES)
+      if (demoEnabled || demoMode) {
+        const st = getDemoState();
+        const list = st?.conversations || [];
+        return [...list].sort(
+          (a, b) =>
+            new Date(b.last_message_at || b.updated_date || b.created_date) -
+            new Date(a.last_message_at || a.updated_date || a.created_date)
+        );
+      }
 
-      const mockConversations = [
-        {
-          id: 'mock_reservaste_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_sofia',
-          participant2_name: 'Sofía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_reservaste_1',
-          last_message_text: 'Perfecto, voy llegando',
-          last_message_at: new Date(Date.now() - 1 * 60000).toISOString(),
-          unread_count_p1: 2,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_te_reservo_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_marco',
-          participant2_name: 'Marco',
-          participant2_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_1',
-          last_message_text: '¿Sigues ahí?',
-          last_message_at: new Date(Date.now() - 2 * 60000).toISOString(),
-          unread_count_p1: 3,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        },
-        {
-          id: 'mock_reservaste_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_laura',
-          participant2_name: 'Laura',
-          participant2_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          alert_id: 'alert_reservaste_2',
-          last_message_text: 'Genial, aguanto',
-          last_message_at: new Date(Date.now() - 10 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_te_reservo_2',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_carlos',
-          participant2_name: 'Carlos',
-          participant2_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          alert_id: 'alert_te_reservo_2',
-          last_message_text: 'Estoy cerca',
-          last_message_at: new Date(Date.now() - 15 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        },
-        {
-          id: 'mock_completada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_ana',
-          participant2_name: 'Ana',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
-          alert_id: 'alert_completada_1',
-          last_message_text: 'Operación completada ✅',
-          last_message_at: new Date(Date.now() - 22 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_pensar_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_lucia',
-          participant2_name: 'Lucía',
-          participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          alert_id: 'alert_pensar_1',
-          last_message_text: null,
-          last_message_at: new Date(Date.now() - 35 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_rechazada_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'seller_pablo',
-          participant2_name: 'Pablo',
-          participant2_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-          alert_id: 'alert_rechazada_1',
-          last_message_text: 'Rechazada ❌',
-          last_message_at: new Date(Date.now() - 48 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'buyer'
-        },
-        {
-          id: 'mock_prorroga_1',
-          participant1_id: user?.id || 'user1',
-          participant1_name: 'Tu',
-          participant1_photo: user?.photo_url,
-          participant2_id: 'buyer_dani',
-          participant2_name: 'Dani',
-          participant2_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
-          alert_id: 'alert_prorroga_1',
-          last_message_text: 'Prórroga aceptada ⏱️',
-          last_message_at: new Date(Date.now() - 60 * 60000).toISOString(),
-          unread_count_p1: 0,
-          unread_count_p2: 0,
-          reservation_type: 'seller'
-        }
-      ];
-
-      const combined = [...mockConversations, ...allConversations];
-      return combined.sort(
-        (a, b) =>
-          new Date(b.last_message_at || b.updated_date || b.created_date) -
-          new Date(a.last_message_at || a.updated_date || a.created_date)
-      );
+      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
+      return allConversations || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
@@ -292,196 +293,10 @@ export default function Chats() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
-      const now = Date.now();
-      const inMin = (m) => now + m * 60 * 1000;
-
-      const mockAlerts = [
-        {
-          id: 'alert_reservaste_1',
-          user_id: 'seller_sofia',
-          user_name: 'Sofía',
-          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          car_brand: 'Renault',
-          car_model: 'Clio',
-          car_plate: '7733 MNP',
-          car_color: 'rojo',
-          price: 6,
-          address: 'Calle Uría, 33, Oviedo',
-          latitude: 43.362776,
-          longitude: -5.84589,
-          allow_phone_calls: true,
-          phone: '+34677889900',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          reserved_by_latitude: 43.35954,
-          reserved_by_longitude: -5.85234,
-          target_time: inMin(10),
-          status: 'reserved',
-          created_date: new Date(now - 1 * 60000).toISOString()
-        },
-        {
-          id: 'alert_te_reservo_1',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          car_color: 'azul',
-          price: 4,
-          address: 'Calle Campoamor, 15, Oviedo',
-          latitude: 43.357815,
-          longitude: -5.84979,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          reserved_by_id: 'buyer_marco',
-          reserved_by_name: 'Marco',
-          reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-          reserved_by_latitude: 43.36621,
-          reserved_by_longitude: -5.84312,
-          target_time: inMin(10),
-          status: 'reserved',
-          created_date: new Date(now - 2 * 60000).toISOString()
-        },
-        {
-          id: 'alert_reservaste_2',
-          user_id: 'seller_laura',
-          user_name: 'Laura',
-          user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-          car_brand: 'Opel',
-          car_model: 'Corsa',
-          car_plate: '9812 GHJ',
-          car_color: 'blanco',
-          price: 4,
-          address: 'Paseo de la Castellana, 42, Madrid',
-          latitude: 40.464667,
-          longitude: -3.632623,
-          allow_phone_calls: true,
-          phone: '+34612345678',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          reserved_by_latitude: 40.45811,
-          reserved_by_longitude: -3.68843,
-          target_time: inMin(10),
-          status: 'reserved',
-          created_date: new Date(now - 10 * 60000).toISOString()
-        },
-        {
-          id: 'alert_te_reservo_2',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Toyota',
-          car_model: 'Yaris',
-          car_plate: '5678 DEF',
-          car_color: 'gris',
-          price: 5,
-          address: 'Avenida del Paseo, 25, Madrid',
-          latitude: 40.456775,
-          longitude: -3.68879,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          reserved_by_id: 'buyer_carlos',
-          reserved_by_name: 'Carlos',
-          reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-          reserved_by_latitude: 40.47002,
-          reserved_by_longitude: -3.67812,
-          target_time: inMin(10),
-          status: 'reserved',
-          created_date: new Date(now - 15 * 60000).toISOString()
-        },
-        {
-          id: 'alert_completada_1',
-          user_id: 'seller_ana',
-          user_name: 'Ana',
-          user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
-          car_brand: 'Peugeot',
-          car_model: '208',
-          car_plate: '4455 KLM',
-          car_color: 'negro',
-          price: 3,
-          address: 'Calle Jovellanos, 8, Oviedo',
-          latitude: 43.36321,
-          longitude: -5.84511,
-          allow_phone_calls: false,
-          phone: null,
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          reserved_by_latitude: 43.3621,
-          reserved_by_longitude: -5.8482,
-          status: 'completed',
-          created_date: new Date(now - 22 * 60000).toISOString()
-        },
-        {
-          id: 'alert_pensar_1',
-          user_id: 'seller_lucia',
-          user_name: 'Lucía',
-          user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-          car_brand: 'Volkswagen',
-          car_model: 'Polo',
-          car_plate: '9988 QRS',
-          car_color: 'gris',
-          price: 5,
-          address: 'Calle San Francisco, 12, Oviedo',
-          latitude: 43.36191,
-          longitude: -5.84672,
-          allow_phone_calls: true,
-          phone: '+34600111222',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          reserved_by_latitude: 43.3598,
-          reserved_by_longitude: -5.8491,
-          status: 'thinking',
-          created_date: new Date(now - 35 * 60000).toISOString()
-        },
-        {
-          id: 'alert_rechazada_1',
-          user_id: 'seller_pablo',
-          user_name: 'Pablo',
-          user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
-          car_brand: 'Ford',
-          car_model: 'Fiesta',
-          car_plate: '1100 TUV',
-          car_color: 'blanco',
-          price: 4,
-          address: 'Calle Rosal, 3, Oviedo',
-          latitude: 43.36402,
-          longitude: -5.8442,
-          allow_phone_calls: true,
-          phone: '+34600999888',
-          reserved_by_id: user?.id,
-          reserved_by_name: 'Tu',
-          reserved_by_latitude: 43.3632,
-          reserved_by_longitude: -5.8479,
-          status: 'rejected',
-          created_date: new Date(now - 48 * 60000).toISOString()
-        },
-        {
-          id: 'alert_prorroga_1',
-          user_id: user?.id,
-          user_name: 'Tu',
-          user_photo: user?.photo_url,
-          car_brand: 'Seat',
-          car_model: 'Ibiza',
-          car_plate: '1234 ABC',
-          car_color: 'azul',
-          price: 7,
-          address: 'Calle Pelayo, 19, Oviedo',
-          latitude: 43.35992,
-          longitude: -5.8504,
-          allow_phone_calls: true,
-          phone: user?.phone,
-          reserved_by_id: 'buyer_dani',
-          reserved_by_name: 'Dani',
-          reserved_by_photo: 'https://randomuser.me/api/portraits/men/75.jpg',
-          reserved_by_latitude: 43.3665,
-          reserved_by_longitude: -5.8439,
-          status: 'extended',
-          created_date: new Date(now - 60 * 60000).toISOString()
-        }
-      ];
-
-      if (!user?.id) return mockAlerts;
+      if (demoEnabled || demoMode) {
+        const st = getDemoState();
+        return st?.alerts || [];
+      }
 
       let realAlerts = [];
       try {
@@ -490,7 +305,7 @@ export default function Chats() {
         console.log('Error cargando alertas:', e);
       }
 
-      return [...mockAlerts, ...realAlerts];
+      return realAlerts || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
@@ -728,6 +543,8 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
+            
+
 
       if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
         openExpiredDialog(alert, isBuyer);
@@ -771,7 +588,7 @@ export default function Chats() {
             const hasUnread = (unreadCount || 0) > 0;
 
             const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.reserved_by_id && !isBuyer;
+            const isSeller = alert?.user_id === user?.id && !!alert?.reserved_by_id;
 
             const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
             let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
@@ -797,15 +614,18 @@ export default function Chats() {
             const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
             const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
-            const finalLabel = getChatStatusLabel(alert?.status);
-            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
-            const statusBoxText = isFinal ? finalLabel : countdownText;
+            const statusLabel = getChatStatusLabel(alert?.status);
+// Si no es activa, el botón debe mostrar el estado (CANCELADA / ME LO PIENSO / PRÓRROGA / COMPLETADA, etc.)
+const isFinal = isFinalChatStatus(alert?.status) && !!statusLabel;
+const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
+const statusBoxText = statusLabel || countdownText;
 
             const navigateToChat = () => {
-              const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName || '');
-              const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto || '');
+              const name = encodeURIComponent(otherUserName || '');
+              const photo = encodeURIComponent(otherUserPhoto || '');
               const demo = demoMode ? 'demo=true&' : '';
-              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
+              const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
+              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
             };
 
             return (
@@ -819,22 +639,16 @@ export default function Chats() {
                   className={`bg-gradient-to-br ${
                     hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
                   } rounded-xl p-2.5 transition-all border-2 ${
-                    hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'
+                    hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'
                   }`}
                 >
                   <div className="flex flex-col h-full">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
-                          className={`${
-                            isSeller
-                              ? 'bg-green-500/20 text-green-300 border-green-400/50'
-                              : hasUnread
-                                ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-                                : 'bg-red-500/20 text-red-400 border-red-500/30'
-                          } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
+                          className={getRoleBoxClasses({ status: alert?.status, isSeller, isBuyer })}
                         >
-                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
+                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservo:' : 'Info usuario'}
                         </Badge>
                       </div>
                       <div className="flex-1"></div>
@@ -842,9 +656,7 @@ export default function Chats() {
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
                       </div>
-                      <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-                        <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price || 0)}€</span>
-                      </div>
+                      <PricePill direction={isSeller ? 'up' : 'down'} amount={alert?.price} />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -858,8 +670,8 @@ export default function Chats() {
 
                     <div className="border-t border-gray-700/80 mb-1.5 pt-2">
                       <MarcoCard
-                        photoUrl={isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto}
-                        name={isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName}
+                        photoUrl={otherUserPhoto}
+                        name={otherUserName}
                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
                         plate={alert.car_plate}
                         carColor={alert.car_color || 'gris'}
@@ -890,9 +702,9 @@ export default function Chats() {
                       {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={isSeller || isFinal}
+                            disabled={!canIR}
                             className={`w-full border-2 ${
-                              !isSeller && !isFinal ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
+                              canIR ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
@@ -915,7 +727,7 @@ export default function Chats() {
                       onClick={navigateToChat}
                     >
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
+                        <p className={`text-xs font-bold ${hasUnread ? PURPLE_ACTIVE_TEXT : PURPLE_ACTIVE_TEXT_DIM}`}>
                           Últimos mensajes:
                         </p>
                         {unreadCount > 0 && (

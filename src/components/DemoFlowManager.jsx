@@ -89,80 +89,181 @@ const demoState = {
       { id: 'm12', mine: true, senderName: 'Tú', text: 'Ok, estoy en el Seat azul', ts: Date.now() - 880000 }
     ]
   },
-  notifications: [
+  alerts: [
+    // ALERTAS (fuente única para CHATS / CHAT / NOTIFICACIONES en modo demo)
     {
-      id: 'n1',
-      type: 'reservation_request',
-      user: 'Marco',
-      conversationId: 'conv_marco',
-      read: false,
-      createdAt: Date.now() - 180000
+      id: 'alert_reservaste_1',
+      user_id: 'sofia',
+      user_name: 'Sofía',
+      user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+      car_brand: 'Renault',
+      car_model: 'Clio',
+      car_plate: '7733 MNP',
+      car_color: 'rojo',
+      price: 6,
+      address: 'Calle Uría, 33, Oviedo',
+      latitude: 43.362776,
+      longitude: -5.84589,
+      allow_phone_calls: true,
+      phone: '+34677889900',
+      reserved_by_id: 'me',
+      reserved_by_name: 'Tú',
+      reserved_by_photo: null,
+      reserved_by_latitude: 43.35954,
+      reserved_by_longitude: -5.85234,
+      target_time: Date.now() + 10 * 60 * 1000,
+      status: 'reserved'
     },
     {
-      id: 'n2',
-      type: 'payment_completed',
-      user: 'Sofía',
-      conversationId: 'conv_sofia',
-      read: false,
-      createdAt: Date.now() - 150000
+      id: 'alert_te_reservo_1',
+      user_id: 'me',
+      user_name: 'Tú',
+      user_photo: null,
+      car_brand: 'Seat',
+      car_model: 'Ibiza',
+      car_plate: '1234 ABC',
+      car_color: 'azul',
+      price: 4,
+      address: 'Calle Campoamor, 15, Oviedo',
+      latitude: 43.357815,
+      longitude: -5.84979,
+      allow_phone_calls: true,
+      phone: null,
+      reserved_by_id: 'marco',
+      reserved_by_name: 'Marco',
+      reserved_by_photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      reserved_by_latitude: 43.36621,
+      reserved_by_longitude: -5.84312,
+      target_time: Date.now() + 10 * 60 * 1000,
+      status: 'reserved'
+    },
+    {
+      id: 'alert_reservaste_2',
+      user_id: 'laura',
+      user_name: 'Laura',
+      user_photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      car_brand: 'Opel',
+      car_model: 'Corsa',
+      car_plate: '9812 GHJ',
+      car_color: 'blanco',
+      price: 4,
+      address: 'Calle San Francisco, 12, Oviedo',
+      latitude: 43.36191,
+      longitude: -5.84672,
+      allow_phone_calls: true,
+      phone: '+34612345678',
+      reserved_by_id: 'me',
+      reserved_by_name: 'Tú',
+      reserved_by_photo: null,
+      reserved_by_latitude: 43.3598,
+      reserved_by_longitude: -5.8491,
+      target_time: Date.now() + 10 * 60 * 1000,
+      status: 'thinking'
+    },
+    {
+      id: 'alert_te_reservo_2',
+      user_id: 'me',
+      user_name: 'Tú',
+      user_photo: null,
+      car_brand: 'Toyota',
+      car_model: 'Yaris',
+      car_plate: '5678 DEF',
+      car_color: 'gris',
+      price: 5,
+      address: 'Calle Pelayo, 19, Oviedo',
+      latitude: 43.35992,
+      longitude: -5.8504,
+      allow_phone_calls: true,
+      phone: null,
+      reserved_by_id: 'carlos',
+      reserved_by_name: 'Carlos',
+      reserved_by_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+      reserved_by_latitude: 43.3665,
+      reserved_by_longitude: -5.8439,
+      target_time: Date.now() + 10 * 60 * 1000,
+      status: 'extended'
+    },
+    {
+      id: 'alert_completada_1',
+      user_id: 'ana',
+      user_name: 'Ana',
+      user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
+      car_brand: 'Peugeot',
+      car_model: '208',
+      car_plate: '4455 KLM',
+      car_color: 'negro',
+      price: 3,
+      address: 'Calle Jovellanos, 8, Oviedo',
+      latitude: 43.36321,
+      longitude: -5.84511,
+      allow_phone_calls: false,
+      phone: null,
+      reserved_by_id: 'me',
+      reserved_by_name: 'Tú',
+      reserved_by_photo: null,
+      reserved_by_latitude: 43.3621,
+      reserved_by_longitude: -5.8482,
+      target_time: Date.now() - 5 * 60 * 1000,
+      status: 'completed'
+    },
+    {
+      id: 'alert_cancelada_1',
+      user_id: 'pablo',
+      user_name: 'Pablo',
+      user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+      car_brand: 'Ford',
+      car_model: 'Fiesta',
+      car_plate: '1100 TUV',
+      car_color: 'blanco',
+      price: 4,
+      address: 'Calle Rosal, 3, Oviedo',
+      latitude: 43.36402,
+      longitude: -5.8442,
+      allow_phone_calls: true,
+      phone: '+34600999888',
+      reserved_by_id: 'me',
+      reserved_by_name: 'Tú',
+      reserved_by_photo: null,
+      reserved_by_latitude: 43.3632,
+      reserved_by_longitude: -5.8479,
+      target_time: Date.now() - 2 * 60 * 1000,
+      status: 'cancelled'
     }
-  ]
-};
+  ],
 
-function emit() {
-  listeners.forEach((fn) => {
-    try { fn(); } catch {}
-  });
-}
-
-function genId(prefix) {
-  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-}
-
-// ====== EXPORTS QUE BASE44/tu app ESTÁ PIDIENDO ======
-export function demoFlow() {
-  return demoState;
-}
-
-export function startDemoFlow() {
-  if (started) return;
-  started = true;
-  // Estado demo ya precargado. Emit inicial por si alguien se suscribe después.
-  emit();
-}
-
-export function subscribeDemoFlow(cb) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-
-export function getDemoState() {
-  return demoState;
-}
-
-export function getDemoConversation(conversationId) {
-  return demoState.conversations.find((c) => c.id === conversationId) || null;
-}
-
-export function getDemoMessages(conversationId) {
-  return demoState.messages[conversationId] || [];
-}
-
-export function getDemoNotifications() {
-  return demoState.notifications;
-}
-
-export function markDemoRead(notificationId) {
-  const n = demoState.notifications.find((x) => x.id === notificationId);
-  if (n) n.read = true;
-  emit();
-}
-
-/**
- * La pantalla Chat llama a esto al enviar un mensaje.
- * Debe añadirlo al hilo y refrescar la UI.
- */
-export function sendDemoMessage(conversationId, text, attachments = [], isMine = true) {
+  notifications: [
+    // NOTIFICACIONES sincronizadas con las alertas/conversaciones (modo demo)
+    {
+      id: 'noti_1',
+      type: 'status_update',
+      title: 'ME LO PIENSO',
+      text: 'Lucía se lo está pensando.',
+      conversationId: 'mock_reservaste_2',
+      alertId: 'alert_reservaste_2',
+      createdAt: Date.now() - 5 * 60 * 1000,
+      read: false
+    },
+    {
+      id: 'noti_2',
+      type: 'status_update',
+      title: 'PRÓRROGA',
+      text: 'Carlos ha pagado una prórroga.',
+      conversationId: 'mock_te_reservo_2',
+      alertId: 'alert_te_reservo_2',
+      createdAt: Date.now() - 12 * 60 * 1000,
+      read: false
+    },
+    {
+      id: 'noti_3',
+      type: 'status_update',
+      title: 'CANCELADA',
+      text: 'Pablo canceló la operación.',
+      conversationId: 'mock_rechazada_1',
+      alertId: 'alert_cancelada_1',
+      createdAt: Date.now() - 20 * 60 * 1000,
+      read: true
+    }
+  ], isMine = true) {
   const clean = String(text || '').trim();
   if (!conversationId || !clean) return;
 
@@ -225,4 +326,62 @@ export default function DemoFlowManager() {
   }, []);
 
   return null;
+}
+
+// ======================
+// Alerts helpers (modo demo) — fuente única para CHATS / CHAT / NOTIFICACIONES
+// ======================
+export function getDemoAlerts() {
+  return demoState.alerts || [];
+}
+
+export function getDemoAlertById(alertId) {
+  return (demoState.alerts || []).find((a) => a.id === alertId) || null;
+}
+
+export function setDemoAlertStatus(alertId, status) {
+  const idx = (demoState.alerts || []).findIndex((a) => a.id === alertId);
+  if (idx === -1) return null;
+  demoState.alerts[idx] = { ...demoState.alerts[idx], status };
+  notify();
+  return demoState.alerts[idx];
+}
+
+export function markDemoNotificationRead(notificationId) {
+  const idx = (demoState.notifications || []).findIndex((n) => n.id === notificationId);
+  if (idx === -1) return;
+  demoState.notifications[idx] = { ...demoState.notifications[idx], read: true };
+  notify();
+}
+
+// Acción unificada para sincronizar estados desde cualquier pantalla
+export function applyDemoAction({ conversationId, alertId, action }) {
+  // action: 'thinking' | 'extended' | 'cancelled' | 'completed' | 'reserved'
+  if (alertId) setDemoAlertStatus(alertId, action);
+
+  const titleMap = {
+    thinking: 'ME LO PIENSO',
+    extended: 'PRÓRROGA',
+    cancelled: 'CANCELADA',
+    completed: 'COMPLETADA',
+    reserved: 'ACTIVA'
+  };
+
+  const nId = `noti_${Date.now()}`;
+  demoState.notifications = [
+    {
+      id: nId,
+      type: 'status_update',
+      title: titleMap[action] || 'ACTUALIZACIÓN',
+      text: 'Estado actualizado.',
+      conversationId,
+      alertId,
+      createdAt: Date.now(),
+      read: false
+    },
+    ...(demoState.notifications || [])
+  ];
+
+  notify();
+  return nId;
 }
