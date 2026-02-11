@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   SISTEMA DEMO CENTRALIZADO - BLINDADO
+   DEMO STATE CENTRALIZADO
 ====================================================== */
 
 let started = false;
@@ -36,56 +36,13 @@ export function getDemoState() {
 }
 
 /* ======================================================
-   ESTADO DEMO
+   ESTADO
 ====================================================== */
 
 const demoState = {
-  conversations: [
-    {
-      id: 'mock_reservaste_1',
-      other_name: 'Sofía',
-      other_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-      alert_id: 'alert_reservaste_1',
-      last_message_text: 'Te espero aquí 😊',
-      last_message_at: Date.now()
-    }
-  ],
-
-  messages: {
-    mock_reservaste_1: [
-      {
-        id: 'm1',
-        mine: false,
-        senderName: 'Sofía',
-        senderPhoto: 'https://randomuser.me/api/portraits/women/68.jpg',
-        text: 'Hola! Ya estoy saliendo del parking',
-        ts: Date.now() - 60000
-      }
-    ]
-  },
-
-  alerts: [
-    {
-      id: 'alert_reservaste_1',
-      user_id: 'sofia',
-      user_name: 'Sofía',
-      user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
-      car_brand: 'Renault',
-      car_model: 'Clio',
-      car_plate: '7733 MNP',
-      car_color: 'rojo',
-      price: 6,
-      address: 'Calle Uría, 33, Oviedo',
-      latitude: 43.362776,
-      longitude: -5.84589,
-      allow_phone_calls: true,
-      phone: '+34677889900',
-      reserved_by_id: 'me',
-      target_time: Date.now() + 10 * 60 * 1000,
-      status: 'reserved'
-    }
-  ],
-
+  conversations: [],
+  messages: {},
+  alerts: [],
   notifications: []
 };
 
@@ -110,30 +67,18 @@ export function getDemoMessages(conversationId) {
 }
 
 export function sendDemoMessage({ conversationId, text, isMine = true }) {
-  const clean = String(text || '').trim();
-  if (!conversationId || !clean) return;
-
-  const conv = getDemoConversation(conversationId);
-
-  const msg = {
-    id: genId('msg'),
-    mine: isMine,
-    senderName: isMine ? 'Tú' : conv?.other_name || 'Usuario',
-    senderPhoto: isMine ? null : conv?.other_photo || null,
-    text: clean,
-    ts: Date.now()
-  };
+  if (!conversationId || !text) return;
 
   if (!demoState.messages[conversationId]) {
     demoState.messages[conversationId] = [];
   }
 
-  demoState.messages[conversationId].push(msg);
-
-  if (conv) {
-    conv.last_message_text = clean;
-    conv.last_message_at = msg.ts;
-  }
+  demoState.messages[conversationId].push({
+    id: genId('msg'),
+    mine: isMine,
+    text,
+    ts: Date.now()
+  });
 
   notify();
 }
@@ -153,7 +98,6 @@ export function getDemoAlertById(alertId) {
 export function setDemoAlertStatus(alertId, status) {
   const alert = getDemoAlertById(alertId);
   if (!alert) return null;
-
   alert.status = status;
   notify();
   return alert;
@@ -167,16 +111,16 @@ export function getDemoNotifications() {
   return demoState.notifications;
 }
 
-export function markDemoNotificationRead(notificationId) {
-  const noti = demoState.notifications.find(n => n.id === notificationId);
-  if (!noti) return;
-  noti.read = true;
-  notify();
-}
-
 export function addDemoNotification(notification) {
   if (!notification?.id) return;
   demoState.notifications.unshift(notification);
+  notify();
+}
+
+export function markDemoNotificationRead(notificationId) {
+  const n = demoState.notifications.find(n => n.id === notificationId);
+  if (!n) return;
+  n.read = true;
   notify();
 }
 
@@ -185,21 +129,21 @@ export function clearDemoNotifications() {
   notify();
 }
 
+export function markDemoRead(conversationId) {
+  notify();
+}
+
+/* ======================================================
+   ACCIONES
+====================================================== */
+
 export function applyDemoAction({ conversationId, alertId, action }) {
   if (alertId) setDemoAlertStatus(alertId, action);
-
-  const titleMap = {
-    thinking: 'ME LO PIENSO',
-    extended: 'PRÓRROGA',
-    cancelled: 'CANCELADA',
-    completed: 'COMPLETADA',
-    reserved: 'ACTIVA'
-  };
 
   demoState.notifications.unshift({
     id: genId('noti'),
     type: 'status_update',
-    title: titleMap[action] || 'ACTUALIZACIÓN',
+    title: action?.toUpperCase() || 'ACTUALIZACIÓN',
     text: 'Estado actualizado.',
     conversationId,
     alertId,
@@ -211,7 +155,7 @@ export function applyDemoAction({ conversationId, alertId, action }) {
 }
 
 /* ======================================================
-   FLAGS BASE44
+   FLAGS
 ====================================================== */
 
 export function isDemoMode() {
@@ -223,7 +167,7 @@ export function setDemoMode() {
 }
 
 /* ======================================================
-   EXPORT GLOBAL QUE BASE44 PUEDE PEDIR
+   EXPORT GLOBAL
 ====================================================== */
 
 export const demoFlow = {
@@ -236,7 +180,8 @@ export const demoFlow = {
   getAlertById: getDemoAlertById,
   getNotifications: getDemoNotifications,
   subscribe: subscribeToDemoFlow,
-  isDemoMode
+  isDemoMode,
+  markRead: markDemoRead
 };
 
 /* ======================================================
