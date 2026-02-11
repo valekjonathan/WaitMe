@@ -841,7 +841,6 @@ const isThinking = statusLabel === 'ME LO PIENSO';
 const isProrroga = statusLabel === 'PRÓRROGA';
 
 const isSeller = alert?.user_id === user?.id;
-const isBuyer = alert?.reserved_by_id === user?.id;
 
 const badgeCls = isCompletedOrCanceled
   ? 'bg-red-500/20 text-red-400 border-red-500/30'
