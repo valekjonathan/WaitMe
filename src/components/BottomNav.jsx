@@ -10,11 +10,23 @@ export default function BottomNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const currentPath = location.pathname;
 
-  // ✅ FIX REAL: tu "activo" no se veía porque a veces el path NO coincide exacto (mayúsculas/minúsculas / slash final)
-  const norm = (p) => (p || '').toLowerCase().replace(/\/+$/, '');
-  const isActive = (page) => norm(currentPath) === norm(createPageUrl(page));
+  // ✅ FIX: en Base44 a veces el path viene con hash / query / mayúsculas.
+  // Esto hace que el "activo" funcione SIEMPRE.
+  const norm = (p) =>
+    (p || '')
+      .toLowerCase()
+      .replace(/^#/, '')
+      .replace(/\?.*$/, '')
+      .replace(/\/+$/, '');
+
+  const current = norm(location.pathname || '') || norm(location.hash || '');
+
+  const isActive = (page) => {
+    const target = norm(createPageUrl(page));
+    // match exacto o terminación (por si Base44 mete prefijos)
+    return current === target || current.endsWith(target);
+  };
 
   const homeUrl = useMemo(() => createPageUrl('Home'), []);
 
@@ -32,6 +44,7 @@ export default function BottomNav() {
     enabled: !!user?.id
   });
 
+  // Base (sin hover blanco, sin sombras)
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] bg-transparent shadow-none outline-none border-none " +
@@ -39,8 +52,10 @@ export default function BottomNav() {
     "focus:bg-transparent focus:shadow-none focus:ring-0 active:bg-transparent " +
     "rounded-lg transition-colors";
 
-  // ✅ LO QUE ME PEDISTE: botón entero con fondo morado apagado tipo contador (sin sombra)
-  const activeStyle = "bg-purple-600/30";
+  // ✅ EXACTO lo que pides: “fondo como el botón del tiempo”
+  // (morado apagado + borde morado suave, sin sombras)
+  const activeStyle =
+    "bg-purple-700/30 border border-purple-500/40";
 
   const labelClass =
     "text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap";
