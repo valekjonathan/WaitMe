@@ -1,210 +1,147 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Bell, 
-  Check, 
-  X, 
-  Clock, 
-  MessageCircle, 
-  Navigation,
-  DollarSign,
-  AlertCircle,
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Bell,
   CheckCircle,
   XCircle,
-  Timer,
+  Clock,
   MapPin,
+  Timer,
   TrendingUp,
-  Car
-} from 'lucide-react';
-
-import {
-  startDemoFlow,
-  subscribeDemoFlow,
-  getDemoNotifications,
-  markDemoNotificationRead,
-  applyDemoAction,
-  ensureConversationForAlert,
-  ensureInitialWaitMeMessage
-} from '@/components/DemoFlowManager';
+  AlertCircle,
+  MessageCircle
+} from "lucide-react";
 
 export default function Notifications() {
   const navigate = useNavigate();
 
-  // 🔥 FORZAMOS DEMO SIEMPRE ACTIVA
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
-    return () => unsub?.();
-  }, []);
-
-  const notifications = useMemo(() => {
-    return getDemoNotifications() || [];
-  }, [tick]);
-
-  const openChat = (conversationId, otherName, otherPhoto, alertId) => {
-    const name = encodeURIComponent(otherName || '');
-    const photo = encodeURIComponent(otherPhoto || '');
-    const a = alertId ? `&alertId=${encodeURIComponent(alertId)}` : '';
-    navigate(createPageUrl(`Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}${a}&otherName=${name}&otherPhoto=${photo}`));
-  };
-
-  const onAction = ({ notification, action }) => {
-    const conv = ensureConversationForAlert(notification?.alertId, notification);
-    ensureInitialWaitMeMessage(conv?.id);
-
-    applyDemoAction({
-      conversationId: conv?.id,
-      alertId: notification?.alertId,
-      action
-    });
-
-    if (notification?.id) markDemoNotificationRead(notification.id);
-
-    openChat(conv?.id, conv?.other_name, conv?.other_photo, notification?.alertId);
-  };
-
-  const goToNavigate = (alertId) => {
-    navigate(createPageUrl(`Navigate?alertId=${alertId}`));
-  };
-
-  const getNotificationIcon = (type) => {
-    switch(type) {
-      case 'incoming_waitme': return <Car className="w-5 h-5" />;
-      case 'reservation_accepted': return <CheckCircle className="w-5 h-5" />;
-      case 'reservation_rejected': return <XCircle className="w-5 h-5" />;
-      case 'status_update': return <Clock className="w-5 h-5" />;
-      case 'buyer_nearby': return <MapPin className="w-5 h-5" />;
-      case 'prorroga_request': return <Timer className="w-5 h-5" />;
-      case 'payment_completed': return <TrendingUp className="w-5 h-5" />;
-      case 'time_expired': return <AlertCircle className="w-5 h-5" />;
-      case 'cancellation': return <XCircle className="w-5 h-5" />;
-      default: return <Bell className="w-5 h-5" />;
+  const notifications = [
+    {
+      id: 1,
+      type: "incoming_waitme",
+      title: "WAITME ENTRANTE",
+      text: "Sofía te ha enviado un WaitMe.",
+      fromName: "Sofía"
+    },
+    {
+      id: 2,
+      type: "reservation_accepted",
+      title: "RESERVA ACEPTADA",
+      text: "Marco ha aceptado tu reserva.",
+      fromName: "Marco"
+    },
+    {
+      id: 3,
+      type: "reservation_rejected",
+      title: "RESERVA RECHAZADA",
+      text: "Laura rechazó tu solicitud.",
+      fromName: "Laura"
+    },
+    {
+      id: 4,
+      type: "buyer_nearby",
+      title: "COMPRADOR CERCA",
+      text: "El comprador está llegando.",
+      fromName: "Carlos"
+    },
+    {
+      id: 5,
+      type: "prorroga_request",
+      title: "PRÓRROGA SOLICITADA",
+      text: "Te piden +1€ por 5 minutos extra.",
+      fromName: "Elena"
+    },
+    {
+      id: 6,
+      type: "payment_completed",
+      title: "PAGO COMPLETADO",
+      text: "Has recibido 3€ correctamente.",
+      fromName: "Sistema"
+    },
+    {
+      id: 7,
+      type: "time_expired",
+      title: "TIEMPO AGOTADO",
+      text: "La operación expiró.",
+      fromName: "Sistema"
+    },
+    {
+      id: 8,
+      type: "cancellation",
+      title: "CANCELACIÓN",
+      text: "Alguien canceló la operación.",
+      fromName: "Sistema"
     }
-  };
+  ];
 
-  const getNotificationColor = (type) => {
-    switch(type) {
-      case 'incoming_waitme': return 'text-purple-400';
-      case 'reservation_accepted': return 'text-green-400';
-      case 'reservation_rejected': return 'text-red-400';
-      case 'status_update': return 'text-yellow-400';
-      case 'buyer_nearby': return 'text-blue-400';
-      case 'prorroga_request': return 'text-orange-400';
-      case 'payment_completed': return 'text-green-400';
-      case 'time_expired': return 'text-red-400';
-      case 'cancellation': return 'text-gray-400';
-      default: return 'text-purple-400';
-    }
+  const iconMap = {
+    incoming_waitme: <Bell className="w-5 h-5 text-purple-400" />,
+    reservation_accepted: <CheckCircle className="w-5 h-5 text-green-400" />,
+    reservation_rejected: <XCircle className="w-5 h-5 text-red-400" />,
+    buyer_nearby: <MapPin className="w-5 h-5 text-blue-400" />,
+    prorroga_request: <Timer className="w-5 h-5 text-orange-400" />,
+    payment_completed: <TrendingUp className="w-5 h-5 text-green-400" />,
+    time_expired: <AlertCircle className="w-5 h-5 text-red-400" />,
+    cancellation: <XCircle className="w-5 h-5 text-gray-400" />
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Notificaciones" showBackButton={true} backTo="Home" />
+      <Header title="Notificaciones" showBackButton backTo="Home" />
 
-      <main className="pt-[60px] pb-24">
+      <main className="pt-[60px] pb-24 px-4 space-y-4">
 
-        <div className="px-4 pt-3 pb-2 border-b border-gray-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-purple-400" />
-              <p className="text-sm text-gray-300">
-                {notifications.filter(n => !n.read).length} sin leer
-              </p>
+        {notifications.map((n) => (
+          <div
+            key={n.id}
+            className="rounded-xl border-2 border-purple-500/40 bg-gradient-to-br from-gray-800 to-gray-900 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-purple-500/20">
+                {iconMap[n.type]}
+              </div>
+
+              <div className="flex-1">
+                <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 text-xs font-bold mb-2">
+                  {n.title}
+                </Badge>
+
+                <p className="text-sm font-medium">{n.text}</p>
+
+                <p className="text-xs text-gray-400 mt-1">
+                  De: <span className="text-purple-300">{n.fromName}</span>
+                </p>
+              </div>
             </div>
-            {notifications.length > 0 && (
+
+            <div className="mt-4 flex gap-2">
               <Button
-                variant="ghost"
                 size="sm"
-                className="text-purple-400 hover:text-purple-300"
-                onClick={() => {
-                  notifications.forEach(n => {
-                    if (n?.id) markDemoNotificationRead(n.id);
-                  });
-                }}
+                className="flex-1"
+                onClick={() =>
+                  navigate(createPageUrl("Chats"))
+                }
               >
-                Marcar todas como leídas
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Ver chat
               </Button>
-            )}
-          </div>
-        </div>
 
-        <div className="px-4 space-y-3 pt-4">
-          {notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <Bell className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-              <p className="text-gray-400 text-sm">No hay notificaciones</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 border-gray-600"
+              >
+                Acción
+              </Button>
             </div>
-          ) : (
-            notifications.map((n) => {
-              const isUnread = !n?.read;
-              const type = n?.type || 'status_update';
+          </div>
+        ))}
 
-              return (
-                <div
-                  key={n.id}
-                  className={`rounded-xl border-2 p-4 transition-all ${
-                    isUnread 
-                      ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-purple-400/70 shadow-lg' 
-                      : 'bg-gradient-to-br from-gray-900/50 to-gray-900/50 border-gray-700'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-full ${isUnread ? 'bg-purple-500/20' : 'bg-gray-800'}`}>
-                      <div className={getNotificationColor(type)}>
-                        {getNotificationIcon(type)}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
-                          {n.title || 'NOTIFICACIÓN'}
-                        </Badge>
-                        {isUnread && (
-                          <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
-                        )}
-                      </div>
-
-                      <p className="text-sm text-white font-medium break-words">
-                        {n.text || '—'}
-                      </p>
-
-                      {n.fromName && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          De: <span className="text-purple-300 font-semibold">{n.fromName}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full border-gray-600"
-                      onClick={() => {
-                        if (n?.id) markDemoNotificationRead(n.id);
-                        if (n?.conversationId) {
-                          openChat(n.conversationId, n.otherName, n.otherPhoto, n.alertId);
-                        }
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Ver chat
-                    </Button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
       </main>
 
       <BottomNav />
