@@ -2,7 +2,12 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO – ESTABLE Y COMPLETO
+   DEMO CENTRAL ÚNICO
+   Fuente única para:
+   - Chats
+   - Chat
+   - Notificaciones
+   - Alertas
 ====================================================== */
 
 let started = false;
@@ -25,8 +30,8 @@ function normalizeStatus(s) {
 
 function statusToTitle(status) {
   const s = normalizeStatus(status);
-  if (s === 'thinking') return 'ME LO PIENSO';
-  if (s === 'extended') return 'PRÓRROGA';
+  if (s === 'thinking' || s === 'me_lo_pienso') return 'ME LO PIENSO';
+  if (s === 'extended' || s === 'prorroga') return 'PRÓRROGA';
   if (s === 'cancelled') return 'CANCELADA';
   if (s === 'completed') return 'COMPLETADA';
   if (s === 'reserved') return 'ACTIVA';
@@ -34,7 +39,7 @@ function statusToTitle(status) {
 }
 
 /* ======================================================
-   ESTADO GLOBAL
+   ESTADO GLOBAL DEMO
 ====================================================== */
 
 const demoFlow = {
@@ -46,11 +51,15 @@ const demoFlow = {
 };
 
 /* ======================================================
-   HELPERS
+   HELPERS INTERNOS
 ====================================================== */
 
 function getConversation(id) {
   return demoFlow.conversations.find(c => c.id === id) || null;
+}
+
+function getAlert(id) {
+  return demoFlow.alerts.find(a => a.id === id) || null;
 }
 
 /* ======================================================
@@ -75,6 +84,7 @@ export function subscribeDemoFlow(cb) {
   return () => listeners.delete(cb);
 }
 
+// Alias compatibilidad
 export function subscribeToDemoFlow(cb) {
   return subscribeDemoFlow(cb);
 }
@@ -91,6 +101,7 @@ export function getDemoConversation(conversationId) {
   return getConversation(conversationId);
 }
 
+// Alias alternativo
 export function getDemoConversationById(conversationId) {
   return getConversation(conversationId);
 }
@@ -127,21 +138,17 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
   notify();
 }
 
-/* ======================================================
-   ALERTS
-====================================================== */
+/* ================= ALERTS ================= */
 
 export function getDemoAlerts() {
   return demoFlow.alerts;
 }
 
 export function getDemoAlertById(alertId) {
-  return demoFlow.alerts.find(a => a.id === alertId) || null;
+  return getAlert(alertId);
 }
 
-/* ======================================================
-   NOTIFICATIONS
-====================================================== */
+/* ================= NOTIFICATIONS ================= */
 
 export function getDemoNotifications() {
   return demoFlow.notifications;
@@ -151,6 +158,11 @@ export function markDemoRead(notificationId) {
   const n = demoFlow.notifications.find(n => n.id === notificationId);
   if (n) n.read = true;
   notify();
+}
+
+// 🔥 ESTE ES EL QUE TE ESTABA FALTANDO
+export function markDemoNotificationRead(notificationId) {
+  return markDemoRead(notificationId);
 }
 
 export function markAllDemoRead() {
@@ -176,20 +188,18 @@ export function addDemoNotification(notification) {
 }
 
 /* ======================================================
-   CREACIÓN DE CONVERSACIÓN DESDE ALERTA
+   CONVERSATION CREATOR
 ====================================================== */
 
 export function ensureConversationForAlert(alertId) {
-  const alert = getDemoAlertById(alertId);
+  const alert = getAlert(alertId);
   if (!alert) return null;
 
   const existing = demoFlow.conversations.find(c => c.alert_id === alert.id);
   if (existing) return existing.id;
 
-  const conversationId = genId('conv');
-
   const conversation = {
-    id: conversationId,
+    id: genId('conv'),
     participant1_id: 'me',
     participant2_id: alert.user_id === 'me'
       ? alert.reserved_by_id
@@ -211,7 +221,7 @@ export function ensureConversationForAlert(alertId) {
 
   demoFlow.conversations.unshift(conversation);
 
-  demoFlow.messages[conversationId] = [{
+  demoFlow.messages[conversation.id] = [{
     id: genId('msg'),
     mine: false,
     senderName: conversation.participant2_name,
@@ -221,43 +231,7 @@ export function ensureConversationForAlert(alertId) {
   }];
 
   notify();
-  return conversationId;
-}
-
-// Alias extra por compatibilidad
-export function ensureConversationForAlertId(alertId) {
-  return ensureConversationForAlert(alertId);
-}
-
-// Mensaje inicial si no existe
-export function ensureInitialWaitMeMessage(conversationId) {
-  const conv = getConversation(conversationId);
-  if (!conv) return;
-
-  if (!demoFlow.messages[conversationId]) {
-    demoFlow.messages[conversationId] = [];
-  }
-
-  const exists = demoFlow.messages[conversationId].some(
-    m => m.text === 'Ey! te he enviado un WaitMe!'
-  );
-
-  if (exists) return;
-
-  const msg = {
-    id: genId('msg'),
-    mine: false,
-    senderName: conv.participant2_name,
-    senderPhoto: conv.participant2_photo,
-    text: 'Ey! te he enviado un WaitMe!',
-    ts: Date.now()
-  };
-
-  demoFlow.messages[conversationId].push(msg);
-  conv.last_message_text = msg.text;
-  conv.last_message_at = msg.ts;
-
-  notify();
+  return conversation.id;
 }
 
 /* ======================================================
@@ -265,7 +239,7 @@ export function ensureInitialWaitMeMessage(conversationId) {
 ====================================================== */
 
 export function applyDemoAction({ alertId, action }) {
-  const alert = getDemoAlertById(alertId);
+  const alert = getAlert(alertId);
   if (!alert) return null;
 
   const status = normalizeStatus(action);
@@ -287,12 +261,7 @@ export function applyDemoAction({ alertId, action }) {
 
   demoFlow.notifications.unshift(noti);
 
-  sendDemoMessage(
-    conversationId,
-    `Estado cambiado a ${title}`,
-    null,
-    false
-  );
+  sendDemoMessage(conversationId, `Estado cambiado a ${title}`, null, false);
 
   notify();
   return noti.id;
@@ -322,7 +291,6 @@ export default function DemoFlowManager() {
       title: 'Modo Demo Activo',
       description: 'La app tiene vida simulada.'
     });
-
   }, []);
 
   return null;
