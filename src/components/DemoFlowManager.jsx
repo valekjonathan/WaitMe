@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO
+   DEMO CENTRAL ÚNICO – ESTABLE Y COMPLETO
 ====================================================== */
 
 let started = false;
@@ -34,7 +34,7 @@ function statusToTitle(status) {
 }
 
 /* ======================================================
-   ESTADO GLOBAL DEMO
+   ESTADO GLOBAL
 ====================================================== */
 
 const demoFlow = {
@@ -46,7 +46,7 @@ const demoFlow = {
 };
 
 /* ======================================================
-   HELPERS INTERNOS
+   HELPERS
 ====================================================== */
 
 function getConversation(id) {
@@ -75,7 +75,6 @@ export function subscribeDemoFlow(cb) {
   return () => listeners.delete(cb);
 }
 
-// Alias por compatibilidad
 export function subscribeToDemoFlow(cb) {
   return subscribeDemoFlow(cb);
 }
@@ -92,7 +91,6 @@ export function getDemoConversation(conversationId) {
   return getConversation(conversationId);
 }
 
-// Alias que algunas pantallas usan
 export function getDemoConversationById(conversationId) {
   return getConversation(conversationId);
 }
@@ -129,6 +127,10 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
   notify();
 }
 
+/* ======================================================
+   ALERTS
+====================================================== */
+
 export function getDemoAlerts() {
   return demoFlow.alerts;
 }
@@ -136,6 +138,10 @@ export function getDemoAlerts() {
 export function getDemoAlertById(alertId) {
   return demoFlow.alerts.find(a => a.id === alertId) || null;
 }
+
+/* ======================================================
+   NOTIFICATIONS
+====================================================== */
 
 export function getDemoNotifications() {
   return demoFlow.notifications;
@@ -170,7 +176,7 @@ export function addDemoNotification(notification) {
 }
 
 /* ======================================================
-   CONVERSATION CREATOR (EXPORTADO)
+   CREACIÓN DE CONVERSACIÓN DESDE ALERTA
 ====================================================== */
 
 export function ensureConversationForAlert(alertId) {
@@ -180,8 +186,10 @@ export function ensureConversationForAlert(alertId) {
   const existing = demoFlow.conversations.find(c => c.alert_id === alert.id);
   if (existing) return existing.id;
 
+  const conversationId = genId('conv');
+
   const conversation = {
-    id: genId('conv'),
+    id: conversationId,
     participant1_id: 'me',
     participant2_id: alert.user_id === 'me'
       ? alert.reserved_by_id
@@ -203,7 +211,7 @@ export function ensureConversationForAlert(alertId) {
 
   demoFlow.conversations.unshift(conversation);
 
-  demoFlow.messages[conversation.id] = [{
+  demoFlow.messages[conversationId] = [{
     id: genId('msg'),
     mine: false,
     senderName: conversation.participant2_name,
@@ -213,7 +221,43 @@ export function ensureConversationForAlert(alertId) {
   }];
 
   notify();
-  return conversation.id;
+  return conversationId;
+}
+
+// Alias extra por compatibilidad
+export function ensureConversationForAlertId(alertId) {
+  return ensureConversationForAlert(alertId);
+}
+
+// Mensaje inicial si no existe
+export function ensureInitialWaitMeMessage(conversationId) {
+  const conv = getConversation(conversationId);
+  if (!conv) return;
+
+  if (!demoFlow.messages[conversationId]) {
+    demoFlow.messages[conversationId] = [];
+  }
+
+  const exists = demoFlow.messages[conversationId].some(
+    m => m.text === 'Ey! te he enviado un WaitMe!'
+  );
+
+  if (exists) return;
+
+  const msg = {
+    id: genId('msg'),
+    mine: false,
+    senderName: conv.participant2_name,
+    senderPhoto: conv.participant2_photo,
+    text: 'Ey! te he enviado un WaitMe!',
+    ts: Date.now()
+  };
+
+  demoFlow.messages[conversationId].push(msg);
+  conv.last_message_text = msg.text;
+  conv.last_message_at = msg.ts;
+
+  notify();
 }
 
 /* ======================================================
@@ -228,7 +272,6 @@ export function applyDemoAction({ alertId, action }) {
   alert.status = status;
 
   const title = statusToTitle(status);
-
   const conversationId = ensureConversationForAlert(alertId);
 
   const noti = {
@@ -244,7 +287,12 @@ export function applyDemoAction({ alertId, action }) {
 
   demoFlow.notifications.unshift(noti);
 
-  sendDemoMessage(conversationId, `Estado cambiado a ${title}`, null, false);
+  sendDemoMessage(
+    conversationId,
+    `Estado cambiado a ${title}`,
+    null,
+    false
+  );
 
   notify();
   return noti.id;
