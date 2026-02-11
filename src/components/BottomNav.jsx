@@ -8,14 +8,26 @@ export default function BottomNav() {
 
   const current = (location.pathname + location.hash).toLowerCase();
 
-  const isActive = (page) =>
-    current.includes(page.toLowerCase());
+  // ✅ FIX: en Base44 "Mapa" a veces no contiene "home", contiene "map" o directamente "/"
+  const isActive = (page) => {
+    const p = page.toLowerCase();
+    if (p === 'home') {
+      return (
+        current.includes('home') ||
+        current.includes('map') ||
+        current.includes('#/') ||
+        current === '/' ||
+        current.endsWith('/') ||
+        current.includes('/home')
+      );
+    }
+    return current.includes(p);
+  };
 
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] rounded-lg";
 
-  // 🔥 Fondo morado tipo botón contador
   const activeStyle =
     "bg-purple-700/40 border border-purple-500/50";
 
