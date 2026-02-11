@@ -1,121 +1,187 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import Header from "@/components/Header";
-import BottomNav from "@/components/BottomNav";
-import { Camera, Car, Bike, Truck, Phone } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Camera, Phone } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
+
+const carColors = [
+  { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
+  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
+  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
+  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
+  { value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
+  { value: 'gris', label: 'Gris', fill: '#6b7280' }
+];
 
 export default function Profile() {
-  const { user } = useAuth();
 
-  const { data: profile } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => base44.entities.User.get(user.id),
-    enabled: !!user?.id,
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    display_name: '',
+    car_brand: '',
+    car_model: '',
+    car_color: 'gris',
+    vehicle_type: 'car',
+    car_plate: '',
+    photo_url: '',
+    phone: '',
+    allow_phone_calls: false
   });
 
-  const [vehicleType, setVehicleType] = useState(profile?.vehicle_type || "car");
+  useEffect(() => {
+    const fetchUser = async () => {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
 
-  if (!profile) return null;
+      setFormData({
+        display_name: currentUser.display_name || '',
+        car_brand: currentUser.car_brand || '',
+        car_model: currentUser.car_model || '',
+        car_color: currentUser.car_color || 'gris',
+        vehicle_type: currentUser.vehicle_type || 'car',
+        car_plate: currentUser.car_plate || '',
+        photo_url: currentUser.photo_url || '',
+        phone: currentUser.phone || '',
+        allow_phone_calls: currentUser.allow_phone_calls || false
+      });
 
-  const VehicleIcon = () => {
-    if (vehicleType === "bike") return <Bike size={60} className="text-gray-300 opacity-70" />;
-    if (vehicleType === "truck") return <Truck size={60} className="text-gray-300 opacity-70" />;
-    return <Car size={60} className="text-gray-300 opacity-70" />;
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  const autoSave = async (data) => {
+    await base44.auth.updateMe(data);
   };
 
+  const updateField = (field, value) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    autoSave(newData);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    updateField('photo_url', file_url);
+  };
+
+  const selectedColor =
+    carColors.find((c) => c.value === formData.car_color) || carColors[5];
+
+  const VehicleIcon = () => {
+    if (formData.vehicle_type === 'suv') {
+      return (
+        <svg viewBox="0 0 48 24" className="w-20 h-12">
+          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z"
+            fill={selectedColor.fill}
+            stroke="white"
+            strokeWidth="1.5" />
+          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        </svg>
+      );
+    }
+
+    if (formData.vehicle_type === 'van') {
+      return (
+        <svg viewBox="0 0 48 24" className="w-20 h-10">
+          <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z"
+            fill={selectedColor.fill}
+            stroke="white"
+            strokeWidth="1.5" />
+          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg viewBox="0 0 48 24" className="w-20 h-10">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+          fill={selectedColor.fill}
+          stroke="white"
+          strokeWidth="1.5" />
+        <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      </svg>
+    );
+  };
+
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-purple-500">Cargando...</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <Header title="Mi Perfil" />
+    <div className="h-screen bg-black text-white overflow-hidden">
+      <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
 
-      <div className="flex-1 px-4 pt-4 pb-24">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto">
 
-        {/* CARD SUPERIOR EXACTA */}
-        <div className="relative rounded-3xl p-[2px] bg-gradient-to-r from-purple-600 to-purple-400 mb-6">
-          <div className="bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-3xl p-6 flex items-center gap-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
 
-            {/* FOTO GRANDE */}
-            <div className="relative">
-              <img
-                src={profile.photo || "/default-avatar.png"}
-                className="w-32 h-32 object-cover rounded-2xl border-2 border-purple-500"
-                alt="Foto perfil"
-              />
-              <button className="absolute -bottom-3 -right-3 bg-purple-600 w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
-                <Camera size={20} className="text-white" />
-              </button>
-            </div>
+          {/* TARJETA JONATHAN EXACTA */}
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 border border-purple-500 shadow-xl">
+            <div className="flex gap-5">
 
-            {/* INFO CENTRAL */}
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold tracking-wide">
-                {profile.name?.toUpperCase()}
-              </h2>
-
-              <p className="text-gray-300 mt-2 text-lg">
-                {profile.brand} {profile.model}
-              </p>
-
-              {/* MATRÍCULA REAL */}
-              <div className="mt-4 inline-flex items-center bg-white rounded-lg overflow-hidden shadow-md">
-                <div className="bg-blue-700 text-white px-3 py-2 text-sm font-semibold">
-                  E
+              {/* FOTO GRANDE */}
+              <div className="relative">
+                <div className="w-28 h-32 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
+                  {formData.photo_url ? (
+                    <img src={formData.photo_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
+                  )}
                 </div>
-                <div className="px-4 py-2 font-mono text-lg tracking-widest text-black">
-                  {profile.plate}
+
+                <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700">
+                  <Camera className="w-5 h-5" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+
+              {/* INFO */}
+              <div className="flex-1 flex flex-col justify-between">
+                <p className="text-2xl font-bold">
+                  {formData.display_name || user?.full_name?.split(' ')[0]}
+                </p>
+
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-sm text-gray-300">
+                    {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                  </p>
+                  <VehicleIcon />
+                </div>
+
+                {/* MATRÍCULA REAL */}
+                <div className="mt-3">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8">
+                    <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
+                      <span className="text-white text-[9px] font-bold">E</span>
+                    </div>
+                    <span className="px-3 text-black font-mono font-bold tracking-widest">
+                      {formData.car_plate
+                        ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`
+                        : '0000 XXX'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* ICONO VEHÍCULO DINÁMICO */}
-            <VehicleIcon />
-          </div>
-        </div>
-
-        {/* CAMPOS */}
-        <div className="space-y-5">
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-400 mb-2">Nombre</p>
-              <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {profile.name}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-gray-400 mb-2">Teléfono</p>
-              <div className="bg-[#0f172a] rounded-xl px-4 py-3">
-                {profile.phone}
-              </div>
-            </div>
           </div>
 
-          <div className="bg-[#0f172a] rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-purple-400">
-              <Phone size={20} />
-              <span>Permitir llamadas</span>
-            </div>
-            <div className="w-12 h-6 bg-red-500 rounded-full"></div>
-          </div>
-
-          {/* SELECT VEHÍCULO */}
-          <div>
-            <p className="text-gray-400 mb-2">Tipo de vehículo</p>
-            <select
-              value={vehicleType}
-              onChange={(e) => setVehicleType(e.target.value)}
-              className="w-full bg-[#0f172a] rounded-xl px-4 py-3 text-white outline-none"
-            >
-              <option value="car">Coche</option>
-              <option value="bike">Moto</option>
-              <option value="truck">Furgoneta</option>
-            </select>
-          </div>
-
-        </div>
-      </div>
+        </motion.div>
+      </main>
 
       <BottomNav />
     </div>
