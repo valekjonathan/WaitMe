@@ -1,42 +1,23 @@
-import { useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import { useEffect } from 'react'
+import { toast } from '@/components/ui/use-toast'
 
 /* ======================================================
-   DEMO STATE CENTRALIZADO
+   DEMO CENTRAL ÚNICO – EXPORTA TODO LO QUE TU APP PIDE
 ====================================================== */
 
-let started = false;
-const listeners = new Set();
+let started = false
+const listeners = new Set()
 
 function notify() {
-  listeners.forEach((l) => l());
+  listeners.forEach(l => l())
 }
 
 function genId(prefix = 'id') {
-  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`
 }
 
 /* ======================================================
-   SUSCRIPCIÓN
-====================================================== */
-
-export function subscribeToDemoFlow(cb) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-
-export function startDemoFlow() {
-  if (started) return;
-  started = true;
-  notify();
-}
-
-export function getDemoState() {
-  return demoState;
-}
-
-/* ======================================================
-   ESTADO
+   ESTADO DEMO
 ====================================================== */
 
 const demoState = {
@@ -44,18 +25,41 @@ const demoState = {
   messages: {},
   alerts: [],
   notifications: []
-};
+}
+
+/* ======================================================
+   CORE
+====================================================== */
+
+export function startDemoFlow() {
+  if (started) return
+  started = true
+  notify()
+}
+
+export function subscribeDemoFlow(cb) {
+  listeners.add(cb)
+  return () => listeners.delete(cb)
+}
+
+export function subscribeToDemoFlow(cb) {
+  return subscribeDemoFlow(cb)
+}
+
+export function getDemoState() {
+  return demoState
+}
 
 /* ======================================================
    CONVERSACIONES
 ====================================================== */
 
 export function getDemoConversations() {
-  return demoState.conversations;
+  return demoState.conversations
 }
 
-export function getDemoConversation(conversationId) {
-  return demoState.conversations.find(c => c.id === conversationId) || null;
+export function getDemoConversation(id) {
+  return demoState.conversations.find(c => c.id === id) || null
 }
 
 /* ======================================================
@@ -63,24 +67,28 @@ export function getDemoConversation(conversationId) {
 ====================================================== */
 
 export function getDemoMessages(conversationId) {
-  return demoState.messages[conversationId] || [];
+  return demoState.messages[conversationId] || []
 }
 
 export function sendDemoMessage({ conversationId, text, isMine = true }) {
-  if (!conversationId || !text) return;
+  const clean = String(text || '').trim()
+  if (!conversationId || !clean) return
 
   if (!demoState.messages[conversationId]) {
-    demoState.messages[conversationId] = [];
+    demoState.messages[conversationId] = []
   }
 
-  demoState.messages[conversationId].push({
+  const msg = {
     id: genId('msg'),
     mine: isMine,
-    text,
+    senderName: isMine ? 'Tú' : 'Usuario',
+    senderPhoto: null,
+    text: clean,
     ts: Date.now()
-  });
+  }
 
-  notify();
+  demoState.messages[conversationId].push(msg)
+  notify()
 }
 
 /* ======================================================
@@ -88,19 +96,18 @@ export function sendDemoMessage({ conversationId, text, isMine = true }) {
 ====================================================== */
 
 export function getDemoAlerts() {
-  return demoState.alerts;
+  return demoState.alerts
 }
 
-export function getDemoAlertById(alertId) {
-  return demoState.alerts.find(a => a.id === alertId) || null;
+export function getDemoAlertById(id) {
+  return demoState.alerts.find(a => a.id === id) || null
 }
 
-export function setDemoAlertStatus(alertId, status) {
-  const alert = getDemoAlertById(alertId);
-  if (!alert) return null;
-  alert.status = status;
-  notify();
-  return alert;
+export function setDemoAlertStatus(id, status) {
+  const alert = demoState.alerts.find(a => a.id === id)
+  if (!alert) return
+  alert.status = status
+  notify()
 }
 
 /* ======================================================
@@ -108,50 +115,29 @@ export function setDemoAlertStatus(alertId, status) {
 ====================================================== */
 
 export function getDemoNotifications() {
-  return demoState.notifications;
+  return demoState.notifications
 }
 
-export function addDemoNotification(notification) {
-  if (!notification?.id) return;
-  demoState.notifications.unshift(notification);
-  notify();
-}
-
-export function markDemoNotificationRead(notificationId) {
-  const n = demoState.notifications.find(n => n.id === notificationId);
-  if (!n) return;
-  n.read = true;
-  notify();
-}
-
-export function clearDemoNotifications() {
-  demoState.notifications = [];
-  notify();
+export function markDemoNotificationRead(id) {
+  const n = demoState.notifications.find(n => n.id === id)
+  if (!n) return
+  n.read = true
+  notify()
 }
 
 export function markDemoRead(conversationId) {
-  notify();
+  notify()
 }
 
-/* ======================================================
-   ACCIONES
-====================================================== */
+export function clearDemoNotifications() {
+  demoState.notifications = []
+  notify()
+}
 
-export function applyDemoAction({ conversationId, alertId, action }) {
-  if (alertId) setDemoAlertStatus(alertId, action);
-
-  demoState.notifications.unshift({
-    id: genId('noti'),
-    type: 'status_update',
-    title: action?.toUpperCase() || 'ACTUALIZACIÓN',
-    text: 'Estado actualizado.',
-    conversationId,
-    alertId,
-    createdAt: Date.now(),
-    read: false
-  });
-
-  notify();
+export function addDemoNotification(notification) {
+  if (!notification?.id) return
+  demoState.notifications.unshift(notification)
+  notify()
 }
 
 /* ======================================================
@@ -159,15 +145,15 @@ export function applyDemoAction({ conversationId, alertId, action }) {
 ====================================================== */
 
 export function isDemoMode() {
-  return true;
+  return true
 }
 
 export function setDemoMode() {
-  return true;
+  return true
 }
 
 /* ======================================================
-   EXPORT GLOBAL
+   OBJETO GLOBAL (POR SI TU APP LO USA)
 ====================================================== */
 
 export const demoFlow = {
@@ -179,10 +165,13 @@ export const demoFlow = {
   getAlerts: getDemoAlerts,
   getAlertById: getDemoAlertById,
   getNotifications: getDemoNotifications,
-  subscribe: subscribeToDemoFlow,
-  isDemoMode,
-  markRead: markDemoRead
-};
+  subscribe: subscribeDemoFlow,
+  subscribeDemoFlow,
+  subscribeToDemoFlow,
+  markRead: markDemoRead,
+  markDemoRead,
+  isDemoMode
+}
 
 /* ======================================================
    COMPONENTE
@@ -190,13 +179,13 @@ export const demoFlow = {
 
 export default function DemoFlowManager() {
   useEffect(() => {
-    startDemoFlow();
+    startDemoFlow()
 
     toast({
       title: 'Modo Demo Activo',
-      description: 'La app tiene vida simulada.'
-    });
-  }, []);
+      description: 'Sistema demo cargado correctamente.'
+    })
+  }, [])
 
-  return null;
+  return null
 }
