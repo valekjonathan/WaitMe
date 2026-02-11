@@ -35,9 +35,9 @@ export default function BottomNav() {
     "hover:bg-transparent hover:shadow-none hover:text-purple-400 " +
     "focus:bg-transparent focus:shadow-none focus:ring-0 active:bg-transparent";
 
-  // ✅ Fondo + sombra morada cuando está activo (sin cambiar tamaños)
+  // ✅ Solo fondo morado apagado (SIN sombra)
   const activeGlow =
-    "bg-purple-500/10 shadow-[0_10px_22px_rgba(168,85,247,0.45)]";
+    "bg-purple-500/12";
 
   const labelClass =
     "text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap";
