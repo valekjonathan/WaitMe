@@ -11,10 +11,17 @@ export default function BottomNav() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const currentPath = location.pathname;
+
   const isActive = (page) => currentPath === createPageUrl(page);
   const homeUrl = useMemo(() => createPageUrl('Home'), []);
+
+  const { data: activeAlerts = [] } = useQuery({
+    queryKey: ['userActiveAlerts', user?.id],
+    queryFn: async () =>
+      base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
+    enabled: !!user?.id
+  });
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
@@ -38,41 +45,25 @@ export default function BottomNav() {
   const divider = <div className="w-px h-10 bg-gray-700" />;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
       <div className="flex items-center max-w-md mx-auto gap-0">
 
+        {/* ALERTAS */}
         <Link to={createPageUrl('History')} className="flex-1">
-          <Button variant="ghost"
-            className={`${baseBtn} ${isActive('History') ? activeGlow : ''}`}>
-            <div className={iconWrapper}>↔</div>
-            <span className={labelClass}>Alertas</span>
-          </Button>
-        </Link>
-
-        {divider}
-
-        <button type="button" className="flex-1"
-          onClick={() => navigate(`${homeUrl}?reset=${Date.now()}`)}>
-          <Button variant="ghost"
-            className={`${baseBtn} ${isActive('Home') ? activeGlow : ''}`}>
-            <div className={iconWrapper}>🗺</div>
-            <span className={labelClass}>Mapa</span>
-          </Button>
-        </button>
-
-        {divider}
-
-        <Link to={createPageUrl('Notifications')} className="flex-1">
-          <Button variant="ghost"
-            className={`${baseBtn} ${isActive('Notifications') ? activeGlow : ''}`}>
+          <Button
+            variant="ghost"
+            className={`${baseBtn} ${isActive('History') ? activeGlow : ''}`}
+          >
             <div className={iconWrapper}>
-              <Bell className="w-6 h-6" />
+              <svg className="w-9 h-9" viewBox="0 0 32 32" fill="none">
+                <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
+                <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
+              </svg>
             </div>
-            <span className={labelClass}>Avisos</span>
-
-            {unreadNotifications.length > 0 && (
-              <span className="absolute top-1 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {unreadNotifications.length}
+            <span className={labelClass}>Alertas</span>
+            {activeAlerts.length > 0 && (
+              <span className="absolute top-1 left-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
               </span>
             )}
           </Button>
@@ -80,11 +71,57 @@ export default function BottomNav() {
 
         {divider}
 
-        <Link to={createPageUrl('Chats')} className="flex-1">
-          <Button variant="ghost"
-            className={`${baseBtn} ${isActive('Chats') ? activeGlow : ''}`}>
+        {/* MAPA */}
+        <button
+          type="button"
+          className="flex-1"
+          onClick={() => navigate(`${homeUrl}?reset=${Date.now()}`)}
+        >
+          <Button
+            variant="ghost"
+            className={`${baseBtn} ${isActive('Home') ? activeGlow : ''}`}
+          >
             <div className={iconWrapper}>
-              <MessageCircle className="w-6 h-6" />
+              <svg className="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                />
+              </svg>
+            </div>
+            <span className={labelClass}>Mapa</span>
+          </Button>
+        </button>
+
+        {divider}
+
+        {/* AVISOS */}
+        <Link to={createPageUrl('Notifications')} className="flex-1">
+          <Button
+            variant="ghost"
+            className={`${baseBtn} ${isActive('Notifications') ? activeGlow : ''}`}
+          >
+            <div className={iconWrapper}>
+              <Bell className="w-9 h-9" />
+            </div>
+            <span className={labelClass}>Avisos</span>
+            {unreadNotifications.length > 0 && (
+              <span className="absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+              </span>
+            )}
+          </Button>
+        </Link>
+
+        {divider}
+
+        {/* CHATS */}
+        <Link to={createPageUrl('Chats')} className="flex-1">
+          <Button
+            variant="ghost"
+            className={`${baseBtn} ${isActive('Chats') ? activeGlow : ''}`}
+          >
+            <div className={iconWrapper}>
+              <MessageCircle className="w-9 h-9" />
             </div>
             <span className={labelClass}>Chats</span>
           </Button>
