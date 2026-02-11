@@ -204,14 +204,11 @@ export default function Chat() {
       };
     }
 
-    // Prioridad 3: Conversación real (si vienen params en la URL, mandan para evitar cruces)
+    // Prioridad 3: Conversación real
     const isP1 = conversation?.participant1_id === user?.id;
-    const nameFromConv = isP1 ? conversation?.participant2_name : conversation?.participant1_name;
-    const photoFromConv = isP1 ? conversation?.participant2_photo : conversation?.participant1_photo;
-
     return {
-      name: otherNameParam || nameFromConv,
-      photo: otherPhotoParam || photoFromConv
+      name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
+      photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
     };
   }, [isDemo, demoOtherUser, demoConv, conversation, user, otherNameParam, otherPhotoParam]);
 

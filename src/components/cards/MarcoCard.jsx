@@ -157,14 +157,14 @@ export default function MarcoCard({
         <div className={dimmed ? 'space-y-1.5 opacity-80' : bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
           {address ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-purple-400/60' : 'text-purple-400'}`} />
+              <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
               <span className={`${dimmed ? 'text-gray-400' : 'text-white'} leading-5 line-clamp-1`}>{address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}</span>
             </div>
           ) : null}
 
           {timeLine ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-purple-400/60' : 'text-purple-400'}`} />
+              <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
               {isTimeObj ? (
                 <span className={lineTextCls}>
                   <span className="text-white">{timeLine.main}</span>

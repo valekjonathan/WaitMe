@@ -14,7 +14,13 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
-import { getDemoState, isDemoMode, subscribeToDemoFlow } from '@/components/DemoFlowManager';
+import {
+  isDemoMode,
+  startDemoFlow,
+  subscribeDemoFlow,
+  getDemoConversations,
+  getDemoAlerts
+} from '@/components/DemoFlowManager';
 
 // ======================
 // Helpers
@@ -206,24 +212,16 @@ export default function Chats() {
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
 
+  // Demo “vivo” y sincronizado (CHATS / CHAT / NOTIFICACIONES)
+  const demoMode = useMemo(() => isDemoMode(), []);
   const [demoTick, setDemoTick] = useState(0);
-  const demoEnabled = isDemoMode();
 
   useEffect(() => {
-    if (!demoEnabled) return;
-    const unsub = subscribeToDemoFlow(() => setDemoTick((t) => t + 1));
+    if (!demoMode) return;
+    startDemoFlow();
+    const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
     return () => unsub?.();
-  }, [demoEnabled]);
-
-  const demoMode = useMemo(() => {
-    try {
-      const v = localStorage.getItem('waitme_demo_mode');
-      if (v === null) return true;
-      return v === 'true';
-    } catch {
-      return true;
-    }
-  }, []);
+  }, [demoMode]);
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
@@ -246,7 +244,7 @@ export default function Chats() {
         setUser(currentUser);
       } catch (error) {
         console.log('Error:', error);
-        // En demo, si no hay sesión, usamos un usuario local para que todo funcione
+        // Si no hay sesión (preview/demo), seguimos con un usuario local.
         setUser({ id: 'me', display_name: 'Tú', photo_url: null });
       }
     };
@@ -266,15 +264,10 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
-      // DEMO: estado único compartido (CHATS / CHAT / NOTIFICACIONES)
-      if (demoEnabled || demoMode) {
-        const st = getDemoState();
-        const list = st?.conversations || [];
-        return [...list].sort(
-          (a, b) =>
-            new Date(b.last_message_at || b.updated_date || b.created_date) -
-            new Date(a.last_message_at || a.updated_date || a.created_date)
-        );
+      if (demoMode) {
+        // Fuerza recalcular al tick demo
+        void demoTick;
+        return getDemoConversations();
       }
 
       const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
@@ -293,9 +286,9 @@ export default function Chats() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
-      if (demoEnabled || demoMode) {
-        const st = getDemoState();
-        return st?.alerts || [];
+      if (demoMode) {
+        void demoTick;
+        return getDemoAlerts();
       }
 
       let realAlerts = [];
@@ -304,7 +297,6 @@ export default function Chats() {
       } catch (e) {
         console.log('Error cargando alertas:', e);
       }
-
       return realAlerts || [];
     },
     enabled: !!user,
@@ -543,7 +535,20 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            
+            const statusLabel = getChatStatusLabel(alert?.status);
+const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
+const isThinking = statusLabel === 'ME LO PIENSO';
+const isProrroga = statusLabel === 'PRÓRROGA';
+
+const isSeller = alert?.user_id === user?.id;
+
+const badgeCls = isCompletedOrCanceled
+  ? 'bg-red-500/20 text-red-400 border-red-500/30'
+  : isBuyer
+  ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+  : isSeller
+  ? 'bg-green-500/20 text-green-300 border-green-400/50'
+  : 'bg-purple-500/10 text-purple-300/70 border-purple-400/30';
 
 
       if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
@@ -588,7 +593,7 @@ export default function Chats() {
             const hasUnread = (unreadCount || 0) > 0;
 
             const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.user_id === user?.id && !!alert?.reserved_by_id;
+            const isSeller = alert?.reserved_by_id && !isBuyer;
 
             const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
             let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
@@ -614,11 +619,10 @@ export default function Chats() {
             const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
             const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
 
-            const statusLabel = getChatStatusLabel(alert?.status);
-// Si no es activa, el botón debe mostrar el estado (CANCELADA / ME LO PIENSO / PRÓRROGA / COMPLETADA, etc.)
-const isFinal = isFinalChatStatus(alert?.status) && !!statusLabel;
-const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
-const statusBoxText = statusLabel || countdownText;
+            const finalLabel = getChatStatusLabel(alert?.status);
+            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
+            const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
+            const statusBoxText = isFinal ? finalLabel : countdownText;
 
             const navigateToChat = () => {
               const name = encodeURIComponent(otherUserName || '');
