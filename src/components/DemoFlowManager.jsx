@@ -17,6 +17,10 @@ function genId(prefix = 'id') {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 }
 
+/* ======================================================
+   SUSCRIPCIONES
+====================================================== */
+
 export function subscribeToDemoFlow(cb) {
   listeners.add(cb);
   return () => listeners.delete(cb);
@@ -40,11 +44,16 @@ const demoState = {
   conversations: [
     {
       id: 'mock_reservaste_1',
-      other_name: 'Sofía',
-      other_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+      participant1_id: 'me',
+      participant2_id: 'sofia',
+      participant1_name: 'Tú',
+      participant2_name: 'Sofía',
+      participant2_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
       alert_id: 'alert_reservaste_1',
       last_message_text: 'Te espero aquí 😊',
-      last_message_at: Date.now()
+      last_message_at: Date.now(),
+      unread_count_p1: 0,
+      unread_count_p2: 0
     }
   ],
 
@@ -99,8 +108,8 @@ export function sendDemoMessage({ conversationId, text, isMine = true }) {
   const msg = {
     id: genId('msg'),
     mine: isMine,
-    senderName: isMine ? 'Tú' : conv?.other_name || 'Usuario',
-    senderPhoto: isMine ? null : conv?.other_photo || null,
+    senderName: isMine ? 'Tú' : conv?.participant2_name || 'Usuario',
+    senderPhoto: isMine ? null : conv?.participant2_photo || null,
     text: clean,
     ts: Date.now()
   };
@@ -200,6 +209,17 @@ export function isDemoMode() {
 export function setDemoMode() {
   return true;
 }
+
+/* ======================================================
+   EXPORT QUE BASE44 NECESITA
+====================================================== */
+
+export const demoFlow = {
+  start: startDemoFlow,
+  getState: getDemoState,
+  subscribe: subscribeToDemoFlow,
+  isDemoMode
+};
 
 /* ======================================================
    COMPONENTE
