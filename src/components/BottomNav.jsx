@@ -4,56 +4,53 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Bell, MessageCircle } from 'lucide-react';
+import { Bell, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
-export default function BottomNav() {
+export default function BottomNav({ mode = 'default' }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const currentPath = location.pathname;
 
-  const isActive = (page) => {
-    return currentPath === createPageUrl(page);
-  };
-
+  const isActive = (page) => currentPath === createPageUrl(page);
   const homeUrl = useMemo(() => createPageUrl('Home'), []);
 
   const { data: activeAlerts = [] } = useQuery({
     queryKey: ['userActiveAlerts', user?.id],
     queryFn: async () =>
       base44.entities.ParkingAlert.filter({ user_id: user?.id, status: 'active' }),
-    enabled: !!user?.id
-  });
-
-  const { data: reservedAlerts = [] } = useQuery({
-    queryKey: ['userReservedAlerts', user?.id],
-    queryFn: async () =>
-      base44.entities.ParkingAlert.filter({ reserved_by_id: user?.id, status: 'reserved' }),
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false
   });
 
   const { data: unreadNotifications = [] } = useQuery({
     queryKey: ['unreadNotifications', user?.id],
     queryFn: async () =>
       base44.entities.Notification.filter({ recipient_id: user?.id, read: false }),
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    gcTime: 10 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false
   });
 
   const baseBtn =
     "w-full relative flex flex-col items-center justify-center text-purple-400 h-[64px] px-3 rounded-lg";
-
   const activeGlow =
     "bg-purple-500/10 shadow-[0_6px_14px_rgba(168,85,247,0.28)]";
-
   const labelClass =
     "text-[10px] font-bold leading-none mt-[3px]";
-
   const iconWrapper =
     "h-9 flex items-center justify-center";
-
   const divider = <div className="w-px h-10 bg-gray-700" />;
+
+  const showProfileTab = mode === 'profile';
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 px-4 py-3 safe-area-pb z-50">
@@ -72,6 +69,12 @@ export default function BottomNav() {
               </svg>
             </div>
             <span className={labelClass}>Alertas</span>
+
+            {activeAlerts.length > 0 && (
+              <span className="absolute top-1 left-2 bg-green-500/20 border-2 border-green-500/30 text-green-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {activeAlerts.length > 9 ? '9+' : activeAlerts.length}
+              </span>
+            )}
           </Button>
         </Link>
 
@@ -100,7 +103,7 @@ export default function BottomNav() {
 
         {divider}
 
-        {/* NOTIFICACIONES */}
+        {/* AVISOS / NOTIFICACIONES */}
         <Link to={createPageUrl('Notifications')} className="flex-1">
           <Button
             variant="ghost"
@@ -109,24 +112,44 @@ export default function BottomNav() {
             <div className={iconWrapper}>
               <Bell className="w-9 h-9" />
             </div>
-            <span className={labelClass}>Notificaciones</span>
+            <span className={labelClass}>Avisos</span>
+
+            {unreadNotifications.length > 0 && (
+              <span className="absolute top-1 right-2 bg-red-500/20 border-2 border-red-500/30 text-red-400 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {unreadNotifications.length > 9 ? '9+' : unreadNotifications.length}
+              </span>
+            )}
           </Button>
         </Link>
 
         {divider}
 
-        {/* CHATS */}
-        <Link to={createPageUrl('Chats')} className="flex-1">
-          <Button
-            variant="ghost"
-            className={`${baseBtn} ${isActive('Chats') ? activeGlow : ''}`}
-          >
-            <div className={iconWrapper}>
-              <MessageCircle className="w-9 h-9" />
-            </div>
-            <span className={labelClass}>Chats</span>
-          </Button>
-        </Link>
+        {/* ÚLTIMO TAB: Chats (default) o Perfil (solo en Profile) */}
+        {!showProfileTab ? (
+          <Link to={createPageUrl('Chats')} className="flex-1">
+            <Button
+              variant="ghost"
+              className={`${baseBtn} ${isActive('Chats') ? activeGlow : ''}`}
+            >
+              <div className={iconWrapper}>
+                <MessageCircle className="w-9 h-9" />
+              </div>
+              <span className={labelClass}>Chats</span>
+            </Button>
+          </Link>
+        ) : (
+          <Link to={createPageUrl('Profile')} className="flex-1">
+            <Button
+              variant="ghost"
+              className={`${baseBtn} ${isActive('Profile') ? activeGlow : ''}`}
+            >
+              <div className={iconWrapper}>
+                <User className="w-9 h-9" />
+              </div>
+              <span className={labelClass}>Perfil</span>
+            </Button>
+          </Link>
+        )}
 
       </div>
     </nav>
