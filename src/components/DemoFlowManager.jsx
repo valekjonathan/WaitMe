@@ -39,7 +39,6 @@ function statusToTitle(status) {
 
 const demoFlow = {
   me: { id: 'me', name: 'Tú', photo: null },
-
   conversations: [],
   messages: {},
   alerts: [],
@@ -51,46 +50,7 @@ const demoFlow = {
 ====================================================== */
 
 function getConversation(id) {
-  return demoFlow.conversations.find(c => c.id === id);
-}
-
-function ensureConversationForAlert(alert) {
-  const existing = demoFlow.conversations.find(c => c.alert_id === alert.id);
-  if (existing) return existing;
-
-  const conversation = {
-    id: genId('conv'),
-    participant1_id: 'me',
-    participant2_id: alert.user_id === 'me'
-      ? alert.reserved_by_id
-      : alert.user_id,
-    participant1_name: 'Tú',
-    participant2_name: alert.user_id === 'me'
-      ? alert.reserved_by_name
-      : alert.user_name,
-    participant1_photo: null,
-    participant2_photo: alert.user_id === 'me'
-      ? alert.reserved_by_photo
-      : alert.user_photo,
-    alert_id: alert.id,
-    last_message_text: 'Ey! te he enviado un WaitMe!',
-    last_message_at: Date.now(),
-    unread_count_p1: 1,
-    unread_count_p2: 0
-  };
-
-  demoFlow.conversations.unshift(conversation);
-
-  demoFlow.messages[conversation.id] = [{
-    id: genId('msg'),
-    mine: false,
-    senderName: conversation.participant2_name,
-    senderPhoto: conversation.participant2_photo,
-    text: 'Ey! te he enviado un WaitMe!',
-    ts: Date.now()
-  }];
-
-  return conversation;
+  return demoFlow.conversations.find(c => c.id === id) || null;
 }
 
 /* ======================================================
@@ -115,6 +75,11 @@ export function subscribeDemoFlow(cb) {
   return () => listeners.delete(cb);
 }
 
+// Alias por compatibilidad
+export function subscribeToDemoFlow(cb) {
+  return subscribeDemoFlow(cb);
+}
+
 export function getDemoState() {
   return demoFlow;
 }
@@ -122,10 +87,14 @@ export function getDemoState() {
 export function getDemoConversations() {
   return demoFlow.conversations;
 }
+
 export function getDemoConversation(conversationId) {
-  return (demoFlow.conversations || []).find(
-    (c) => c.id === conversationId
-  ) || null;
+  return getConversation(conversationId);
+}
+
+// Alias que algunas pantallas usan
+export function getDemoConversationById(conversationId) {
+  return getConversation(conversationId);
 }
 
 export function getDemoMessages(conversationId) {
@@ -164,6 +133,10 @@ export function getDemoAlerts() {
   return demoFlow.alerts;
 }
 
+export function getDemoAlertById(alertId) {
+  return demoFlow.alerts.find(a => a.id === alertId) || null;
+}
+
 export function getDemoNotifications() {
   return demoFlow.notifications;
 }
@@ -174,27 +147,96 @@ export function markDemoRead(notificationId) {
   notify();
 }
 
+export function markAllDemoRead() {
+  demoFlow.notifications.forEach(n => n.read = true);
+  notify();
+}
+
+export function clearDemoNotifications() {
+  demoFlow.notifications = [];
+  notify();
+}
+
+export function removeDemoNotification(notificationId) {
+  demoFlow.notifications =
+    demoFlow.notifications.filter(n => n.id !== notificationId);
+  notify();
+}
+
+export function addDemoNotification(notification) {
+  if (!notification?.id) return;
+  demoFlow.notifications.unshift(notification);
+  notify();
+}
+
+/* ======================================================
+   CONVERSATION CREATOR (EXPORTADO)
+====================================================== */
+
+export function ensureConversationForAlert(alertId) {
+  const alert = getDemoAlertById(alertId);
+  if (!alert) return null;
+
+  const existing = demoFlow.conversations.find(c => c.alert_id === alert.id);
+  if (existing) return existing.id;
+
+  const conversation = {
+    id: genId('conv'),
+    participant1_id: 'me',
+    participant2_id: alert.user_id === 'me'
+      ? alert.reserved_by_id
+      : alert.user_id,
+    participant1_name: 'Tú',
+    participant2_name: alert.user_id === 'me'
+      ? alert.reserved_by_name
+      : alert.user_name,
+    participant1_photo: null,
+    participant2_photo: alert.user_id === 'me'
+      ? alert.reserved_by_photo
+      : alert.user_photo,
+    alert_id: alert.id,
+    last_message_text: 'Ey! te he enviado un WaitMe!',
+    last_message_at: Date.now(),
+    unread_count_p1: 1,
+    unread_count_p2: 0
+  };
+
+  demoFlow.conversations.unshift(conversation);
+
+  demoFlow.messages[conversation.id] = [{
+    id: genId('msg'),
+    mine: false,
+    senderName: conversation.participant2_name,
+    senderPhoto: conversation.participant2_photo,
+    text: 'Ey! te he enviado un WaitMe!',
+    ts: Date.now()
+  }];
+
+  notify();
+  return conversation.id;
+}
+
 /* ======================================================
    ACCIÓN UNIFICADA
 ====================================================== */
 
 export function applyDemoAction({ alertId, action }) {
-  const alert = demoFlow.alerts.find(a => a.id === alertId);
-  if (!alert) return;
+  const alert = getDemoAlertById(alertId);
+  if (!alert) return null;
 
   const status = normalizeStatus(action);
   alert.status = status;
 
   const title = statusToTitle(status);
 
-  const conversation = ensureConversationForAlert(alert);
+  const conversationId = ensureConversationForAlert(alertId);
 
   const noti = {
     id: genId('noti'),
     type: 'status_update',
     title,
-    text: `${conversation.participant2_name} actualizó el estado.`,
-    conversationId: conversation.id,
+    text: `${alert.user_name} actualizó el estado.`,
+    conversationId,
     alertId,
     createdAt: Date.now(),
     read: false
@@ -202,9 +244,10 @@ export function applyDemoAction({ alertId, action }) {
 
   demoFlow.notifications.unshift(noti);
 
-  sendDemoMessage(conversation.id, `Estado cambiado a ${title}`, null, false);
+  sendDemoMessage(conversationId, `Estado cambiado a ${title}`, null, false);
 
   notify();
+  return noti.id;
 }
 
 /* ======================================================
