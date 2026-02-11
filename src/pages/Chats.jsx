@@ -3,7 +3,7 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, Navigation, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, X, Navigation } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -63,94 +63,8 @@ const getChatStatusLabel = (status) => {
 
 const isFinalChatStatus = (status) => {
   const s = String(status || '').toLowerCase();
-  return ['completed', 'completada', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
+  return ['completed', 'completada', 'thinking', 'me_lo_pienso', 'pending', 'rejected', 'rechazada', 'extended', 'prorroga', 'prórroga', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
 };
-
-// ====== Estilos sincronizados (CHATS / CHAT / NOTIFICACIONES) ======
-const PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
-const PURPLE_ACTIVE_TEXT = 'text-purple-400';
-const PURPLE_ACTIVE_TEXT_DIM = 'text-purple-400/70';
-
-const normalizeStatus = (status) => String(status || '').trim().toLowerCase();
-
-const isStatusMeLoPienso = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'thinking' || s === 'me_lo_pienso' || s === 'me lo pienso' || s === 'pending';
-};
-
-const isStatusProrrogada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'extended' || s === 'prorroga' || s === 'prórroga' || s === 'prorrogada';
-};
-
-const isStatusCancelada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'cancelled' || s === 'canceled' || s === 'cancelada';
-};
-
-const isStatusCompletada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'completed' || s === 'completada';
-};
-
-const getRoleBoxClasses = ({ status, isSeller, isBuyer }) => {
-  // Caja izquierda: "Te reservo:" (vendes/ganas) o "Reservaste a:" (compras/pagas)
-  const base =
-    'border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate';
-
-  // COMPLETADAS / CANCELADAS => rojo (ambas)
-  if (isStatusCompletada(status) || isStatusCancelada(status)) {
-    return `${base} bg-red-500/20 text-red-300 border-red-400/50`;
-  }
-
-  // ME LO PIENSO / PRORROGADA => seller verde, buyer morado
-  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) {
-    if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
-    if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
-  }
-
-  // Por defecto: seller verde (ganas) / buyer morado (pagas) / otros rojo suave
-  if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
-  if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
-  return `${base} bg-red-500/20 text-red-400 border-red-500/30`;
-};
-
-const PricePill = ({ direction = 'up', amount = 0 }) => {
-  const isUp = direction === 'up';
-  const wrapCls = isUp ? 'bg-green-500/15 border border-green-400/40' : 'bg-red-500/15 border border-red-400/40';
-  const textCls = isUp ? 'text-green-400' : 'text-red-400';
-  return (
-    <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
-      {isUp ? <TrendingUpIcon className={`w-4 h-4 ${textCls}`} /> : <TrendingDownIcon className={`w-4 h-4 ${textCls}`} />}
-      <span className={`font-bold text-sm ${textCls}`}>{Math.floor(amount || 0)}€</span>
-    </div>
-  );
-};
-
-// Íconos (SVG) para mantener este archivo autocontenido sin tocar imports
-const TrendingUpIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
-  </svg>
-);
-
-const TrendingDownIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-    <polyline points="17 18 23 18 23 12" />
-  </svg>
-);
-
-const shouldEnableIR = ({ status, isSeller, isFinal }) => {
-  if (isFinal) return false;
-  if (isSeller) return false;
-  // En ME LO PIENSO / PRORROGA el botón debe estar encendido (comprador)
-  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) return true;
-  // En el resto de estados no finales, también lo dejamos activo (comprador)
-  return true;
-};
-
 
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
@@ -175,27 +89,6 @@ const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
   if (lat === null || lon === null) return null;
   return { lat, lon };
 };
-
-const PriceChip = ({ amount, direction }) => {
-  const n = Number(amount || 0);
-  const amountText = `${Math.floor(Math.abs(n))}€`;
-  const isGreen = direction === 'up';
-  const isRed = direction === 'down';
-  const wrapCls = isGreen
-    ? 'bg-green-500/20 border border-green-500/30'
-    : isRed
-    ? 'bg-red-500/20 border border-red-500/30'
-    : 'bg-purple-600/20 border border-purple-500/30';
-  const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-purple-300';
-  return (
-    <div className={`${wrapCls} rounded-lg px-3 py-0.5 flex items-center gap-1 h-7`}>
-      {isGreen ? <TrendingUp className={`w-4 h-4 ${textCls}`} /> : null}
-      {isRed ? <TrendingDown className={`w-4 h-4 ${textCls}`} /> : null}
-      <span className={`font-bold text-xs ${textCls}`}>{amountText}</span>
-    </div>
-  );
-};
-
 
 export default function Chats() {
   const navigate = useNavigate();
@@ -835,18 +728,6 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            const statusLabel = getChatStatusLabel(alert?.status);
-            const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
-            const isThinking = statusLabel === 'ME LO PIENSO';
-            const isProrroga = statusLabel === 'PRÓRROGA';
-            const badgeCls = isCompletedOrCanceled
-              ? 'bg-red-500/20 text-red-400 border-red-500/30'
-              : isBuyer
-              ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-              : isSeller
-              ? 'bg-green-500/20 text-green-300 border-green-400/50'
-              : 'bg-purple-500/10 text-purple-300/70 border-purple-400/30';
-
 
       if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
         openExpiredDialog(alert, isBuyer);
@@ -918,15 +799,13 @@ export default function Chats() {
 
             const finalLabel = getChatStatusLabel(alert?.status);
             const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
-            const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
             const statusBoxText = isFinal ? finalLabel : countdownText;
 
             const navigateToChat = () => {
-              const name = encodeURIComponent(otherUserName || '');
-              const photo = encodeURIComponent(otherUserPhoto || '');
+              const name = encodeURIComponent(isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName || '');
+              const photo = encodeURIComponent(isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto || '');
               const demo = demoMode ? 'demo=true&' : '';
-              const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
-              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
+              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}&otherName=${name}&otherPhoto=${photo}`));
             };
 
             return (
@@ -940,16 +819,22 @@ export default function Chats() {
                   className={`bg-gradient-to-br ${
                     hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
                   } rounded-xl p-2.5 transition-all border-2 ${
-                    hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'
+                    hasUnread ? 'border-purple-500/50' : 'border-gray-700/80'
                   }`}
                 >
                   <div className="flex flex-col h-full">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex-shrink-0 w-[95px]">
                         <Badge
-                          className={getRoleBoxClasses({ status: alert?.status, isSeller, isBuyer })}
+                          className={`${
+                            isSeller
+                              ? 'bg-green-500/20 text-green-300 border-green-400/50'
+                              : hasUnread
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+                                : 'bg-red-500/20 text-red-400 border-red-500/30'
+                          } border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate`}
                         >
-                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservo:' : 'Info usuario'}
+                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservó:' : 'Info usuario'}
                         </Badge>
                       </div>
                       <div className="flex-1"></div>
@@ -957,7 +842,9 @@ export default function Chats() {
                         <Navigation className="w-3 h-3 text-purple-400" />
                         <span className="text-white font-bold text-xs">{distanceText}</span>
                       </div>
-                      <PricePill direction={isSeller ? 'up' : 'down'} amount={alert?.price} />
+                      <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+                        <span className="text-purple-300 font-bold text-xs">{Math.floor(alert?.price || 0)}€</span>
+                      </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -971,8 +858,8 @@ export default function Chats() {
 
                     <div className="border-t border-gray-700/80 mb-1.5 pt-2">
                       <MarcoCard
-                        photoUrl={otherUserPhoto}
-                        name={otherUserName}
+                        photoUrl={isBuyer ? alert.user_photo : alert.reserved_by_photo || otherUserPhoto}
+                        name={isBuyer ? alert.user_name : alert.reserved_by_name || otherUserName}
                         carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
                         plate={alert.car_plate}
                         carColor={alert.car_color || 'gris'}
@@ -981,12 +868,12 @@ export default function Chats() {
                           isSeller ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Te vas en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-300 font-bold">Debes esperar hasta las {waitUntilText}</span>
+                              <span className="text-purple-400 font-bold">Debes esperar hasta las {waitUntilText}</span>
                             </span>
                           ) : isBuyer ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Se va en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-300 font-bold">Te espera hasta las {waitUntilText}</span>
+                              <span className="text-purple-400 font-bold">Te espera hasta las {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
@@ -1003,9 +890,9 @@ export default function Chats() {
                       {hasLatLon(alert) && (
                         <div className="mt-2">
                           <Button
-                            disabled={!canIR}
+                            disabled={isSeller || isFinal}
                             className={`w-full border-2 ${
-                              canIR ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
+                              !isSeller && !isFinal ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
                             }`}
                             onClick={(e) => {
                               e.preventDefault();
@@ -1028,7 +915,7 @@ export default function Chats() {
                       onClick={navigateToChat}
                     >
                       <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? PURPLE_ACTIVE_TEXT : PURPLE_ACTIVE_TEXT_DIM}`}>
+                        <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>
                           Últimos mensajes:
                         </p>
                         {unreadCount > 0 && (
@@ -1088,7 +975,7 @@ export default function Chats() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">5 minutos más</span>
-                  <span className="text-purple-300 font-bold">1€</span>
+                  <span className="text-purple-400 font-bold">1€</span>
                 </div>
               </button>
 
@@ -1102,7 +989,7 @@ export default function Chats() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">10 minutos más</span>
-                  <span className="text-purple-300 font-bold">3€</span>
+                  <span className="text-purple-400 font-bold">3€</span>
                 </div>
               </button>
 
@@ -1116,7 +1003,7 @@ export default function Chats() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">15 minutos más</span>
-                  <span className="text-purple-300 font-bold">5€</span>
+                  <span className="text-purple-400 font-bold">5€</span>
                 </div>
               </button>
             </div>
