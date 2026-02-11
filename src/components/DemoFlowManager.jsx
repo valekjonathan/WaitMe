@@ -122,6 +122,11 @@ export function getDemoState() {
 export function getDemoConversations() {
   return demoFlow.conversations;
 }
+export function getDemoConversation(conversationId) {
+  return (demoFlow.conversations || []).find(
+    (c) => c.id === conversationId
+  ) || null;
+}
 
 export function getDemoMessages(conversationId) {
   return demoFlow.messages[conversationId] || [];
