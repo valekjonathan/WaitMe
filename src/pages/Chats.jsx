@@ -680,12 +680,12 @@ const statusBoxText = statusLabel || countdownText;
                           isSeller ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Te vas en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-400 font-bold">Debes esperar hasta las {waitUntilText}</span>
+                              <span className="text-purple-300 font-bold">Debes esperar hasta las {waitUntilText}</span>
                             </span>
                           ) : isBuyer ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Se va en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-400 font-bold">Te espera hasta las {waitUntilText}</span>
+                              <span className="text-purple-300 font-bold">Te espera hasta las {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
@@ -787,7 +787,7 @@ const statusBoxText = statusLabel || countdownText;
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">5 minutos más</span>
-                  <span className="text-purple-400 font-bold">1€</span>
+                  <span className="text-purple-300 font-bold">1€</span>
                 </div>
               </button>
 
@@ -801,7 +801,7 @@ const statusBoxText = statusLabel || countdownText;
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">10 minutos más</span>
-                  <span className="text-purple-400 font-bold">3€</span>
+                  <span className="text-purple-300 font-bold">3€</span>
                 </div>
               </button>
 
@@ -815,7 +815,7 @@ const statusBoxText = statusLabel || countdownText;
               >
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">15 minutos más</span>
-                  <span className="text-purple-400 font-bold">5€</span>
+                  <span className="text-purple-300 font-bold">5€</span>
                 </div>
               </button>
             </div>
