@@ -16,14 +16,19 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
+// ======================
+// Helpers
+// ======================
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -48,7 +53,7 @@ const buildDemoAlerts = (lat, lng) => {
       longitude: baseLng + 0.001,
       address: 'Calle Uría, Oviedo',
       phone: '+34612345678',
-      allow_phone_calls: true
+      allow_phone_calls: true,
     },
     {
       id: 'demo_2',
@@ -65,7 +70,7 @@ const buildDemoAlerts = (lat, lng) => {
       longitude: baseLng - 0.002,
       address: 'Calle Campoamor, Oviedo',
       phone: '+34623456789',
-      allow_phone_calls: false
+      allow_phone_calls: false,
     },
     {
       id: 'demo_3',
@@ -82,22 +87,37 @@ const buildDemoAlerts = (lat, lng) => {
       longitude: baseLng - 0.001,
       address: 'Plaza de la Escandalera, Oviedo',
       phone: '+34634567890',
-      allow_phone_calls: true
-    }
+      allow_phone_calls: true,
+    },
   ];
 };
 
+// ======================
+// Icono coche (igual que Perfil)
+// ======================
 const CarIconProfile = ({ color = '#6b7280', size = 'w-16 h-10' }) => (
   <svg viewBox="0 0 48 24" className={size} fill="none" aria-hidden="true">
+    {/* Cuerpo del coche - vista lateral */}
     <path
       d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
       fill={color}
       stroke="white"
       strokeWidth="1.5"
     />
-    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+
+    {/* Ventanas */}
+    <path
+      d="M16 9 L18 12 L30 12 L32 9 Z"
+      fill="rgba(255,255,255,0.3)"
+      stroke="white"
+      strokeWidth="0.5"
+    />
+
+    {/* Rueda trasera */}
     <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
     <circle cx="14" cy="18" r="2" fill="#666" />
+
+    {/* Rueda delantera */}
     <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
     <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>
@@ -122,14 +142,14 @@ export default function Home() {
   const [filters, setFilters] = useState({
     maxPrice: 10,
     maxMinutes: 30,
-    maxDistance: 10
+    maxDistance: 10,
   });
 
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000,
   });
 
   const { data: unreadCount } = useQuery({
@@ -138,13 +158,13 @@ export default function Home() {
     queryFn: async () => {
       const notifications = await base44.entities.Notification.filter({
         user_id: user.id,
-        read: false
+        read: false,
       });
       return notifications?.length || 0;
     },
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
-    refetchInterval: 30000
+    refetchInterval: 30000,
   });
 
   const { data: rawAlerts } = useQuery({
@@ -152,15 +172,15 @@ export default function Home() {
     queryFn: async () => {
       if (isDemoMode()) {
         const list = getDemoAlerts() || [];
-        return list.filter(a => (a?.status || 'active') === 'active');
+        return list.filter((a) => (a?.status || 'active') === 'active');
       }
       const alerts = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
-      return list.filter(a => (a?.status || 'active') === 'active');
+      const list = Array.isArray(alerts) ? alerts : alerts?.data || [];
+      return list.filter((a) => (a?.status || 'active') === 'active');
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 60000
+    refetchInterval: 60000,
   });
 
   const { data: myActiveAlerts = [] } = useQuery({
@@ -169,22 +189,22 @@ export default function Home() {
     queryFn: async () => {
       if (isDemoMode()) {
         const list = getDemoAlerts() || [];
-        return list.filter(a => {
+        return list.filter((a) => {
           const isMine = a.user_id === 'me' || a.user_id === user?.id || a.user_name === 'Tú';
           const isActive = (a?.status || 'active') === 'active';
           return isMine && isActive;
         });
       }
       const alerts = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
-      return list.filter(a => {
+      const list = Array.isArray(alerts) ? alerts : alerts?.data || [];
+      return list.filter((a) => {
         const isMine = a.user_id === user?.id || a.created_by === user?.id;
         const isActive = a.status === 'active' || a.status === 'reserved';
         return isMine && isActive;
       });
     },
     staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000,
   });
 
   const handleSearchInputChange = async (e) => {
@@ -197,7 +217,11 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          val
+        )}&addressdetails=1&limit=5`
+      );
       const data = await res.json();
       setSuggestions(data || []);
       setShowSuggestions(true);
@@ -329,7 +353,7 @@ export default function Home() {
         phone: data.phone,
         allow_phone_calls: data.allow_phone_calls,
         wait_until: futureTime.toISOString(),
-        status: 'active'
+        status: 'active',
       });
     },
     onMutate: async (data) => {
@@ -346,28 +370,28 @@ export default function Home() {
         ...data,
         wait_until: futureTime.toISOString(),
         status: 'active',
-        created_date: new Date().toISOString()
+        created_date: new Date().toISOString(),
       };
 
       queryClient.setQueryData(['alerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
+        const list = Array.isArray(old) ? old : old?.data || [];
         return [optimisticAlert, ...list];
       });
 
       queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
+        const list = Array.isArray(old) ? old : old?.data || [];
         return [optimisticAlert, ...list];
       });
     },
     onSuccess: (newAlert) => {
       queryClient.setQueryData(['alerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+        const list = Array.isArray(old) ? old : old?.data || [];
+        return [newAlert, ...list.filter((a) => !a.id?.startsWith('temp_'))];
       });
 
       queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+        const list = Array.isArray(old) ? old : old?.data || [];
+        return [newAlert, ...list.filter((a) => !a.id?.startsWith('temp_'))];
       });
     },
     onError: (error) => {
@@ -376,7 +400,7 @@ export default function Home() {
       }
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
-    }
+    },
   });
 
   const buyAlertMutation = useMutation({
@@ -401,14 +425,14 @@ export default function Home() {
           reserved_by_car: `${buyerCarBrand} ${buyerCarModel}`.trim(),
           reserved_by_car_color: buyerCarColor,
           reserved_by_plate: buyerPlate,
-          reserved_by_vehicle_type: buyerVehicleType
+          reserved_by_vehicle_type: buyerVehicleType,
         }),
         base44.entities.Transaction.create({
           alert_id: alert.id,
           buyer_id: user?.id,
           seller_id: alert.user_id || alert.created_by,
           amount: Number(alert.price) || 0,
-          status: 'pending'
+          status: 'pending',
         }),
         base44.entities.ChatMessage.create({
           conversation_id: `conv_${alert.id}_${user?.id}`,
@@ -416,8 +440,8 @@ export default function Home() {
           sender_id: user?.id,
           receiver_id: alert.user_id || alert.created_by,
           message: `Ey! Te he enviado un WaitMe!`,
-          read: false
-        })
+          read: false,
+        }),
       ]);
     },
     onMutate: async (alert) => {
@@ -429,8 +453,8 @@ export default function Home() {
       const previousAlerts = queryClient.getQueryData(['alerts']);
 
       queryClient.setQueryData(['alerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
+        const list = Array.isArray(old) ? old : old?.data || [];
+        return list.map((a) => (a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a));
       });
 
       return { previousAlerts };
@@ -444,18 +468,43 @@ export default function Home() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
-    }
+    },
   });
 
   const handleBuyAlert = (alert) => {
     setConfirmDialog({ open: true, alert });
   };
 
-  const handleChat = async () => {
+  const handleChat = async (alert) => {
     navigate(createPageUrl('History'));
+
+    if (alert?.is_demo) return;
+
+    const otherUserId = alert.user_id || alert.user_email || alert.created_by;
+
+    const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
+    const existingConv =
+      conversations.find((c) => c.participant2_id === otherUserId) ||
+      (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find((c) => c.participant1_id === otherUserId);
+
+    if (existingConv) return;
+
+    await base44.entities.Conversation.create({
+      participant1_id: user.id,
+      participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
+      participant1_photo: user.photo_url,
+      participant2_id: otherUserId,
+      participant2_name: alert.user_name,
+      participant2_photo: alert.user_photo,
+      alert_id: alert.id,
+      last_message_text: '',
+      last_message_at: new Date().toISOString(),
+      unread_count_p1: 0,
+      unread_count_p2: 0,
+    });
   };
 
-  const handleCall = async () => {
+  const handleCall = (alert) => {
     navigate(createPageUrl('History'));
   };
 
@@ -485,43 +534,37 @@ export default function Home() {
             >
               <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                 <div className="w-full h-full">
-                  <ParkingMap
-                    alerts={homeMapAlerts}
-                    userLocation={userLocation}
-                    zoomControl={false}
-                  />
+                  <ParkingMap alerts={homeMapAlerts} userLocation={userLocation} zoomControl={false} />
                 </div>
               </div>
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                {/* 1) Logo +10px */}
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                   alt="WaitMe!"
                   className="w-[212px] h-[212px] mb-0 object-contain"
                 />
 
-                {/* 1 + 6) Palabra WaitMe! (Me! morado) */}
-                <h1 className="text-4xl font-bold leading-none -mt-3 whitespace-nowrap">
+                {/* SUBIDO “AL RAS” */}
+                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                {/* 2 + 6) Frase justo debajo con 3px (avisen! morado) */}
                 <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
 
-              {/* 3) Botones NO se mueven: mismas clases y estructura */}
+              {/* BOTONES: NO SE MUEVEN */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  {/* 4) Icono ubicación más grande y del mismo tamaño que el coche */}
-                  <MapPin className="w-14 h-14 text-purple-500" strokeWidth={3} />
+                  {/* UBICACIÓN x3 */}
+                  <MapPin className="w-20 h-20 text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
@@ -529,15 +572,15 @@ export default function Home() {
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  {/* 5) Icono coche igual que el de Perfil */}
-                  <CarIconProfile size="w-14 h-14" />
+                  {/* COCHE = PERFIL (w-16 h-10) */}
+                  <CarIconProfile />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
+          {/* SEARCH */}
           {mode === 'search' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -622,7 +665,7 @@ export default function Home() {
             </motion.div>
           )}
 
-          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
+          {/* CREATE */}
           {mode === 'create' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -654,9 +697,7 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
-              </h3>
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">¿ Dónde estas aparcado ?</h3>
 
               <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
@@ -684,7 +725,7 @@ export default function Home() {
                         car_color: currentUser?.car_color || 'gris',
                         car_plate: currentUser?.car_plate || '0000XXX',
                         phone: currentUser?.phone || null,
-                        allow_phone_calls: currentUser?.allow_phone_calls || false
+                        allow_phone_calls: currentUser?.allow_phone_calls || false,
                       };
 
                       createAlertMutation.mutate(payload);
@@ -729,10 +770,7 @@ export default function Home() {
             <Button variant="outline" onClick={() => setConfirmDialog({ open: false, alert: null })} className="flex-1 border-gray-700">
               Cancelar
             </Button>
-            <Button
-              onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-            >
+            <Button onClick={() => buyAlertMutation.mutate(confirmDialog.alert)} className="flex-1 bg-purple-600 hover:bg-purple-700">
               Enviar solicitud
             </Button>
           </DialogFooter>
