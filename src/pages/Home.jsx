@@ -511,7 +511,7 @@ export default function Home() {
                 />
 
                 {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none -mt-[49px] whitespace-nowrap">
+                <h1 className="text-4xl font-bold leading-none -mt-[84px] whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
