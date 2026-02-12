@@ -10,8 +10,7 @@ export default function Header({
   showBackButton = false,
   backTo = 'Home',
   onBack,
-  settingsIcon: SettingsIcon = Settings,
-  profileIcon: ProfileIcon = User
+  iconVariant = 'default'
 }) {
 
   const navigate = useNavigate();
@@ -100,25 +99,51 @@ export default function Header({
 
           <div className="flex items-center gap-1 justify-end">
 
-            <Link to={createPageUrl('Settings')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <SettingsIcon className="w-7 h-7" />
-              </Button>
-            </Link>
+            {iconVariant === 'bottom' ? (
+              <>
+                <Link to={createPageUrl('Settings')}>
+                  <button
+                    type="button"
+                    className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
+                    aria-label="Ajustes"
+                  >
+                    <Settings className="w-10 h-10" strokeWidth={2} />
+                  </button>
+                </Link>
 
-            <Link to={createPageUrl('Profile')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <ProfileIcon className="w-7 h-7" />
-              </Button>
-            </Link>
+                <Link to={createPageUrl('Profile')}>
+                  <button
+                    type="button"
+                    className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
+                    aria-label="Perfil"
+                  >
+                    <User className="w-10 h-10" strokeWidth={2} />
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to={createPageUrl('Settings')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                  >
+                    <Settings className="w-7 h-7" />
+                  </Button>
+                </Link>
+
+                <Link to={createPageUrl('Profile')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                  >
+                    <User className="w-7 h-7" />
+                  </Button>
+                </Link>
+              </>
+            )}
 
           </div>
 
