@@ -1,4 +1,3 @@
-import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -16,6 +15,7 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
+import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // ======================
 // Helpers
@@ -503,19 +503,19 @@ export default function Home() {
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                {/* Logo */}
+                {/* 1) Logo +10px */}
                 <img
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] mb-0 object-contain -mt-[5px]"
+                  className="w-[212px] h-[212px] mb-0 object-contain"
                 />
 
-                {/* Texto subido 20px */}
-                <h1 className="text-4xl font-bold leading-none -mt-[68px] whitespace-nowrap">
+                {/* SUBIDO “AL RAS” */}
+                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold -mt-[24px] whitespace-nowrap">
+                <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
