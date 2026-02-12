@@ -502,7 +502,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-35px] z-10 px-6">
+              <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-65px] z-10 px-6">
                 {/* 1) Logo +10px */}
                 <img
                   src={appLogo}
@@ -520,8 +520,8 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* BOTONES: NO SE MUEVEN */}
-              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
+              {/* BOTONES */}
+              <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
