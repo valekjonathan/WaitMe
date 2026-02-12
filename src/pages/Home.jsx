@@ -1,3 +1,4 @@
+import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -15,7 +16,6 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
-import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // ======================
 // Helpers
@@ -510,12 +510,12 @@ export default function Home() {
                   className="w-[212px] h-[212px] mb-0 object-contain"
                 />
 
-                {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
+                {/* SUBIDO justo debajo del logo */}
+                <h1 className="text-4xl font-bold leading-none -mt-12 whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
+                <p className="text-xl font-bold -mt-1 whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
