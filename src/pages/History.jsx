@@ -786,7 +786,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pt-[9px] pb-0">
+          <div className="sticky top-[56px] z-40 bg-black pt-[11px] pb-[2px]">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white">
                 Tus alertas
@@ -1181,11 +1181,13 @@ const myFinalizedAlerts = useMemo(() => {
                   <SectionTag variant="green" text="Activas" />
 
                 {reservationsActiveAll.length === 0 ? (
-                  <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50">
-                    <div className="h-[110px] flex items-center justify-center">
-                      <p className="text-gray-500 font-semibold">No tienes reservas</p>
-                    </div>
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna reserva activa.</p>
+                  </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
                     {reservationsActiveAll.map((alert, index) => {
