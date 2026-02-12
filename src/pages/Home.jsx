@@ -523,19 +523,19 @@ export default function Home() {
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-24 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-6"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <MapPin size={96} className="text-purple-500 shrink-0" strokeWidth={3} />
+                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
                 <Button
                   onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-24 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-6"
                 >
                   {/* ICONO COCHE = PERFIL */}
-                  <CarIconProfile size="w-24 h-16" />
+                  <CarIconProfile size="w-28 h-20" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
