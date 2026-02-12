@@ -10,7 +10,7 @@ export default function Header({
   showBackButton = false,
   backTo = 'Home',
   onBack,
-  iconVariant = 'bottom'
+  iconVariant = 'default'
 }) {
 
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-xl font-semibold select-none"
+        className="text-lg font-semibold select-none"
         aria-label="Recargar página"
       >
         {TitleInner}
@@ -107,7 +107,7 @@ export default function Header({
                     className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
                     aria-label="Ajustes"
                   >
-                    <Settings className="w-10 h-10" strokeWidth={2} />
+                    <Settings className="w-8 h-8 ml-[5px]" strokeWidth={2} />
                   </button>
                 </Link>
 
@@ -117,7 +117,7 @@ export default function Header({
                     className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
                     aria-label="Perfil"
                   >
-                    <User className="w-10 h-10" strokeWidth={2} />
+                    <User className="w-8 h-8" strokeWidth={2} />
                   </button>
                 </Link>
               </>
@@ -127,9 +127,9 @@ export default function Header({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[5px]"
                   >
-                    <Settings className="w-7 h-7" />
+                    <Settings className="w-6 h-6" />
                   </Button>
                 </Link>
 
@@ -139,7 +139,7 @@ export default function Header({
                     size="icon"
                     className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
                   >
-                    <User className="w-7 h-7" />
+                    <User className="w-6 h-6" />
                   </Button>
                 </Link>
               </>
