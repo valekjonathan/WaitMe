@@ -10,7 +10,7 @@ export default function Header({
   showBackButton = false,
   backTo = 'Home',
   onBack,
-  iconVariant = 'default'
+  iconVariant = 'bottom'
 }) {
 
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-lg font-semibold select-none"
+        className="text-xl font-semibold select-none"
         aria-label="Recargar página"
       >
         {TitleInner}
