@@ -502,7 +502,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6 -mt-[10px]">
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6 -translate-y-[20px]">
                 {/* 1) Logo +10px */}
                 <img
                   src={appLogo}
