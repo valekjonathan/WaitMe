@@ -614,136 +614,15 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   refetchOnMount: false,
   placeholderData: (prev) => prev,
   queryFn: async () => {
-    const [asSeller, asBuyer] = await Promise.all([
-      base44.entities.Transaction.filter({ seller_id: user?.email }),
-      base44.entities.Transaction.filter({ buyer_id: user?.email })
-    ]);
-    const s = Array.isArray(asSeller) ? asSeller : (asSeller?.data || []);
-    const b = Array.isArray(asBuyer) ? asBuyer : (asBuyer?.data || []);
-    return [...s, ...b];
+    return [];
   }
 });
 const mockReservationsFinal = useMemo(() => {
-    const baseNow = Date.now();
-    return [
-      {
-        id: 'mock-res-fin-1',
-        status: 'completed',
-        reserved_by_id: user?.id,
-        user_id: 'seller-8',
-        user_email: 'seller8@test.com',
-        user_name: 'Hugo',
-        user_photo: avatarFor('Hugo'),
-        car_brand: 'BMW',
-        car_model: 'Serie 1',
-        car_color: 'gris',
-        car_plate: '2847BNM',
-        address: 'Calle Gran Vía, 25',
-        available_in_minutes: 8,
-        price: 4.0,
-        phone: '611111111',
-        allow_phone_calls: false,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
-      },
-      {
-        id: 'mock-res-fin-2',
-        status: 'cancelled',
-        reserved_by_id: user?.id,
-        user_id: 'seller-9',
-        user_email: 'seller9@test.com',
-        user_name: 'Nuria',
-        user_photo: avatarFor('Nuria'),
-        car_brand: 'Audi',
-        car_model: 'A3',
-        car_color: 'azul',
-        car_plate: '1209KLP',
-        address: 'Calle Uría, 10',
-        available_in_minutes: 12,
-        price: 3.0,
-        phone: '622222222',
-        allow_phone_calls: true,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 3).toISOString()
-      },
-      {
-        id: 'mock-res-fin-3',
-        status: 'expired',
-        reserved_by_id: user?.id,
-        user_id: 'seller-10',
-        user_email: 'seller10@test.com',
-        user_name: 'Iván',
-        user_photo: avatarFor('Iván'),
-        car_brand: 'Toyota',
-        car_model: 'Yaris',
-        car_color: 'blanco',
-        car_plate: '4444XYZ',
-        address: 'Calle Campoamor, 15',
-        available_in_minutes: 10,
-        price: 2.8,
-        phone: null,
-        allow_phone_calls: false,
-        created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 5).toISOString()
-      }
-    ];
+    return [];
   }, [user?.id]);
 
   const mockTransactions = useMemo(() => {
-  const baseNow = Date.now();
-  return [
-    {
-      id: 'mock-tx-1',
-      seller_id: user?.id,
-      seller_name: 'Tu',
-      buyer_id: 'buyer-1',
-      buyer_name: 'Marco',
-      buyer_photo_url: avatarFor('Marco'),
-      buyer_car: 'BMW Serie 3',
-      buyer_car_color: 'gris',
-      buyer_plate: '2847BNM',
-      amount: 5.0,
-      seller_earnings: 4.0,
-      platform_fee: 1.0,
-      status: 'completed',
-      address: 'Calle Gran Vía, 25',
-      alert_id: 'mock-alert-1',
-      created_date: new Date(baseNow - 1000 * 60 * 60 * 24 * 2).toISOString()
-    },
-    {
-      id: 'mock-tx-2',
-      seller_id: user?.id,
-      seller_name: 'Tu',
-      buyer_id: 'buyer-2',
-      buyer_name: 'Hugo',
-      buyer_photo_url: avatarFor('Hugo'),
-      buyer_car: 'Audi A4',
-      buyer_car_color: 'negro',
-      buyer_plate: '5521LKP',
-      amount: 6.5,
-      seller_earnings: 5.2,
-      platform_fee: 1.3,
-      status: 'completed',
-      address: 'Calle Uría, 10',
-      alert_id: 'mock-alert-2',
-      created_date: new Date(baseNow - 1000 * 60 * 60 * 6).toISOString()
-    },
-    {
-      id: 'mock-tx-3',
-      seller_id: user?.id,
-      seller_name: 'Tu',
-      buyer_id: 'buyer-3',
-      buyer_name: 'Nuria',
-      buyer_photo_url: avatarFor('Nuria'),
-      buyer_car: 'Seat Ibiza',
-      buyer_car_color: 'rojo',
-      buyer_plate: '9032JHG',
-      amount: 3.8,
-      seller_earnings: 3.0,
-      platform_fee: 0.8,
-      status: 'completed',
-      address: 'Calle Campoamor, 15',
-      alert_id: 'mock-alert-3',
-      created_date: new Date(baseNow - 1000 * 60 * 30).toISOString()
-    }
-  ];
+  return [];
 }, [user?.id]);
 
  
