@@ -109,6 +109,19 @@ const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
     <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>;
 
+const SearchParkingIcon = ({ size = "w-12 h-12", className = "" }) =>
+  <svg viewBox="0 0 48 48" className={`${size} ${className}`} fill="none">
+    {/* Letrero de parking con P */}
+    <rect x="8" y="10" width="24" height="20" rx="2" fill="#a855f7" stroke="white" strokeWidth="1.5" />
+    <path d="M15 14 L20 14 Q24 14 24 18 Q24 22 20 22 L17 22 L17 26 L15 26 Z M17 16 L17 20 L20 20 Q22 20 22 18 Q22 16 20 16 Z" 
+      fill="white" />
+    
+    {/* Lupa */}
+    <circle cx="36" cy="32" r="8" fill="none" stroke="#a855f7" strokeWidth="2.5" />
+    <circle cx="36" cy="32" r="5" fill="none" stroke="#a855f7" strokeWidth="2" />
+    <line x1="41" y1="37" x2="45" y2="41" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>;
+
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -523,10 +536,9 @@ export default function Home() {
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
+                  <SearchParkingIcon size="w-14 h-14" className="shrink-0" />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
