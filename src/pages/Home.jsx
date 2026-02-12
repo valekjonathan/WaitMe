@@ -109,6 +109,7 @@ const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
     <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>;
 
+// Icono de búsqueda de parking: letrero P + lupa
 const SearchParkingIcon = ({ size = "w-12 h-12", className = "" }) =>
   <svg viewBox="0 0 48 48" className={`${size} ${className}`} fill="none">
     {/* Letrero de parking con P */}
@@ -116,7 +117,7 @@ const SearchParkingIcon = ({ size = "w-12 h-12", className = "" }) =>
     <path d="M15 14 L20 14 Q24 14 24 18 Q24 22 20 22 L17 22 L17 26 L15 26 Z M17 16 L17 20 L20 20 Q22 20 22 18 Q22 16 20 16 Z" 
       fill="white" />
     
-    {/* Lupa */}
+    {/* Lupa de búsqueda */}
     <circle cx="36" cy="32" r="8" fill="none" stroke="#a855f7" strokeWidth="2.5" />
     <circle cx="36" cy="32" r="5" fill="none" stroke="#a855f7" strokeWidth="2" />
     <line x1="41" y1="37" x2="45" y2="41" stroke="#a855f7" strokeWidth="2.5" strokeLinecap="round" />
