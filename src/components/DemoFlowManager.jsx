@@ -1,5 +1,10 @@
 // src/components/DemoFlowManager.jsx
-// Versión vacía compatible
+// MODO VACÍO TOTAL – COMPATIBLE CON IMPORTS ANTIGUOS
+
+// Algunos archivos importan estas funciones desde aquí.
+// Las dejamos para que NO rompa nada y todo devuelva vacío.
+
+export const isDemoMode = () => false;
 
 export const getDemoAlerts = () => [];
 export const getDemoChats = () => [];
