@@ -502,7 +502,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
+              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6 -mt-[10px]">
                 {/* 1) Logo +10px */}
                 <img
                   src={appLogo}
@@ -511,7 +511,7 @@ export default function Home() {
                 />
 
                 {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none -mt-[65px] whitespace-nowrap">
+                <h1 className="text-4xl font-bold leading-none -mt-[49px] whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
