@@ -531,17 +531,19 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-3 flex-shrink-0 z-50 relative">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-                  <input
-                    type="text"
-                    placeholder="Buscar dirección..."
-                    value={searchInput}
-                    onChange={handleSearchInputChange}
-                    onFocus={() => setShowSuggestions(true)}
-                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+              <div className="px-7 py-3 flex-shrink-0 z-50 relative">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar dirección..."
+                      value={searchInput}
+                      onChange={handleSearchInputChange}
+                      onFocus={() => setShowSuggestions(true)}
+                      className="w-full bg-transparent text-white pl-10 pr-4 py-1 text-sm focus:outline-none border-none"
+                    />
+                  </div>
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
@@ -607,7 +609,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="px-4 py-2 flex-shrink-0">
+              <div className="px-7 py-2 flex-shrink-0">
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
@@ -615,7 +617,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="px-4 pt-1 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pt-1 pb-[3px] flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
