@@ -1,12 +1,11 @@
 // src/components/DemoFlowManager.jsx
-// DESACTIVADO – NO GENERA NADA
+// Versión vacía compatible
 
-import { useEffect } from "react";
+export const getDemoAlerts = () => [];
+export const getDemoChats = () => [];
+export const getDemoNotifications = () => [];
+export const getDemoUsers = () => [];
 
 export default function DemoFlowManager() {
-  useEffect(() => {
-    // Modo vacío total
-  }, []);
-
   return null;
 }
