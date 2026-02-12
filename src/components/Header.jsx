@@ -11,7 +11,6 @@ export default function Header({
   backTo = 'Home',
   onBack,
 }) {
-
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -46,12 +45,7 @@ export default function Header({
   }, [onBack]);
 
   const BackButton = (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handleBack}
-      className="text-white"
-    >
+    <Button variant="ghost" size="icon" onClick={handleBack} className="text-white">
       <ArrowLeft className="w-6 h-6" />
     </Button>
   );
@@ -66,9 +60,7 @@ export default function Header({
               onBack ? (
                 BackButton
               ) : (
-                <Link to={createPageUrl(backTo)}>
-                  {BackButton}
-                </Link>
+                <Link to={createPageUrl(backTo)}>{BackButton}</Link>
               )
             ) : (
               <div className="w-10" />
@@ -86,9 +78,7 @@ export default function Header({
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
-              {renderTitle}
-            </div>
+            <div className="pointer-events-auto">{renderTitle}</div>
           </div>
 
           <div className="flex items-center justify-end">
@@ -98,7 +88,7 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[31px]"
               >
-                <Settings className="w-6 h-6" />
+                <Settings className="w-8 h-8" />
               </Button>
             </Link>
 
@@ -108,7 +98,7 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
               >
-                <User className="w-6 h-6" />
+                <User className="w-8 h-8" />
               </Button>
             </Link>
           </div>
