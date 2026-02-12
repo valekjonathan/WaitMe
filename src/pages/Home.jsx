@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal } from 'lucide-react';
+import { MapPin, SlidersHorizontal, Search, UserRound } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -115,6 +115,12 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
+
+  // Refs para ajustar el centro del mapa (tu ubicación) entre la frase y el botón
+  const homeMapShiftRef = useRef(null);
+  const homeTaglineRef = useRef(null);
+  const homeSearchBtnRef = useRef(null);
+
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -271,6 +277,35 @@ export default function Home() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [location.search]);
+  // Ajusta el centro del mapa (tu ubicación) para que quede visualmente
+  // entre la frase y el botón “¿Dónde quieres aparcar?” (solo en HOME principal).
+  useEffect(() => {
+    if (mode) return; // solo en home (sin modo)
+    const applyShift = () => {
+      const mapEl = homeMapShiftRef.current;
+      const taglineEl = homeTaglineRef.current;
+      const btnEl = homeSearchBtnRef.current;
+      if (!mapEl || !taglineEl || !btnEl) return;
+
+      const mapRect = mapEl.getBoundingClientRect();
+      const taglineRect = taglineEl.getBoundingClientRect();
+      const btnRect = btnEl.getBoundingClientRect();
+
+      const targetY = (taglineRect.bottom + btnRect.top) / 2;
+      const mapCenterY = mapRect.top + mapRect.height / 2;
+      const shiftY = Math.round(targetY - mapCenterY);
+
+      mapEl.style.transform = `translateY(${shiftY}px)`;
+      mapEl.style.willChange = 'transform';
+    };
+
+    const raf = requestAnimationFrame(applyShift);
+    window.addEventListener('resize', applyShift);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', applyShift);
+    };
+  }, [mode]);
 
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
@@ -474,6 +509,8 @@ export default function Home() {
         title="WaitMe!"
         unreadCount={unreadCount}
         showBackButton={!!mode}
+        settingsIcon={SlidersHorizontal}
+        profileIcon={UserRound}
         onBack={() => {
           setMode(null);
           setSelectedAlert(null);
@@ -490,7 +527,7 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+              <div ref={homeMapShiftRef} className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                 <div className="w-full h-full">
                   <ParkingMap
                     alerts={homeMapAlerts}
@@ -516,21 +553,25 @@ export default function Home() {
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-65px]">
+                <p ref={homeTaglineRef} className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-65px]">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
 
               {/* BOTONES */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
-                <Button
+                <div ref={homeSearchBtnRef}>
+<Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
+                  <Search className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
+</div>
+
+                
 
                 <Button
                   onClick={() => setMode('create')}
