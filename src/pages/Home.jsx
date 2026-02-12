@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
+import { MapPin, SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -14,8 +14,11 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoNotifications, reserveDemoAlert } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
+// ======================
+// Helpers
+// ======================
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -87,13 +90,32 @@ const buildDemoAlerts = (lat, lng) => {
   ];
 };
 
+const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
+  <svg viewBox="0 0 48 24" className={size} fill="none">
+    {/* Cuerpo del coche - vista lateral */}
+    <path
+      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+      fill={color}
+      stroke="white"
+      strokeWidth="1.5" />
+
+    {/* Ventanas */}
+    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+    {/* Rueda trasera */}
+    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="14" cy="18" r="2" fill="#666" />
+    {/* Rueda delantera */}
+    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="36" cy="18" r="2" fill="#666" />
+  </svg>;
+
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
-    const [demoTick, setDemoTick] = useState(0);
-const [selectedAlert, setSelectedAlert] = useState(null);
+  const [demoTick, setDemoTick] = useState(0);
+  const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -239,7 +261,6 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     return () => unsub?.();
   }, []);
 
-
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('reset')) {
@@ -253,7 +274,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [userLocation]);
+  }, [userLocation, demoTick]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
@@ -286,7 +307,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
 
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [mode, filteredAlerts, userLocation]);
+  }, [mode, filteredAlerts, userLocation, demoTick]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -296,7 +317,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-      
+
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -319,13 +340,13 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     },
     onMutate: async (data) => {
       navigate(createPageUrl('History'), { replace: true });
-      
+
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
       await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
-      
+
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-      
+
       const optimisticAlert = {
         id: `temp_${Date.now()}`,
         ...data,
@@ -333,7 +354,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
         status: 'active',
         created_date: new Date().toISOString()
       };
-      
+
       queryClient.setQueryData(['alerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
@@ -408,16 +429,16 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     onMutate: async (alert) => {
       setConfirmDialog({ open: false, alert: null });
       navigate(createPageUrl('History'));
-      
+
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
-      
+
       const previousAlerts = queryClient.getQueryData(['alerts']);
-      
+
       queryClient.setQueryData(['alerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
       });
-      
+
       return { previousAlerts };
     },
     onError: (err, alert, context) => {
@@ -436,36 +457,11 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     setConfirmDialog({ open: true, alert });
   };
 
-  const handleChat = async (alert) => {
+  const handleChat = async () => {
     navigate(createPageUrl('History'));
-    
-    if (alert?.is_demo) return;
-    
-    const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-    
-    const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
-    const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
-                        (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
-    
-    if (existingConv) return;
-    
-    await base44.entities.Conversation.create({
-      participant1_id: user.id,
-      participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
-      participant1_photo: user.photo_url,
-      participant2_id: otherUserId,
-      participant2_name: alert.user_name,
-      participant2_photo: alert.user_photo,
-      alert_id: alert.id,
-      last_message_text: '',
-      last_message_at: new Date().toISOString(),
-      unread_count_p1: 0,
-      unread_count_p2: 0
-    });
   };
 
-  const handleCall = (alert) => {
-    const phone = alert?.phone || '+34612345678';
+  const handleCall = async () => {
     navigate(createPageUrl('History'));
   };
 
@@ -485,7 +481,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
 
       <main className="fixed inset-0 top-0 bottom-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
+          {/* HOME PRINCIPAL */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -506,33 +502,40 @@ const [selectedAlert, setSelectedAlert] = useState(null);
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
+                {/* 1) Logo +10px */}
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                   alt="WaitMe!"
-                  className="w-[202px] h-[202px] mb-0 object-contain"
+                  className="w-[212px] h-[212px] mb-0 object-contain"
                 />
-                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+
+                {/* SUBIDO “AL RAS” */}
+                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
+                  Wait<span className="text-purple-500">Me!</span>
                 </h1>
+
+                <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
+                  Aparca donde te <span className="text-purple-500">avisen!</span>
+                </p>
               </div>
 
+              {/* BOTONES: NO SE MUEVEN */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
-                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
-                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
+                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
                 <Button
                   onClick={() => setMode('create')}
-                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                 >
-                  <Car className="w-14 h-14" strokeWidth={2.5} />
+                  {/* ICONO COCHE = PERFIL */}
+                  <CarIconProfile size="w-20 h-14" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
@@ -608,7 +611,6 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                 </div>
               </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -672,7 +674,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
                       }
-                      
+
                       const currentUser = user;
                       const payload = {
                         latitude: selectedPosition.lat,
@@ -689,7 +691,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                         phone: currentUser?.phone || null,
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
-                      
+
                       createAlertMutation.mutate(payload);
                     }}
                     isLoading={createAlertMutation.isPending}
