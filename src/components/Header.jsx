@@ -9,7 +9,9 @@ export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
   backTo = 'Home',
-  onBack
+  onBack,
+  settingsIcon: SettingsIcon = Settings,
+  profileIcon: ProfileIcon = User
 }) {
 
   const navigate = useNavigate();
@@ -104,7 +106,7 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
               >
-                <Settings className="w-7 h-7" />
+                <SettingsIcon className="w-7 h-7" />
               </Button>
             </Link>
 
@@ -114,7 +116,7 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
               >
-                <User className="w-7 h-7" />
+                <ProfileIcon className="w-7 h-7" />
               </Button>
             </Link>
 
