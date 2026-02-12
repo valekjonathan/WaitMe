@@ -123,25 +123,21 @@ export default function Header({
           <div className="flex items-center gap-1 justify-end">
 
             <Link to={createPageUrl('Settings')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <Settings className="w-7 h-7" />
-              </Button>
+              
+<div className="flex items-center justify-center w-[52px] h-[52px] rounded-lg text-purple-400 hover:bg-purple-700/40 border border-transparent hover:border-purple-500/50">
+  <Settings className="w-8 h-8" />
+</div>
+
             </Link>
 
 
 
             <Link to={createPageUrl('Profile')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <User className="w-7 h-7" />
-              </Button>
+              
+<div className="flex items-center justify-center w-[52px] h-[52px] rounded-lg text-purple-400 hover:bg-purple-700/40 border border-transparent hover:border-purple-500/50">
+  <User className="w-8 h-8" />
+</div>
+
             </Link>
 
           </div>
