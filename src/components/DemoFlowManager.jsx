@@ -91,5 +91,5 @@ export default function DemoFlowManager({ children }) {
     startDemoFlow()
   }, [])
 
-  return children
+  return children 
 }
