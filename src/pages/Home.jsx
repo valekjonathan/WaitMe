@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal } from 'lucide-react';
+import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -522,9 +522,8 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <circle cx="11" cy="11" r="6" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 8h2.5a2 2 0 010 4H10V8z" />
-                    <line x1="16.2" y1="16.2" x2="20.2" y2="20.2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   ¿ Dónde quieres aparcar ?
                 </Button>
@@ -533,13 +532,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg className="w-14 h-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="4" y1="4" x2="4" y2="20" />
-                    <line x1="20" y1="4" x2="20" y2="20" />
-                    <rect x="7" y="10" width="10" height="6" rx="2" />
-                    <circle cx="10" cy="17" r="1" />
-                    <circle cx="14" cy="17" r="1" />
-                  </svg>
+                  <Car className="w-14 h-14" strokeWidth={2.5} />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
