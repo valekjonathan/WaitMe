@@ -136,7 +136,7 @@ function LocationMarker({ position, setPosition, isSelecting }) {
 
 }
 
-function FlyToLocation({ position }) {
+function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
   const map = useMap();
 
   useEffect(() => {
@@ -162,7 +162,8 @@ export default function ParkingMap({
   sellerLocation,
   className = '',
   zoomControl = true,
-  buyerLocations = []
+  buyerLocations = [],
+  userLocationOffsetY = 0
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -267,7 +268,7 @@ export default function ParkingMap({
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
         
-        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} />}
+        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
         {normalizedUserLocation &&

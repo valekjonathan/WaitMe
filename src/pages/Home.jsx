@@ -110,6 +110,20 @@ const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
     <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>;
 
+const MagnifierIconProfile = ({ color = "#8b5cf6", size = "w-14 h-14" }) => (
+  <svg viewBox="0 0 48 48" className={size} fill="none">
+    {/* Lente */}
+    <circle cx="20" cy="20" r="12" fill={color} stroke="white" strokeWidth="1.5" />
+    {/* Brillo */}
+    <path d="M15 16 C16 13, 18 12, 21 12" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" />
+    {/* Mango */}
+    <path d="M28 28 L38 38" stroke="white" strokeWidth="4" strokeLinecap="round" />
+    {/* Tope mango */}
+    <path d="M36.8 36.8 L40.8 40.8" stroke="white" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
+  </svg>
+);
+
+
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -471,6 +485,7 @@ export default function Home() {
       <NotificationManager user={user} />
 
       <Header
+        iconVariant="bottom"
         title="WaitMe!"
         unreadCount={unreadCount}
         showBackButton={!!mode}
@@ -495,6 +510,7 @@ export default function Home() {
                   <ParkingMap
                     alerts={homeMapAlerts}
                     userLocation={userLocation}
+                    userLocationOffsetY={120}
                     zoomControl={false}
                   />
                 </div>
@@ -502,32 +518,33 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                {/* 1) Logo +10px */}
-                <img
-                  src={appLogo}
-                  alt="WaitMe!"
-                  className="w-[212px] h-[212px] mb-0 object-contain"
-                />
+              <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
+                {/* Logo */}
+                {/* Logo */}
+<img
+  src={appLogo}
+  alt="WaitMe!"
+  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
+/>
 
                 {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
+                <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-65px]">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
+                <p className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-65px]">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
 
-              {/* BOTONES: NO SE MUEVEN */}
-              <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
+              {/* BOTONES */}
+              <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
+                  <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 

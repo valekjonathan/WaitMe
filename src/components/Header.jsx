@@ -5,21 +5,15 @@ import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
-
-
 export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
   backTo = 'Home',
-  onBack
+  onBack,
 }) {
 
   const navigate = useNavigate();
   const { user } = useAuth();
-
-
-
-  /* ---------- MEMO TITLE ---------- */
 
   const renderTitle = useMemo(() => {
 
@@ -40,7 +34,7 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-lg font-semibold select-none"
+        className="text-[24px] leading-[24px] font-semibold select-none"
         aria-label="Recargar página"
       >
         {TitleInner}
@@ -49,17 +43,11 @@ export default function Header({
 
   }, [title, navigate]);
 
-
-
-  /* ---------- MEMO BACK ---------- */
-
   const handleBack = useCallback(() => {
     if (onBack) onBack();
   }, [onBack]);
 
-
-
-  const BackButton = useMemo(() => (
+  const BackButton = (
     <Button
       variant="ghost"
       size="icon"
@@ -68,9 +56,7 @@ export default function Header({
     >
       <ArrowLeft className="w-6 h-6" />
     </Button>
-  ), [handleBack]);
-
-
+  );
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
@@ -78,7 +64,6 @@ export default function Header({
 
         <div className="relative flex items-center justify-between">
 
-          {/* IZQUIERDA */}
           <div className="flex items-center">
 
             {showBackButton ? (
@@ -93,9 +78,6 @@ export default function Header({
               <div className="w-10" />
             )}
 
-
-
-            {/* DINERO */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
                 <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
@@ -108,31 +90,23 @@ export default function Header({
 
           </div>
 
-
-
-          {/* TITULO */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               {renderTitle}
             </div>
           </div>
 
-
-
-          {/* DERECHA */}
-          <div className="flex items-center gap-1 justify-end">
+          <div className="flex items-center justify-end">
 
             <Link to={createPageUrl('Settings')}>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[31px]"
               >
-                <Settings className="w-7 h-7" />
+                <Settings className="w-5 h-5" />
               </Button>
             </Link>
-
-
 
             <Link to={createPageUrl('Profile')}>
               <Button
@@ -140,7 +114,7 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
               >
-                <User className="w-7 h-7" />
+                <User className="w-5 h-5" />
               </Button>
             </Link>
 
