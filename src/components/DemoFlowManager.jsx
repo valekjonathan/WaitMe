@@ -1,55 +1,57 @@
 import { useEffect } from 'react'
 
 /* ======================================================
-   DEMO FLOW MANAGER — MODO VACÍO ABSOLUTO
+   DEMO FLOW MANAGER — MODO VACÍO TOTAL
    Compatible con CUALQUIER export anterior
-   No rompe imports
-   Datos completamente vacíos
 ====================================================== */
 
 const emptyArray = []
-const emptyObject = {}
 const emptyNull = null
 
 /* ======================================================
    PROXY UNIVERSAL
-   Cualquier función que se llame devuelve vacío
+   Cualquier función exportada devuelve vacío
 ====================================================== */
 
-const universalHandler = {
+const handler = {
   get: () => () => emptyArray
 }
 
-export const demoFlow = new Proxy({}, universalHandler)
+const universal = new Proxy({}, handler)
 
 /* ======================================================
-   EXPORTS EXPLÍCITOS MÁS COMUNES
-====================================================== */
-
-export const getDemoUsers = () => emptyArray
-export const getDemoAlerts = () => emptyArray
-export const getDemoChats = () => emptyArray
-export const getDemoMessages = () => emptyArray
-export const getDemoConversations = () => emptyArray
-export const getDemoConversation = () => emptyNull
-export const getDemoNotifications = () => emptyArray
-export const getDemoHistory = () => emptyArray
-
-export const createDemoAlert = () => emptyNull
-export const removeDemoAlert = () => emptyNull
-export const sendDemoMessage = () => emptyNull
-export const markNotificationRead = () => emptyNull
-
-export const isDemoMode = () => true
-export const stopDemoFlow = () => {}
-export const subscribeDemoFlow = () => () => {}
-export const startDemoFlow = () => {}
-
-/* ======================================================
-   WRAPPER
+   EXPORT DEFAULT (WRAPPER)
 ====================================================== */
 
 export default function DemoFlowManager({ children }) {
   useEffect(() => {}, [])
   return children
 }
+
+/* ======================================================
+   EXPORTAMOS TODO LO POSIBLE
+====================================================== */
+
+export const demoFlow = universal
+
+// Proxy para cualquier import nombrado
+export const {
+  getDemoUsers,
+  getDemoAlerts,
+  getDemoChats,
+  getDemoMessages,
+  getDemoConversations,
+  getDemoConversation,
+  getDemoNotifications,
+  getDemoHistory,
+  createDemoAlert,
+  removeDemoAlert,
+  sendDemoMessage,
+  markNotificationRead,
+  markDemoRead,
+  markAsRead,
+  subscribeDemoFlow,
+  startDemoFlow,
+  stopDemoFlow,
+  isDemoMode
+} = universal
