@@ -3,9 +3,9 @@ import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
    DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
-   - Unifica datos para Home / History / Chats / Chat / Notifications
+   - Unifica datos para Chats / Chat / Notifications
    - Mantiene la app “viva” siempre
-   - Compatibilidad: exports legacy + aliases
+   - Compatibilidad: exports legacy + campos alias
 ====================================================== */
 
 let started = false;
@@ -203,6 +203,7 @@ function seedConversationsAndMessages() {
     const other = pickUser(a.user_id);
     const convId = `conv_${a.id}_me`;
 
+    // asumimos que “tú” ya interactuaste con esos estados
     a.reserved_by_id = 'me';
     a.reserved_by_name = demoFlow.me.name;
     a.reserved_by_photo = demoFlow.me.photo;
@@ -217,6 +218,7 @@ function seedConversationsAndMessages() {
       participant1_photo: demoFlow.me.photo,
       participant2_photo: other?.photo,
 
+      // aliases para pantallas que esperan snake/other_*
       other_name: other?.name,
       other_photo: other?.photo,
 
@@ -231,6 +233,7 @@ function seedConversationsAndMessages() {
     demoFlow.conversations.push(conv);
     ensureMessagesArray(convId);
 
+    // mensaje automático base (lo quieres SIEMPRE)
     pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ey! te he enviado un WaitMe!' });
     pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Perfecto, lo tengo. Te leo por aquí.' });
 
@@ -267,6 +270,7 @@ function seedNotifications() {
   if (aCompleted) addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${aCompleted.price}€).`, conversationId: convCompleted, alertId: aCompleted.id, read: true });
   if (aCancelled) addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, conversationId: convCancelled, alertId: aCancelled.id, read: true });
 
+  // extras “mix”
   if (aReserved) addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador está llegando.`, conversationId: convReserved, alertId: aReserved.id, read: false });
   if (aReserved) addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `Reserva aceptada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
   if (aReserved) addNotification({ type: 'reservation_rejected', title: 'RESERVA RECHAZADA', text: `Reserva rechazada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
@@ -284,8 +288,9 @@ function resetDemo() {
    API (EXPORTS) - lo que usan tus pantallas
 ====================================================== */
 
-export function isDemoMode() { return true; }
-export function getDemoState() { return demoFlow; }
+export function isDemoMode() {
+  return true;
+}
 
 export function startDemoFlow() {
   if (started) return;
@@ -311,17 +316,22 @@ export function subscribeToDemoFlow(cb) {
 }
 
 // Chats
-export function getDemoConversations() { return demoFlow.conversations || []; }
-export function getDemoAlerts() { return demoFlow.alerts || []; }
+export function getDemoConversations() {
+  return demoFlow.conversations || [];
+}
 
-// Alert getters (legacy + nuevos)
-export function getDemoAlert(alertId) { return getAlert(alertId); }
-export function getDemoAlertById(alertId) { return getAlert(alertId); } // <- para que NO rompa
-export function getDemoAlertByID(alertId) { return getAlert(alertId); } // <- alias extra
+export function getDemoAlerts() {
+  return demoFlow.alerts || [];
+}
 
 // Chat
-export function getDemoConversation(conversationId) { return getConversation(conversationId); }
-export function getDemoConversationById(conversationId) { return getConversation(conversationId); }
+export function getDemoConversation(conversationId) {
+  return getConversation(conversationId);
+}
+
+export function getDemoConversationById(conversationId) {
+  return getConversation(conversationId);
+}
 
 export function getDemoMessages(conversationId) {
   return (demoFlow.messages && demoFlow.messages[conversationId]) ? demoFlow.messages[conversationId] : [];
@@ -344,30 +354,34 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
 }
 
 // Notifications
-export function getDemoNotifications() { return demoFlow.notifications || []; }
+export function getDemoNotifications() {
+  return demoFlow.notifications || [];
+}
 
-// ✅ EXPORTS LEGACY QUE TE ESTÁN PIDIENDO AHORA MISMO
 export function markDemoRead(notificationId) {
   const n = (demoFlow.notifications || []).find((x) => x.id === notificationId);
   if (n) n.read = true;
   notify();
 }
 
-// alias legacy
-export function markDemoNotificationRead(notificationId) { return markDemoRead(notificationId); }
-export function markDemoNotificationReadLegacy(notificationId) { return markDemoRead(notificationId); }
+export function markDemoNotificationRead(notificationId) {
+  return markDemoRead(notificationId);
+}
+
+// Compat (por si algo lo usa)
 export function markAllDemoRead() {
   (demoFlow.notifications || []).forEach((n) => (n.read = true));
   notify();
 }
 
 /* ======================================================
-   CONVERSACIÓN ↔ ALERTA
+   CONVERSACIÓN ↔ ALERTA (para Notifications)
 ====================================================== */
 
 export function ensureConversationForAlert(alertId, hint = null) {
   if (!alertId) return null;
 
+  // ya existe
   const existing = (demoFlow.conversations || []).find((c) => c.alert_id === alertId);
   if (existing) return existing;
 
@@ -389,6 +403,7 @@ export function ensureConversationForAlert(alertId, hint = null) {
 
   const conv = {
     id: convId,
+
     participant1_id: 'me',
     participant2_id: alert?.user_id || genId('u'),
     participant1_name: demoFlow.me.name,
@@ -396,6 +411,7 @@ export function ensureConversationForAlert(alertId, hint = null) {
     participant1_photo: demoFlow.me.photo,
     participant2_photo: otherPhoto,
 
+    // aliases para evitar pantallas rotas
     other_name: otherName,
     other_photo: otherPhoto,
 
@@ -482,7 +498,7 @@ export function applyDemoAction({ conversationId, alertId, action }) {
 }
 
 /* ======================================================
-   RESERVAR
+   RESERVAR (por si Home/Mapa lo llama luego)
 ====================================================== */
 
 export function reserveDemoAlert(alertId) {
@@ -516,7 +532,9 @@ export function reserveDemoAlert(alertId) {
 }
 
 // flags legacy
-export function setDemoMode() { return true; }
+export function setDemoMode() {
+  return true;
+}
 
 /* ======================================================
    COMPONENTE
@@ -526,7 +544,6 @@ export default function DemoFlowManager() {
   useEffect(() => {
     startDemoFlow();
     toast({ title: 'Modo Demo Activo', description: 'La app tiene vida simulada.' });
-    // no limpiamos timer: Base44 recarga mucho
   }, []);
   return null;
 }
