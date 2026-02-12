@@ -532,13 +532,16 @@ export default function Home() {
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   <svg viewBox="0 0 48 24" className="w-14 h-14" fill="none">
+                    {/* Cuerpo del coche - vista lateral */}
                     <path
                       d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
                       fill="#6b7280"
                       stroke="white"
                       strokeWidth="1.5"
                     />
+                    {/* Ventanas */}
                     <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                    {/* Ruedas */}
                     <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
                     <circle cx="14" cy="18" r="2" fill="#666" />
                     <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
