@@ -489,7 +489,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[44%] relative px-3 pt-3 pb-2 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -522,7 +522,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
+              <div className="px-4 py-3 flex-shrink-0 z-50 relative">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                   <input
@@ -549,7 +549,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
+              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
