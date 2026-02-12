@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import {  SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -91,29 +91,47 @@ const buildDemoAlerts = (lat, lng) => {
 };
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
-  <svg viewBox="0 0 64 32" className={size} fill="none">
-    {/* Plaza de aparcamiento */}
-    <rect x="3" y="5" width="58" height="24" rx="6" stroke="white" strokeWidth="2" opacity="0.9" />
-    <line x1="14" y1="8" x2="14" y2="28" stroke="white" strokeWidth="2" opacity="0.8" />
-    <line x1="50" y1="8" x2="50" y2="28" stroke="white" strokeWidth="2" opacity="0.8" />
-
-    {/* Coche dentro */}
+  <svg viewBox="0 0 48 24" className={size} fill="none">
+    {/* Cuerpo del coche - vista lateral */}
     <path
-      d="M18 21 L21 15 L27 13 L37 13 L43 15 L46 19 L46 23 L18 23 Z"
+      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
       fill={color}
       stroke="white"
-      strokeWidth="1.5"
-    />
-    {/* Ventanas */}
-    <path d="M27 14 L29 17 L35 17 L37 14 Z" fill="rgba(255,255,255,0.25)" stroke="white" strokeWidth="0.5" />
-    {/* Ruedas */}
-    <circle cx="26" cy="23" r="3" fill="#333" stroke="white" strokeWidth="1" />
-    <circle cx="38" cy="23" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      strokeWidth="1.5" />
 
-    {/* Señal P */}
-    <circle cx="56" cy="10" r="6" fill="rgba(0,0,0,0.35)" stroke="white" strokeWidth="1.5" />
-    <text x="56" y="13" textAnchor="middle" fontSize="8" fill="white" fontWeight="700">P</text>
+    {/* Ventanas */}
+    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+    {/* Rueda trasera */}
+    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="14" cy="18" r="2" fill="#666" />
+    {/* Rueda delantera */}
+    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>;
+
+
+const RadarIcon = () => (
+  <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none">
+    <circle cx="32" cy="32" r="24" stroke="#a855f7" strokeWidth="2"/>
+    <circle cx="32" cy="32" r="4" fill="#ffffff"/>
+    <path d="M32 8 A24 24 0 0 1 56 32" stroke="#a855f7" strokeWidth="2" />
+  </svg>
+);
+
+
+const ParkingCarIcon = () => (
+  <svg viewBox="0 0 100 60" className="w-16 h-14" fill="none">
+    <!-- Parking lines -->
+    <line x1="15" y1="10" x2="15" y2="50" stroke="white" strokeWidth="3"/>
+    <line x1="85" y1="10" x2="85" y2="50" stroke="white" strokeWidth="3"/>
+    <!-- Car (same silhouette as profile) -->
+    <path d="M25 40 L30 30 L40 25 L60 25 L70 30 L75 35 L75 42 L25 42 Z"
+      fill="#a855f7" stroke="white" strokeWidth="2"/>
+    <circle cx="38" cy="42" r="5" fill="#111" stroke="white" strokeWidth="1"/>
+    <circle cx="62" cy="42" r="5" fill="#111" stroke="white" strokeWidth="1"/>
+  </svg>
+);
+
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -532,7 +550,7 @@ export default function Home() {
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <Search className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
+                  <MapPin className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
