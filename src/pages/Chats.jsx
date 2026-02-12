@@ -1,844 +1,623 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { createPageUrl } from '@/utils';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Search, X, Navigation, TrendingUp, TrendingDown } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from '@/components/ui/use-toast';
-import { motion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import MarcoCard from '@/components/cards/MarcoCard';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  isDemoMode,
   startDemoFlow,
   subscribeDemoFlow,
-  getDemoConversations,
-  getDemoAlerts
+  getDemoConversation,
+  getDemoMessages,
+  markDemoRead,
+  sendDemoMessage,
+  demoFlow
 } from '@/components/DemoFlowManager';
 
-// ======================
-// Helpers
-// ======================
-const pad2 = (n) => String(n).padStart(2, '0');
-
-const formatMMSS = (ms) => {
-  const safe = Math.max(0, ms ?? 0);
-  const totalSeconds = Math.floor(safe / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${pad2(minutes)}:${pad2(seconds)}`;
-};
-
-const getChatStatusLabel = (status) => {
-  const s = String(status || '').toLowerCase();
-  switch (s) {
-    case 'completed':
-    case 'completada':
-      return 'COMPLETADA';
-    case 'thinking':
-    case 'me_lo_pienso':
-    case 'pending':
-      return 'ME LO PIENSO';
-    case 'rejected':
-    case 'rechazada':
-      return 'RECHAZADA';
-    case 'extended':
-    case 'prorroga':
-    case 'prórroga':
-      return 'PRÓRROGA';
-    case 'cancelled':
-    case 'canceled':
-    case 'cancelada':
-      return 'CANCELADA';
-    case 'expired':
-    case 'agotada':
-    case 'expirada':
-      return 'AGOTADA';
-    case 'went_early':
-    case 'se_fue':
-      return 'SE FUE';
-    default:
-      return null;
-  }
-};
-
-const isFinalChatStatus = (status) => {
-  const s = String(status || '').toLowerCase();
-  return ['completed', 'completada', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
-};
-
-// ====== Estilos sincronizados (CHATS / CHAT / NOTIFICACIONES) ======
-const PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
-const PURPLE_ACTIVE_TEXT = 'text-purple-400';
-const PURPLE_ACTIVE_TEXT_DIM = 'text-purple-400/70';
-
-const normalizeStatus = (status) => String(status || '').trim().toLowerCase();
-
-const isStatusMeLoPienso = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'thinking' || s === 'me_lo_pienso' || s === 'me lo pienso' || s === 'pending';
-};
-
-const isStatusProrrogada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'extended' || s === 'prorroga' || s === 'prórroga' || s === 'prorrogada';
-};
-
-const isStatusCancelada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'cancelled' || s === 'canceled' || s === 'cancelada';
-};
-
-const isStatusCompletada = (status) => {
-  const s = normalizeStatus(status);
-  return s === 'completed' || s === 'completada';
-};
-
-const getRoleBoxClasses = ({ status, isSeller, isBuyer }) => {
-  // Caja izquierda: "Te reservo:" (vendes/ganas) o "Reservaste a:" (compras/pagas)
-  const base =
-    'border font-bold text-xs h-7 w-full flex items-center justify-center cursor-default select-none pointer-events-none truncate';
-
-  // COMPLETADAS / CANCELADAS => rojo (ambas)
-  if (isStatusCompletada(status) || isStatusCancelada(status)) {
-    return `${base} bg-red-500/20 text-red-300 border-red-400/50`;
-  }
-
-  // ME LO PIENSO / PRORROGADA => seller verde, buyer morado
-  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) {
-    if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
-    if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
-  }
-
-  // Por defecto: seller verde (ganas) / buyer morado (pagas) / otros rojo suave
-  if (isSeller) return `${base} bg-green-500/20 text-green-300 border-green-400/50`;
-  if (isBuyer) return `${base} bg-purple-500/20 text-purple-300 border-purple-400/50`;
-  return `${base} bg-red-500/20 text-red-400 border-red-500/30`;
-};
-
-const PricePill = ({ direction = 'up', amount = 0 }) => {
-  const isUp = direction === 'up';
-  const wrapCls = isUp ? 'bg-green-500/15 border border-green-400/40' : 'bg-red-500/15 border border-red-400/40';
-  const textCls = isUp ? 'text-green-400' : 'text-red-400';
-  return (
-    <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
-      {isUp ? <TrendingUpIcon className={`w-4 h-4 ${textCls}`} /> : <TrendingDownIcon className={`w-4 h-4 ${textCls}`} />}
-      <span className={`font-bold text-sm ${textCls}`}>{Math.floor(amount || 0)}€</span>
-    </div>
-  );
-};
-
-// Íconos (SVG) para mantener este archivo autocontenido sin tocar imports
-const TrendingUpIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
-  </svg>
-);
-
-const TrendingDownIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-    <polyline points="17 18 23 18 23 12" />
-  </svg>
-);
-
-const shouldEnableIR = ({ status, isSeller, isFinal }) => {
-  if (isFinal) return false;
-  if (isSeller) return false;
-  // En ME LO PIENSO / PRORROGA el botón debe estar encendido (comprador)
-  if (isStatusMeLoPienso(status) || isStatusProrrogada(status)) return true;
-  // En el resto de estados no finales, también lo dejamos activo (comprador)
-  return true;
-};
-
-
-const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
-
-const getTargetTimeMs = (alert) => {
-  const t = alert?.target_time;
-  if (!t) return null;
-  if (typeof t === 'number') return t;
-  const asDate = new Date(t);
-  const ms = asDate.getTime();
-  return Number.isFinite(ms) ? ms : null;
-};
-
-const hasLatLon = (obj, latKey = 'latitude', lonKey = 'longitude') => {
-  const lat = clampFinite(Number(obj?.[latKey]));
-  const lon = clampFinite(Number(obj?.[lonKey]));
-  return lat !== null && lon !== null;
-};
-
-const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
-  const lat = clampFinite(Number(obj?.[latKey]));
-  const lon = clampFinite(Number(obj?.[lonKey]));
-  if (lat === null || lon === null) return null;
-  return { lat, lon };
-};
-
-const PriceChip = ({ amount, direction }) => {
-  const n = Number(amount || 0);
-  const amountText = `${Math.floor(Math.abs(n))}€`;
-  const isGreen = direction === 'up';
-  const isRed = direction === 'down';
-  const wrapCls = isGreen
-    ? 'bg-green-500/20 border border-green-500/30'
-    : isRed
-    ? 'bg-red-500/20 border border-red-500/30'
-    : 'bg-purple-600/20 border border-purple-500/30';
-  const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-purple-300';
-  return (
-    <div className={`${wrapCls} rounded-lg px-3 py-0.5 flex items-center gap-1 h-7`}>
-      {isGreen ? <TrendingUp className={`w-4 h-4 ${textCls}`} /> : null}
-      {isRed ? <TrendingDown className={`w-4 h-4 ${textCls}`} /> : null}
-      <span className={`font-bold text-xs ${textCls}`}>{amountText}</span>
-    </div>
-  );
-};
-
-
-export default function Chats() {
+export default function Chat() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
-  const [user, setUser] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [nowTs, setNowTs] = useState(Date.now());
+  const [message, setMessage] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const attachMenuRef = useRef(null);
 
-  // Demo “vivo” y sincronizado (CHATS / CHAT / NOTIFICACIONES)
-  const demoMode = useMemo(() => isDemoMode(), []);
-  const [demoTick, setDemoTick] = useState(0);
+  const urlParams = new URLSearchParams(window.location.search);
+  const conversationId = urlParams.get('conversationId');
+  const alertId = urlParams.get('alertId');
+  const otherNameParam = urlParams.get('otherName');
+  const otherPhotoParam = urlParams.get('otherPhoto');
+  const carLabelParam = urlParams.get('carLabel');
+  const plateParam = urlParams.get('plate');
+  const priceParam = urlParams.get('price');
+
+  const cardInfo = useMemo(() => {
+    const car = carLabelParam ? decodeURIComponent(carLabelParam) : null;
+    const plate = plateParam ? decodeURIComponent(plateParam) : null;
+    const price = priceParam != null ? Number(priceParam) : null;
+    const hasAny = !!car || !!plate || Number.isFinite(price);
+    if (!hasAny) return null;
+    return { car, plate, price };
+  }, [carLabelParam, plateParam, priceParam]);
+
+  const isDemo = !conversationId || urlParams.get('demo') === 'true';
+
+  // ======================
+  // DEMO: estado en memoria (sin cargas)
+  // ======================
+  const [, forceTick] = useState(0);
 
   useEffect(() => {
-    if (!demoMode) return;
+    if (!isDemo) return;
     startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+    const unsub = subscribeDemoFlow(() => forceTick((x) => x + 1));
     return () => unsub?.();
-  }, [demoMode]);
+  }, [isDemo]);
 
-  const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
-  const [selectedProrroga, setSelectedProrroga] = useState(null);
-  const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
+  // OJO: demoFlow ES UN OBJETO (no función)
+  const demoSt = isDemo ? demoFlow : null;
 
-  const [etaMap, setEtaMap] = useState({});
+  const demoConversationId = useMemo(() => {
+    if (!isDemo) return null;
+    const firstId = demoSt?.conversations?.[0]?.id || null;
+    return conversationId || firstId;
+  }, [isDemo, demoSt, conversationId]);
 
-  const expiredHandledRef = useRef(new Set());
-  const hasEverHadTimeRef = useRef(new Map());
+  const demoConv = isDemo && demoConversationId ? getDemoConversation(demoConversationId) : null;
+  const demoMsgs = isDemo && demoConversationId ? (getDemoMessages(demoConversationId) || []) : [];
+
+  const demoOtherUser = useMemo(() => {
+    if (!isDemo || !demoConv) return null;
+    return demoSt?.users?.[demoConv.otherUserId] || null;
+  }, [isDemo, demoConv, demoSt]);
 
   useEffect(() => {
-    const id = setInterval(() => setNowTs(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+    if (!isDemo) return;
+    if (!demoConversationId) return;
+    markDemoRead(demoConversationId);
+  }, [isDemo, demoConversationId]);
 
+  // ======================
+  // REAL (Base44)
+  // ======================
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 60000,
+    enabled: !isDemo
+  });
+
+  const { data: conversation } = useQuery({
+    queryKey: ['conversation', conversationId],
+    enabled: !!conversationId && !isDemo,
+    queryFn: async () => {
+      const conv = await base44.entities.Conversation.filter({ id: conversationId });
+      return conv?.[0] || null;
+    },
+    staleTime: 30000
+  });
+
+  const { data: messages = [] } = useQuery({
+    queryKey: ['chatMessages', conversationId],
+    enabled: !!conversationId && !isDemo,
+    queryFn: async () => {
+      const msgs = await base44.entities.ChatMessage.filter({
+        conversation_id: conversationId
+      });
+      return (msgs || []).sort(
+        (a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()
+      );
+    },
+    staleTime: 10000
+  });
+
+  // Suscripción en tiempo real
   useEffect(() => {
-    const fetchUser = async () => {
+    if (!conversationId || isDemo) return;
+
+    const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
+      if (event.data?.conversation_id === conversationId) {
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+      }
+    });
+
+    return () => unsubscribe?.();
+  }, [conversationId, isDemo, queryClient]);
+
+  // ======================
+  // UNIFICAR MENSAJES PARA RENDER
+  // ======================
+  const displayMessages = useMemo(() => {
+    if (isDemo) {
+      return (demoMsgs || []).map((m) => ({
+        id: m.id,
+        mine: !!m.mine,
+        sender_name: m.senderName,
+        sender_photo: m.senderPhoto,
+        message: m.text,
+        created_date: new Date(m.ts).toISOString(),
+        kind: m.kind || 'text'
+      }));
+    }
+
+    return (messages || []).map((m) => ({
+      id: m.id,
+      mine: m.sender_id === user?.id,
+      sender_name: m.sender_name,
+      sender_photo: m.sender_photo,
+      message: m.message,
+      created_date: m.created_date,
+      kind: m.message_type || 'user',
+      attachments: m.attachments
+    }));
+  }, [isDemo, demoMsgs, messages, user]);
+
+  // Datos del otro usuario (header)
+  const otherUser = useMemo(() => {
+    // Prioridad 1: Parámetros de URL (acepta nombre aunque no venga foto)
+    if (otherNameParam || otherPhotoParam) {
+      let decodedName = null;
+      let decodedPhoto = null;
+
       try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-        // Si no hay sesión (preview/demo), seguimos con un usuario local.
-        setUser({ id: 'me', display_name: 'Tú', photo_url: null });
+        decodedName = otherNameParam ? decodeURIComponent(otherNameParam) : null;
+      } catch (e) {
+        console.error('Error decodificando otherName:', e);
+        decodedName = otherNameParam || null;
+      }
+
+      try {
+        decodedPhoto = otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null;
+      } catch (e) {
+        console.error('Error decodificando otherPhoto:', e);
+        decodedPhoto = otherPhotoParam || null;
+      }
+
+      return {
+        name: decodedName || 'Usuario',
+        photo: decodedPhoto || null
+      };
+    }
+
+    // Prioridad 2: Demo
+    if (isDemo) {
+      const fallbackPhotos = [
+        'https://randomuser.me/api/portraits/women/44.jpg',
+        'https://randomuser.me/api/portraits/men/32.jpg',
+        'https://randomuser.me/api/portraits/women/68.jpg',
+        'https://randomuser.me/api/portraits/men/75.jpg'
+      ];
+      const seed = String(demoConversationId || alertId || 'x').charCodeAt(0) || 0;
+      const fallbackPhoto = fallbackPhotos[seed % fallbackPhotos.length];
+
+      return {
+        name: demoOtherUser?.name || demoConv?.other_name || otherNameParam || 'Sofía',
+        photo: demoOtherUser?.photo || demoConv?.other_photo || otherPhotoParam || fallbackPhoto
+      };
+    }
+
+    // Prioridad 3: Conversación real
+    const isP1 = conversation?.participant1_id === user?.id;
+    return {
+      name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
+      photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
+    };
+  }, [isDemo, demoOtherUser, demoConv, conversation, user, otherNameParam, otherPhotoParam]);
+
+  // Scroll automático
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [displayMessages]);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showAttachMenu && attachMenuRef.current && !attachMenuRef.current.contains(e.target)) {
+        setShowAttachMenu(false);
       }
     };
-    fetchUser();
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAttachMenu]);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
-        },
-        (error) => console.log('Error obteniendo ubicación:', error),
-        { enableHighAccuracy: true, maximumAge: 15000, timeout: 5000 }
-      );
-    }
-  }, []);
+  // ======================
+  // RESPUESTAS AUTOMÁTICAS DEMO
+  // ======================
+  const autoRespond = (convId, userMessage) => {
+    const responses = {
+      'mock_reservaste_1': [
+        'Perfecto, ya voy de camino 🚗',
+        '¿A qué distancia estás?',
+        'Llego en 5 minutos',
+        'Gracias por esperarme 😊',
+        '¿Sigues ahí?'
+      ],
+      'mock_te_reservo_1': [
+        'Estoy esperando aquí',
+        '¿Cuánto tardas?',
+        'Veo que te acercas en el mapa',
+        'Perfecto, te espero',
+        'No hay problema 👍'
+      ],
+      'mock_reservaste_2': [
+        'Ok, voy llegando',
+        'Genial, aguanto',
+        '¿Cuánto falta?',
+        'Ya casi estoy',
+        'Muchas gracias'
+      ],
+      'mock_te_reservo_2': [
+        'Estoy cerca',
+        'Llego en 2 minutos',
+        '¿Sigues ahí?',
+        'Ya te veo',
+        'Gracias por la paciencia'
+      ]
+    };
 
-  const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations', user?.id ?? 'none'],
-    queryFn: async () => {
-      if (demoMode) {
-        // Fuerza recalcular al tick demo
-        void demoTick;
-        return getDemoConversations();
-      }
+    const convResponses = responses[convId];
+    if (!convResponses) return;
 
-      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
-      return allConversations || [];
-    },
-    enabled: !!user,
-    staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    keepPreviousData: true,
-    refetchInterval: false
-  });
-
-  const { data: alerts = [] } = useQuery({
-    queryKey: ['alertsForChats', user?.id ?? 'none'],
-    queryFn: async () => {
-      if (demoMode) {
-        void demoTick;
-        return getDemoAlerts();
-      }
-
-      let realAlerts = [];
-      try {
-        realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
-      } catch (e) {
-        console.log('Error cargando alertas:', e);
-      }
-      return realAlerts || [];
-    },
-    enabled: !!user,
-    staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    keepPreviousData: true,
-    refetchInterval: false
-  });
-
-  const alertsMap = useMemo(() => {
-    const map = new Map();
-    alerts.forEach((a) => map.set(a.id, a));
-    return map;
-  }, [alerts]);
-
-  const totalUnread = useMemo(() => {
-    return conversations.reduce((sum, conv) => {
-      const isP1 = conv.participant1_id === user?.id;
-      const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-      return sum + (unread || 0);
-    }, 0);
-  }, [conversations, user?.id]);
-
-  const filteredConversations = useMemo(() => {
-    let filtered = conversations;
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = conversations.filter((conv) => {
-        const isP1 = conv.participant1_id === user?.id;
-        const otherName = isP1 ? conv.participant2_name : conv.participant1_name;
-        const lastMsg = conv.last_message_text || '';
-        return otherName?.toLowerCase().includes(q) || lastMsg.toLowerCase().includes(q);
-      });
-    }
-
-    // Aplicar lógica de negocio: solo UNA reserva activa como buyer y UNA como seller
-    const buyerReservations = [];
-    const sellerReservations = [];
-    const others = [];
-
-    filtered.forEach((conv) => {
-      const alert = alertsMap.get(conv.alert_id);
-      if (!alert) return;
-
-      const isBuyer = alert?.reserved_by_id === user?.id;
-      const isSeller = alert?.user_id === user?.id && alert?.reserved_by_id;
-      const isActive = alert?.status === 'reserved';
-
-      if (isBuyer && isActive) {
-        buyerReservations.push(conv);
-      } else if (isSeller && isActive) {
-        sellerReservations.push(conv);
-      } else {
-        others.push(conv);
-      }
-    });
-
-    // Mantener solo la reserva buyer más reciente como activa
-    if (buyerReservations.length > 1) {
-      buyerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
-      const [activeBuyer, ...restBuyer] = buyerReservations;
-      filtered = filtered.map((conv) => {
-        if (restBuyer.find((c) => c.id === conv.id)) {
-          const alert = alertsMap.get(conv.alert_id);
-          if (alert) alert.status = 'cancelled';
-        }
-        return conv;
-      });
-      buyerReservations.length = 1;
-    }
-
-    // Mantener solo la reserva seller más reciente como activa
-    if (sellerReservations.length > 1) {
-      sellerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
-      const [activeSeller, ...restSeller] = sellerReservations;
-      filtered = filtered.map((conv) => {
-        if (restSeller.find((c) => c.id === conv.id)) {
-          const alert = alertsMap.get(conv.alert_id);
-          if (alert) alert.status = 'cancelled';
-        }
-        return conv;
-      });
-      sellerReservations.length = 1;
-    }
-
-    return filtered.sort((a, b) => {
-      const aUnread = (a.participant1_id === user?.id ? a.unread_count_p1 : a.unread_count_p2) || 0;
-      const bUnread = (b.participant1_id === user?.id ? b.unread_count_p1 : b.unread_count_p2) || 0;
-
-      if (bUnread !== aUnread) return bUnread - aUnread;
-
-      const toMs = (v) => {
-        if (!v) return 0;
-        if (typeof v === 'number') return v;
-        const d = new Date(v);
-        const ms = d.getTime();
-        return Number.isFinite(ms) ? ms : 0;
-      };
-
-      const aLast = Math.max(
-        toMs(a.last_message_at),
-        toMs(a.status_updated_at),
-        toMs(a.updated_date),
-        toMs(a.updated_at),
-        toMs(a.created_date),
-        toMs(a.created_at)
-      );
-
-      const bLast = Math.max(
-        toMs(b.last_message_at),
-        toMs(b.status_updated_at),
-        toMs(b.updated_date),
-        toMs(b.updated_at),
-        toMs(b.created_date),
-        toMs(b.created_at)
-      );
-
-      return bLast - aLast;
-    });
-  }, [conversations, searchQuery, user?.id, alertsMap]);
-
-  const openExpiredDialog = (alert, isBuyer) => {
-    if (!alert?.id) return;
-    if (expiredHandledRef.current.has(alert.id)) return;
-    expiredHandledRef.current.add(alert.id);
-
-    const title = isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado';
-    const desc = isBuyer
-      ? 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
-      : 'Usuario no se ha presentado, se te ingresará el 33% del importe de la operación como compensación por tu espera';
-
-    toast({ title, description: desc });
-
-    setCurrentExpiredAlert({ alert, isBuyer });
-    setSelectedProrroga(null);
-    setShowProrrogaDialog(true);
+    setTimeout(() => {
+      const randomResponse = convResponses[Math.floor(Math.random() * convResponses.length)];
+      sendDemoMessage(convId, randomResponse, [], false);
+    }, 1500 + Math.random() * 2000);
   };
 
-  const handleProrroga = async () => {
-    if (!selectedProrroga || !currentExpiredAlert) return;
+  // ======================
+  // ENVIAR
+  // ======================
+  const sendMutation = useMutation({
+    mutationFn: async (text) => {
+      const clean = String(text || '').trim();
+      if (!clean && attachments.length === 0) return;
 
-    const { minutes, price } = selectedProrroga;
-    const { alert, isBuyer } = currentExpiredAlert;
+      if (isDemo) {
+        if (demoConversationId) {
+          sendDemoMessage(demoConversationId, clean, attachments);
+          autoRespond(demoConversationId, clean);
+        }
+        return;
+      }
 
-    try {
-      await base44.entities.Notification.create({
-        type: 'extension_request',
-        recipient_id: isBuyer ? alert.user_id : alert.reserved_by_id,
+      const otherUserId =
+        conversation?.participant1_id === user?.id
+          ? conversation?.participant2_id
+          : conversation?.participant1_id;
+
+      await base44.entities.ChatMessage.create({
+        conversation_id: conversationId,
+        alert_id: alertId,
         sender_id: user?.id,
         sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-        alert_id: alert.id,
-        amount: price,
-        extension_minutes: minutes,
-        status: 'pending'
+        sender_photo: user?.photo_url,
+        receiver_id: otherUserId,
+        message: clean,
+        read: false,
+        message_type: 'user',
+        attachments: attachments.length ? JSON.stringify(attachments) : null
       });
 
-      toast({
-        title: '✅ PRÓRROGA ENVIADA',
-        description: `${minutes} min por ${price}€`
+      await base44.entities.Conversation.update(conversation.id, {
+        last_message_text: clean,
+        last_message_at: new Date().toISOString()
       });
-    } catch (err) {
-      console.error('Error creando notificación de prórroga:', err);
-      toast({
-        title: 'Error',
-        description: 'No se pudo enviar la prórroga. Inténtalo de nuevo.',
-        variant: 'destructive'
-      });
-    }
+    },
+    onSuccess: () => {
+      setMessage('');
+      setAttachments([]);
+      setShowAttachMenu(false);
 
-    setShowProrrogaDialog(false);
-    setSelectedProrroga(null);
-    setCurrentExpiredAlert(null);
-  };
-
-  const calculateDistanceText = (alert) => {
-    if (!alert?.latitude || !alert?.longitude) return null;
-    if (!userLocation) {
-      const demoDistances = ['150m', '320m', '480m', '650m', '800m'];
-      return demoDistances[String(alert.id || '').charCodeAt(0) % demoDistances.length];
-    }
-    const R = 6371;
-    const dLat = ((alert.latitude - userLocation.lat) * Math.PI) / 180;
-    const dLon = ((alert.longitude - userLocation.lon) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((userLocation.lat * Math.PI) / 180) *
-        Math.cos((alert.latitude * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
-    const meters = Math.round(distanceKm * 1000);
-    return `${Math.min(meters, 999)}m`;
-  };
-
-  const openDirectionsToAlert = (alert) => {
-    const coords = hasLatLon(alert) ? pickCoords(alert) : null;
-    if (!coords) return;
-    const { lat, lon } = coords;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=driving`;
-    window.location.href = url;
-  };
-
-  const getRemainingMsForAlert = (alert, isBuyer) => {
-    const entry = etaMap?.[alert?.id];
-
-    if (entry && Number.isFinite(entry.etaSeconds)) {
-      const elapsed = nowTs - entry.fetchedAt;
-      const base = entry.etaSeconds * 1000;
-      const remaining = Math.max(0, base - elapsed);
-
-      if (base > 0) {
-        hasEverHadTimeRef.current.set(alert.id, true);
-      }
-
-      return remaining;
-    }
-
-    const targetMs = getTargetTimeMs(alert);
-    if (targetMs && targetMs > nowTs) {
-      hasEverHadTimeRef.current.set(alert.id, true);
-      return targetMs - nowTs;
-    }
-
-    return null;
-  };
-
-  useEffect(() => {
-    const max = 25;
-    for (const conv of filteredConversations.slice(0, max)) {
-      const alert = alertsMap.get(conv.alert_id);
-      if (!alert) continue;
-      const isBuyer = alert?.reserved_by_id === user?.id;
-      const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            const statusLabel = getChatStatusLabel(alert?.status);
-const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
-const isThinking = statusLabel === 'ME LO PIENSO';
-const isProrroga = statusLabel === 'PRÓRROGA';
-
-const isSeller = alert?.user_id === user?.id;
-
-const badgeCls = isCompletedOrCanceled
-  ? 'bg-red-500/20 text-red-400 border-red-500/30'
-  : isBuyer
-  ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-  : isSeller
-  ? 'bg-green-500/20 text-green-300 border-green-400/50'
-  : 'bg-purple-500/10 text-purple-300/70 border-purple-400/30';
-
-
-      if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
-        openExpiredDialog(alert, isBuyer);
+      if (!isDemo) {
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
       }
     }
-  }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
+  });
+
+  const handleSend = () => {
+    sendMutation.mutate(message);
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Archivo muy grande (máx 10MB)');
+        continue;
+      }
+
+      try {
+        if (isDemo) {
+          // En demo, metemos un "fake attachment" local (solo para UI)
+          setAttachments((prev) => [
+            ...prev,
+            { url: URL.createObjectURL(file), type: file.type, name: file.name }
+          ]);
+        } else {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          setAttachments((prev) => [...prev, { url: file_url, type: file.type, name: file.name }]);
+        }
+      } catch (err) {
+        console.error('Error subiendo archivo:', err);
+      }
+    }
+    setShowAttachMenu(false);
+  };
+
+  const safeParseAttachments = (raw) => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
+    <div className="min-h-screen bg-black flex flex-col">
+      <Header title="Chat" showBackButton={true} backTo="Chats" />
 
-      <main className="pt-[60px] pb-24">
-        <div className="px-4 pt-3 pb-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-            <input
-              type="text"
-              placeholder="Buscar conversaciones..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Info del usuario */}
+      <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
+        <div className="flex items-center gap-3 px-4 py-1 pt-[10px]">
+          <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
+            {otherUser?.photo ? (
+              <img src={otherUser.photo} alt={otherUser.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl">👤</div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-white font-semibold truncate">{otherUser?.name || 'Usuario'}</h2>
+            <p className="text-xs text-gray-400">En línea</p>
+          </div>
+
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 border-2 border-blue-400/70 text-white rounded-lg h-9 px-3"
+          >
+            <Navigation className="w-4 h-4 mr-1" />
+            IR
+          </Button>
+
+          <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg p-2 hover:bg-purple-600/30 cursor-pointer transition-colors">
+            <Phone className="w-5 h-5 text-purple-300" />
+          </div>
+        </div>
+      </div>
+
+      {/* Datos de la tarjeta */}
+      {cardInfo && (
+        <div className="fixed top-[112px] left-0 right-0 z-30 bg-black border-b border-gray-700 px-4 py-2 text-xs text-gray-300">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 truncate">
+              {cardInfo.car && <span className="font-semibold text-white">{cardInfo.car}</span>}
+              {cardInfo.plate && <span className="ml-2 text-gray-400">({cardInfo.plate})</span>}
+            </div>
+            {Number.isFinite(cardInfo.price) && (
+              <div className="text-purple-400 font-bold">{cardInfo.price}€</div>
             )}
           </div>
         </div>
+      )}
 
-        <div className="px-4 space-y-3 pt-1">
-          {filteredConversations.map((conv, index) => {
-            const alert = alertsMap.get(conv.alert_id);
-            if (!alert) return null;
+      {/* Mensajes */}
+      <div className="flex-1 overflow-y-auto pt-[156px] pb-[160px] px-4">
+        <div className="max-w-3xl mx-auto space-y-4 py-4">
+          {displayMessages.map((msg, idx) => {
+            const isMine = !!msg.mine;
 
-            const isP1 = conv.participant1_id === user?.id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const hasUnread = (unreadCount || 0) > 0;
+            const showDate =
+              idx === 0 ||
+              new Date(msg.created_date).getTime() - new Date(displayMessages[idx - 1].created_date).getTime() >
+                300000;
 
-            const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.reserved_by_id && !isBuyer;
-
-            const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
-            let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
-
-            if (!otherUserPhoto) {
-              const photoUrls = [
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-                'https://randomuser.me/api/portraits/women/68.jpg',
-                'https://randomuser.me/api/portraits/men/32.jpg',
-                'https://randomuser.me/api/portraits/women/44.jpg',
-                'https://randomuser.me/api/portraits/men/75.jpg'
-              ];
-              otherUserPhoto = photoUrls[String(conv.id || '').charCodeAt(0) % photoUrls.length];
-            }
-
-            const distanceText = calculateDistanceText(alert);
-
-            const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            const countdownText = formatMMSS(remainingMs);
-
-            const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
-            const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
-
-            const finalLabel = getChatStatusLabel(alert?.status);
-            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
-            const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
-            const statusBoxText = isFinal ? finalLabel : countdownText;
-
-            const navigateToChat = () => {
-              const name = encodeURIComponent(otherUserName || '');
-              const photo = encodeURIComponent(otherUserPhoto || '');
-              const demo = demoMode ? 'demo=true&' : '';
-              const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
-              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
-            };
+            const atts = safeParseAttachments(msg.attachments);
 
             return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <div
-                  className={`bg-gradient-to-br ${
-                    hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
-                  } rounded-xl p-2.5 transition-all border-2 ${
-                    hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'
-                  }`}
+              <div key={msg.id}>
+                {showDate && (
+                  <div className="flex justify-center my-4">
+                    <div className="bg-gray-800/80 rounded-full px-4 py-1 text-xs text-gray-400">
+                      {new Date(msg.created_date)
+                        .toLocaleString('es-ES', {
+                          timeZone: 'Europe/Madrid',
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        })
+                        .replace(' de ', ' ')
+                        .replace(',', ' -')}
+                    </div>
+                  </div>
+                )}
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-2 w-full ${isMine ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex-shrink-0 w-[95px]">
-                        <Badge
-                          className={getRoleBoxClasses({ status: alert?.status, isSeller, isBuyer })}
-                        >
-                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservo:' : 'Info usuario'}
-                        </Badge>
-                      </div>
-                      <div className="flex-1"></div>
-                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                        <Navigation className="w-3 h-3 text-purple-400" />
-                        <span className="text-white font-bold text-xs">{distanceText}</span>
-                      </div>
-                      <PricePill direction={isSeller ? 'up' : 'down'} amount={alert?.price} />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Cerrar conversación:', conv.id);
-                        }}
-                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5 text-red-400" />
-                      </button>
-                    </div>
-
-                    <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                      <MarcoCard
-                        photoUrl={otherUserPhoto}
-                        name={otherUserName}
-                        carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                        plate={alert.car_plate}
-                        carColor={alert.car_color || 'gris'}
-                        address={alert.address}
-                        timeLine={
-                          isSeller ? (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Te vas en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-300 font-bold">Debes esperar hasta las {waitUntilText}</span>
-                            </span>
-                          ) : isBuyer ? (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Se va en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-300 font-bold">Te espera hasta las {waitUntilText}</span>
-                            </span>
-                          ) : (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
-                          )
-                        }
-                        onChat={navigateToChat}
-                        statusText={statusBoxText}
-                        phoneEnabled={alert.allow_phone_calls}
-                        onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                        dimmed={!hasUnread}
-                        role={isSeller ? 'seller' : 'buyer'}
+                  {!isMine && (
+                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-purple-500/30">
+                      <img
+                        src={msg.sender_photo || 'https://via.placeholder.com/32'}
+                        alt={msg.sender_name || 'Usuario'}
+                        className="w-full h-full object-cover"
                       />
-
-                      {hasLatLon(alert) && (
-                        <div className="mt-2">
-                          <Button
-                            disabled={!canIR}
-                            className={`w-full border-2 ${
-                              canIR ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (isSeller || isFinal) return;
-                              openDirectionsToAlert(alert);
-                            }}
-                          >
-                            <span className="flex items-center justify-center gap-2">
-                              <Navigation className="w-4 h-4" />
-                              IR
-                            </span>
-                          </Button>
-                        </div>
-                      )}
                     </div>
+                  )}
 
+                  <div className={`flex flex-col gap-1 ${isMine ? 'items-end' : 'items-start'}`}>
                     <div
-                      className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={navigateToChat}
+                      className={`rounded-2xl px-4 py-2 ${
+                        isMine
+                          ? 'bg-purple-600 text-white rounded-br-sm max-w-[280px]'
+                          : 'bg-gray-800 text-white rounded-bl-sm max-w-[280px]'
+                      }`}
                     >
-                      <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? PURPLE_ACTIVE_TEXT : PURPLE_ACTIVE_TEXT_DIM}`}>
-                          Últimos mensajes:
-                        </p>
-                        {unreadCount > 0 && (
-                          <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
-                            <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
+                          {format(new Date(msg.created_date), 'HH:mm')}
+                        </span>
+                        {isMine && (
+                          <div className="relative w-4 h-3">
+                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-0" strokeWidth={2.5} />
+                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-1.5" strokeWidth={2.5} />
                           </div>
                         )}
                       </div>
-                      <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>
-                        {conv.last_message_text || 'Sin mensajes'}
-                      </p>
+
+                      <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
+
+                      {atts.map((att, i) => (
+                        <div key={i} className="mt-2">
+                          {att.type?.includes('image') ? (
+                            <img src={att.url} alt="Adjunto" className="rounded-lg max-w-[200px]" />
+                          ) : (
+                            <a
+                              href={att.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs underline"
+                            >
+                              📎 {att.name}
+                            </a>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              </motion.div>
+
+                  {isMine && (
+                    <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-purple-500/30">
+                      <div className="w-full h-full bg-purple-700 flex items-center justify-center text-lg">👤</div>
+                    </div>
+                  )}
+                </motion.div>
+              </div>
             );
           })}
+
+          <div ref={messagesEndRef} />
         </div>
-      </main>
+      </div>
+
+      {/* Input */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-[81px]">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
+          {attachments.length > 0 && (
+            <div className="mb-2 flex gap-2">
+              {attachments.map((att, i) => (
+                <div key={i} className="relative">
+                  {att.type?.includes('image') ? (
+                    <img src={att.url} alt="" className="w-16 h-16 rounded object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center text-xs">📄</div>
+                  )}
+                  <button
+                    onClick={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <div className="relative" ref={attachMenuRef}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAttachMenu(!showAttachMenu)}
+                className="text-purple-400 hover:bg-gray-800 rounded-md"
+              >
+                <Paperclip className="w-5 h-5" />
+              </Button>
+
+              <AnimatePresence>
+                {showAttachMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute bottom-12 left-0 bg-gray-800 border border-gray-700 rounded-md overflow-hidden shadow-xl"
+                  >
+                    <button
+                      onClick={() => {
+                        cameraInputRef.current?.click();
+                        setShowAttachMenu(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap"
+                    >
+                      <Camera className="w-5 h-5 text-purple-400" />
+                      <span className="text-sm text-white">Hacer foto</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                        setShowAttachMenu(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 w-full text-left whitespace-nowrap border-t border-gray-700"
+                    >
+                      <ImageIcon className="w-5 h-5 text-purple-400" />
+                      <span className="text-sm text-white">Subir foto</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*,application/pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+              placeholder="Escribe un mensaje..."
+              className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400 h-[42px]"
+            />
+
+            <Button
+              onClick={handleSend}
+              disabled={!String(message || '').trim() && attachments.length === 0}
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-md h-[42px] w-10 p-0 disabled:opacity-50"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <BottomNav />
-
-      <Dialog
-        open={showProrrogaDialog}
-        onOpenChange={(open) => {
-          setShowProrrogaDialog(open);
-          if (!open) {
-            setSelectedProrroga(null);
-            setCurrentExpiredAlert(null);
-            expiredHandledRef.current.clear();
-          }
-        }}
-      >
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              {currentExpiredAlert?.isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {currentExpiredAlert?.isBuyer
-                ? 'No te has presentado, se te devolverá tu importe menos la comisión de WaitMe!'
-                : 'Usuario no se ha presentado, se te ingresará el 33% del importe de la operación como compensación por tu espera'}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3">
-            <p className="text-sm text-gray-300 font-semibold">PRORROGAR</p>
-
-            <div className="space-y-2">
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 5, price: 1 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 5
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">5 minutos más</span>
-                  <span className="text-purple-300 font-bold">1€</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 10, price: 3 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 10
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">10 minutos más</span>
-                  <span className="text-purple-300 font-bold">3€</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setSelectedProrroga({ minutes: 15, price: 5 })}
-                className={`w-full p-3 rounded-lg border-2 transition-all ${
-                  selectedProrroga?.minutes === 15
-                    ? 'bg-purple-600/20 border-purple-500 text-white'
-                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500/50'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">15 minutos más</span>
-                  <span className="text-purple-300 font-bold">5€</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowProrrogaDialog(false)} className="flex-1 border-gray-700">
-              {currentExpiredAlert?.isBuyer ? 'ACEPTAR DEVOLUCIÓN' : 'ACEPTAR COMPENSACIÓN'}
-            </Button>
-            <Button
-              onClick={handleProrroga}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-              disabled={!selectedProrroga}
-            >
-              PRORROGAR
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
