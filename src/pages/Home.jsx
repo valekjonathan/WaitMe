@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
+import { MapPin, SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -92,8 +92,8 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
-    const [demoTick, setDemoTick] = useState(0);
-const [selectedAlert, setSelectedAlert] = useState(null);
+  const [demoTick, setDemoTick] = useState(0);
+  const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -239,7 +239,6 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     return () => unsub?.();
   }, []);
 
-
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('reset')) {
@@ -296,7 +295,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-      
+
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
         user_email: user?.email,
@@ -319,13 +318,13 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     },
     onMutate: async (data) => {
       navigate(createPageUrl('History'), { replace: true });
-      
+
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
       await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
-      
+
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-      
+
       const optimisticAlert = {
         id: `temp_${Date.now()}`,
         ...data,
@@ -333,7 +332,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
         status: 'active',
         created_date: new Date().toISOString()
       };
-      
+
       queryClient.setQueryData(['alerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
@@ -408,16 +407,16 @@ const [selectedAlert, setSelectedAlert] = useState(null);
     onMutate: async (alert) => {
       setConfirmDialog({ open: false, alert: null });
       navigate(createPageUrl('History'));
-      
+
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
-      
+
       const previousAlerts = queryClient.getQueryData(['alerts']);
-      
+
       queryClient.setQueryData(['alerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
       });
-      
+
       return { previousAlerts };
     },
     onError: (err, alert, context) => {
@@ -438,17 +437,17 @@ const [selectedAlert, setSelectedAlert] = useState(null);
 
   const handleChat = async (alert) => {
     navigate(createPageUrl('History'));
-    
+
     if (alert?.is_demo) return;
-    
+
     const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-    
+
     const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
-    const existingConv = conversations.find(c => c.participant2_id === otherUserId) || 
-                        (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
-    
+    const existingConv = conversations.find(c => c.participant2_id === otherUserId) ||
+      (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
+
     if (existingConv) return;
-    
+
     await base44.entities.Conversation.create({
       participant1_id: user.id,
       participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
@@ -509,10 +508,10 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                   alt="WaitMe!"
-                  className="w-[202px] h-[202px] mb-0 object-contain"
+                  className="w-[212px] h-[212px] mb-0 object-contain"
                 />
-                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
-                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                <h1 className="text-xl font-bold whitespace-nowrap mt-[3px]">
+                  Aparca donde te <span className="text-purple-500">avisen!</span>
                 </h1>
               </div>
 
@@ -521,7 +520,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-14 h-14 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -532,7 +531,19 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <Car className="w-14 h-14" strokeWidth={2.5} />
+                  <svg viewBox="0 0 48 24" className="w-14 h-14" fill="none">
+                    <path
+                      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                      fill="#6b7280"
+                      stroke="white"
+                      strokeWidth="1.5"
+                    />
+                    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                    <circle cx="14" cy="18" r="2" fill="#666" />
+                    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                    <circle cx="36" cy="18" r="2" fill="#666" />
+                  </svg>
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
@@ -672,7 +683,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
                       }
-                      
+
                       const currentUser = user;
                       const payload = {
                         latitude: selectedPosition.lat,
@@ -689,7 +700,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                         phone: currentUser?.phone || null,
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
-                      
+
                       createAlertMutation.mutate(payload);
                     }}
                     isLoading={createAlertMutation.isPending}
