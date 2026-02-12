@@ -507,7 +507,7 @@ export default function Home() {
                 <img
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] mb-0 object-contain"
+                  className="w-[212px] h-[212px] mb-0 object-contain mt-[8px]"
                 />
 
                 {/* SUBIDO “AL RAS” */}
