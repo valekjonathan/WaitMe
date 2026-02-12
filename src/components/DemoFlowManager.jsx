@@ -1,57 +1,20 @@
-import { useEffect } from 'react'
+// src/components/DemoFlowManager.jsx
+// MODO VACÍO TOTAL
 
-/* ======================================================
-   DEMO FLOW MANAGER — MODO VACÍO TOTAL
-   Compatible con CUALQUIER export anterior
-====================================================== */
+export const isDemoMode = () => false;
+export const getDemoAlerts = () => [];
+export const getDemoChats = () => [];
+export const getDemoConversations = () => [];
+export const getDemoNotifications = () => [];
+export const getDemoUsers = () => [];
+export const getDemoMessages = () => [];
 
-const emptyArray = []
-const emptyNull = null
+export const startDemoFlow = () => {};
+export const stopDemoFlow = () => {};
+export const resetDemoFlow = () => {};
+export const subscribeDemoFlow = () => () => {};
+export const unsubscribeDemoFlow = () => {};
 
-/* ======================================================
-   PROXY UNIVERSAL
-   Cualquier función exportada devuelve vacío
-====================================================== */
-
-const handler = {
-  get: () => () => emptyArray
+export default function DemoFlowManager() {
+  return null;
 }
-
-const universal = new Proxy({}, handler)
-
-/* ======================================================
-   EXPORT DEFAULT (WRAPPER)
-====================================================== */
-
-export default function DemoFlowManager({ children }) {
-  useEffect(() => {}, [])
-  return children
-}
-
-/* ======================================================
-   EXPORTAMOS TODO LO POSIBLE
-====================================================== */
-
-export const demoFlow = universal
-
-// Proxy para cualquier import nombrado
-export const {
-  getDemoUsers,
-  getDemoAlerts,
-  getDemoChats,
-  getDemoMessages,
-  getDemoConversations,
-  getDemoConversation,
-  getDemoNotifications,
-  getDemoHistory,
-  createDemoAlert,
-  removeDemoAlert,
-  sendDemoMessage,
-  markNotificationRead,
-  markDemoRead,
-  markAsRead,
-  subscribeDemoFlow,
-  startDemoFlow,
-  stopDemoFlow,
-  isDemoMode
-} = universal
