@@ -504,7 +504,7 @@ export default function Home() {
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
                 {/* 1) Logo +10px */}
                 <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                  src={appLogo}
                   alt="WaitMe!"
                   className="w-[212px] h-[212px] mb-0 object-contain"
                 />
