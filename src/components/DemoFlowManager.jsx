@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 
 /* ======================================================
    DEMO FLOW MANAGER — VACÍO TOTAL
-   Mantiene TODOS los exports esperados
+   Todos los exports conservados
+   Datos = vacío
 ====================================================== */
 
 let listeners = new Set()
@@ -17,7 +18,7 @@ let state = {
 }
 
 /* =========================
-   OBJETO DEMOFLOW (exportado)
+   OBJETO DEMOFLOW
 ========================= */
 
 export const demoFlow = {
@@ -25,6 +26,7 @@ export const demoFlow = {
   getAlerts: () => [],
   getChats: () => [],
   getConversations: () => [],
+  getConversation: () => null,
   getNotifications: () => [],
   getHistory: () => [],
   createAlert: () => null,
@@ -64,6 +66,7 @@ export function getDemoUsers() { return [] }
 export function getDemoAlerts() { return [] }
 export function getDemoChats() { return [] }
 export function getDemoConversations() { return [] }
+export function getDemoConversation() { return null }
 export function getDemoNotifications() { return [] }
 export function getDemoHistory() { return [] }
 
@@ -80,7 +83,7 @@ export function isDemoMode() {
 }
 
 /* =========================
-   WRAPPER COMPONENT
+   WRAPPER
 ========================= */
 
 export default function DemoFlowManager({ children }) {
