@@ -1,10 +1,8 @@
 import { useEffect } from 'react'
 
 /* ======================================================
-   DEMO FLOW MANAGER — MODO VACÍO TOTAL
-   Estructura intacta
-   Todos los exports conservados
-   Datos = vacío
+   DEMO FLOW MANAGER — VACÍO TOTAL
+   Mantiene TODOS los exports esperados
 ====================================================== */
 
 let listeners = new Set()
@@ -16,6 +14,23 @@ let state = {
   conversations: [],
   notifications: [],
   history: []
+}
+
+/* =========================
+   OBJETO DEMOFLOW (exportado)
+========================= */
+
+export const demoFlow = {
+  getUsers: () => [],
+  getAlerts: () => [],
+  getChats: () => [],
+  getConversations: () => [],
+  getNotifications: () => [],
+  getHistory: () => [],
+  createAlert: () => null,
+  removeAlert: () => null,
+  sendMessage: () => null,
+  markNotificationRead: () => null
 }
 
 /* =========================
@@ -45,38 +60,12 @@ export function startDemoFlow() {
    GETTERS
 ========================= */
 
-export function getDemoUsers() {
-  return []
-}
-
-export function getDemoAlerts() {
-  return []
-}
-
-export function getDemoChats() {
-  return []
-}
-
-export function getDemoConversations() {
-  return []
-}
-
-export function getDemoNotifications() {
-  return []
-}
-
-export function getDemoHistory() {
-  return []
-}
-
-/* =========================
-   ACTIONS VACÍAS
-========================= */
-
-export function createDemoAlert() { return null }
-export function removeDemoAlert() { return null }
-export function sendDemoMessage() { return null }
-export function markNotificationRead() { return null }
+export function getDemoUsers() { return [] }
+export function getDemoAlerts() { return [] }
+export function getDemoChats() { return [] }
+export function getDemoConversations() { return [] }
+export function getDemoNotifications() { return [] }
+export function getDemoHistory() { return [] }
 
 /* =========================
    STOP
@@ -85,10 +74,6 @@ export function markNotificationRead() { return null }
 export function stopDemoFlow() {
   listeners.clear()
 }
-
-/* =========================
-   MODO DEMO
-========================= */
 
 export function isDemoMode() {
   return true
