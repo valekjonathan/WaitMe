@@ -35,7 +35,7 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-lg font-semibold select-none"
+        className="text-[28px] leading-[28px] font-semibold select-none"
         aria-label="Recargar página"
       >
         {TitleInner}
@@ -107,7 +107,7 @@ export default function Header({
                     className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
                     aria-label="Ajustes"
                   >
-                    <Settings className="w-8 h-8 ml-[5px]" strokeWidth={2} />
+                    <Settings className="w-6 h-6 ml-[15px]" strokeWidth={2} />
                   </button>
                 </Link>
 
@@ -117,7 +117,7 @@ export default function Header({
                     className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
                     aria-label="Perfil"
                   >
-                    <User className="w-8 h-8" strokeWidth={2} />
+                    <User className="w-6 h-6" strokeWidth={2} />
                   </button>
                 </Link>
               </>
@@ -127,9 +127,9 @@ export default function Header({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[5px]"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[15px]"
                   >
-                    <Settings className="w-6 h-6" />
+                    <Settings className="w-5 h-5" />
                   </Button>
                 </Link>
 
@@ -139,7 +139,7 @@ export default function Header({
                     size="icon"
                     className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
                   >
-                    <User className="w-6 h-6" />
+                    <User className="w-5 h-5" />
                   </Button>
                 </Link>
               </>
