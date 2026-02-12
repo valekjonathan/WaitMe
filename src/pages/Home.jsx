@@ -512,11 +512,11 @@ export default function Home() {
 />
 
                 {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-15px]">
+                <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-35px]">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-15px]">
+                <p className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-35px]">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
