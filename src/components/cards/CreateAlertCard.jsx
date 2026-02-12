@@ -10,7 +10,8 @@ export default function CreateAlertCard({
   onAddressChange,
   onUseCurrentLocation,
   onCreateAlert,
-  isLoading = false 
+  isLoading = false,
+  useCurrentLocationLabel = "Ubicación actual"
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
@@ -35,12 +36,11 @@ export default function CreateAlertCard({
         <div className="flex items-center gap-2">
           <div className="w-4 flex-shrink-0"></div>
           <Button
-            variant="outline"
-            className="flex-1 border-purple-500 text-purple-400 hover:bg-purple-500/20 h-7 text-xs"
+            className="flex-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white h-8 text-xs font-semibold"
             onClick={onUseCurrentLocation}
           >
             <Navigation className="w-3 h-3 mr-1" />
-            Ubicación actual
+            {useCurrentLocationLabel}
           </Button>
         </div>
 
