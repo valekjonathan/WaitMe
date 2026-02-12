@@ -512,12 +512,21 @@ export default function Home() {
 
                 <AnimatePresence>
                   {showFilters && (
-                    <MapFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      onClose={() => setShowFilters(false)}
-                      alertsCount={searchAlerts.length}
-                    />
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowFilters(false)}
+                        className="absolute inset-0 z-[999]"
+                      />
+                      <MapFilters
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        onClose={() => setShowFilters(false)}
+                        alertsCount={searchAlerts.length}
+                      />
+                    </>
                   )}
                 </AnimatePresence>
               </div>
