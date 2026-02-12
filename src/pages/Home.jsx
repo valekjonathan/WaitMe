@@ -510,12 +510,12 @@ export default function Home() {
                   className="w-[212px] h-[212px] mb-0 object-contain"
                 />
 
-                {/* SUBIDO justo debajo del logo */}
-                <h1 className="text-4xl font-bold leading-none -mt-12 whitespace-nowrap">
+                {/* Texto subido 20px */}
+                <h1 className="text-4xl font-bold leading-none -mt-[68px] whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
-                <p className="text-xl font-bold -mt-1 whitespace-nowrap">
+                <p className="text-xl font-bold -mt-[24px] whitespace-nowrap">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
               </div>
