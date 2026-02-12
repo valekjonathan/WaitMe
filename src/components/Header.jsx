@@ -78,13 +78,13 @@ export default function Header({
 
             <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer ml-[31px]">
-                <Settings className="w-9 h-9 text-purple-400 hover:text-purple-300 transition-colors" />
+                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
               </div>
             </Link>
 
             <Link to={createPageUrl('Profile')}>
               <div className="cursor-pointer">
-                <User className="w-9 h-9 text-purple-400 hover:text-purple-300 transition-colors" />
+                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
               </div>
             </Link>
 
