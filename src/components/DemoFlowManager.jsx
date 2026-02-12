@@ -2,12 +2,9 @@ import { useEffect } from 'react'
 
 /* ======================================================
    DEMO FLOW MANAGER — MODO VACÍO TOTAL
-   - Sin usuarios
-   - Sin alerts
-   - Sin chats
-   - Sin notificaciones
-   - Sin historial
-   - Estructura intacta
+   Estructura intacta
+   Todos los exports conservados
+   Datos = vacío
 ====================================================== */
 
 let listeners = new Set()
@@ -16,6 +13,7 @@ let state = {
   users: [],
   alerts: [],
   chats: [],
+  conversations: [],
   notifications: [],
   history: []
 }
@@ -59,6 +57,10 @@ export function getDemoChats() {
   return []
 }
 
+export function getDemoConversations() {
+  return []
+}
+
 export function getDemoNotifications() {
   return []
 }
@@ -71,21 +73,10 @@ export function getDemoHistory() {
    ACTIONS VACÍAS
 ========================= */
 
-export function createDemoAlert() {
-  return null
-}
-
-export function removeDemoAlert() {
-  return null
-}
-
-export function sendDemoMessage() {
-  return null
-}
-
-export function markNotificationRead() {
-  return null
-}
+export function createDemoAlert() { return null }
+export function removeDemoAlert() { return null }
+export function sendDemoMessage() { return null }
+export function markNotificationRead() { return null }
 
 /* =========================
    STOP
@@ -96,7 +87,7 @@ export function stopDemoFlow() {
 }
 
 /* =========================
-   MODO DEMO ACTIVO
+   MODO DEMO
 ========================= */
 
 export function isDemoMode() {
@@ -104,7 +95,7 @@ export function isDemoMode() {
 }
 
 /* =========================
-   COMPONENTE WRAPPER
+   WRAPPER COMPONENT
 ========================= */
 
 export default function DemoFlowManager({ children }) {
