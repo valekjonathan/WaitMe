@@ -507,11 +507,11 @@ export default function Home() {
                 <img
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] mb-0 object-contain"
+                  className="w-[212px] h-[212px] mb-0 object-contain mt-[10px]"
                 />
 
                 {/* SUBIDO “AL RAS” */}
-                <h1 className="text-4xl font-bold leading-none -mt-6 whitespace-nowrap">
+                <h1 className="text-4xl font-bold leading-none -mt-[39px] whitespace-nowrap">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
