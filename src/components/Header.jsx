@@ -16,7 +16,6 @@ export default function Header({
   const { user } = useAuth();
 
   const renderTitle = useMemo(() => {
-
     const t = (title || '').trim();
     const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
@@ -40,7 +39,6 @@ export default function Header({
         {TitleInner}
       </button>
     );
-
   }, [title, navigate]);
 
   const handleBack = useCallback(() => {
@@ -61,11 +59,9 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
-
         <div className="relative flex items-center justify-between">
 
           <div className="flex items-center">
-
             {showBackButton ? (
               onBack ? (
                 BackButton
@@ -87,7 +83,6 @@ export default function Header({
                 </div>
               </Link>
             </div>
-
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -97,14 +92,13 @@ export default function Header({
           </div>
 
           <div className="flex items-center justify-end">
-
             <Link to={createPageUrl('Settings')}>
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[31px]"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-6 h-6" />
               </Button>
             </Link>
 
@@ -114,14 +108,12 @@ export default function Header({
                 size="icon"
                 className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
               >
-                <User className="w-5 h-5" />
+                <User className="w-6 h-6" />
               </Button>
             </Link>
-
           </div>
 
         </div>
-
       </div>
     </header>
   );
