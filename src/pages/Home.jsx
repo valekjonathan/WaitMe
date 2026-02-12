@@ -6,9 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal } from 'lucide-react';
+import { MapPin, SlidersHorizontal, Car } from 'lucide-react';
 import Header from '@/components/Header';
-import Logo from '@/components/Logo';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
 import MapFilters from '@/components/map/MapFilters';
@@ -507,18 +506,14 @@ const [selectedAlert, setSelectedAlert] = useState(null);
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
-                {/* LOGO + WAITME (más grande + color Me! como flechas) */}
-                <div className="flex flex-col items-center">
-                  {/* +10px aprox (escala) */}
-                  <div className="scale-[1.08] origin-center">
-                    <Logo size="xl" />
-                  </div>
-
-                  {/* 3px exactos entre WaitMe! y la frase */}
-                  <h1 className="text-xl font-bold whitespace-nowrap mt-[3px]">
-                    Aparca donde te <span className="text-purple-500">avisen!</span>
-                  </h1>
-                </div>
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
+                  alt="WaitMe!"
+                  className="w-[202px] h-[202px] mb-0 object-contain"
+                />
+                <h1 className="text-xl font-bold whitespace-nowrap -mt-3">
+                  Aparca donde te <span className="text-purple-500">avisen<span className="text-purple-500">!</span></span>
+                </h1>
               </div>
 
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
@@ -526,7 +521,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg className="w-14 h-14 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-28 h-28 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
@@ -537,11 +532,7 @@ const [selectedAlert, setSelectedAlert] = useState(null);
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-<svg viewBox="0 0 48 24" className="w-14 h-14" fill="none">
-  <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
-  <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-</svg>
+                  <Car className="w-14 h-14" strokeWidth={2.5} />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
