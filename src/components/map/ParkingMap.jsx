@@ -136,12 +136,18 @@ function LocationMarker({ position, setPosition, isSelecting }) {
 
 }
 
-function CenterPinMarker({ onMapMove }) {
+function CenterPinMarker({ onMapMove, onMapMoveEnd }) {
   const map = useMapEvents({
-    moveend() {
+    move() {
       const center = map.getCenter();
       if (onMapMove) {
         onMapMove([center.lat, center.lng]);
+      }
+    },
+    moveend() {
+      const center = map.getCenter();
+      if (onMapMoveEnd) {
+        onMapMoveEnd([center.lat, center.lng]);
       }
     }
   });
@@ -178,7 +184,8 @@ export default function ParkingMap({
   buyerLocations = [],
   userLocationOffsetY = 0,
   useCenterPin = false,
-  onMapMove
+  onMapMove,
+  onMapMoveEnd
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -271,8 +278,9 @@ export default function ParkingMap({
           opacity: 1 !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.7) !important;
+          background-color: rgba(0, 0, 0, 0.5) !important;
           backdrop-filter: blur(4px) !important;
+          opacity: 0.7 !important;
           color: white !important;
           border: none !important;
           width: 40px !important;
@@ -311,7 +319,7 @@ export default function ParkingMap({
         
         {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
-        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} />}
+        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} onMapMoveEnd={onMapMoveEnd} />}
         
         {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
