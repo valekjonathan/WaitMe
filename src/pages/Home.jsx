@@ -489,7 +489,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-3 pb-2 flex-shrink-0">
+              <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -531,7 +531,7 @@ export default function Home() {
                     value={searchInput}
                     onChange={handleSearchInputChange}
                     onFocus={() => setShowSuggestions(true)}
-                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
