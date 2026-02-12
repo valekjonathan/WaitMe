@@ -543,64 +543,7 @@ const {
   // Evita “parpadeos”/vacíos mientras refresca
   placeholderData: (prev) => prev,
   queryFn: async () => {
-    if (isDemoMode()) {
-      const list = getDemoAlerts() || [];
-      return list;
-    }
-
-    // ✅ Optimización: en vez de list() (todo), pedimos solo lo relevante y lo fusionamos.
-    // Mantiene el mismo resultado final (mis alertas + mis reservas) pero con mucha menos carga.
-    const queries = [];
-
-    if (user?.id) {
-      queries.push(base44.entities.ParkingAlert.filter({ user_id: user.id }));
-      queries.push(base44.entities.ParkingAlert.filter({ created_by: user.id }));
-      // Para "Tus reservas" (comprador)
-      queries.push(base44.entities.ParkingAlert.filter({ reserved_by_id: user.id }));
-    }
-    if (user?.email) {
-      queries.push(base44.entities.ParkingAlert.filter({ user_email: user.email }));
-    }
-
-    let results = [];
-    try {
-      if (queries.length > 0) {
-        const res = await Promise.allSettled(queries);
-        for (const r of res) {
-          if (r.status === 'fulfilled') {
-            const list = Array.isArray(r.value) ? r.value : (r.value?.data || []);
-            if (Array.isArray(list) && list.length) results.push(...list);
-          }
-        }
-      } else {
-        results = [];
-      }
-    } catch (e) {
-      results = [];
-    }
-
-    // Fallback seguro si la API no soporta bien algún filtro (no rompe nada)
-    if (!results.length) {
-      const res = await base44.entities.ParkingAlert.list();
-      const list = Array.isArray(res) ? res : (res?.data || []);
-      results = Array.isArray(list) ? list : [];
-    }
-
-    // Deduplicar por id
-    const map = new Map();
-    for (const a of results) {
-      if (a?.id != null) map.set(a.id, a);
-    }
-    const merged = Array.from(map.values());
-
-    // Filtrado final (igual que antes)
-    return merged.filter((a) => {
-      if (!a) return false;
-      if (user?.id && (a.user_id === user.id || a.created_by === user.id)) return true;
-      if (user?.email && a.user_email === user.email) return true;
-      if (user?.id && a.reserved_by_id === user.id) return true;
-      return false;
-    });
+    return [];
   }
 });
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
