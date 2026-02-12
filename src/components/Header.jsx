@@ -5,8 +5,6 @@ import { ArrowLeft, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
-
-
 export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
@@ -16,10 +14,6 @@ export default function Header({
 
   const navigate = useNavigate();
   const { user } = useAuth();
-
-
-
-  /* ---------- MEMO TITLE ---------- */
 
   const renderTitle = useMemo(() => {
 
@@ -49,15 +43,9 @@ export default function Header({
 
   }, [title, navigate]);
 
-
-
-  /* ---------- MEMO BACK ---------- */
-
   const handleBack = useCallback(() => {
     if (onBack) onBack();
   }, [onBack]);
-
-
 
   const BackButton = useMemo(() => (
     <Button
@@ -70,15 +58,12 @@ export default function Header({
     </Button>
   ), [handleBack]);
 
-
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
 
         <div className="relative flex items-center justify-between">
 
-          {/* IZQUIERDA */}
           <div className="flex items-center">
 
             {showBackButton ? (
@@ -93,9 +78,6 @@ export default function Header({
               <div className="w-10" />
             )}
 
-
-
-            {/* DINERO */}
             <div className="flex items-center justify-center px-2">
               <Link to={createPageUrl('Settings')}>
                 <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
@@ -108,36 +90,32 @@ export default function Header({
 
           </div>
 
-
-
-          {/* TITULO */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               {renderTitle}
             </div>
           </div>
 
-
-
-          {/* DERECHA */}
           <div className="flex items-center gap-1 justify-end">
 
             <Link to={createPageUrl('Settings')}>
-              
-<div className="flex items-center justify-center w-[52px] h-[52px] rounded-lg text-purple-400 hover:bg-purple-700/40 border border-transparent hover:border-purple-500/50">
-  <Settings className="w-8 h-8" />
-</div>
-
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+              >
+                <Settings className="w-7 h-7" />
+              </Button>
             </Link>
 
-
-
             <Link to={createPageUrl('Profile')}>
-              
-<div className="flex items-center justify-center w-[52px] h-[52px] rounded-lg text-purple-400 hover:bg-purple-700/40 border border-transparent hover:border-purple-500/50">
-  <User className="w-8 h-8" />
-</div>
-
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+              >
+                <User className="w-7 h-7" />
+              </Button>
             </Link>
 
           </div>
