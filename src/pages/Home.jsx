@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal, Search } from 'lucide-react';
+import { MapPin, SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -109,6 +109,20 @@ const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
     <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
     <circle cx="36" cy="18" r="2" fill="#666" />
   </svg>;
+
+const MagnifierIconProfile = ({ color = "#8b5cf6", size = "w-14 h-14" }) => (
+  <svg viewBox="0 0 48 48" className={size} fill="none">
+    {/* Lente */}
+    <circle cx="20" cy="20" r="12" fill={color} stroke="white" strokeWidth="1.5" />
+    {/* Brillo */}
+    <path d="M15 16 C16 13, 18 12, 21 12" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" />
+    {/* Mango */}
+    <path d="M28 28 L38 38" stroke="white" strokeWidth="4" strokeLinecap="round" />
+    {/* Tope mango */}
+    <path d="M36.8 36.8 L40.8 40.8" stroke="white" strokeWidth="6" strokeLinecap="round" opacity="0.9" />
+  </svg>
+);
+
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -530,7 +544,7 @@ export default function Home() {
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <Search className="w-12 h-12 text-purple-500 shrink-0" strokeWidth={3} />
+                  <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
