@@ -14,7 +14,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoNotifications, reserveDemoAlert } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -86,6 +86,22 @@ const buildDemoAlerts = (lat, lng) => {
     }
   ];
 };
+
+const CarIconProfile = ({ color = '#6b7280', size = 'w-16 h-10' }) => (
+  <svg viewBox="0 0 48 24" className={size} fill="none" aria-hidden="true">
+    <path
+      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+      fill={color}
+      stroke="white"
+      strokeWidth="1.5"
+    />
+    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="14" cy="18" r="2" fill="#666" />
+    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="36" cy="18" r="2" fill="#666" />
+  </svg>
+);
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -252,7 +268,7 @@ export default function Home() {
   const homeMapAlerts = useMemo(() => {
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [userLocation]);
+  }, [userLocation, demoTick]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
@@ -285,7 +301,7 @@ export default function Home() {
 
     const center = userLocation || [43.3619, -5.8494];
     return buildDemoAlerts(center[0], center[1]);
-  }, [mode, filteredAlerts, userLocation]);
+  }, [mode, filteredAlerts, userLocation, demoTick]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -435,36 +451,11 @@ export default function Home() {
     setConfirmDialog({ open: true, alert });
   };
 
-  const handleChat = async (alert) => {
+  const handleChat = async () => {
     navigate(createPageUrl('History'));
-
-    if (alert?.is_demo) return;
-
-    const otherUserId = alert.user_id || alert.user_email || alert.created_by;
-
-    const conversations = await base44.entities.Conversation.filter({ participant1_id: user?.id });
-    const existingConv = conversations.find(c => c.participant2_id === otherUserId) ||
-      (await base44.entities.Conversation.filter({ participant2_id: user?.id })).find(c => c.participant1_id === otherUserId);
-
-    if (existingConv) return;
-
-    await base44.entities.Conversation.create({
-      participant1_id: user.id,
-      participant1_name: user.display_name || user.full_name?.split(' ')[0] || 'Tú',
-      participant1_photo: user.photo_url,
-      participant2_id: otherUserId,
-      participant2_name: alert.user_name,
-      participant2_photo: alert.user_photo,
-      alert_id: alert.id,
-      last_message_text: '',
-      last_message_at: new Date().toISOString(),
-      unread_count_p1: 0,
-      unread_count_p2: 0
-    });
   };
 
-  const handleCall = (alert) => {
-    const phone = alert?.phone || '+34612345678';
+  const handleCall = async () => {
     navigate(createPageUrl('History'));
   };
 
@@ -484,7 +475,7 @@ export default function Home() {
 
       <main className="fixed inset-0 top-0 bottom-0">
         <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL (RESTABLECIDO: logo + botones como estaban) */}
+          {/* HOME PRINCIPAL */}
           {!mode && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -505,25 +496,32 @@ export default function Home() {
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative z-10 px-6">
+                {/* 1) Logo +10px */}
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/692e2149be20ccc53d68b913/d2ae993d3_WaitMe.png"
                   alt="WaitMe!"
                   className="w-[212px] h-[212px] mb-0 object-contain"
                 />
-                <h1 className="text-xl font-bold whitespace-nowrap mt-[3px]">
-                  Aparca donde te <span className="text-purple-500">avisen!</span>
+
+                {/* 1 + 6) Palabra WaitMe! (Me! morado) */}
+                <h1 className="text-4xl font-bold leading-none -mt-3 whitespace-nowrap">
+                  Wait<span className="text-purple-500">Me!</span>
                 </h1>
+
+                {/* 2 + 6) Frase justo debajo con 3px (avisen! morado) */}
+                <p className="text-xl font-bold mt-[3px] whitespace-nowrap">
+                  Aparca donde te <span className="text-purple-500">avisen!</span>
+                </p>
               </div>
 
+              {/* 3) Botones NO se mueven: mismas clases y estructura */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative z-10 px-6">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg className="w-14 h-14 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  {/* 4) Icono ubicación más grande y del mismo tamaño que el coche */}
+                  <MapPin className="w-14 h-14 text-purple-500" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
@@ -531,22 +529,8 @@ export default function Home() {
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
-                  <svg viewBox="0 0 48 24" className="w-14 h-14" fill="none">
-                    {/* Cuerpo del coche - vista lateral */}
-                    <path
-                      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-                      fill="#6b7280"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    {/* Ventanas */}
-                    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
-                    {/* Ruedas */}
-                    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-                    <circle cx="14" cy="18" r="2" fill="#666" />
-                    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-                    <circle cx="36" cy="18" r="2" fill="#666" />
-                  </svg>
+                  {/* 5) Icono coche igual que el de Perfil */}
+                  <CarIconProfile size="w-14 h-14" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
@@ -622,7 +606,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* SIN SCROLL: tarjeta encaja en el resto */}
               <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -757,4 +740,4 @@ export default function Home() {
       </Dialog>
     </div>
   );
-} 
+}
