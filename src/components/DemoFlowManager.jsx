@@ -324,6 +324,13 @@ export function getDemoAlerts() {
   return demoFlow.alerts || [];
 }
 
+export function getDemoAlertById(alertId) {
+  const id = String(alertId || '').trim();
+  if (!id) return null;
+  return (demoFlow.alerts || []).find(a => String(a?.id || '') === id) || null;
+}
+
+
 // Chat
 export function getDemoConversation(conversationId) {
   return getConversation(conversationId);
