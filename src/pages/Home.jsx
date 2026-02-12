@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -91,22 +91,25 @@ const buildDemoAlerts = (lat, lng) => {
 };
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
-  <svg viewBox="0 0 48 24" className={size} fill="none">
-    {/* Cuerpo del coche - vista lateral */}
+  <svg viewBox="0 0 60 30" className={size} fill="none">
+    {/* Parking lines */}
+    <line x1="5" y1="5" x2="5" y2="25" stroke="white" strokeWidth="2"/>
+    <line x1="55" y1="5" x2="55" y2="25" stroke="white" strokeWidth="2"/>
+    
+    {/* Car body */}
     <path
-      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-      fill={color}
+      d="M12 20 L15 14 L22 12 L38 12 L45 14 L48 18 L48 22 L12 22 Z"
+      fill={color || "#9CA3AF"}
       stroke="white"
-      strokeWidth="1.5" />
-
-    {/* Ventanas */}
-    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
-    {/* Rueda trasera */}
-    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-    <circle cx="14" cy="18" r="2" fill="#666" />
-    {/* Rueda delantera */}
-    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-    <circle cx="36" cy="18" r="2" fill="#666" />
+      strokeWidth="1.5"
+    />
+    
+    {/* Wheels */}
+    <circle cx="20" cy="22" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    <circle cx="40" cy="22" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    
+    {/* Parking P */}
+    <text x="27" y="18" fontSize="10" fill="white" fontWeight="bold">P</text>
   </svg>;
 
 export default function Home() {
