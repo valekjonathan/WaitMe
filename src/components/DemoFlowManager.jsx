@@ -1,95 +1,55 @@
 import { useEffect } from 'react'
 
 /* ======================================================
-   DEMO FLOW MANAGER — VACÍO TOTAL
-   Todos los exports conservados
-   Datos = vacío
+   DEMO FLOW MANAGER — MODO VACÍO ABSOLUTO
+   Compatible con CUALQUIER export anterior
+   No rompe imports
+   Datos completamente vacíos
 ====================================================== */
 
-let listeners = new Set()
+const emptyArray = []
+const emptyObject = {}
+const emptyNull = null
 
-let state = {
-  users: [],
-  alerts: [],
-  chats: [],
-  conversations: [],
-  notifications: [],
-  history: []
+/* ======================================================
+   PROXY UNIVERSAL
+   Cualquier función que se llame devuelve vacío
+====================================================== */
+
+const universalHandler = {
+  get: () => () => emptyArray
 }
 
-/* =========================
-   OBJETO DEMOFLOW
-========================= */
+export const demoFlow = new Proxy({}, universalHandler)
 
-export const demoFlow = {
-  getUsers: () => [],
-  getAlerts: () => [],
-  getChats: () => [],
-  getConversations: () => [],
-  getConversation: () => null,
-  getNotifications: () => [],
-  getHistory: () => [],
-  createAlert: () => null,
-  removeAlert: () => null,
-  sendMessage: () => null,
-  markNotificationRead: () => null
-}
+/* ======================================================
+   EXPORTS EXPLÍCITOS MÁS COMUNES
+====================================================== */
 
-/* =========================
-   SUBSCRIBE
-========================= */
+export const getDemoUsers = () => emptyArray
+export const getDemoAlerts = () => emptyArray
+export const getDemoChats = () => emptyArray
+export const getDemoMessages = () => emptyArray
+export const getDemoConversations = () => emptyArray
+export const getDemoConversation = () => emptyNull
+export const getDemoNotifications = () => emptyArray
+export const getDemoHistory = () => emptyArray
 
-export function subscribeDemoFlow(callback) {
-  listeners.add(callback)
-  return () => listeners.delete(callback)
-}
+export const createDemoAlert = () => emptyNull
+export const removeDemoAlert = () => emptyNull
+export const sendDemoMessage = () => emptyNull
+export const markNotificationRead = () => emptyNull
 
-function emit() {
-  listeners.forEach(cb => {
-    try { cb(state) } catch (e) {}
-  })
-}
+export const isDemoMode = () => true
+export const stopDemoFlow = () => {}
+export const subscribeDemoFlow = () => () => {}
+export const startDemoFlow = () => {}
 
-/* =========================
-   START
-========================= */
-
-export function startDemoFlow() {
-  emit()
-}
-
-/* =========================
-   GETTERS
-========================= */
-
-export function getDemoUsers() { return [] }
-export function getDemoAlerts() { return [] }
-export function getDemoChats() { return [] }
-export function getDemoConversations() { return [] }
-export function getDemoConversation() { return null }
-export function getDemoNotifications() { return [] }
-export function getDemoHistory() { return [] }
-
-/* =========================
-   STOP
-========================= */
-
-export function stopDemoFlow() {
-  listeners.clear()
-}
-
-export function isDemoMode() {
-  return true
-}
-
-/* =========================
+/* ======================================================
    WRAPPER
-========================= */
+====================================================== */
 
 export default function DemoFlowManager({ children }) {
-  useEffect(() => {
-    startDemoFlow()
-  }, [])
-
-  return children 
+  useEffect(() => {}, [])
+  return children
 }
