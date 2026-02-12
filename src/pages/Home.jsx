@@ -526,7 +526,7 @@ export default function Home() {
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
-                  <MapPin size={72} className="text-purple-500 shrink-0" strokeWidth={3} />
+                  <MapPin size={96} className="text-purple-500 shrink-0" strokeWidth={3} />
                   ¿ Dónde quieres aparcar ?
                 </Button>
 
@@ -535,7 +535,7 @@ export default function Home() {
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4"
                 >
                   {/* ICONO COCHE = PERFIL */}
-                  <CarIconProfile size="w-16 h-10" />
+                  <CarIconProfile size="w-24 h-16" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
