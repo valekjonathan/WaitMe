@@ -35,7 +35,7 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-[25px] leading-[25px] font-semibold select-none"
+        className="text-[22px] leading-[22px] font-semibold select-none"
         aria-label="Recargar página"
       >
         {TitleInner}
@@ -99,25 +99,51 @@ export default function Header({
 
           <div className="flex items-center gap-1 justify-end">
 
-            <Link to={createPageUrl('Settings')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[23px]"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
-            </Link>
+            {iconVariant === 'bottom' ? (
+              <>
+                <Link to={createPageUrl('Settings')}>
+                  <button
+                    type="button"
+                    className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors ml-[31px]"
+                    aria-label="Ajustes"
+                  >
+                    <Settings className="w-5 h-5" strokeWidth={2} />
+                  </button>
+                </Link>
 
-            <Link to={createPageUrl('Profile')}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
-              >
-                <User className="w-5 h-5" />
-              </Button>
-            </Link>
+                <Link to={createPageUrl('Profile')}>
+                  <button
+                    type="button"
+                    className="text-purple-400 hover:text-purple-300 rounded-lg p-2 hover:bg-purple-700/40 hover:border hover:border-purple-500/50 transition-colors"
+                    aria-label="Perfil"
+                  >
+                    <User className="w-5 h-5" strokeWidth={2} />
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to={createPageUrl('Settings')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20 ml-[31px]"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                </Link>
+
+                <Link to={createPageUrl('Profile')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/20"
+                  >
+                    <User className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </>
+            )}
 
           </div>
 
