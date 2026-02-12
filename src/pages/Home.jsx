@@ -502,13 +502,13 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-65px] z-10 px-6">
+              <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 {/* Logo */}
                 {/* Logo */}
 <img
   src={appLogo}
   alt="WaitMe!"
-  className="w-[212px] h-[212px] mb-0 object-contain mt-[48px]"
+  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
 />
 
                 {/* SUBIDO “AL RAS” */}
