@@ -35,28 +35,24 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-black text-white;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-  #root {
-    min-height: 100vh;
-    width: 100%;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Custom styles for purple sliders */
-[role="slider"] {
-  @apply bg-purple-600;
-}
-
-.slider-track {
-  @apply bg-purple-600/30;
-}
-
-[data-orientation="horizontal"][role="slider"] ~ span {
-  @apply bg-purple-600;
+/* ======================================================
+   iOS / Safari: evitar zoom al enfocar inputs
+   - iOS hace zoom si font-size < 16px
+   - También evitamos double-tap zoom en UI
+====================================================== */
+@layer base {
+  input, select, textarea {
+    font-size: 16px;
+  }
+  html, body {
+    touch-action: manipulation;
+    overscroll-behavior: none;
+  }
 }
