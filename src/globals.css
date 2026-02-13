@@ -37,21 +37,24 @@
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-}
 
-/* ======================================================
-   iOS / Safari: evitar zoom al enfocar inputs
-   - iOS hace zoom si font-size < 16px
-   - También evitamos double-tap zoom en UI
-====================================================== */
-@layer base {
-  input, select, textarea {
+  /* ======================================================
+     iOS / Safari: evitar zoom automático en inputs
+     - iOS hace zoom si font-size < 16px
+     - Evita también double-tap zoom en UI
+  ====================================================== */
+  input,
+  select,
+  textarea {
     font-size: 16px;
   }
-  html, body {
+
+  html,
+  body {
     touch-action: manipulation;
     overscroll-behavior: none;
   }
