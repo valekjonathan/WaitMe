@@ -14,6 +14,7 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-5 h-5 text-purple-400" />
           <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
             Filtros
           </div>

@@ -33,7 +33,62 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const buildDemoAlerts = (lat, lng) => {
-  return [];
+  const baseLat = lat ?? 43.3619;
+  const baseLng = lng ?? -5.8494;
+
+  return [
+    {
+      id: 'demo_1',
+      is_demo: true,
+      user_name: 'SOFIA',
+      user_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
+      car_brand: 'Seat',
+      car_model: 'Ibiza',
+      car_color: 'azul',
+      car_plate: '1234ABC',
+      price: 3.0,
+      available_in_minutes: 5,
+      latitude: baseLat + 0.002,
+      longitude: baseLng + 0.001,
+      address: 'Calle Uría, Oviedo',
+      phone: '+34612345678',
+      allow_phone_calls: true
+    },
+    {
+      id: 'demo_2',
+      is_demo: true,
+      user_name: 'MARCO',
+      user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
+      car_brand: 'BMW',
+      car_model: 'Serie 1',
+      car_color: 'negro',
+      car_plate: '5678DEF',
+      price: 4.0,
+      available_in_minutes: 12,
+      latitude: baseLat - 0.001,
+      longitude: baseLng - 0.002,
+      address: 'Calle Campoamor, Oviedo',
+      phone: '+34623456789',
+      allow_phone_calls: false
+    },
+    {
+      id: 'demo_3',
+      is_demo: true,
+      user_name: 'DIEGO',
+      user_photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop',
+      car_brand: 'Volkswagen',
+      car_model: 'Golf',
+      car_color: 'blanco',
+      car_plate: '9012GHI',
+      price: 2.5,
+      available_in_minutes: 20,
+      latitude: baseLat + 0.001,
+      longitude: baseLng - 0.001,
+      address: 'Plaza de la Escandalera, Oviedo',
+      phone: '+34634567890',
+      allow_phone_calls: true
+    }
+  ];
 };
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
@@ -116,7 +171,13 @@ export default function Home() {
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
-      return [];
+      if (isDemoMode()) {
+        const list = getDemoAlerts() || [];
+        return list.filter(a => (a?.status || 'active') === 'active');
+      }
+      const alerts = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+      return list.filter(a => (a?.status || 'active') === 'active');
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -127,7 +188,21 @@ export default function Home() {
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      return [];
+      if (isDemoMode()) {
+        const list = getDemoAlerts() || [];
+        return list.filter(a => {
+          const isMine = a.user_id === 'me' || a.user_id === user?.id || a.user_name === 'Tú';
+          const isActive = (a?.status || 'active') === 'active';
+          return isMine && isActive;
+        });
+      }
+      const alerts = await base44.entities.ParkingAlert.list();
+      const list = Array.isArray(alerts) ? alerts : (alerts?.data || []);
+      return list.filter(a => {
+        const isMine = a.user_id === user?.id || a.created_by === user?.id;
+        const isActive = a.status === 'active' || a.status === 'reserved';
+        return isMine && isActive;
+      });
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000
@@ -143,7 +218,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5&countrycodes=es`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
       const data = await res.json();
       setSuggestions(data || []);
       setShowSuggestions(true);
@@ -212,8 +287,9 @@ export default function Home() {
   }, [location.search]);
 
   const homeMapAlerts = useMemo(() => {
-    return [];
-  }, []);
+    const center = userLocation || [43.3619, -5.8494];
+    return buildDemoAlerts(center[0], center[1]);
+  }, [userLocation, demoTick]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
@@ -241,8 +317,12 @@ export default function Home() {
 
   const searchAlerts = useMemo(() => {
     if (mode !== 'search') return [];
-    return filteredAlerts || [];
-  }, [mode, filteredAlerts]);
+    const real = filteredAlerts || [];
+    if (real.length > 0) return real;
+
+    const center = userLocation || [43.3619, -5.8494];
+    return buildDemoAlerts(center[0], center[1]);
+  }, [mode, filteredAlerts, userLocation, demoTick]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -444,9 +524,6 @@ export default function Home() {
 <img
   src={appLogo}
   alt="WaitMe!"
-  loading="eager"
-  decoding="async"
-  fetchPriority="high"
   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
 />
 
@@ -492,7 +569,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
+              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -515,38 +592,27 @@ export default function Home() {
 
                 <AnimatePresence>
                   {showFilters && (
-                    <>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowFilters(false)}
-                        className="absolute inset-0 z-[999]"
-                      />
-                      <MapFilters
-                        filters={filters}
-                        onFilterChange={setFilters}
-                        onClose={() => setShowFilters(false)}
-                        alertsCount={searchAlerts.length}
-                      />
-                    </>
+                    <MapFilters
+                      filters={filters}
+                      onFilterChange={setFilters}
+                      onClose={() => setShowFilters(false)}
+                      alertsCount={searchAlerts.length}
+                    />
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="px-7 py-3 flex-shrink-0 z-50 relative">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-                    <input
-                      type="text"
-                      placeholder="Buscar dirección..."
-                      value={searchInput}
-                      onChange={handleSearchInputChange}
-                      onFocus={() => setShowSuggestions(true)}
-                      className="w-full bg-transparent text-white pl-10 pr-4 py-1 text-sm focus:outline-none border-none"
-                    />
-                  </div>
+              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar dirección..."
+                    value={searchInput}
+                    onChange={handleSearchInputChange}
+                    onFocus={() => setShowSuggestions(true)}
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
@@ -563,7 +629,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
+              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
@@ -585,20 +651,16 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[45%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
                 <ParkingMap
-                  useCenterPin={true}
-                  userLocation={userLocation}
-                  zoomControl={true}
-                  className="h-full"
-                  onMapMove={(center) => {
-                    setSelectedPosition({ lat: center[0], lng: center[1] });
-                  }}
-                  onMapMoveEnd={(center) => {
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
+                  isSelecting={true}
+                  selectedPosition={selectedPosition}
+                  setSelectedPosition={(pos) => {
+                    setSelectedPosition(pos);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
                       .then((res) => res.json())
                       .then((data) => {
                         if (data?.address) {
@@ -609,24 +671,22 @@ export default function Home() {
                       })
                       .catch(() => {});
                   }}
+                  userLocation={userLocation}
+                  zoomControl={true}
+                  className="h-full"
                 />
               </div>
 
-              <div className="px-7 py-2 flex-shrink-0">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
-                  <h3 className="text-white font-semibold text-center text-sm">
-                    ¿ Dónde estas aparcado ?
-                  </h3>
-                </div>
-              </div>
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
+                ¿ Dónde estas aparcado ?
+              </h3>
 
-              <div className="px-4 pt-1 pb-[3px] flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
                     onUseCurrentLocation={getCurrentLocation}
-                    useCurrentLocationLabel="Ubicación actual"
                     onCreateAlert={(data) => {
                       if (!selectedPosition || !address) {
                         alert('Por favor, selecciona una ubicación en el mapa');
