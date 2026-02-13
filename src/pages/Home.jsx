@@ -143,7 +143,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5&countrycodes=es`);
       const data = await res.json();
       setSuggestions(data || []);
       setShowSuggestions(true);

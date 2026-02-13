@@ -131,34 +131,45 @@ function pickUser(userId) {
 
 function buildUsers() {
   demoFlow.users = [
-    { id: 'u1', name: 'Sofía', photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault', car_model: 'Clio', car_color: 'rojo', car_plate: '7733 MNP', phone: '+34677889901' },
-    { id: 'u2', name: 'Marco', photo: 'https://randomuser.me/api/portraits/men/12.jpg', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902' },
-    { id: 'u3', name: 'Laura', photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes', car_model: 'Clase A', car_color: 'negro', car_plate: '7788 RTY', phone: '+34677889903' },
-    { id: 'u4', name: 'Carlos', photo: 'https://randomuser.me/api/portraits/men/55.jpg', car_brand: 'Seat', car_model: 'León', car_color: 'azul', car_plate: '4321 PQR', phone: '+34677889904' },
-    { id: 'u5', name: 'Elena', photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini', car_model: 'Cooper', car_color: 'blanco', car_plate: '5567 ZXC', phone: '+34677889905' },
-    { id: 'u6', name: 'Dani', photo: 'https://randomuser.me/api/portraits/men/41.jpg', car_brand: 'Audi', car_model: 'A3', car_color: 'gris', car_plate: '2145 KHB', phone: '+34677889906' },
-    { id: 'u7', name: 'Paula', photo: 'https://randomuser.me/api/portraits/women/12.jpg', car_brand: 'Toyota', car_model: 'Yaris', car_color: 'verde', car_plate: '9001 LKD', phone: '+34677889907' },
-    { id: 'u8', name: 'Iván', photo: 'https://randomuser.me/api/portraits/men/18.jpg', car_brand: 'Volkswagen', car_model: 'Golf', car_color: 'azul', car_plate: '3022 MJC', phone: '+34677889908' },
-    { id: 'u9', name: 'Nerea', photo: 'https://randomuser.me/api/portraits/women/37.jpg', car_brand: 'Kia', car_model: 'Rio', car_color: 'rojo', car_plate: '6100 HJP', phone: '+34677889909' },
-    { id: 'u10', name: 'Hugo', photo: 'https://randomuser.me/api/portraits/men/77.jpg', car_brand: 'Peugeot', car_model: '208', car_color: 'amarillo', car_plate: '4509 LST', phone: '+34677889910' }
+    { id: 'u1', name: 'Sofía García', photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault', car_model: 'Clio', car_color: 'rojo', car_plate: '7733 MNP', phone: '+34677889901', vehicle_type: 'car' },
+    { id: 'u2', name: 'Marco López', photo: 'https://randomuser.me/api/portraits/men/12.jpg', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902', vehicle_type: 'car' },
+    { id: 'u3', name: 'Laura Fernández', photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes', car_model: 'Clase A', car_color: 'negro', car_plate: '7788 RTY', phone: '+34677889903', vehicle_type: 'car' },
+    { id: 'u4', name: 'Carlos Ruiz', photo: 'https://randomuser.me/api/portraits/men/55.jpg', car_brand: 'Seat', car_model: 'León', car_color: 'azul', car_plate: '4321 PQR', phone: '+34677889904', vehicle_type: 'car' },
+    { id: 'u5', name: 'Elena Martín', photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini', car_model: 'Cooper', car_color: 'blanco', car_plate: '5567 ZXC', phone: '+34677889905', vehicle_type: 'car' },
+    { id: 'u6', name: 'Daniel Torres', photo: 'https://randomuser.me/api/portraits/men/41.jpg', car_brand: 'Audi', car_model: 'A3', car_color: 'gris', car_plate: '2145 KHB', phone: '+34677889906', vehicle_type: 'car' },
+    { id: 'u7', name: 'Paula Sánchez', photo: 'https://randomuser.me/api/portraits/women/12.jpg', car_brand: 'Toyota', car_model: 'Yaris', car_color: 'verde', car_plate: '9001 LKD', phone: '+34677889907', vehicle_type: 'car' },
+    { id: 'u8', name: 'Iván Moreno', photo: 'https://randomuser.me/api/portraits/men/18.jpg', car_brand: 'Volkswagen', car_model: 'Golf', car_color: 'azul', car_plate: '3022 MJC', phone: '+34677889908', vehicle_type: 'car' },
+    { id: 'u9', name: 'Nerea Jiménez', photo: 'https://randomuser.me/api/portraits/women/37.jpg', car_brand: 'Kia', car_model: 'Rio', car_color: 'rojo', car_plate: '6100 HJP', phone: '+34677889909', vehicle_type: 'car' },
+    { id: 'u10', name: 'Hugo Ramírez', photo: 'https://randomuser.me/api/portraits/men/77.jpg', car_brand: 'Peugeot', car_model: '208', car_color: 'amarillo', car_plate: '4509 LST', phone: '+34677889910', vehicle_type: 'car' }
   ];
 }
 
 function seedAlerts() {
   demoFlow.alerts = [];
 
-  const defs = [
-    { userId: 'u1', status: 'active', price: 3, address: 'Calle Uría, Oviedo', available_in_minutes: 5 },
-    { userId: 'u2', status: 'active', price: 4, address: 'Calle Campoamor, Oviedo', available_in_minutes: 3 },
-    { userId: 'u3', status: 'active', price: 6, address: 'Plaza de la Escandalera, Oviedo', available_in_minutes: 7 },
-    { userId: 'u4', status: 'active', price: 5, address: 'Calle Rosal, Oviedo', available_in_minutes: 4 },
-    { userId: 'u5', status: 'active', price: 7, address: 'Calle Cervantes, Oviedo', available_in_minutes: 6 },
+  const now = Date.now();
+  const oneDayAgo = now - (24 * 60 * 60 * 1000);
+  const twoDaysAgo = now - (2 * 24 * 60 * 60 * 1000);
+  const threeDaysAgo = now - (3 * 24 * 60 * 60 * 1000);
 
-    { userId: 'u6', status: 'reserved', price: 4, address: 'Calle Jovellanos, Oviedo', available_in_minutes: 2 },
-    { userId: 'u7', status: 'thinking', price: 3, address: 'Calle San Francisco, Oviedo', available_in_minutes: 8 },
-    { userId: 'u8', status: 'extended', price: 5, address: 'Calle Toreno, Oviedo', available_in_minutes: 1 },
-    { userId: 'u9', status: 'cancelled', price: 4, address: 'Calle Fruela, Oviedo', available_in_minutes: 9 },
-    { userId: 'u10', status: 'completed', price: 6, address: 'Calle Independencia, Oviedo', available_in_minutes: 0 }
+  const defs = [
+    { userId: 'u1', status: 'active', price: 3, address: 'Calle Uría, 45, Oviedo', available_in_minutes: 5, created: now - 10000 },
+    { userId: 'u2', status: 'active', price: 4, address: 'Calle Campoamor, 12, Oviedo', available_in_minutes: 3, created: now - 20000 },
+    { userId: 'u3', status: 'active', price: 6, address: 'Plaza de la Escandalera, 3, Oviedo', available_in_minutes: 7, created: now - 30000 },
+    { userId: 'u4', status: 'active', price: 5, address: 'Calle Rosal, 8, Oviedo', available_in_minutes: 4, created: now - 40000 },
+    { userId: 'u5', status: 'active', price: 7, address: 'Calle Cervantes, 22, Oviedo', available_in_minutes: 6, created: now - 50000 },
+
+    { userId: 'u6', status: 'reserved', price: 4, address: 'Calle Jovellanos, 15, Oviedo', available_in_minutes: 2, created: oneDayAgo },
+    { userId: 'u7', status: 'thinking', price: 3, address: 'Calle San Francisco, 7, Oviedo', available_in_minutes: 8, created: oneDayAgo },
+    { userId: 'u8', status: 'extended', price: 5, address: 'Calle Toreno, 19, Oviedo', available_in_minutes: 1, created: twoDaysAgo },
+    { userId: 'u9', status: 'cancelled', price: 4, address: 'Calle Fruela, 31, Oviedo', available_in_minutes: 9, created: twoDaysAgo },
+    { userId: 'u10', status: 'completed', price: 6, address: 'Calle Independencia, 5, Oviedo', available_in_minutes: 0, created: threeDaysAgo },
+
+    { userId: 'u1', status: 'completed', price: 5, address: 'Avenida de Galicia, 18, Oviedo', available_in_minutes: 0, created: threeDaysAgo },
+    { userId: 'u2', status: 'cancelled', price: 3, address: 'Calle Marqués de Santa Cruz, 10, Oviedo', available_in_minutes: 0, created: threeDaysAgo },
+    { userId: 'u3', status: 'reserved', price: 4, address: 'Calle Melquíades Álvarez, 25, Oviedo', available_in_minutes: 5, created: oneDayAgo },
+    { userId: 'u4', status: 'active', price: 6, address: 'Calle Argüelles, 9, Oviedo', available_in_minutes: 10, created: now - 60000 },
+    { userId: 'u5', status: 'thinking', price: 5, address: 'Calle Quintana, 14, Oviedo', available_in_minutes: 7, created: oneDayAgo }
   ];
 
   defs.forEach((d, i) => {
@@ -175,6 +186,7 @@ function seedAlerts() {
       car_model: u?.car_model,
       car_color: u?.car_color,
       car_plate: u?.car_plate,
+      vehicle_type: u?.vehicle_type || 'car',
       price: d.price,
       available_in_minutes: d.available_in_minutes,
       latitude: nearLat(),
@@ -187,7 +199,8 @@ function seedAlerts() {
       reserved_by_name: null,
       reserved_by_photo: null,
 
-      target_time: Date.now() + (10 * 60 * 1000),
+      target_time: d.created + (d.available_in_minutes * 60 * 1000),
+      created_date: new Date(d.created).toISOString(),
       status: d.status
     });
   });
@@ -197,15 +210,24 @@ function seedConversationsAndMessages() {
   demoFlow.conversations = [];
   demoFlow.messages = {};
 
+  const now = Date.now();
+  const oneDayAgo = now - (24 * 60 * 60 * 1000);
+  const twoDaysAgo = now - (2 * 24 * 60 * 60 * 1000);
+  const threeDaysAgo = now - (3 * 24 * 60 * 60 * 1000);
+
   const linked = demoFlow.alerts.filter((a) => normalize(a.status) !== 'active');
 
-  linked.forEach((a) => {
+  linked.forEach((a, idx) => {
     const other = pickUser(a.user_id);
     const convId = `conv_${a.id}_me`;
 
     a.reserved_by_id = 'me';
     a.reserved_by_name = demoFlow.me.name;
     a.reserved_by_photo = demoFlow.me.photo;
+
+    const baseTime = idx === 0 ? now - 5_000 : 
+                     idx === 1 ? oneDayAgo : 
+                     idx === 2 ? twoDaysAgo : threeDaysAgo;
 
     const conv = {
       id: convId,
@@ -223,8 +245,8 @@ function seedConversationsAndMessages() {
       alert_id: a.id,
 
       last_message_text: '',
-      last_message_at: Date.now() - 60_000,
-      unread_count_p1: 0,
+      last_message_at: baseTime,
+      unread_count_p1: idx < 3 ? 1 : 0,
       unread_count_p2: 0
     };
 
@@ -235,10 +257,27 @@ function seedConversationsAndMessages() {
     pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Perfecto, lo tengo. Te leo por aquí.' });
 
     const st = normalize(a.status);
-    if (st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Me lo estoy pensando… ahora te digo.' });
-    if (st === 'extended') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'He pagado la prórroga.' });
-    if (st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Cancelo la operación.' });
-    if (st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅' });
+    if (st === 'thinking') {
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Me lo estoy pensando… ahora te digo.' });
+      pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Vale, sin problema! Avísame cuando decidas.' });
+    }
+    if (st === 'extended') {
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Necesito 5 minutos más, te pido prórroga.' });
+      pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Aceptado. He pagado la prórroga de 1€.' });
+    }
+    if (st === 'cancelled') {
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Lo siento, no puedo ahora mismo.' });
+      pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ok, cancelo la operación. Gracias!' });
+    }
+    if (st === 'completed') {
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Ya estoy saliendo del parking.' });
+      pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Perfecto, estoy llegando!' });
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅ Gracias!' });
+    }
+    if (st === 'reserved') {
+      pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Aceptado! Nos vemos en el parking.' });
+      pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Genial! Voy para allá.' });
+    }
   });
 
   demoFlow.conversations.sort((a, b) => (b.last_message_at || 0) - (a.last_message_at || 0));
@@ -247,30 +286,45 @@ function seedConversationsAndMessages() {
 function seedNotifications() {
   demoFlow.notifications = [];
 
-  const findBy = (st) => demoFlow.alerts.find((a) => normalize(a.status) === st);
+  const now = Date.now();
+  const oneDayAgo = now - (24 * 60 * 60 * 1000);
+  const twoDaysAgo = now - (2 * 24 * 60 * 60 * 1000);
 
-  const aReserved = findBy('reserved');
-  const aThinking = findBy('thinking');
-  const aExtended = findBy('extended');
-  const aCancelled = findBy('cancelled');
-  const aCompleted = findBy('completed');
+  const allReserved = demoFlow.alerts.filter((a) => normalize(a.status) === 'reserved');
+  const allThinking = demoFlow.alerts.filter((a) => normalize(a.status) === 'thinking');
+  const allExtended = demoFlow.alerts.filter((a) => normalize(a.status) === 'extended');
+  const allCancelled = demoFlow.alerts.filter((a) => normalize(a.status) === 'cancelled');
+  const allCompleted = demoFlow.alerts.filter((a) => normalize(a.status) === 'completed');
 
-  const convReserved = aReserved ? `conv_${aReserved.id}_me` : null;
-  const convThinking = aThinking ? `conv_${aThinking.id}_me` : null;
-  const convExtended = aExtended ? `conv_${aExtended.id}_me` : null;
-  const convCancelled = aCancelled ? `conv_${aCancelled.id}_me` : null;
-  const convCompleted = aCompleted ? `conv_${aCompleted.id}_me` : null;
+  allReserved.forEach((a) => {
+    const convId = `conv_${a.id}_me`;
+    addNotification({ type: 'incoming_waitme', title: 'ACTIVA', text: `${a.user_name} aceptó tu WaitMe.`, conversationId: convId, alertId: a.id, read: false });
+    addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `${a.user_name} aceptó la reserva.`, conversationId: convId, alertId: a.id, read: false });
+  });
 
-  if (aReserved) addNotification({ type: 'incoming_waitme', title: 'ACTIVA', text: `${aReserved.user_name} te ha enviado un WaitMe.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aThinking) addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${aThinking.user_name} se lo está pensando.`, conversationId: convThinking, alertId: aThinking.id, read: false });
-  if (aExtended) addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${aExtended.user_name} pide una prórroga (+1€).`, conversationId: convExtended, alertId: aExtended.id, read: false });
-  if (aCompleted) addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${aCompleted.price}€).`, conversationId: convCompleted, alertId: aCompleted.id, read: true });
-  if (aCancelled) addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, conversationId: convCancelled, alertId: aCancelled.id, read: true });
+  allThinking.forEach((a) => {
+    const convId = `conv_${a.id}_me`;
+    addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${a.user_name} se lo está pensando.`, conversationId: convId, alertId: a.id, read: false });
+  });
 
-  if (aReserved) addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador está llegando.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aReserved) addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `Reserva aceptada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'reservation_rejected', title: 'RESERVA RECHAZADA', text: `Reserva rechazada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'time_expired', title: 'TIEMPO AGOTADO', text: `Se agotó el tiempo.`, conversationId: convReserved, alertId: aReserved.id, read: true });
+  allExtended.forEach((a) => {
+    const convId = `conv_${a.id}_me`;
+    addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${a.user_name} pidió prórroga (+1€).`, conversationId: convId, alertId: a.id, read: false });
+    addNotification({ type: 'prorroga_accepted', title: 'PRÓRROGA ACEPTADA', text: `Prórroga aceptada. +5 minutos.`, conversationId: convId, alertId: a.id, read: true });
+  });
+
+  allCancelled.forEach((a) => {
+    const convId = `conv_${a.id}_me`;
+    addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `${a.user_name} canceló la operación.`, conversationId: convId, alertId: a.id, read: true });
+  });
+
+  allCompleted.forEach((a) => {
+    const convId = `conv_${a.id}_me`;
+    addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${a.price}€). Operación completada.`, conversationId: convId, alertId: a.id, read: true });
+    addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador llegó al parking.`, conversationId: convId, alertId: a.id, read: true });
+  });
+
+  demoFlow.notifications.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 }
 
 function resetDemo() {
