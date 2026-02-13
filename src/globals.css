@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,16 +36,23 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-black text-white;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   #root {
     min-height: 100vh;
     width: 100%;
+  }
+  input, textarea, select {
+    font-size: 16px !important;
+    -webkit-user-select: text;
   }
 }
 
