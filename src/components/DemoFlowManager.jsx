@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
+   DEMO CENTRAL ÚNICO (ESTABLE Y SINCRONIZADO)
 ====================================================== */
 
 let started = false;
@@ -16,28 +16,13 @@ function genId(prefix = 'id') {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 }
 
-function normalize(s) { return String(s || '').trim().toLowerCase(); }
-
-function statusToTitle(status) {
-  const s = normalize(status);
-  if (['thinking','me_lo_pienso','me lo pienso','pending'].includes(s)) return 'ME LO PIENSO';
-  if (['extended','prorroga','prórroga','prorrogada'].includes(s)) return 'PRÓRROGA';
-  if (['cancelled','canceled','cancelada'].includes(s)) return 'CANCELADA';
-  if (['expired','expirada','agotada'].includes(s)) return 'AGOTADA';
-  if (['rejected','rechazada'].includes(s)) return 'RECHAZADA';
-  if (['completed','completada'].includes(s)) return 'COMPLETADA';
-  if (['reserved','activa','active'].includes(s)) return 'ACTIVA';
-  return 'ACTUALIZACIÓN';
+function normalize(s) {
+  return String(s || '').trim().toLowerCase();
 }
 
-const BASE_LAT = 43.3623;
-const BASE_LNG = -5.8489;
-
-function rnd(min, max) { return Math.random() * (max - min) + min; }
-function nearLat() { return BASE_LAT + rnd(-0.0045, 0.0045); }
-function nearLng() { return BASE_LNG + rnd(-0.0060, 0.0060); }
-
-/* ====================================================== */
+/* ======================================================
+   ESTADO GLOBAL DEMO
+====================================================== */
 
 export const demoFlow = {
   me: { id: 'me', name: 'Jonathan Álvarez', photo: null },
@@ -48,11 +33,9 @@ export const demoFlow = {
   notifications: []
 };
 
-/* ====================================================== */
-
-function pickUser(userId) {
-  return demoFlow.users.find((u) => u.id === userId) || null;
-}
+/* ======================================================
+   HELPERS
+====================================================== */
 
 function getConversation(id) {
   return demoFlow.conversations.find((c) => c.id === id) || null;
@@ -62,30 +45,32 @@ function getAlert(id) {
   return demoFlow.alerts.find((a) => a.id === id) || null;
 }
 
-function ensureMessagesArray(id) {
+function ensureMessages(id) {
   if (!demoFlow.messages[id]) demoFlow.messages[id] = [];
   return demoFlow.messages[id];
 }
 
-function pushMessage(conversationId, { mine, senderName, senderPhoto, text, ts }) {
-  const arr = ensureMessagesArray(conversationId);
+function pushMessage(convId, { mine, senderName, senderPhoto, text }) {
+  if (!text) return;
+
+  const arr = ensureMessages(convId);
+
   const msg = {
     id: genId('msg'),
     mine: !!mine,
     senderName,
     senderPhoto,
     text,
-    ts: ts || Date.now()
+    ts: Date.now()
   };
+
   arr.push(msg);
 
-  const conv = getConversation(conversationId);
+  const conv = getConversation(convId);
   if (conv) {
     conv.last_message_text = msg.text;
     conv.last_message_at = msg.ts;
   }
-
-  return msg;
 }
 
 function addNotification(data) {
@@ -98,137 +83,184 @@ function addNotification(data) {
 }
 
 /* ======================================================
-   SEED COMPLETO
+   SEED
 ====================================================== */
 
 function buildUsers() {
   demoFlow.users = Array.from({ length: 10 }).map((_, i) => ({
-    id: `u${i+1}`,
-    name: ['Sofía','Marco','Laura','Carlos','Elena','Daniel','Paula','Iván','Nerea','Hugo'][i] + ' Demo',
-    photo: `https://randomuser.me/api/portraits/${i%2===0?'women':'men'}/${i+10}.jpg`,
+    id: `u${i + 1}`,
+    name: ['Sofía','Marco','Laura','Carlos','Elena','Daniel','Paula','Iván','Nerea','Hugo'][i],
+    photo: `https://randomuser.me/api/portraits/${i % 2 === 0 ? 'women' : 'men'}/${i + 10}.jpg`,
     car_brand: 'Seat',
     car_model: 'León',
     car_color: 'negro',
-    car_plate: `${1000+i} MNP`,
+    car_plate: `${1000 + i} MNP`,
     vehicle_type: 'car',
     phone: '+34600000000'
   }));
 }
 
-function seedAlerts() {
+function buildAlerts() {
   demoFlow.alerts = [];
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
 
-  const statuses = ['active','reserved','thinking','extended','cancelled','completed','expired','rejected'];
+  const statuses = [
+    'active','reserved','thinking','extended',
+    'cancelled','completed','expired','rejected'
+  ];
 
-  demoFlow.users.forEach((u,i)=>{
+  demoFlow.users.forEach((u, i) => {
     demoFlow.alerts.push({
-      id:`alert_${i+1}`,
-      user_id:u.id,
-      user_name:u.name,
-      user_photo:u.photo,
-      car_brand:u.car_brand,
-      car_model:u.car_model,
-      car_color:u.car_color,
-      car_plate:u.car_plate,
-      vehicle_type:'car',
-      price:3+i,
-      latitude:nearLat(),
-      longitude:nearLng(),
-      address:`Calle Demo ${i+1}, Oviedo`,
-      available_in_minutes:5,
-      created_date:new Date(now - i*day).toISOString(),
+      id: `alert_${i + 1}`,
+      user_id: u.id,
+      user_name: u.name,
+      user_photo: u.photo,
+      car_brand: u.car_brand,
+      car_model: u.car_model,
+      car_color: u.car_color,
+      car_plate: u.car_plate,
+      vehicle_type: 'car',
+      price: 3 + i,
+      address: `Calle Demo ${i + 1}, Oviedo`,
       status: statuses[i % statuses.length],
-      reserved_by_id:'me',
-      reserved_by_name:demoFlow.me.name,
-      reserved_by_photo:null
+      reserved_by_id: 'me',
+      reserved_by_name: demoFlow.me.name,
+      reserved_by_photo: null
     });
   });
 }
 
-function seedConversations() {
-  demoFlow.conversations=[];
-  demoFlow.messages={};
+function buildConversations() {
+  demoFlow.conversations = [];
+  demoFlow.messages = {};
 
-  demoFlow.users.forEach((u,i)=>{
-    const convId=`conv_${u.id}_me`;
+  demoFlow.users.forEach((u, i) => {
+    const convId = `conv_${u.id}_me`;
+
     demoFlow.conversations.push({
-      id:convId,
-      participant1_id:'me',
-      participant2_id:u.id,
-      participant1_name:demoFlow.me.name,
-      participant2_name:u.name,
-      participant1_photo:null,
-      participant2_photo:u.photo,
-      alert_id:`alert_${i+1}`,
-      last_message_text:'',
-      last_message_at:Date.now(),
-      unread_count_p1:0,
-      unread_count_p2:0
+      id: convId,
+      participant1_id: 'me',
+      participant2_id: u.id,
+      participant1_name: demoFlow.me.name,
+      participant2_name: u.name,
+      participant1_photo: null,
+      participant2_photo: u.photo,
+      alert_id: `alert_${i + 1}`,
+      last_message_text: '',
+      last_message_at: Date.now(),
+      unread_count_p1: 0,
+      unread_count_p2: 0
     });
 
-    pushMessage(convId,{
-      mine:false,
-      senderName:u.name,
-      senderPhoto:u.photo,
-      text:'Hola! Te he enviado un WaitMe.'
+    pushMessage(convId, {
+      mine: false,
+      senderName: u.name,
+      senderPhoto: u.photo,
+      text: 'Hola! Te he enviado un WaitMe.'
     });
 
-    pushMessage(convId,{
-      mine:true,
-      senderName:demoFlow.me.name,
-      senderPhoto:null,
-      text:'Perfecto, voy para allá.'
+    pushMessage(convId, {
+      mine: true,
+      senderName: demoFlow.me.name,
+      senderPhoto: null,
+      text: 'Perfecto, voy para allá.'
     });
   });
 }
 
-function seedNotifications(){
-  demoFlow.notifications=[];
-  demoFlow.alerts.forEach(a=>{
+function buildNotifications() {
+  demoFlow.notifications = [];
+
+  demoFlow.alerts.forEach((a) => {
     addNotification({
-      type:'status_update',
-      title:statusToTitle(a.status),
-      text:`Estado: ${a.status}`,
-      alertId:a.id
+      type: 'status_update',
+      title: a.status.toUpperCase(),
+      text: `Estado: ${a.status}`,
+      alertId: a.id
     });
   });
 }
 
-function resetDemo(){
+function resetDemo() {
   buildUsers();
-  seedAlerts();
-  seedConversations();
-  seedNotifications();
+  buildAlerts();
+  buildConversations();
+  buildNotifications();
 }
 
-/* ====================================================== */
+/* ======================================================
+   EXPORTS API (COMPATIBLE CON TODA TU APP)
+====================================================== */
 
-export function startDemoFlow(){
-  if(started) return;
-  started=true;
+export function isDemoMode() { return true; }
+export function setDemoMode() { return true; }
+export function getDemoState() { return demoFlow; }
+
+export function startDemoFlow() {
+  if (started) return;
+  started = true;
+
   resetDemo();
-  if(!tickTimer){
-    tickTimer=setInterval(()=>notify(),1000);
+
+  if (!tickTimer) {
+    tickTimer = setInterval(() => notify(), 1000);
   }
+
   notify();
 }
 
-export function subscribeDemoFlow(cb){
+export function subscribeDemoFlow(cb) {
   listeners.add(cb);
-  return ()=>listeners.delete(cb);
+  return () => listeners.delete(cb);
 }
 
-export function getDemoAlerts(){return demoFlow.alerts;}
-export function getDemoConversations(){return demoFlow.conversations;}
-export function getDemoMessages(id){return demoFlow.messages[id]||[];}
-export function getDemoNotifications(){return demoFlow.notifications;}
+export function subscribeToDemoFlow(cb) {
+  return subscribeDemoFlow(cb);
+}
 
-export default function DemoFlowManager(){
-  useEffect(()=>{
+export function getDemoAlerts() { return demoFlow.alerts; }
+export function getDemoAlert(id) { return getAlert(id); }
+export function getDemoAlertById(id) { return getAlert(id); }
+export function getDemoAlertByID(id) { return getAlert(id); }
+
+export function getDemoConversations() { return demoFlow.conversations; }
+export function getDemoConversation(id) { return getConversation(id); }
+export function getDemoConversationById(id) { return getConversation(id); }
+
+export function getDemoMessages(id) {
+  return demoFlow.messages[id] || [];
+}
+
+export function getDemoNotifications() {
+  return demoFlow.notifications;
+}
+
+export function markDemoRead(id) {
+  const n = demoFlow.notifications.find((x) => x.id === id);
+  if (n) n.read = true;
+  notify();
+}
+
+export function markDemoNotificationRead(id) {
+  return markDemoRead(id);
+}
+
+export function markAllDemoRead() {
+  demoFlow.notifications.forEach((n) => (n.read = true));
+  notify();
+}
+
+/* ======================================================
+   COMPONENTE
+====================================================== */
+
+export default function DemoFlowManager() {
+  useEffect(() => {
     startDemoFlow();
-    toast({title:'Modo Demo Activo'});
-  },[]);
+    toast({
+      title: 'Modo Demo Activo',
+      description: 'Simulación cargada correctamente.'
+    });
+  }, []);
+
   return null;
 }
