@@ -602,7 +602,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
+              <div className="px-8 py-1 flex-shrink-0 z-50 relative">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                   <input
@@ -677,7 +677,7 @@ export default function Home() {
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
+              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0 px-8">
                 ¿ Dónde estas aparcado ?
               </h3>
 
