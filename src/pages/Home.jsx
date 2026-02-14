@@ -489,7 +489,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-1 flex-shrink-0">
+              <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -522,7 +522,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-4 py-1 flex-shrink-0 z-50 relative">
+              <div className="px-4 py-3 flex-shrink-0 z-50 relative">
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                   <input
@@ -531,7 +531,7 @@ export default function Home() {
                     value={searchInput}
                     onChange={handleSearchInputChange}
                     onFocus={() => setShowSuggestions(true)}
-                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
@@ -549,7 +549,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 pb-3 min-h-0 overflow-hidden flex items-start">
+              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
@@ -574,13 +574,15 @@ export default function Home() {
               className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
             >
-              <div className="h-[45%] relative px-3 pt-2 flex-shrink-0">
+              <div className="h-[45%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
-                  isSelecting={true}
-                  selectedPosition={selectedPosition}
-                  setSelectedPosition={(pos) => {
-                    setSelectedPosition(pos);
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.lat}&lon=${pos.lng}`)
+                  useCenterPin={true}
+                  userLocation={userLocation}
+                  zoomControl={true}
+                  className="h-full"
+                  onMapMove={(center) => {
+                    setSelectedPosition({ lat: center[0], lng: center[1] });
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
                       .then((res) => res.json())
                       .then((data) => {
                         if (data?.address) {
@@ -591,22 +593,24 @@ export default function Home() {
                       })
                       .catch(() => {});
                   }}
-                  userLocation={userLocation}
-                  zoomControl={true}
-                  className="h-full"
                 />
               </div>
 
-              <h3 className="text-white font-semibold text-center py-3 text-sm flex-shrink-0">
-                ¿ Dónde estas aparcado ?
-              </h3>
+              <div className="px-4 py-2 flex-shrink-0">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
+                  <h3 className="text-white font-semibold text-center text-sm">
+                    ¿ Dónde estas aparcado ?
+                  </h3>
+                </div>
+              </div>
 
-              <div className="px-4 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pt-1 pb-3 flex-1 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
                     onUseCurrentLocation={getCurrentLocation}
+                    useCurrentLocationLabel="Ubicación actual"
                     onCreateAlert={(data) => {
                       if (!selectedPosition || !address) {
                         alert('Por favor, selecciona una ubicación en el mapa');
