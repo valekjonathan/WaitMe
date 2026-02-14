@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
-import { getGuestUserSync } from '@/lib/currentUser';
 
 const AuthContext = createContext();
 
@@ -39,13 +38,12 @@ export const AuthProvider = ({ children }) => {
         setAppPublicSettings(publicSettings);
         
         // If we got the app public settings successfully, check if user is authenticated
-        // IMPORTANTE: La app NO depende de auth para funcionar.
-        // Si no hay token (producción en iPhone), entregamos un usuario invitado estable.
-        // Si hay token (preview), seguimos entregando invitado por defecto para que se vea IGUAL.
-        // (Si algún día quieres usar auth real: abre con ?use_auth=true)
-        setUser(getGuestUserSync());
-        setIsAuthenticated(false);
-        setIsLoadingAuth(false);
+        if (appParams.token) {
+          await checkUserAuth();
+        } else {
+          setIsLoadingAuth(false);
+          setIsAuthenticated(false);
+        }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         console.error('App state check failed:', appError);
@@ -76,9 +74,6 @@ export const AuthProvider = ({ children }) => {
           });
         }
         setIsLoadingPublicSettings(false);
-        // Incluso si falla el check del estado, mantenemos invitado para no romper UI.
-        setUser(getGuestUserSync());
-        setIsAuthenticated(false);
         setIsLoadingAuth(false);
       }
     } catch (error) {
@@ -88,8 +83,6 @@ export const AuthProvider = ({ children }) => {
         message: error.message || 'An unexpected error occurred'
       });
       setIsLoadingPublicSettings(false);
-      setUser(getGuestUserSync());
-      setIsAuthenticated(false);
       setIsLoadingAuth(false);
     }
   };

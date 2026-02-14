@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
-import { getCurrentUser } from '@/lib/currentUser';
 
 export default function Navigate() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -29,7 +28,7 @@ export default function Navigate() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await getCurrentUser();
+        const currentUser = await base44.auth.me();
         setUser(currentUser);
       } catch (error) {
         console.log('Error:', error);

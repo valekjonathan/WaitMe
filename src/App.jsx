@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import Layout from './Layout';
 
 // Pages (las que SÍ existen)
 import Home from '@/pages/Home';
@@ -15,7 +16,8 @@ import Settings from '@/pages/Settings';
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <Layout>
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/chats" element={<Chats />} />
         <Route path="/chat" element={<Chat />} />
@@ -28,7 +30,8 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <Toaster />
+        <Toaster />
+      </Layout>
     </BrowserRouter>
   );
 }

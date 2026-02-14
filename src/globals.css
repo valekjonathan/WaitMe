@@ -36,10 +36,6 @@
   * {
     @apply border-border;
   }
-  html, body {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
   body {
     @apply bg-black text-white;
     margin: 0;
@@ -63,4 +59,38 @@
 
 [data-orientation="horizontal"][role="slider"] ~ span {
   @apply bg-purple-600;
+}
+
+/* ======================================================
+   ✅ UNIFICACIÓN PREVIEW (Base44) vs IPHONE
+   - Centra y limita el ancho máximo de TODA la app.
+   - No fija width (en iPhone no cambia nada).
+====================================================== */
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+}
+
+.wm-app-outer {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: black;
+}
+
+.wm-app-inner {
+  width: 100%;
+  max-width: 430px; /* límite tipo iPhone grande; SE/mini quedan igual */
+  min-height: 100vh;
+  background: black;
+  position: relative;
+  overflow-x: hidden;
 }

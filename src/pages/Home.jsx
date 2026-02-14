@@ -16,7 +16,6 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
-import { getCurrentUser } from '@/lib/currentUser';
 
 // ======================
 // Helpers
@@ -94,14 +93,14 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => getCurrentUser(),
+    queryFn: () => base44.auth.me(),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000
   });
 
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
-    enabled: !!user?.id && user?.__guest !== true,
+    enabled: !!user?.id,
     queryFn: async () => {
       const notifications = await base44.entities.Notification.filter({
         user_id: user.id,
@@ -126,7 +125,7 @@ export default function Home() {
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
-    enabled: !!user?.id && user?.__guest !== true,
+    enabled: !!user?.id,
     queryFn: async () => {
       return [];
     },

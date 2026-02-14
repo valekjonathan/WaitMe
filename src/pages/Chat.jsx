@@ -17,8 +17,6 @@ import {
   sendDemoMessage,
   demoFlow
 } from '@/components/DemoFlowManager';
-import { getCurrentUser } from '@/lib/currentUser';
-import { hasAuthToken } from '@/lib/hasAuthToken';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -50,8 +48,7 @@ export default function Chat() {
     return { car, plate, price };
   }, [carLabelParam, plateParam, priceParam]);
 
-  // Si no hay token en el dispositivo (muy típico en iPhone/PWA), forzamos DEMO
-  const isDemo = !conversationId || urlParams.get('demo') === 'true' || !hasAuthToken();
+  const isDemo = !conversationId || urlParams.get('demo') === 'true';
 
   // ======================
   // DEMO: estado en memoria (sin cargas)
@@ -93,7 +90,7 @@ export default function Chat() {
   // ======================
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => getCurrentUser(),
+    queryFn: () => base44.auth.me(),
     staleTime: 60000,
     enabled: !isDemo
   });
