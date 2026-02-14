@@ -40,7 +40,7 @@ export default function BottomNav() {
   const divider = <div className="w-px h-8 bg-gray-700" />;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-50">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-50">
       <div className="flex items-center max-w-md mx-auto">
 
         <Link to={createPageUrl('History')} className="flex-1">

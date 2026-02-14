@@ -401,7 +401,7 @@ export default function Navigate() {
       )}
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <header className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to={createPageUrl('History')}>
             <Button variant="ghost" size="icon" className="text-white">
@@ -427,7 +427,7 @@ export default function Navigate() {
       </div>
 
       {/* Panel inferior */}
-      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
         {/* Info de destino */}
         {displayAlert && (
           <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
