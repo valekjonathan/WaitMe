@@ -46,7 +46,7 @@ export default function Notifications() {
   }, []);
 
   const notifications = useMemo(() => {
-    return [];
+    return getDemoNotifications() || [];
   }, [tick]);
 
   const openChat = (conversationId, alertId) => {

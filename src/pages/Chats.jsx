@@ -264,7 +264,14 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
-      return [];
+      if (demoMode) {
+        // Fuerza recalcular al tick demo
+        void demoTick;
+        return getDemoConversations();
+      }
+
+      const allConversations = await base44.entities.Conversation.list('-last_message_at', 50);
+      return allConversations || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
@@ -279,7 +286,18 @@ export default function Chats() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
-      return [];
+      if (demoMode) {
+        void demoTick;
+        return getDemoAlerts();
+      }
+
+      let realAlerts = [];
+      try {
+        realAlerts = await base44.entities.ParkingAlert.list('-created_date', 100);
+      } catch (e) {
+        console.log('Error cargando alertas:', e);
+      }
+      return realAlerts || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,

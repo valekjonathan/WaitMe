@@ -136,25 +136,6 @@ function LocationMarker({ position, setPosition, isSelecting }) {
 
 }
 
-function CenterPinMarker({ onMapMove, onMapMoveEnd }) {
-  const map = useMapEvents({
-    move() {
-      const center = map.getCenter();
-      if (onMapMove) {
-        onMapMove([center.lat, center.lng]);
-      }
-    },
-    moveend() {
-      const center = map.getCenter();
-      if (onMapMoveEnd) {
-        onMapMoveEnd([center.lat, center.lng]);
-      }
-    }
-  });
-
-  return null;
-}
-
 function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
   const map = useMap();
 
@@ -182,10 +163,7 @@ export default function ParkingMap({
   className = '',
   zoomControl = true,
   buyerLocations = [],
-  userLocationOffsetY = 0,
-  useCenterPin = false,
-  onMapMove,
-  onMapMoveEnd
+  userLocationOffsetY = 0
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -232,32 +210,6 @@ export default function ParkingMap({
 
   return (
     <div className={`relative w-full h-full ${className}`}>
-      {useCenterPin && (
-        <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
-          <div style={{ position: 'relative', width: '40px', height: '60px' }}>
-            <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '2px',
-              height: '35px',
-              background: '#a855f7'
-            }}></div>
-            <div style={{
-              position: 'absolute',
-              bottom: '30px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '18px',
-              height: '18px',
-              background: '#a855f7',
-              borderRadius: '50%',
-              boxShadow: '0 0 15px rgba(168, 85, 247, 0.8)'
-            }}></div>
-          </div>
-        </div>
-      )}
       <style>{`
         .leaflet-top.leaflet-left {
           top: 10px !important;
@@ -278,7 +230,7 @@ export default function ParkingMap({
           opacity: 1 !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.6) !important;
+          background-color: rgba(0, 0, 0, 0.7) !important;
           backdrop-filter: blur(4px) !important;
           color: white !important;
           border: none !important;
@@ -293,7 +245,7 @@ export default function ParkingMap({
           text-decoration: none !important;
         }
         .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.6) !important;
+          background-color: rgba(168, 85, 247, 0.8) !important;
         }
         .leaflet-control-zoom-in {
           border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
@@ -316,14 +268,10 @@ export default function ParkingMap({
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
         
-        {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
-        
-        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} onMapMoveEnd={onMapMoveEnd} />}
-        
-        {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
+        {normalizedUserLocation && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
         {/* Marcador de ubicación del usuario estilo Uber */}
-        {normalizedUserLocation && !useCenterPin &&
+        {normalizedUserLocation &&
         <Marker 
           position={normalizedUserLocation}
           icon={createUserLocationIcon()}
