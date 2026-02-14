@@ -25,6 +25,7 @@ import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { getCurrentUser, updateCurrentUser, clearGuestProfile } from '@/lib/currentUser';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -36,7 +37,7 @@ export default function Settings() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await getCurrentUser();
         setUser(currentUser);
         setPhone(currentUser.phone || '');
         setAllowCalls(currentUser.allow_phone_calls || false);
@@ -52,7 +53,10 @@ export default function Settings() {
   const handleSavePhone = async () => {
     setSaving(true);
     try {
-      await base44.auth.updateMe({ phone, allow_phone_calls: allowCalls });
+      const updated = await updateCurrentUser({ phone, allow_phone_calls: allowCalls });
+      if (updated) {
+        setUser((u) => ({ ...(u || {}), ...(updated || {}), phone, allow_phone_calls: allowCalls }));
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -61,6 +65,11 @@ export default function Settings() {
   };
 
   const handleLogout = () => {
+    if (user?.__guest) {
+      clearGuestProfile();
+      window.location.reload();
+      return;
+    }
     base44.auth.logout();
   };
 

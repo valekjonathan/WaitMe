@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { getCurrentUser, updateCurrentUser } from '@/lib/currentUser';
 
 const carColors = [
 { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -41,7 +42,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await getCurrentUser();
         setUser(currentUser);
         setFormData({
           display_name: currentUser.display_name || currentUser.full_name?.split(' ')[0] || '',
@@ -67,7 +68,7 @@ export default function Profile() {
 
   const autoSave = async (data) => {
     try {
-      await base44.auth.updateMe(data);
+      await updateCurrentUser(data);
     } catch (error) {
       console.error('Error guardando:', error);
     }

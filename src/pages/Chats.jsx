@@ -21,6 +21,7 @@ import {
   getDemoConversations,
   getDemoAlerts
 } from '@/components/DemoFlowManager';
+import { getCurrentUser } from '@/lib/currentUser';
 
 // ======================
 // Helpers
@@ -240,12 +241,10 @@ export default function Chats() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await getCurrentUser();
         setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-        // Si no hay sesión (preview/demo), seguimos con un usuario local.
-        setUser({ id: 'me', display_name: 'Tú', photo_url: null });
+      } catch {
+        setUser({ id: 'guest', display_name: 'Tú', photo_url: null, __guest: true });
       }
     };
     fetchUser();
