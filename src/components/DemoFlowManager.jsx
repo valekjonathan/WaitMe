@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
+// ================================
+// FILE: src/components/DemoFlowManager.jsx
+// ================================
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
-   - Unifica datos para Home / History / Chats / Chat / Notifications
-   - Mantiene la app “viva” siempre
+   DEMO CENTRAL ÚNICO (EN MEMORIA)
+   - App VACÍA por defecto (sin usuarios / tarjetas / chats / notis)
+   - Mantiene una API coherente para Home / History / Chats / Chat / Notifications
+   - Sincroniza acciones: crear alerta -> reservar -> chat -> notificaciones
    - Compatibilidad: exports legacy + aliases
 ====================================================== */
 
@@ -33,30 +35,16 @@ function statusToTitle(status) {
   return 'ACTUALIZACIÓN';
 }
 
-const BASE_LAT = 43.3623;   // Oviedo aprox
-const BASE_LNG = -5.8489;
-
-function rnd(min, max) { return Math.random() * (max - min) + min; }
-function nearLat() { return BASE_LAT + rnd(-0.0045, 0.0045); }
-function nearLng() { return BASE_LNG + rnd(-0.0060, 0.0060); }
-
 /* ======================================================
    ESTADO DEMO (ÚNICA FUENTE DE VERDAD)
 ====================================================== */
 
 export const demoFlow = {
   me: { id: 'me', name: 'Tú', photo: null },
-
   users: [],
   alerts: [],
-
-  // lista para Chats
   conversations: [],
-
-  // messages[conversationId] = []
   messages: {},
-
-  // lista para Notifications
   notifications: []
 };
 
@@ -105,7 +93,7 @@ function pushMessage(conversationId, { mine, senderName, senderPhoto, text, atta
   return msg;
 }
 
-function addNotification({ type, title, text, conversationId, alertId, read = false }) {
+function addNotification({ type, title, text, conversationId, alertId, read = false, fromName = null, fromPhoto = null }) {
   const noti = {
     id: genId('noti'),
     type: type || 'status_update',
@@ -114,184 +102,43 @@ function addNotification({ type, title, text, conversationId, alertId, read = fa
     conversationId: conversationId || null,
     alertId: alertId || null,
     createdAt: Date.now(),
-    read: !!read
+    read: !!read,
+    fromName: fromName || null,
+    fromPhoto: fromPhoto || null
   };
 
   demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
   return noti;
 }
 
-function pickUser(userId) {
-  return (demoFlow.users || []).find((u) => u.id === userId) || null;
-}
-
 /* ======================================================
-   SEED (10 USUARIOS + ALERTAS + CONVERS + MENSAJES + NOTIS)
+   RESET (APP VACÍA)
 ====================================================== */
 
-function buildUsers() {
-  demoFlow.users = [
-    { id: 'u1', name: 'Sofía', photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault', car_model: 'Clio', car_color: 'rojo', car_plate: '7733 MNP', phone: '+34677889901' },
-    { id: 'u2', name: 'Marco', photo: 'https://randomuser.me/api/portraits/men/12.jpg', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902' },
-    { id: 'u3', name: 'Laura', photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes', car_model: 'Clase A', car_color: 'negro', car_plate: '7788 RTY', phone: '+34677889903' },
-    { id: 'u4', name: 'Carlos', photo: 'https://randomuser.me/api/portraits/men/55.jpg', car_brand: 'Seat', car_model: 'León', car_color: 'azul', car_plate: '4321 PQR', phone: '+34677889904' },
-    { id: 'u5', name: 'Elena', photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini', car_model: 'Cooper', car_color: 'blanco', car_plate: '5567 ZXC', phone: '+34677889905' },
-    { id: 'u6', name: 'Dani', photo: 'https://randomuser.me/api/portraits/men/41.jpg', car_brand: 'Audi', car_model: 'A3', car_color: 'gris', car_plate: '2145 KHB', phone: '+34677889906' },
-    { id: 'u7', name: 'Paula', photo: 'https://randomuser.me/api/portraits/women/12.jpg', car_brand: 'Toyota', car_model: 'Yaris', car_color: 'verde', car_plate: '9001 LKD', phone: '+34677889907' },
-    { id: 'u8', name: 'Iván', photo: 'https://randomuser.me/api/portraits/men/18.jpg', car_brand: 'Volkswagen', car_model: 'Golf', car_color: 'azul', car_plate: '3022 MJC', phone: '+34677889908' },
-    { id: 'u9', name: 'Nerea', photo: 'https://randomuser.me/api/portraits/women/37.jpg', car_brand: 'Kia', car_model: 'Rio', car_color: 'rojo', car_plate: '6100 HJP', phone: '+34677889909' },
-    { id: 'u10', name: 'Hugo', photo: 'https://randomuser.me/api/portraits/men/77.jpg', car_brand: 'Peugeot', car_model: '208', car_color: 'amarillo', car_plate: '4509 LST', phone: '+34677889910' }
-  ];
-}
-
-function seedAlerts() {
+export function resetDemoEmpty() {
+  demoFlow.users = [];
   demoFlow.alerts = [];
-
-  const defs = [
-    { userId: 'u1', status: 'active', price: 3, address: 'Calle Uría, Oviedo', available_in_minutes: 5 },
-    { userId: 'u2', status: 'active', price: 4, address: 'Calle Campoamor, Oviedo', available_in_minutes: 3 },
-    { userId: 'u3', status: 'active', price: 6, address: 'Plaza de la Escandalera, Oviedo', available_in_minutes: 7 },
-    { userId: 'u4', status: 'active', price: 5, address: 'Calle Rosal, Oviedo', available_in_minutes: 4 },
-    { userId: 'u5', status: 'active', price: 7, address: 'Calle Cervantes, Oviedo', available_in_minutes: 6 },
-
-    { userId: 'u6', status: 'reserved', price: 4, address: 'Calle Jovellanos, Oviedo', available_in_minutes: 2 },
-    { userId: 'u7', status: 'thinking', price: 3, address: 'Calle San Francisco, Oviedo', available_in_minutes: 8 },
-    { userId: 'u8', status: 'extended', price: 5, address: 'Calle Toreno, Oviedo', available_in_minutes: 1 },
-    { userId: 'u9', status: 'cancelled', price: 4, address: 'Calle Fruela, Oviedo', available_in_minutes: 9 },
-    { userId: 'u10', status: 'completed', price: 6, address: 'Calle Independencia, Oviedo', available_in_minutes: 0 }
-  ];
-
-  defs.forEach((d, i) => {
-    const u = pickUser(d.userId);
-    const id = `alert_${i + 1}`;
-
-    demoFlow.alerts.push({
-      id,
-      is_demo: true,
-      user_id: u?.id,
-      user_name: u?.name,
-      user_photo: u?.photo,
-      car_brand: u?.car_brand,
-      car_model: u?.car_model,
-      car_color: u?.car_color,
-      car_plate: u?.car_plate,
-      price: d.price,
-      available_in_minutes: d.available_in_minutes,
-      latitude: nearLat(),
-      longitude: nearLng(),
-      address: d.address,
-      allow_phone_calls: true,
-      phone: u?.phone || null,
-
-      reserved_by_id: null,
-      reserved_by_name: null,
-      reserved_by_photo: null,
-
-      target_time: Date.now() + (10 * 60 * 1000),
-      status: d.status
-    });
-  });
-}
-
-function seedConversationsAndMessages() {
   demoFlow.conversations = [];
   demoFlow.messages = {};
-
-  const linked = demoFlow.alerts.filter((a) => normalize(a.status) !== 'active');
-
-  linked.forEach((a) => {
-    const other = pickUser(a.user_id);
-    const convId = `conv_${a.id}_me`;
-
-    a.reserved_by_id = 'me';
-    a.reserved_by_name = demoFlow.me.name;
-    a.reserved_by_photo = demoFlow.me.photo;
-
-    const conv = {
-      id: convId,
-
-      participant1_id: 'me',
-      participant2_id: other?.id,
-      participant1_name: demoFlow.me.name,
-      participant2_name: other?.name,
-      participant1_photo: demoFlow.me.photo,
-      participant2_photo: other?.photo,
-
-      other_name: other?.name,
-      other_photo: other?.photo,
-
-      alert_id: a.id,
-
-      last_message_text: '',
-      last_message_at: Date.now() - 60_000,
-      unread_count_p1: 0,
-      unread_count_p2: 0
-    };
-
-    demoFlow.conversations.push(conv);
-    ensureMessagesArray(convId);
-
-    pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ey! te he enviado un WaitMe!' });
-    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Perfecto, lo tengo. Te leo por aquí.' });
-
-    const st = normalize(a.status);
-    if (st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Me lo estoy pensando… ahora te digo.' });
-    if (st === 'extended') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'He pagado la prórroga.' });
-    if (st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Cancelo la operación.' });
-    if (st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅' });
-  });
-
-  demoFlow.conversations.sort((a, b) => (b.last_message_at || 0) - (a.last_message_at || 0));
-}
-
-function seedNotifications() {
   demoFlow.notifications = [];
-
-  const findBy = (st) => demoFlow.alerts.find((a) => normalize(a.status) === st);
-
-  const aReserved = findBy('reserved');
-  const aThinking = findBy('thinking');
-  const aExtended = findBy('extended');
-  const aCancelled = findBy('cancelled');
-  const aCompleted = findBy('completed');
-
-  const convReserved = aReserved ? `conv_${aReserved.id}_me` : null;
-  const convThinking = aThinking ? `conv_${aThinking.id}_me` : null;
-  const convExtended = aExtended ? `conv_${aExtended.id}_me` : null;
-  const convCancelled = aCancelled ? `conv_${aCancelled.id}_me` : null;
-  const convCompleted = aCompleted ? `conv_${aCompleted.id}_me` : null;
-
-  if (aReserved) addNotification({ type: 'incoming_waitme', title: 'ACTIVA', text: `${aReserved.user_name} te ha enviado un WaitMe.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aThinking) addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${aThinking.user_name} se lo está pensando.`, conversationId: convThinking, alertId: aThinking.id, read: false });
-  if (aExtended) addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${aExtended.user_name} pide una prórroga (+1€).`, conversationId: convExtended, alertId: aExtended.id, read: false });
-  if (aCompleted) addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${aCompleted.price}€).`, conversationId: convCompleted, alertId: aCompleted.id, read: true });
-  if (aCancelled) addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, conversationId: convCancelled, alertId: aCancelled.id, read: true });
-
-  if (aReserved) addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador está llegando.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aReserved) addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `Reserva aceptada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'reservation_rejected', title: 'RESERVA RECHAZADA', text: `Reserva rechazada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'time_expired', title: 'TIEMPO AGOTADO', text: `Se agotó el tiempo.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-}
-
-function resetDemo() {
-  buildUsers();
-  seedAlerts();
-  seedConversationsAndMessages();
-  seedNotifications();
+  notify();
 }
 
 /* ======================================================
-   API (EXPORTS) - lo que usan tus pantallas
+   API BÁSICA (EXPORTS)
 ====================================================== */
 
+// ✅ mantenemos DEMO activado para que NO se muestre nada de la base real
 export function isDemoMode() { return true; }
+export function setDemoMode() { return true; }
+
 export function getDemoState() { return demoFlow; }
 
 export function startDemoFlow() {
   if (started) return;
   started = true;
 
-  resetDemo();
+  resetDemoEmpty();
 
   if (!tickTimer) {
     tickTimer = setInterval(() => notify(), 1000);
@@ -312,12 +159,14 @@ export function subscribeToDemoFlow(cb) {
 
 // Chats
 export function getDemoConversations() { return demoFlow.conversations || []; }
+
+// Home/History
 export function getDemoAlerts() { return demoFlow.alerts || []; }
 
 // Alert getters (legacy + nuevos)
 export function getDemoAlert(alertId) { return getAlert(alertId); }
-export function getDemoAlertById(alertId) { return getAlert(alertId); } // <- para que NO rompa
-export function getDemoAlertByID(alertId) { return getAlert(alertId); } // <- alias extra
+export function getDemoAlertById(alertId) { return getAlert(alertId); }
+export function getDemoAlertByID(alertId) { return getAlert(alertId); }
 
 // Chat
 export function getDemoConversation(conversationId) { return getConversation(conversationId); }
@@ -346,7 +195,6 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
 // Notifications
 export function getDemoNotifications() { return demoFlow.notifications || []; }
 
-// ✅ EXPORTS LEGACY QUE TE ESTÁN PIDIENDO AHORA MISMO
 export function markDemoRead(notificationId) {
   const n = (demoFlow.notifications || []).find((x) => x.id === notificationId);
   if (n) n.read = true;
@@ -359,6 +207,80 @@ export function markDemoNotificationReadLegacy(notificationId) { return markDemo
 export function markAllDemoRead() {
   (demoFlow.notifications || []).forEach((n) => (n.read = true));
   notify();
+}
+
+/* ======================================================
+   CRUD ALERTAS (DEMO / LOCAL)
+====================================================== */
+
+export function createDemoAlert(data) {
+  const mins = Number(data?.available_in_minutes ?? data?.availableInMinutes ?? 0);
+  const now = Date.now();
+  const waitUntil = new Date(now + Math.max(0, mins) * 60 * 1000).toISOString();
+
+  const alert = {
+    id: genId('alert'),
+    is_demo: true,
+    status: 'active',
+    created_date: new Date(now).toISOString(),
+    wait_until: waitUntil,
+
+    // propietario (local)
+    user_id: 'me',
+    user_name: demoFlow.me.name,
+    user_photo: demoFlow.me.photo,
+
+    // datos
+    latitude: data?.latitude ?? null,
+    longitude: data?.longitude ?? null,
+    address: data?.address ?? '',
+    price: Number(data?.price) || 0,
+    available_in_minutes: mins,
+
+    car_brand: data?.car_brand || '',
+    car_model: data?.car_model || '',
+    car_color: data?.car_color || '',
+    car_plate: data?.car_plate || '',
+
+    phone: data?.phone || null,
+    allow_phone_calls: data?.allow_phone_calls ?? true,
+
+    reserved_by_id: null,
+    reserved_by_name: null,
+    reserved_by_photo: null
+  };
+
+  demoFlow.alerts = [alert, ...(demoFlow.alerts || [])];
+  notify();
+  return alert;
+}
+
+export function updateDemoAlert(alertId, patch = {}) {
+  if (!alertId) return null;
+  const idx = (demoFlow.alerts || []).findIndex((a) => a?.id === alertId);
+  if (idx < 0) return null;
+  const prev = demoFlow.alerts[idx];
+  const next = { ...prev, ...patch };
+  demoFlow.alerts = demoFlow.alerts.map((a) => (a?.id === alertId ? next : a));
+  notify();
+  return next;
+}
+
+export function deleteDemoAlert(alertId) {
+  if (!alertId) return false;
+  const before = (demoFlow.alerts || []).length;
+  demoFlow.alerts = (demoFlow.alerts || []).filter((a) => a?.id !== alertId);
+  demoFlow.conversations = (demoFlow.conversations || []).filter((c) => c?.alert_id !== alertId);
+
+  if (demoFlow.messages) {
+    Object.keys(demoFlow.messages).forEach((k) => {
+      if (String(k).includes(String(alertId))) delete demoFlow.messages[k];
+    });
+  }
+
+  demoFlow.notifications = (demoFlow.notifications || []).filter((n) => n?.alertId !== alertId && n?.alert_id !== alertId);
+  notify();
+  return (demoFlow.alerts || []).length !== before;
 }
 
 /* ======================================================
@@ -457,7 +379,9 @@ export function applyDemoAction({ conversationId, alertId, action }) {
     text: 'Estado actualizado.',
     conversationId: convId,
     alertId,
-    read: false
+    read: false,
+    fromName: conv?.participant2_name || null,
+    fromPhoto: conv?.participant2_photo || null
   });
 
   if (convId) {
@@ -505,28 +429,14 @@ export function reserveDemoAlert(alertId) {
   addNotification({
     type: 'status_update',
     title: 'ACTIVA',
-    text: `Has enviado un WaitMe a ${alert.user_name}.`,
+    text: `Has enviado un WaitMe a ${alert.user_name || 'Usuario'}.`,
     conversationId: conv?.id,
     alertId,
-    read: false
+    read: false,
+    fromName: alert.user_name || null,
+    fromPhoto: alert.user_photo || null
   });
 
   notify();
   return conv?.id || null;
-}
-
-// flags legacy
-export function setDemoMode() { return true; }
-
-/* ======================================================
-   COMPONENTE
-====================================================== */
-
-export default function DemoFlowManager() {
-  useEffect(() => {
-    startDemoFlow();
-    toast({ title: 'Modo Demo Activo', description: 'La app tiene vida simulada.' });
-    // no limpiamos timer: Base44 recarga mucho
-  }, []);
-  return null;
 }

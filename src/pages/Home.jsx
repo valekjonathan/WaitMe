@@ -14,7 +14,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, createDemoAlert, reserveDemoAlert } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // ======================
@@ -32,64 +32,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-const buildDemoAlerts = (lat, lng) => {
-  const baseLat = lat ?? 43.3619;
-  const baseLng = lng ?? -5.8494;
-
-  return [
-    {
-      id: 'demo_1',
-      is_demo: true,
-      user_name: 'SOFIA',
-      user_photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop',
-      car_brand: 'Seat',
-      car_model: 'Ibiza',
-      car_color: 'azul',
-      car_plate: '1234ABC',
-      price: 3.0,
-      available_in_minutes: 5,
-      latitude: baseLat + 0.002,
-      longitude: baseLng + 0.001,
-      address: 'Calle Uría, Oviedo',
-      phone: '+34612345678',
-      allow_phone_calls: true
-    },
-    {
-      id: 'demo_2',
-      is_demo: true,
-      user_name: 'MARCO',
-      user_photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-      car_brand: 'BMW',
-      car_model: 'Serie 1',
-      car_color: 'negro',
-      car_plate: '5678DEF',
-      price: 4.0,
-      available_in_minutes: 12,
-      latitude: baseLat - 0.001,
-      longitude: baseLng - 0.002,
-      address: 'Calle Campoamor, Oviedo',
-      phone: '+34623456789',
-      allow_phone_calls: false
-    },
-    {
-      id: 'demo_3',
-      is_demo: true,
-      user_name: 'DIEGO',
-      user_photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop',
-      car_brand: 'Volkswagen',
-      car_model: 'Golf',
-      car_color: 'blanco',
-      car_plate: '9012GHI',
-      price: 2.5,
-      available_in_minutes: 20,
-      latitude: baseLat + 0.001,
-      longitude: baseLng - 0.001,
-      address: 'Plaza de la Escandalera, Oviedo',
-      phone: '+34634567890',
-      allow_phone_calls: true
-    }
-  ];
-};
+// (Sin alerts demo hardcodeadas: la app queda vacía hasta que se creen alertas.)
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
   <svg viewBox="0 0 48 24" className={size} fill="none">
@@ -287,9 +230,9 @@ export default function Home() {
   }, [location.search]);
 
   const homeMapAlerts = useMemo(() => {
-    const center = userLocation || [43.3619, -5.8494];
-    return buildDemoAlerts(center[0], center[1]);
-  }, [userLocation, demoTick]);
+    const list = Array.isArray(rawAlerts) ? rawAlerts : [];
+    return list;
+  }, [rawAlerts, demoTick]);
 
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
@@ -317,12 +260,8 @@ export default function Home() {
 
   const searchAlerts = useMemo(() => {
     if (mode !== 'search') return [];
-    const real = filteredAlerts || [];
-    if (real.length > 0) return real;
-
-    const center = userLocation || [43.3619, -5.8494];
-    return buildDemoAlerts(center[0], center[1]);
-  }, [mode, filteredAlerts, userLocation, demoTick]);
+    return filteredAlerts || [];
+  }, [mode, filteredAlerts]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -332,6 +271,24 @@ export default function Home() {
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+
+      if (isDemoMode()) {
+        return createDemoAlert({
+          user_name: data.user_name,
+          user_photo: data.user_photo,
+          latitude: data.latitude,
+          longitude: data.longitude,
+          address: data.address,
+          price: data.price,
+          available_in_minutes: data.available_in_minutes,
+          car_brand: data.car_brand || '',
+          car_model: data.car_model || '',
+          car_color: data.car_color || '',
+          car_plate: data.car_plate || '',
+          phone: data.phone,
+          allow_phone_calls: data.allow_phone_calls
+        });
+      }
 
       return base44.entities.ParkingAlert.create({
         user_id: user?.id,
@@ -402,8 +359,9 @@ export default function Home() {
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
-      if (alert?.is_demo) {
-        return { demo: true };
+      if (isDemoMode() || alert?.is_demo) {
+        const convId = reserveDemoAlert(alert?.id);
+        return { demo: true, conversationId: convId };
       }
 
       const buyerName = user?.full_name || user?.display_name || 'Usuario';
