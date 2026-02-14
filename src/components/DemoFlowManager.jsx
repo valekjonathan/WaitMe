@@ -188,7 +188,7 @@ function resetDemo() {
 }
 
 /* ======================================================
-   EXPORTS API (COMPATIBLE CON TODA TU APP)
+   EXPORTS API
 ====================================================== */
 
 export function isDemoMode() { return true; }
