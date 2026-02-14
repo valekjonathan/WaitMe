@@ -35,16 +35,47 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
+  
+  html {
+    margin: 0;
+    padding: 0;
+    background: black;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    /* iOS specific fixes */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: pan-x pan-y;
+    overscroll-behavior: none;
+  }
+  
   body {
     @apply bg-black text-white;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for iOS */
+    /* iOS safe areas */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    /* Prevent iOS bounce scroll */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
+  
   #root {
     min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
+    position: relative;
   }
 }
 
@@ -67,30 +98,51 @@
    - No fija width (en iPhone no cambia nada).
 ====================================================== */
 
-@layer base {
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-    overflow-x: hidden;
-  }
-}
-
+/* UNIFICACIÓN COMPLETA PREVIEW vs IPHONE */
 .wm-app-outer {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
   background: black;
+  position: relative;
+  overflow: hidden;
 }
 
 .wm-app-inner {
   width: 100%;
-  max-width: 430px; /* límite tipo iPhone grande; SE/mini quedan igual */
+  max-width: 430px;
   min-height: 100vh;
+  min-height: 100dvh;
   background: black;
   position: relative;
   overflow-x: hidden;
+  /* iOS specific */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iPhone 16 specific optimizations */
+@media (min-width: 393px) and (max-width: 430px) {
+  .wm-app-inner {
+    max-width: 100%;
+  }
+}
+
+/* Prevent zoom on inputs in iOS */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Fix iOS button styling */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Smooth scrolling for iOS */
+* {
+  -webkit-overflow-scrolling: touch;
 }
