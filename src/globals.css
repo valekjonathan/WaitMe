@@ -36,16 +36,37 @@
   * {
     @apply border-border;
   }
+  html {
+    /* Safari iOS: evita reescalado automático de texto */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: #000;
+  }
   body {
     @apply bg-black text-white;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    background: #000;
+    /* Centra el layout fijo en pantallas grandes sin tocar el diseño en móvil */
+    display: flex;
+    justify-content: center;
   }
   #root {
-    min-height: 100vh;
-    width: 100%;
+    /* Layout fijo (390) para que la UI sea idéntica entre Preview e iPhone */
+    width: 390px;
+    max-width: 390px;
+    min-height: 100dvh;
+    background: #000;
+    overflow-x: hidden;
   }
+}
+
+/* iOS: si hay inputs con letra pequeña, Safari hace zoom y "rompe" tamaños */
+input,
+select,
+textarea {
+  font-size: 16px;
 }
 
 /* Custom styles for purple sliders */
