@@ -136,12 +136,18 @@ function LocationMarker({ position, setPosition, isSelecting }) {
 
 }
 
-function CenterPinMarker({ onMapMove }) {
+function CenterPinMarker({ onMapMove, onMapMoveEnd }) {
   const map = useMapEvents({
-    moveend() {
+    move() {
       const center = map.getCenter();
       if (onMapMove) {
         onMapMove([center.lat, center.lng]);
+      }
+    },
+    moveend() {
+      const center = map.getCenter();
+      if (onMapMoveEnd) {
+        onMapMoveEnd([center.lat, center.lng]);
       }
     }
   });
@@ -178,7 +184,8 @@ export default function ParkingMap({
   buyerLocations = [],
   userLocationOffsetY = 0,
   useCenterPin = false,
-  onMapMove
+  onMapMove,
+  onMapMoveEnd
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -271,7 +278,7 @@ export default function ParkingMap({
           opacity: 1 !important;
         }
         .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.7) !important;
+          background-color: rgba(0, 0, 0, 0.6) !important;
           backdrop-filter: blur(4px) !important;
           color: white !important;
           border: none !important;
@@ -286,7 +293,7 @@ export default function ParkingMap({
           text-decoration: none !important;
         }
         .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.8) !important;
+          background-color: rgba(168, 85, 247, 0.6) !important;
         }
         .leaflet-control-zoom-in {
           border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
@@ -311,7 +318,7 @@ export default function ParkingMap({
         
         {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
-        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} />}
+        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} onMapMoveEnd={onMapMoveEnd} />}
         
         {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         

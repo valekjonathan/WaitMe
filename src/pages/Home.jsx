@@ -512,12 +512,21 @@ export default function Home() {
 
                 <AnimatePresence>
                   {showFilters && (
-                    <MapFilters
-                      filters={filters}
-                      onFilterChange={setFilters}
-                      onClose={() => setShowFilters(false)}
-                      alertsCount={searchAlerts.length}
-                    />
+                    <>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowFilters(false)}
+                        className="absolute inset-0 z-[999]"
+                      />
+                      <MapFilters
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        onClose={() => setShowFilters(false)}
+                        alertsCount={searchAlerts.length}
+                      />
+                    </>
                   )}
                 </AnimatePresence>
               </div>
@@ -571,8 +580,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 148px)' }}
+              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
               <div className="h-[45%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
@@ -582,6 +591,8 @@ export default function Home() {
                   className="h-full"
                   onMapMove={(center) => {
                     setSelectedPosition({ lat: center[0], lng: center[1] });
+                  }}
+                  onMapMoveEnd={(center) => {
                     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
                       .then((res) => res.json())
                       .then((data) => {
