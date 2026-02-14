@@ -372,7 +372,7 @@ export default function Chat() {
       <Header title="Chat" showBackButton={true} backTo="Chats" />
 
       {/* Info del usuario */}
-      <div className="fixed top-[56px] left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
+      <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
         <div className="flex items-center gap-3 px-4 py-1 pt-[10px]">
           <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
             {otherUser?.photo ? (
@@ -401,7 +401,7 @@ export default function Chat() {
 
       {/* Datos de la tarjeta */}
       {cardInfo && (
-        <div className="fixed top-[112px] left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] z-30 bg-black border-b border-gray-700 px-4 py-2 text-xs text-gray-300">
+        <div className="fixed top-[112px] left-0 right-0 z-30 bg-black border-b border-gray-700 px-4 py-2 text-xs text-gray-300">
           <div className="flex items-center gap-3">
             <div className="flex-1 truncate">
               {cardInfo.car && <span className="font-semibold text-white">{cardInfo.car}</span>}
@@ -518,7 +518,7 @@ export default function Chat() {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-[81px]">
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 pb-[81px]">
         <div className="max-w-3xl mx-auto px-4 py-2.5 pt-[8px]">
           {attachments.length > 0 && (
             <div className="mb-2 flex gap-2">

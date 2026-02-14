@@ -4,14 +4,6 @@
 
 @layer base {
   :root {
-    /* ======================================================
-       WAITME: Marco de ancho fijo para que el Preview y iPhone
-       rendericen igual (evita cambios por breakpoints/ancho).
-       iPhone SE (2ª/3ª gen) = 375px. Si el viewport es menor,
-       el layout se ajusta al 100%.
-    ====================================================== */
-    --wm-app-width: 375px;
-
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
     --card: 0 0% 100%;
@@ -57,10 +49,6 @@
   #root {
     min-height: 100vh;
     width: 100%;
-    /* Centro + ancho fijo para igualar Preview y móvil */
-    max-width: var(--wm-app-width);
-    margin-left: auto;
-    margin-right: auto;
   }
 }
 

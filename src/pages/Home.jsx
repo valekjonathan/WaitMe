@@ -416,7 +416,7 @@ export default function Home() {
         }}
       />
 
-      <main className="fixed top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)]">
+      <main className="fixed inset-0 top-0 bottom-0">
         <AnimatePresence mode="wait">
           {/* HOME PRINCIPAL */}
           {!mode && (
@@ -487,7 +487,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-[60px] bottom-[76px] left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] flex flex-col"
+              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
               <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
@@ -583,7 +583,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-[60px] bottom-[76px] left-1/2 -translate-x-1/2 w-full max-w-[var(--wm-app-width)] flex flex-col"
+              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
             >
               <div className="h-[45%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
