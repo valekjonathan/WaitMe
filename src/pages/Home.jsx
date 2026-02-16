@@ -486,8 +486,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100dvh - 148px)' }}
             >
               <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
@@ -582,8 +582,8 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] bottom-[76px] flex flex-col"
-              style={{ overflow: 'hidden', height: 'calc(100vh - 136px)' }}
+              className="fixed inset-0 top-[60px] bottom-[88px] flex flex-col"
+              style={{ overflow: 'hidden', height: 'calc(100dvh - 148px)' }}
             >
               <div className="h-[45%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
                 <ParkingMap
