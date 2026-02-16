@@ -532,7 +532,7 @@ export default function Home() {
               </div>
 
               <div className="px-7 py-3 flex-shrink-0 z-50 relative">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                     <input
@@ -585,7 +585,8 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none h-[calc(40%+10px)]">
+              <div className="relative px-3 pt-[14px] pb-2 flex-none"
+              style={{ height: 'calc(40% + 10px)' }}>
                 <ParkingMap
                   useCenterPin={true}
                   userLocation={userLocation}
@@ -610,7 +611,7 @@ export default function Home() {
               </div>
 
               <div className="px-7 py-2 flex-shrink-0">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl p-3">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
                   </h3>

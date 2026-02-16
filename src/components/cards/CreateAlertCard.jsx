@@ -23,7 +23,7 @@ export default function CreateAlertCard({
   return (
     <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2 border-2 border-purple-500 shadow-xl h-full flex flex-col min-h-0" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
       {/* Dirección */}
-      <div className="space-y-3 flex-1 flex flex-col justify-between min-h-0">
+      <div className="space-y-3 flex-1 flex flex-col justify-between min-h-0 pb-1">
         <div className="flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
           <Input
@@ -79,7 +79,7 @@ export default function CreateAlertCard({
       </div>
 
       <Button
-        className="w-full mt-1.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8 text-sm"
+        className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8 text-sm"
         onClick={handleCreate}
         disabled={isLoading || !address}
       >
