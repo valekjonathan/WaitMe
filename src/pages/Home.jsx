@@ -532,7 +532,7 @@ export default function Home() {
               </div>
 
               <div className="px-7 py-3 flex-shrink-0 z-50 relative">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[7px]">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                     <input
@@ -609,15 +609,15 @@ export default function Home() {
                 />
               </div>
 
-              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[7px]">
+              <div className="px-7 py-2 flex-shrink-0">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
                   </h3>
                 </div>
               </div>
 
-              <div className="px-4 pt-0 flex-1 min-h-0 flex items-stretch">
+              <div className="px-4 pt-1 flex-1 min-h-0 flex items-stretch">
                 <div className="w-full h-full">
                   <CreateAlertCard
                     address={address}
