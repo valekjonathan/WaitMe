@@ -609,7 +609,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="px-7 py-[7px] flex-shrink-0">
+              <div className="px-7 py-[5px] flex-shrink-0">
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[10px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
