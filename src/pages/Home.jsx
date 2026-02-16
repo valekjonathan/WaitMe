@@ -617,7 +617,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="px-4 pt-1 pb-[3px] flex-1 min-h-0 overflow-hidden flex items-start">
+              <div className="px-4 pt-1 pb-[calc(env(safe-area-inset-bottom)+88px)] flex-1 min-h-0 flex items-stretch">
                 <div className="w-full">
                   <CreateAlertCard
                     address={address}
