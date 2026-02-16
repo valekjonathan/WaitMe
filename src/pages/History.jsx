@@ -787,11 +787,11 @@ const myFinalizedAlerts = useMemo(() => {
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <div className="sticky top-[56px] z-40 bg-black pt-[11px] pb-[2px]">
-            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[2px] mb-[2px] h-auto p-0">
-              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[8px]">
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
+              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
               </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[8px]">
+              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus reservas
               </TabsTrigger>
             </TabsList>
