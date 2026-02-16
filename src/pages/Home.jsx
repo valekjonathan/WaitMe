@@ -545,7 +545,7 @@ export default function Home() {
                     />
                   </div>
                   {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-[310px] overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
                         <button
                           key={idx}
