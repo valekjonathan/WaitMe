@@ -47,7 +47,7 @@ export default function CreateAlertCard({
         {/* Tiempo */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Clock className="w-7 h-7 text-purple-400" />
+            <Clock className="w-5 h-5 text-purple-400" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
@@ -63,7 +63,7 @@ export default function CreateAlertCard({
         {/* Precio */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Euro className="w-7 h-7 text-purple-400" />
+            <Euro className="w-5 h-5 text-purple-400" />
             Precio: <span className="text-purple-400 font-bold">{price} €</span>
             <span className="text-green-400 text-[10px] ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)} €)</span>
           </Label>

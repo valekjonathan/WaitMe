@@ -609,7 +609,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="px-7 pt-[2px] pb-[4px] flex-shrink-0">
+              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[2px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
@@ -617,7 +617,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="px-4 pt-[4px] flex-1 min-h-0 flex items-stretch">
+              <div className="px-4 pt-0 mt-[2px] flex-1 min-h-0 flex items-stretch">
                 <div className="w-full h-full">
                   <CreateAlertCard
                     address={address}
