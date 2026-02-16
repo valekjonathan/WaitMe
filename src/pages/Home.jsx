@@ -586,7 +586,7 @@ export default function Home() {
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
               <div className="relative px-3 pt-[14px] pb-2 flex-none"
-              style={{ height: "calc(40% + 20px)" }}>
+              style={{ height: "calc(40% + 30px)" }}>
                 <ParkingMap
                   useCenterPin={true}
                   userLocation={userLocation}
