@@ -75,14 +75,6 @@ export default function Home() {
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [logoSrc, setLogoSrc] = useState(appLogo);
-
-  // 🔁 Reset a pantalla del logo (modo null) cuando se pulsa "Mapa" en el menú inferior
-  useEffect(() => {
-    if (location?.state?.homeReset) {
-      setMode(null);
-    }
-  }, [location?.state?.homeReset]);
-
   const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);

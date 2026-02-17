@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, Navigation, MessageCircle, Phone, Car, Truck } from 'lucide-react';
+import { MapPin, Clock, Navigation, MessageCircle, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,38 @@ const carColorMap = {
 };
 
 const VehicleIcon = ({ color, type = 'car' }) => {
-  const Icon = type === 'van' ? Truck : Car;
-  return <Icon className="w-8 h-8" style={{ color }} />;
+  if (type === 'van') {
+    return (
+      <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+        <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill={color} stroke="white" strokeWidth="1.5" />
+        <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      </svg>
+    );
+  }
+  
+  if (type === 'suv') {
+    return (
+      <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+        <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+        <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+  );
 };
 
 export default function UserCard({ 

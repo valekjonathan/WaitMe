@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 
 function SimplePinDotIcon() {
   return (
-    <span className="relative w-[12px] h-[16px] inline-block">
+    <span className="relative w-[12px] h-[23px] inline-block">
       <span
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[10px] rounded-full"
-        style={{ background: '#ffffff' }}
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
+        style={{ background: '#ffffff', height: '17px' }}
       />
       <span
-        className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        className="absolute bottom-[15px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -57,7 +57,7 @@ export default function CreateAlertCard({
           />
 
           <Button
-            className="h-8 px-[9px] text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-8 px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
@@ -73,7 +73,7 @@ export default function CreateAlertCard({
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Me voy en:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-6 relative -top-[3px]">
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
                 {minutes} minutos.
               </span>
             </Label>
@@ -96,7 +96,7 @@ export default function CreateAlertCard({
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Precio:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-6">
                 {price} €
               </span>
               <span className="text-green-400 text-[10px] ml-2 font-semibold">
