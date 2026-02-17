@@ -45,7 +45,7 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('History')} className="flex-1">
           <div className={`${baseBtn} ${isActive('History') ? activeStyle : ''}`}>
-            <svg className="w-10 h-10" viewBox="0 0 32 32" fill="none">
+            <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" viewBox="0 0 32 32" fill="none">
               <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
               <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
             </svg>
@@ -57,7 +57,7 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('Home')} className="flex-1">
           <div className={`${baseBtn} ${isActive('Home') ? activeStyle : ''}`}>
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
               />
@@ -70,7 +70,7 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('Notifications')} className="flex-1">
           <div className={`${baseBtn} ${isActive('Notifications') ? activeStyle : ''}`}>
-            <Bell className="w-10 h-10" />
+            <Bell className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
             <span className={labelClassLong}>Notificaciones</span>
           </div>
         </Link>
@@ -79,7 +79,7 @@ export default function BottomNav() {
 
         <Link to={createPageUrl('Chats')} className="flex-1">
           <div className={`${baseBtn} ${isActive('Chats') ? activeStyle : ''}`}>
-            <MessageCircle className="w-10 h-10" />
+            <MessageCircle className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
             <span className={labelClass}>Chats</span>
           </div>
         </Link>

@@ -77,13 +77,13 @@ export default function Header({
           <div className="flex items-center justify-end gap-[11px]">
             <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer ml-[31px]">
-                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
+                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
 
             <Link to={createPageUrl('Profile')}>
               <div className="cursor-pointer">
-                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
+                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
           </div>
