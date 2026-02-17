@@ -55,7 +55,7 @@ export default function BottomNav() {
 
         {divider}
 
-        <Link to={`${createPageUrl('Home')}?reset=1`} className="flex-1">
+        <Link to={createPageUrl('Home')} reloadDocument className="flex-1">
           <div className={`${baseBtn} ${isActive('Home') ? activeStyle : ''}`}>
             <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
