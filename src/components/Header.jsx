@@ -56,7 +56,15 @@ export default function Header({
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (
-              <div className="w-10 h-10" />
+              // Mantiene exactamente el mismo alto/ancho que el botón real (evita que Home parezca “más pequeño”)
+              <button
+                type="button"
+                className="text-white p-2 opacity-0 pointer-events-none"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
             )}
 
             <Link to={createPageUrl('Settings')}>

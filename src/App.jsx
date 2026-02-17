@@ -16,7 +16,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/*
+          🔥 IMPORTANT:
+          createPageUrl('Home') => '/home'
+          Usamos '/home' como ruta canónica para que Header/links no dependan del fallback.
+        */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Home />} />
+        {/* Compatibilidad por si Base44 abre /Home (mayúscula) */}
+        <Route path="/Home" element={<Navigate to="/home" replace />} />
         <Route path="/chats" element={<Chats />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/history" element={<History />} />
@@ -25,7 +33,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
 
       <Toaster />

@@ -163,6 +163,26 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ✅ Preload del logo para que aparezca instantáneo y no “se rompa” por cargas tardías.
+  useEffect(() => {
+    try {
+      // 1) Warm cache por JS
+      const img = new Image();
+      img.src = appLogo;
+
+      // 2) Preload por <link> (si el navegador lo respeta)
+      const id = 'waitme-preload-logo';
+      if (!document.getElementById(id)) {
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = appLogo;
+        document.head.appendChild(link);
+      }
+    } catch {}
+  }, []);
+
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
   const handleLogoError = () => {
     if (logoRetryCount >= 1) return;
@@ -396,7 +416,8 @@ export default function Home() {
           {/* HOME PRINCIPAL */}
           {!mode && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              // ✅ Sin animación de entrada para que el logo salga al instante
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
