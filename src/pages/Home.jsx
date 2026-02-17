@@ -464,8 +464,15 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none rounded-2xl border-2 border-purple-500 overflow-hidden"
-                style={{ height: "280px", boxShadow: "0 0 30px rgba(168,85,247,0.5), inset 0 0 20px rgba(168,85,247,0.2)" }}>
+              <div className="relative px-3 pt-[14px] pb-2 flex-none"
+                style={{ height: "280px" }}>
+                <div
+                  className="rounded-2xl border-2 border-purple-500 overflow-hidden h-full"
+                  style={{
+                    boxShadow:
+                      '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
+                  }}
+                >
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -475,7 +482,7 @@ export default function Home() {
                   zoomControl={true}
                   className="h-full"
                 />
-
+                </div>
                 {!showFilters && (
                   <Button
                     onClick={() => setShowFilters(true)}
@@ -545,8 +552,15 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none rounded-2xl border-2 border-purple-500 overflow-hidden"
-                style={{ height: "280px", boxShadow: "0 0 30px rgba(168,85,247,0.5), inset 0 0 20px rgba(168,85,247,0.2)" }}>
+              <div className="relative px-3 pt-[14px] pb-2 flex-none"
+                style={{ height: "280px" }}>
+                <div
+                  className="rounded-2xl border-2 border-purple-500 overflow-hidden h-full"
+                  style={{
+                    boxShadow:
+                      '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
+                  }}
+                >
                 <ParkingMap
                   useCenterPin={true}
                   userLocation={userLocation}
@@ -568,6 +582,7 @@ export default function Home() {
                       .catch(() => {});
                   }}
                 />
+                </div>
               </div>
 
               <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">

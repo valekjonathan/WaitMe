@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const current = (location.pathname + location.hash).toLowerCase();
 
@@ -55,16 +56,20 @@ export default function BottomNav() {
 
         {divider}
 
-        <Link to={createPageUrl('Home')} reloadDocument className="flex-1">
+        <button
+          type="button"
+          className="flex-1"
+          onClick={() => navigate(`${createPageUrl('Home')}?reset=1&k=${Date.now()}`)}
+        >
           <div className={`${baseBtn} ${isActive('Home') ? activeStyle : ''}`}>
-            <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
               />
             </svg>
             <span className={labelClass}>Mapa</span>
           </div>
-        </Link>
+        </button>
 
         {divider}
 
