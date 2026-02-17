@@ -68,7 +68,6 @@ const MagnifierIconProfile = ({ color = "#8b5cf6", size = "w-14 h-14" }) => (
   </svg>
 );
 
-
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -439,15 +438,12 @@ export default function Home() {
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
-                {/* Logo */}
-                {/* Logo */}
-<img
-  src={appLogo}
-  alt="WaitMe!"
-  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
-/>
+                <img
+                  src={appLogo}
+                  alt="WaitMe!"
+                  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
+                />
 
-                {/* SUBIDO “AL RAS” */}
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-65px]">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
@@ -463,7 +459,6 @@ export default function Home() {
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
-                  {/* ICONO UBICACIÓN 3x (size pisa el 24x24 de lucide) */}
                   <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
                   ¿ Dónde quieres aparcar ?
                 </Button>
@@ -472,7 +467,6 @@ export default function Home() {
                   onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                 >
-                  {/* ICONO COCHE = PERFIL */}
                   <CarIconProfile size="w-20 h-14" />
                   ¡ Estoy aparcado aquí !
                 </Button>
@@ -532,7 +526,7 @@ export default function Home() {
               </div>
 
               <div className="px-7 py-3 flex-shrink-0 z-50 relative">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[10px]">
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                     <input
@@ -585,7 +579,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none" style={{ height: "calc(40% + 30px)" }}>
+              <div className="relative px-3 pt-[14px] pb-2 flex-none" style={{ height: "280px" }}>
                 <ParkingMap
                   useCenterPin={true}
                   userLocation={userLocation}
@@ -609,15 +603,16 @@ export default function Home() {
                 />
               </div>
 
-              <div className="px-7 py-2 flex-shrink-0">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[11px]">
+              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
+                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[2px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
                   </h3>
                 </div>
               </div>
 
-              <div className="px-4 pt-1 mt-[2px] flex-1 min-h-0 flex items-stretch">
+              {/* 👇 ÚNICO CAMBIO: mt-[2px] para separar la tarjeta 2px hacia abajo */}
+              <div className="px-4 pt-0 mt-[2px] flex-1 min-h-0 flex items-stretch">
                 <div className="w-full h-full">
                   <CreateAlertCard
                     address={address}
