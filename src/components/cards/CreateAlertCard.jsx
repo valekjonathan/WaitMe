@@ -67,7 +67,7 @@ export default function CreateAlertCard({
 
         {/* Tiempo - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[2px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -90,7 +90,7 @@ export default function CreateAlertCard({
 
         {/* Precio - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[2px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -107,7 +107,7 @@ export default function CreateAlertCard({
               value={[price]}
               onValueChange={(v) => setPrice(v[0])}
               min={3}
-              max={99}
+              max={20}
               step={1}
               className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
             />
