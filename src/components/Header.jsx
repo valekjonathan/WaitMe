@@ -52,11 +52,11 @@ export default function Header({
           {/* IZQUIERDA */}
           <div className="flex items-center gap-2">
             {showBackButton ? (
-              <button onClick={handleBack} className="text-white p-2 w-10 h-10 flex items-center justify-center">
+              <button onClick={handleBack} className="text-white p-2">
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (
-              <div className="w-10 h-10" />
+              <div className="w-10" />
             )}
 
             <Link to={createPageUrl('Settings')}>

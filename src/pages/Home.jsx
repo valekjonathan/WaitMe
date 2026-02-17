@@ -4,9 +4,10 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, MapPin } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -78,6 +79,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
@@ -489,6 +491,19 @@ export default function Home() {
                     </>
                   )}
                 </AnimatePresence>
+              </div>
+
+              
+              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
+                <div className="bg-gray-900/40 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl px-3 py-[6px] flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar dirección..."
+                    className="bg-transparent border-0 text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-7 text-sm p-0"
+                  />
+                </div>
               </div>
 
               <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
