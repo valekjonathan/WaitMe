@@ -1,8 +1,11 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useCallback } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] rounded-lg";
@@ -16,6 +19,17 @@ export default function BottomNav() {
     "text-[9px] font-bold leading-none mt-[2px] whitespace-nowrap tracking-tight";
 
   const divider = <div className="w-px h-8 bg-gray-700" />;
+
+  const isMapActive = location.pathname === "/";
+
+  const handleMapClick = useCallback((e) => {
+    // SIEMPRE: volver al logo + 2 botones (aunque ya estés en "/")
+    e?.preventDefault?.();
+    try {
+      window.dispatchEvent(new Event('waitme:goLogo'));
+    } catch {}
+    navigate('/', { replace: false });
+  }, [navigate]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto">
@@ -34,10 +48,11 @@ export default function BottomNav() {
 
         {divider}
 
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
+        {/* MAPA: no usar NavLink aquí, porque si ya estás en "/" no fuerza el reset del Home */}
+        <a
+          href="/"
+          onClick={handleMapClick}
+          className={`${baseBtn} ${isMapActive ? activeStyle : ""}`}
         >
           <svg
             className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]"
@@ -53,7 +68,7 @@ export default function BottomNav() {
             />
           </svg>
           <span className={labelClass}>Mapa</span>
-        </NavLink>
+        </a>
 
         {divider}
 
