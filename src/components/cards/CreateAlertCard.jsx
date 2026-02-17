@@ -8,12 +8,10 @@ import { Label } from '@/components/ui/label';
 function SimplePinDotIcon() {
   return (
     <span className="relative w-[12px] h-[18px] inline-block">
-      {/* Palito */}
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[12px] rounded-full"
         style={{ background: '#ef4444' }}
       />
-      {/* Bolita */}
       <span
         className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
@@ -45,7 +43,8 @@ export default function CreateAlertCard({
       }}
     >
       <div className="flex flex-col justify-between flex-1 min-h-0">
-        {/* Ubicación + calle + botón */}
+
+        {/* Ubicación */}
         <div className="flex items-center gap-2">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
 
@@ -66,9 +65,9 @@ export default function CreateAlertCard({
           </Button>
         </div>
 
-        {/* Tiempo: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
+        {/* Tiempo - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -89,9 +88,9 @@ export default function CreateAlertCard({
           </div>
         </div>
 
-        {/* Precio: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
+        {/* Precio - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
