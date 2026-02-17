@@ -39,7 +39,10 @@ export default function CreateAlertCard({
   return (
     <div
       className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2 border-2 border-purple-500 shadow-xl h-full flex flex-col min-h-0"
-      style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}
+      style={{
+        boxShadow:
+          '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
+      }}
     >
       <div className="flex flex-col justify-between flex-1 min-h-0">
         {/* Ubicación + calle + botón */}
@@ -53,7 +56,6 @@ export default function CreateAlertCard({
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
           />
 
-          {/* Botón: icono palito+bolita roja (limpio) + texto más grande */}
           <Button
             className="h-8 px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
@@ -64,45 +66,53 @@ export default function CreateAlertCard({
           </Button>
         </div>
 
-        {/* Tiempo */}
-        <div className="space-y-0.5">
-          <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Clock className="w-[22px] h-[22px] text-purple-400" />
-            Me voy en:
-            <span className="text-purple-400 font-bold text-[22px] leading-none">
-              {minutes} minutos.
-            </span>
-          </Label>
-          <Slider
-            value={[minutes]}
-            onValueChange={(v) => setMinutes(v[0])}
-            min={5}
-            max={60}
-            step={5}
-            className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
-          />
+        {/* Tiempo: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
+        <div className="flex items-start gap-2">
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 mt-0.5" />
+
+          <div className="flex-1 space-y-0.5">
+            <Label className="text-white text-xs font-medium">
+              Me voy en:
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
+                {minutes} minutos.
+              </span>
+            </Label>
+
+            <Slider
+              value={[minutes]}
+              onValueChange={(v) => setMinutes(v[0])}
+              min={5}
+              max={60}
+              step={5}
+              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            />
+          </div>
         </div>
 
-        {/* Precio */}
-        <div className="space-y-0.5">
-          <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Euro className="w-[22px] h-[22px] text-purple-400" />
-            Precio:
-            <span className="text-purple-400 font-bold text-[22px] leading-none">
-              {price} €
-            </span>
-            <span className="text-green-400 text-[10px] ml-2 font-semibold">
-              (Ganarás {(price * 0.8).toFixed(2)} €)
-            </span>
-          </Label>
-          <Slider
-            value={[price]}
-            onValueChange={(v) => setPrice(v[0])}
-            min={3}
-            max={15}
-            step={1}
-            className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
-          />
+        {/* Precio: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
+        <div className="flex items-start gap-2">
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 mt-0.5" />
+
+          <div className="flex-1 space-y-0.5">
+            <Label className="text-white text-xs font-medium">
+              Precio:
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
+                {price} €
+              </span>
+              <span className="text-green-400 text-[10px] ml-2 font-semibold">
+                (Ganarás {(price * 0.8).toFixed(2)} €)
+              </span>
+            </Label>
+
+            <Slider
+              value={[price]}
+              onValueChange={(v) => setPrice(v[0])}
+              min={3}
+              max={99}
+              step={1}
+              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+            />
+          </div>
         </div>
 
         {/* Botón publicar */}
@@ -117,4 +127,3 @@ export default function CreateAlertCard({
     </div>
   );
 }
-
