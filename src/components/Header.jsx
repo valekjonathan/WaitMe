@@ -50,13 +50,13 @@ export default function Header({
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
         <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
           {/* IZQUIERDA */}
-          <div className= ml-auto"flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {showBackButton ? (
-              <button onClick={handleBack} className="text-white p-2">
+              <button onClick={handleBack} className="text-white p-2 w-10 h-10 flex items-center justify-center">
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (
-              <div className="w-10" />
+              <div className="w-10 h-10" />
             )}
 
             <Link to={createPageUrl('Settings')}>
