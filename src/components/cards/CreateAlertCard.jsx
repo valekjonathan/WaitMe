@@ -5,25 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
-function GoogleMapsPinIcon() {
+function SimplePinDotIcon() {
   return (
-    <span className="relative w-[14px] h-[18px] inline-block">
-      {/* Cabeza del pin */}
+    <span className="relative w-[12px] h-[18px] inline-block">
+      {/* Palito */}
       <span
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full"
-        style={{
-          background: '#ef4444', // rojo
-          boxShadow: '0 0 10px rgba(239, 68, 68, 0.75)',
-        }}
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[12px] rounded-full"
+        style={{ background: '#ef4444' }}
       />
-      {/* Punto blanco interior */}
+      {/* Bolita */}
       <span
-        className="absolute top-[4px] left-1/2 -translate-x-1/2 w-[6px] h-[6px] rounded-full"
-        style={{ background: '#ffffff' }}
-      />
-      {/* Punta del pin */}
-      <span
-        className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[2px] h-[8px] rounded-full"
+        className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -61,13 +53,13 @@ export default function CreateAlertCard({
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
           />
 
-          {/* Botón: icono estilo Google Maps + texto "Ubicate" */}
+          {/* Botón: icono palito+bolita roja (limpio) + texto más grande */}
           <Button
-            className="h-8 px-1 text-[9px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-8 px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
-            <GoogleMapsPinIcon />
+            <SimplePinDotIcon />
             <span className="leading-none">Ubicate</span>
           </Button>
         </div>
@@ -125,3 +117,4 @@ export default function CreateAlertCard({
     </div>
   );
 }
+
