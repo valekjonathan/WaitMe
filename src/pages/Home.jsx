@@ -612,7 +612,7 @@ export default function Home() {
               </div>
 
               {/* 👇 ÚNICO CAMBIO: mt-[2px] para separar la tarjeta 2px hacia abajo */}
-              <div className="px-4 pt-0 mt-[2px] flex-1 min-h-0 flex items-stretch">
+              <div className="px-4 pt-[2px] flex-1 min-h-0 flex items-stretch">
                 <div className="w-full h-full">
                   <CreateAlertCard
                     address={address}
