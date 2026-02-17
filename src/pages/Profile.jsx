@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Camera, Phone } from 'lucide-react';
@@ -21,6 +20,7 @@ const carColors = [
 ];
 
 export default function Profile() {
+
   const { user } = useAuth();
   const [hydrated, setHydrated] = useState(false);
 
@@ -68,13 +68,20 @@ export default function Profile() {
     autoSave(newData);
   };
 
+  // FORMATO MATRÍCULA 1234ABC → 1234 ABC
+  const formatPlate = (value) => {
+    const clean = value.replace(/\s+/g, '').toUpperCase();
+    if (clean.length <= 4) return clean;
+    return clean.slice(0, 4) + ' ' + clean.slice(4, 7);
+  };
+
   // FOTO INSTANTÁNEA
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const localPreview = URL.createObjectURL(file);
-    setFormData(prev => ({ ...prev, photo_url: localPreview }));
+    const preview = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, photo_url: preview }));
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -87,6 +94,7 @@ export default function Profile() {
   const selectedColor = carColors.find(c => c.value === formData.car_color);
 
   const VehicleIcon = ({ type, color }) => {
+
     if (type === 'suv') {
       return (
         <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
@@ -98,13 +106,26 @@ export default function Profile() {
       );
     }
 
+    // FURGONETA DERECHA
     if (type === 'van') {
       return (
         <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
-          <path d="M4 18 V11 L14 11 L20 7 H36 L44 11 V18 H4 Z"
-            fill={color} stroke="white" strokeWidth="1.5"/>
+          <path d="M4 18 L4 11 L20 11 L24 7 L40 7 L44 11 L44 18 Z"
+            fill={color} stroke="white" strokeWidth="1.5" />
           <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
           <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+        </svg>
+      );
+    }
+
+    // TRANSPORTER REALISTA
+    if (type === 'transporter') {
+      return (
+        <svg viewBox="0 0 60 24" className="w-16 h-10" fill="none">
+          <path d="M4 18 L4 10 L18 10 L18 6 L48 6 L56 10 L56 18 Z"
+            fill={color} stroke="white" strokeWidth="1.5"/>
+          <circle cx="18" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+          <circle cx="44" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
         </svg>
       );
     }
@@ -121,7 +142,7 @@ export default function Profile() {
 
   return (
     <div className="h-screen bg-black text-white overflow-hidden">
-      <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
+      <Header title="Mi Perfil" showBackButton backTo="Home" />
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto h-screen overflow-hidden">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
@@ -148,7 +169,7 @@ export default function Profile() {
                 </div>
 
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700">
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-4 h-4"/>
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload}/>
                 </label>
               </div>
@@ -159,11 +180,9 @@ export default function Profile() {
                 </p>
 
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm">
-                      {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
-                    </p>
-                  </div>
+                  <p className="text-sm">
+                    {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                  </p>
                   <VehicleIcon type={formData.vehicle_type} color={selectedColor?.fill}/>
                 </div>
 
@@ -172,85 +191,25 @@ export default function Profile() {
                     <span className="text-white text-[8px] font-bold">E</span>
                   </div>
                   <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                    {formData.car_plate || '0000 XXX'}
+                    {formatPlate(formData.car_plate) || '0000 XXX'}
                   </span>
                 </div>
               </div>
+
             </div>
           </div>
 
-          {/* FORM */}
-          <div className="space-y-3">
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-gray-400 text-sm">Nombre</Label>
-                <Input
-                  value={formData.display_name}
-                  onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
-                  className="bg-gray-900 border-gray-700 text-white h-9"
-                />
-              </div>
-
-              <div>
-                <Label className="text-gray-400 text-sm">Teléfono</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white h-9"
-                />
-              </div>
-            </div>
-
-            <div className="bg-gray-900 rounded-lg p-2 border border-gray-800 flex justify-between">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-purple-400"/>
-                <p className="text-sm">Permitir llamadas</p>
-              </div>
-              <Switch
-                checked={formData.allow_phone_calls}
-                onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-
-              <div>
-                <Label className="text-gray-400 text-sm">Marca</Label>
-                <Input
-                  value={formData.car_brand}
-                  onChange={(e) => updateField('car_brand', e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white h-9"
-                />
-              </div>
-
-              <div>
-                <Label className="text-gray-400 text-sm">Modelo</Label>
-                <Input
-                  value={formData.car_model}
-                  onChange={(e) => updateField('car_model', e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white h-9"
-                />
-              </div>
-
-            </div>
-
-            <div>
-              <Label className="text-gray-400 text-sm">Vehículo</Label>
-              <Select
-                value={formData.vehicle_type}
-                onValueChange={(value) => updateField('vehicle_type', value)}
-              >
-                <SelectTrigger className="bg-gray-900 border-gray-700 text-white"/>
-                <SelectContent className="bg-gray-900 border-gray-700">
-                  <SelectItem value="car">Coche normal</SelectItem>
-                  <SelectItem value="suv">Coche voluminoso</SelectItem>
-                  <SelectItem value="van">Furgoneta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+          {/* MATRÍCULA INPUT */}
+          <div>
+            <Label className="text-gray-400 text-sm">Matrícula</Label>
+            <Input
+              value={formatPlate(formData.car_plate)}
+              onChange={(e) => updateField('car_plate', e.target.value.replace(/\s+/g, ''))}
+              className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
+              maxLength={8}
+            />
           </div>
+
         </motion.div>
       </main>
 
