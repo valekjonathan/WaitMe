@@ -26,7 +26,8 @@ export default function CreateAlertCard({
       style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}
     >
       <div className="flex flex-col justify-center gap-3 flex-1 min-h-0">
-        <div className="flex items-center gap-2">
+        {/* Dirección (BAJADA 5px junto con su icono) */}
+        <div className="flex items-center gap-2 relative top-[5px]">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
           <Input
             value={address}
