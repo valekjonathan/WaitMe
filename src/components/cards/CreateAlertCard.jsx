@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Clock, Euro } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
@@ -48,11 +48,12 @@ export default function CreateAlertCard({
         <div className="flex items-center gap-2">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
 
-          <Input
+          <AddressAutocompleteInput
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
             placeholder="C/ Campoamor, 13"
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
+            idPrefix="waitme-address"
           />
 
           <Button

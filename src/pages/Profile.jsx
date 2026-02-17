@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { ArrowLeft, Camera, Car, Bell, Phone, Save, Settings, MessageCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,8 +24,8 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoadingAuth } = useAuth();
+  const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     display_name: '',
     car_brand: '',
@@ -39,31 +40,22 @@ export default function Profile() {
     email_notifications: true
   });
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        setFormData({
-          display_name: currentUser.display_name || currentUser.full_name?.split(' ')[0] || '',
-          car_brand: currentUser.car_brand || '',
-          car_model: currentUser.car_model || '',
-          car_color: currentUser.car_color || 'gris',
-          vehicle_type: currentUser.vehicle_type || 'car',
-          car_plate: currentUser.car_plate || '',
-          photo_url: currentUser.photo_url || '',
-          phone: currentUser.phone || '',
-          allow_phone_calls: currentUser.allow_phone_calls || false,
-          notifications_enabled: currentUser.notifications_enabled !== false,
-          email_notifications: currentUser.email_notifications !== false
-        });
-      } catch (error) {
-        console.log('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (!user || hydrated) return;
+    setFormData({
+      display_name: user.display_name || user.full_name?.split(' ')[0] || '',
+      car_brand: user.car_brand || '',
+      car_model: user.car_model || '',
+      car_color: user.car_color || 'gris',
+      vehicle_type: user.vehicle_type || 'car',
+      car_plate: user.car_plate || '',
+      photo_url: user.photo_url || '',
+      phone: user.phone || '',
+      allow_phone_calls: user.allow_phone_calls || false,
+      notifications_enabled: user.notifications_enabled !== false,
+      email_notifications: user.email_notifications !== false
+    });
+    setHydrated(true);
+  }, [user, hydrated]);
 
   const autoSave = async (data) => {
     try {
@@ -119,15 +111,6 @@ export default function Profile() {
       <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
     </svg>;
-
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>);
-
-  }
 
   return (
     <div className="h-screen bg-black text-white overflow-hidden">

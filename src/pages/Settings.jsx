@@ -1,53 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { 
-        ArrowLeft, 
-        User, 
-        Coins, 
-        Bell, 
-        Shield, 
-        LogOut, 
-        ChevronRight,
-        CreditCard,
-        HelpCircle,
-        Star,
-        MessageCircle,
-        Settings as SettingsIcon
-      } from 'lucide-react';
+import {
+  User,
+  Coins,
+  Bell,
+  Shield,
+  LogOut,
+  ChevronRight,
+  CreditCard,
+  HelpCircle,
+  Star
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { useAuth } from '@/lib/AuthContext';
+import { base44 } from '@/api/base44Client';
 
 export default function Settings() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoadingAuth, logout } = useAuth();
+
+  // Mantengo estos estados por si ya los estabas usando en el código (sin bloquear la pantalla)
   const [phone, setPhone] = useState('');
   const [allowCalls, setAllowCalls] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Hidrata desde el usuario en cuanto exista (sin pantalla de carga)
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        setPhone(currentUser.phone || '');
-        setAllowCalls(currentUser.allow_phone_calls || false);
-      } catch (error) {
-        console.log('Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (!user) return;
+    setPhone(user.phone || '');
+    setAllowCalls(user.allow_phone_calls || false);
+  }, [user]);
 
   const handleSavePhone = async () => {
     setSaving(true);
@@ -61,16 +47,11 @@ export default function Settings() {
   };
 
   const handleLogout = () => {
-    base44.auth.logout();
+    // Logout “oficial” del contexto (más fiable)
+    logout?.(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-purple-500">Cargando...</div>
-      </div>
-    );
-  }
+  const displayName = user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -93,8 +74,8 @@ export default function Settings() {
                 </div>
               )}
               <div className="flex-1">
-                <p className="font-semibold">{user?.display_name || user?.full_name?.split(' ')[0]}</p>
-                <p className="text-sm text-gray-400">{user?.email}</p>
+                <p className="font-semibold">{displayName}</p>
+                <p className="text-sm text-gray-400">{user?.email || ''}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </div>
@@ -111,7 +92,7 @@ export default function Settings() {
                 {(user?.credits || 0).toFixed(2)}€
               </span>
             </div>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700">
+            <Button className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoadingAuth}>
               <CreditCard className="w-4 h-4 mr-2" />
               Añadir créditos
             </Button>
@@ -119,25 +100,28 @@ export default function Settings() {
 
           {/* Opciones */}
           <div className="bg-gray-900 rounded-2xl border border-gray-800 divide-y divide-gray-800">
-            <Link to={createPageUrl('NotificationSettings')} className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+            <Link
+              to={createPageUrl('NotificationSettings')}
+              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
+            >
               <Bell className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Notificaciones</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </Link>
-            
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
               <Shield className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Privacidad</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
-            
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
               <Star className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Valorar la app</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
-            
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
               <HelpCircle className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Ayuda</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
@@ -149,6 +133,7 @@ export default function Settings() {
             onClick={handleLogout}
             variant="outline"
             className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            disabled={isLoadingAuth}
           >
             <LogOut className="w-5 h-5 mr-2" />
             Cerrar sesión
@@ -161,7 +146,7 @@ export default function Settings() {
           </div>
         </motion.div>
       </main>
-      
+
       <BottomNav />
     </div>
   );

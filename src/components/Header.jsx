@@ -36,7 +36,7 @@ export default function Header({
     return (
       <button
         type="button"
-        onClick={() => navigate(0)}
+        onClick={() => navigate(createPageUrl('Home'))}
         className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
       >
         {inner}
