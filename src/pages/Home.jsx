@@ -167,8 +167,8 @@ export default function Home() {
   const handleLogoError = () => {
     if (logoRetryCount >= 1) return;
     setLogoRetryCount((c) => c + 1);
-    setLogoSrc(`${appLogo}?v=${Date.now()}`);
-  };
+    setLogoSrc(appLogo);
+};
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -416,7 +416,7 @@ export default function Home() {
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
-                  src={logoSrc}
+                  loading="eager" decoding="async" fetchpriority="high" src={logoSrc}
                   alt="WaitMe!"
                   loading="eager"
                   decoding="async"

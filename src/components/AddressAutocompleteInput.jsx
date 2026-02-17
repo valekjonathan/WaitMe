@@ -49,6 +49,7 @@ export default function AddressAutocompleteInput({
         url.searchParams.set('limit', String(limit));
         url.searchParams.set('q', q);
         url.searchParams.set('countrycodes', 'es');
+        url.searchParams.set('featuretype', 'street');
         url.searchParams.set('bounded', '1');
         url.searchParams.set('viewbox', viewbox);
         url.searchParams.set('accept-language', 'es');
@@ -63,11 +64,20 @@ export default function AddressAutocompleteInput({
         if (!res.ok) return;
 
         const data = await res.json();
+        const onlyStreets = Array.isArray(data)
+          ? data.filter((it) => {
+              const cls = String(it?.class || '').toLowerCase();
+              const type = String(it?.type || '').toLowerCase();
+              if (cls !== 'highway') return false;
+              // Tipos de vía comunes
+              return ['residential','tertiary','primary','secondary','unclassified','living_street','service','road','pedestrian'].includes(type);
+            })
+          : [];
         // Evita respuestas viejas si el usuario siguió escribiendo
         if (lastQueryRef.current !== q) return;
 
-        const mapped = Array.isArray(data)
-          ? data
+        const mapped = Array.isArray(onlyStreets)
+          ? onlyStreets
               .map((it) => it?.display_name)
               .filter(Boolean)
               .slice(0, limit)
