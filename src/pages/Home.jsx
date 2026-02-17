@@ -408,7 +408,7 @@ export default function Home() {
                   src={appLogo}
                   alt="WaitMe!"
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
-                />
+                / loading=\"eager\" decoding=\"async\">
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-65px]">
                   Wait<span className="text-purple-500">Me!</span>
