@@ -12,7 +12,7 @@ export default function Header({
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
-  useAuth(); // mantiene compatibilidad si el proyecto lo usa
+  const { user } = useAuth();
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
@@ -20,54 +20,71 @@ export default function Header({
   }, [onBack, navigate, backTo]);
 
   const titleNode = useMemo(() => {
-    const normalized = (title || '').toLowerCase().replace(/\s+/g, '');
+    const t = (title || '').trim();
+    const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
+
+    const inner = isWaitMe ? (
+      <>
+        <span className="text-white">Wait</span>
+        <span className="text-purple-500">Me!</span>
+      </>
+    ) : (
+      <span className="text-white">{title}</span>
+    );
 
     return (
       <button
         type="button"
         onClick={() => navigate(0)}
-        className={`${titleClassName} font-semibold w-full text-center truncate`}
+        className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
       >
-        {isWaitMe ? (
-          <>
-            <span className="text-white">Wait</span>
-            <span className="text-purple-500">Me!</span>
-          </>
-        ) : (
-          <span className="text-white">{title}</span>
-        )}
+        {inner}
       </button>
     );
   }, [title, navigate, titleClassName]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 h-[64px]">
-      <div className="px-4 h-full">
-        <div className="grid grid-cols-[56px,1fr,96px] items-center h-full">
-          {/* IZQUIERDA: back o hueco fijo */}
-          <div className="flex items-center justify-start">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <div className="px-4 py-3">
+        {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
+        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
+          {/* IZQUIERDA */}
+          <div className= ml-auto"flex items-center gap-2">
             {showBackButton ? (
               <button onClick={handleBack} className="text-white p-2">
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (
-              <div className="w-[40px]" />
+              <div className="w-10" />
             )}
+
+            <Link to={createPageUrl('Settings')}>
+              <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
+                <span className="text-purple-400 font-bold text-sm">
+                  {(user?.credits || 0).toFixed(2)}€
+                </span>
+              </div>
+            </Link>
           </div>
 
-          {/* CENTRO: título siempre centrado */}
-          <div className="flex items-center justify-center">
+          {/* CENTRO */}
+          <div className="min-w-0 px-1">
             {titleNode}
           </div>
 
-          {/* DERECHA: SIEMPRE pegado a la derecha */}
-          <div className="flex items-center justify-end gap-2">
-            <Link to={createPageUrl('Settings')} className="text-white p-2">
-              <Settings className="w-6 h-6" />
+          {/* DERECHA */}
+          <div className="flex items-center justify-end gap-[11px]">
+            <Link to={createPageUrl('Settings')}>
+              <div className="cursor-pointer ml-[31px]">
+                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+              </div>
             </Link>
-            <Link to={createPageUrl('Profile')} className="text-white p-2">
-              <User className="w-6 h-6" />
+
+            <Link to={createPageUrl('Profile')}>
+              <div className="cursor-pointer">
+                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+              </div>
             </Link>
           </div>
         </div>

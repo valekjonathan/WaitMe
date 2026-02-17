@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, MapPin } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -75,8 +75,6 @@ export default function Home() {
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
-  const [searchStreet, setSearchStreet] = useState('');
-
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -491,19 +489,6 @@ export default function Home() {
                     </>
                   )}
                 </AnimatePresence>
-              </div>
-
-              {/* Buscador de calles (entre mapa y tarjeta) */}
-              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[6px] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                  <input
-                    value={searchStreet}
-                    onChange={(e) => setSearchStreet(e.target.value)}
-                    placeholder="Buscar dirección..."
-                    className="w-full bg-transparent text-white text-sm focus:outline-none placeholder:text-white/70"
-                  />
-                </div>
               </div>
 
               <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
