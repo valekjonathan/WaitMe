@@ -9,8 +9,8 @@ export default function Header({
   showBackButton = false,
   backTo = 'Home',
   onBack,
+  titleClassName = 'text-[24px] leading-[24px]',
 }) {
-
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -32,12 +32,12 @@ export default function Header({
       <button
         type="button"
         onClick={() => navigate(0)}
-        className="text-[24px] leading-[24px] font-semibold select-none"
+        className={`${titleClassName} font-semibold select-none`}
       >
         {TitleInner}
       </button>
     );
-  }, [title, navigate]);
+  }, [title, navigate, titleClassName]);
 
   const handleBack = useCallback(() => {
     if (onBack) onBack();
@@ -47,7 +47,6 @@ export default function Header({
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
       <div className="px-4 py-3">
         <div className="relative flex items-center justify-between">
-
           <div className="flex items-center">
             {showBackButton ? (
               <button onClick={handleBack} className="text-white p-2">
@@ -69,13 +68,10 @@ export default function Header({
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
-              {renderTitle}
-            </div>
+            <div className="pointer-events-auto">{renderTitle}</div>
           </div>
 
           <div className="flex items-center justify-end gap-[11px]">
-
             <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer ml-[31px]">
                 <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
@@ -87,9 +83,7 @@ export default function Header({
                 <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
               </div>
             </Link>
-
           </div>
-
         </div>
       </div>
     </header>
