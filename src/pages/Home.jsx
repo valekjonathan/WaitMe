@@ -74,27 +74,14 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null);
-  // ✅ Reset inmediato al logo cuando el menú inferior "Mapa" se pulsa (sin recargar)
   useEffect(() => {
-    const ts = location?.state?.ts;
-    if (location?.state?.goLogo && ts) {
+    const goLogo = () => {
       setMode(null);
-      setSelectedAlert(null);
-      setShowFilters(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location?.state?.ts]);
-
-  useEffect(() => {
-    const handler = () => {
-      setMode(null);
-      setSelectedAlert(null);
-      setShowFilters(false);
+      queryClient.invalidateQueries();
     };
-    window.addEventListener('waitme:goLogo', handler);
-    return () => window.removeEventListener('waitme:goLogo', handler);
-  }, []);
-
+    window.addEventListener('waitme:goLogo', goLogo);
+    return () => window.removeEventListener('waitme:goLogo', goLogo);
+  }, [queryClient]);
  // null | 'search' | 'create'
   const [logoSrc, setLogoSrc] = useState(appLogo);
   const [logoRetryCount, setLogoRetryCount] = useState(0);
@@ -115,7 +102,12 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: (, {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: 3000,
+      staleTime: 0
+    }) => base44.auth.me(),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000
   });
@@ -123,7 +115,12 @@ export default function Home() {
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
     enabled: !!user?.id,
-    queryFn: async () => {
+    queryFn: async (, {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: 3000,
+      staleTime: 0
+    }) => {
       const notifications = await base44.entities.Notification.filter({
         user_id: user.id,
         read: false
@@ -137,7 +134,12 @@ export default function Home() {
 
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
-    queryFn: async () => {
+    queryFn: async (, {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: 3000,
+      staleTime: 0
+    }) => {
       return [];
     },
     staleTime: 2 * 60 * 1000,
@@ -148,7 +150,12 @@ export default function Home() {
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
-    queryFn: async () => {
+    queryFn: async (, {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      refetchInterval: 3000,
+      staleTime: 0
+    }) => {
       return [];
     },
     staleTime: 2 * 60 * 1000,
@@ -399,18 +406,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-black text-white">
-      {/* BG MAP (persistente) para que al volver al logo no cargue */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="w-full h-full" style={ opacity: mode === null ? 0.2 : 0, transition: "opacity 120ms linear" }>
-          <ParkingMap
-                    alerts={homeMapAlerts}
-                    userLocation={userLocation}
-                    userLocationOffsetY={120}
-                    zoomControl={false}
-                  />
-        </div>
-      </div>
+    <div className="min-h-screen w-full bg-black text-white">
       <NotificationManager user={user} />
 
       <Header
@@ -434,7 +430,16 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              {/* BG MAP moved to persistent layer */}
+              <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                <div className="w-full h-full">
+                  <ParkingMap
+                    alerts={homeMapAlerts}
+                    userLocation={userLocation}
+                    userLocationOffsetY={120}
+                    zoomControl={false}
+                  />
+                </div>
+              </div>
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
