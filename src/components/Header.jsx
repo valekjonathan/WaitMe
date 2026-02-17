@@ -19,6 +19,19 @@ export default function Header({
     navigate(createPageUrl(backTo));
   }, [onBack, navigate, backTo]);
 
+  const prefetchSettings = useCallback(() => {
+    try {
+      import('@/pages/Settings');
+    } catch {}
+  }, []);
+
+  const prefetchProfile = useCallback(() => {
+    try {
+      import('@/pages/Profile');
+    } catch {}
+  }, []);
+
+
   const titleNode = useMemo(() => {
     const t = (title || '').trim();
     const normalized = t.toLowerCase().replace(/\s+/g, '');

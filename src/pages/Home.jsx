@@ -69,6 +69,13 @@ const MagnifierIconProfile = ({ color = "#8b5cf6", size = "w-14 h-14" }) => (
 );
 
 export default function Home() {
+  useEffect(() => {
+    try {
+      const img = new Image();
+      img.src = appLogo;
+    } catch {}
+  }, []);
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -407,6 +414,9 @@ export default function Home() {
                 <img
                   src={appLogo}
                   alt="WaitMe!"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
