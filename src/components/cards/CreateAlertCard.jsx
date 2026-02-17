@@ -7,13 +7,15 @@ import { Label } from '@/components/ui/label';
 
 function SimplePinDotIcon() {
   return (
-    <span className="relative w-[12px] h-[28px] inline-block">
+    <span className="relative w-[12px] h-[20px] inline-block">
+      {/* Palito (más pequeño) */}
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
-        style={{ background: '#ffffff', height: '22px' }}
+        style={{ background: '#ffffff', height: '14px' }}
       />
+      {/* Bolita roja */}
       <span
-        className="absolute bottom-[20px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -43,7 +45,6 @@ export default function CreateAlertCard({
       }}
     >
       <div className="flex flex-col justify-between flex-1 min-h-0">
-
         {/* Ubicación */}
         <div className="flex items-center gap-2">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
@@ -56,8 +57,9 @@ export default function CreateAlertCard({
             idPrefix="waitme-address"
           />
 
+          {/* +5px alto el botón, icono centrado */}
           <Button
-            className="h-[37px] px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-[37px] min-h-[37px] px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
@@ -68,6 +70,7 @@ export default function CreateAlertCard({
 
         {/* Tiempo */}
         <div className="flex items-center gap-2">
+          {/* bajar 1px más (antes 3px, ahora 4px) */}
           <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
@@ -91,12 +94,14 @@ export default function CreateAlertCard({
 
         {/* Precio */}
         <div className="flex items-center gap-2">
+          {/* bajar 1px más (antes 3px, ahora 4px) */}
           <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Precio:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
+              {/* mover "3 €" a la derecha para alinearlo con el "0" de "10 minutos" */}
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-[42px]">
                 {price} €
               </span>
               <span className="text-green-400 text-[10px] ml-2 font-semibold">
