@@ -8,12 +8,10 @@ import { Label } from '@/components/ui/label';
 function SimplePinDotIcon() {
   return (
     <span className="relative w-[12px] h-[20px] inline-block">
-      {/* Palito (más corto) */}
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
         style={{ background: '#ffffff', height: '8px' }}
       />
-      {/* Bolita roja */}
       <span
         className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
@@ -57,7 +55,6 @@ export default function CreateAlertCard({
             idPrefix="waitme-address"
           />
 
-          {/* MISMA ALTURA que la caja (h-8) + 5px MÁS ANCHO */}
           <Button
             className="h-8 min-h-[32px] px-[6.5px] text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
@@ -76,7 +73,7 @@ export default function CreateAlertCard({
             <Label className="text-white text-xs font-medium">
               Me voy en:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
-                {minutes} minutos.
+                {minutes} minutos
               </span>
             </Label>
 
@@ -99,7 +96,7 @@ export default function CreateAlertCard({
             <Label className="text-white text-xs font-medium">
               Precio:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-[42px]">
-                {price} €
+                {price} euros
               </span>
             </Label>
 
