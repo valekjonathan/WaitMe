@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -78,9 +78,6 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
@@ -131,37 +128,6 @@ export default function Home() {
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000
   });
-
-  const handleSearchInputChange = async (e) => {
-    const val = e.target.value;
-    setSearchInput(val);
-
-    if (!val || val.trim().length < 3) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
-      const data = await res.json();
-      setSuggestions(data || []);
-      setShowSuggestions(true);
-    } catch {
-      setSuggestions([]);
-    }
-  };
-
-  const handleSelectSuggestion = (suggestion) => {
-    setSearchInput(suggestion.display_name);
-    setShowSuggestions(false);
-
-    const lat = parseFloat(suggestion.lat);
-    const lng = parseFloat(suggestion.lon);
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-    setUserLocation([lat, lng]);
-  };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
@@ -483,7 +449,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="h-[44%] relative px-3 pt-[14px] pb-2 flex-shrink-0">
+              <div className="relative px-3 pt-[14px] pb-2 flex-none" style={{ height: "280px" }}>
                 <ParkingMap
                   alerts={searchAlerts}
                   onAlertClick={setSelectedAlert}
@@ -525,27 +491,6 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-7 py-3 flex-shrink-0 z-50 relative">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[10px]">
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 text-purple-400" />
-                    
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
-                      {suggestions.map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleSelectSuggestion(suggestion)}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0 transition-colors"
-                        >
-                          {suggestion.display_name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
                 <div className="w-full h-full">
                   <UserAlertCard
@@ -571,7 +516,7 @@ export default function Home() {
               className="fixed inset-0 top-[60px] flex flex-col"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none" style={{ height: '280px' }}>
+              <div className="relative px-3 pt-[14px] pb-2 flex-none" style={{ height: "280px" }}>
                 <ParkingMap
                   useCenterPin={true}
                   userLocation={userLocation}
