@@ -1,36 +1,34 @@
-// src/App.jsx
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Pages (las que SÍ existen)
-import Home from '@/pages/Home';
-import Chats from '@/pages/Chats';
-import Chat from '@/pages/Chat';
-import History from '@/pages/History';
-import Notifications from '@/pages/Notifications';
-import Profile from '@/pages/Profile';
-import Settings from '@/pages/Settings';
+import Home from './pages/Home';
+import Chats from './pages/Chats';
+import Chat from './pages/Chat';
+import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import History from './pages/History';
+import NavigatePage from './pages/Navigate';
+import NotificationSettings from './pages/NotificationSettings';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/Home" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
+    <Routes>
+      {/* Entradas válidas (Base44 a veces abre /Home) */}
+      <Route path="/" element={<Home />} />
+      <Route path="/Home" element={<Home />} />
+      <Route path="/home" element={<Home />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Route path="/chats" element={<Chats />} />
+      <Route path="/chat/:id" element={<Chat />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/notification-settings" element={<NotificationSettings />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/history" element={<History />} />
+      <Route path="/navigate" element={<NavigatePage />} />
 
-      <Toaster />
-    </BrowserRouter>
+      {/* fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
