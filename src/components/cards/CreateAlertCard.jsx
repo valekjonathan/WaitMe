@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 
 function SimplePinDotIcon() {
   return (
-    <span className="relative w-[12px] h-[23px] inline-block">
+    <span className="relative w-[12px] h-[28px] inline-block">
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
-        style={{ background: '#ffffff', height: '17px' }}
+        style={{ background: '#ffffff', height: '22px' }}
       />
       <span
-        className="absolute bottom-[15px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        className="absolute bottom-[20px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -57,7 +57,7 @@ export default function CreateAlertCard({
           />
 
           <Button
-            className="h-8 px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-[37px] px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
@@ -66,9 +66,9 @@ export default function CreateAlertCard({
           </Button>
         </div>
 
-        {/* Tiempo - icono alineado verticalmente con texto + slider */}
+        {/* Tiempo */}
         <div className="flex items-center gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[3px]" />
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -89,14 +89,14 @@ export default function CreateAlertCard({
           </div>
         </div>
 
-        {/* Precio - icono alineado verticalmente con texto + slider */}
+        {/* Precio */}
         <div className="flex items-center gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[3px]" />
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Precio:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-6">
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
                 {price} €
               </span>
               <span className="text-green-400 text-[10px] ml-2 font-semibold">
