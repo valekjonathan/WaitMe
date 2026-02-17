@@ -3,7 +3,7 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X, Navigation, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, X, Navigation, TrendingUp, TrendingDown, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -544,6 +544,16 @@ const badgeCls = isCompletedOrCanceled
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
+        {filteredConversations.length === 0 ? (
+          <div className="min-h-[calc(100vh-60px-96px)] flex items-center justify-center px-4">
+            <div className="text-center">
+              <MessageCircle className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+              <p className="text-gray-400 text-sm">No hay chats iniciados.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+
         <div className="px-4 pt-3 pb-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
@@ -732,7 +742,10 @@ const badgeCls = isCompletedOrCanceled
             );
           })}
         </div>
-      </main>
+      
+          </>
+        )}
+</main>
 
       <BottomNav />
 
