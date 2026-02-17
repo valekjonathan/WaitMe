@@ -82,7 +82,13 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header title="Notificaciones" showBackButton backTo="Home" />
+      {/* ⬇️ MÁS PEQUEÑO SOLO AQUÍ para que no choque con el botón del dinero */}
+      <Header
+        title="Notificaciones"
+        showBackButton
+        backTo="Home"
+        titleClassName="text-[20px] leading-[20px]"
+      />
 
       <main className="pt-[60px] pb-24">
         {notifications.length === 0 ? (
