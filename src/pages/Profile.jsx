@@ -85,24 +85,64 @@ export default function Profile() {
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 
-  const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
-  <svg viewBox="0 0 48 24" className={size} fill="none">
-      {/* Cuerpo del coche - vista lateral */}
-      <path
-      d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-      fill={color}
-      stroke="white"
-      strokeWidth="1.5" />
+  const VehicleIconProfile = ({ type, color, size = "w-16 h-10" }) => {
+    if (type === 'suv') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none">
+          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+          <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+          <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="14" cy="18" r="2" fill="#666" />
+          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="36" cy="18" r="2" fill="#666" />
+        </svg>
+      );
+    }
 
-      {/* Ventanas */}
-      <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
-      {/* Rueda trasera */}
-      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="14" cy="18" r="2" fill="#666" />
-      {/* Rueda delantera */}
-      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="36" cy="18" r="2" fill="#666" />
-    </svg>;
+    if (type === 'van') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none">
+          {/* Carrocería (furgoneta) */}
+          <path
+            d="M6 18 V10 L14 10 L18 6 H34 L42 10 V18 H6 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+
+          {/* Ventanas */}
+          <rect x="15" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+          <rect x="24" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+          <rect x="33" y="11" width="6" height="2" rx="1" fill="rgba(255,255,255,0.18)" />
+
+          {/* Ruedas */}
+          <circle cx="14" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="14" cy="18" r="2" fill="#666" />
+          <circle cx="34" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="34" cy="18" r="2" fill="#666" />
+        </svg>
+      );
+    }
+
+    // car (default)
+    return (
+      <svg viewBox="0 0 48 24" className={size} fill="none">
+        <path
+          d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+          fill={color}
+          stroke="white"
+          strokeWidth="1.5"
+        />
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="14" cy="18" r="2" fill="#666" />
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="2" fill="#666" />
+      </svg>
+    );
+  };
 
 
   const CarIconSmall = ({ color }) =>
@@ -161,7 +201,7 @@ export default function Profile() {
                       {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
                     </p>
                   </div>
-                  <CarIconProfile color={selectedColor?.fill} />
+                  <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} />
                 </div>
 
                 {/* Matrícula estilo placa */}
@@ -298,12 +338,12 @@ export default function Profile() {
                     <SelectItem value="van" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-                          <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
-                          <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
-                          <rect x="18" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
-                          <rect x="28" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
-                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                          <circle cx="34" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+                          <path d="M6 18 V10 L14 10 L18 6 H34 L42 10 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                          <rect x="15" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+                          <rect x="24" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+                          <rect x="33" y="11" width="6" height="2" rx="1" fill="rgba(255,255,255,0.18)" />
+                          <circle cx="14" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="34" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
                         </svg>
                         Furgoneta
                       </div>

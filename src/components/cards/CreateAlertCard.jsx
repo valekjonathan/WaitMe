@@ -7,13 +7,13 @@ import { Label } from '@/components/ui/label';
 
 function SimplePinDotIcon() {
   return (
-    <span className="relative w-[12px] h-[18px] inline-block">
+    <span className="relative w-[12px] h-[23px] inline-block">
       <span
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[12px] rounded-full"
-        style={{ background: '#ef4444' }}
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
+        style={{ background: '#ffffff', height: '17px' }}
       />
       <span
-        className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        className="absolute bottom-[15px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -68,7 +68,7 @@ export default function CreateAlertCard({
 
         {/* Tiempo - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[2px]" />
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[3px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -91,12 +91,12 @@ export default function CreateAlertCard({
 
         {/* Precio - icono alineado verticalmente con texto + slider */}
         <div className="flex items-center gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[2px]" />
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[3px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Precio:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
+              <span className="text-purple-400 font-bold text-[22px] leading-none ml-6">
                 {price} €
               </span>
               <span className="text-green-400 text-[10px] ml-2 font-semibold">
