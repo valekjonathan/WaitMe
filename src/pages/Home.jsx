@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -74,15 +74,7 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null);
-  useEffect(() => {
-    const goLogo = () => {
-      setMode(null);
-      queryClient.invalidateQueries();
-    };
-    window.addEventListener('waitme:goLogo', goLogo);
-    return () => window.removeEventListener('waitme:goLogo', goLogo);
-  }, [queryClient]);
- // null | 'search' | 'create'
+  // null | 'search' | 'create'
   const [logoSrc, setLogoSrc] = useState(appLogo);
   const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
@@ -100,6 +92,23 @@ export default function Home() {
     maxDistance: 10
   });
 
+  // BLINDADO: resetea SIEMPRE al logo (los 2 botones grandes), sin tocar la UI del logo.
+  const resetToLogo = useCallback((opts = { invalidate: true }) => {
+    setMode(null);
+    setSelectedAlert(null);
+    setShowFilters(false);
+    setConfirmDialog({ open: false, alert: null });
+    setSearchQuery('');
+    if (opts?.invalidate) queryClient.invalidateQueries();
+  }, [queryClient]);
+
+  // Botón "Mapa": escucha el evento global y vuelve al logo SIEMPRE.
+  useEffect(() => {
+    const goLogo = () => resetToLogo({ invalidate: true });
+    window.addEventListener('waitme:goLogo', goLogo);
+    return () => window.removeEventListener('waitme:goLogo', goLogo);
+  }, [resetToLogo]);
+
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
@@ -108,8 +117,6 @@ export default function Home() {
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
-
-
 
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
@@ -128,8 +135,6 @@ export default function Home() {
     refetchOnMount: true
   });
 
-
-
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
@@ -141,8 +146,6 @@ export default function Home() {
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
-
-
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
@@ -156,8 +159,6 @@ export default function Home() {
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
-
-
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
@@ -194,7 +195,7 @@ export default function Home() {
     if (logoRetryCount >= 1) return;
     setLogoRetryCount((c) => c + 1);
     setLogoSrc(appLogo);
-};
+  };
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -206,12 +207,10 @@ export default function Home() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('reset')) {
-      setMode(null);
-      setSelectedAlert(null);
-      setShowFilters(false);
+      resetToLogo({ invalidate: false });
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [location.search]);
+  }, [location.search, resetToLogo]);
 
   const homeMapAlerts = useMemo(() => {
     return [];
@@ -412,8 +411,7 @@ export default function Home() {
         unreadCount={unreadCount}
         showBackButton={!!mode}
         onBack={() => {
-          setMode(null);
-          setSelectedAlert(null);
+          resetToLogo({ invalidate: false });
         }}
       />
 
@@ -442,11 +440,11 @@ export default function Home() {
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
-                  loading="eager" decoding="async" fetchpriority="high" src={logoSrc}
-                  alt="WaitMe!"
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
+                  src={logoSrc}
+                  alt="WaitMe!"
                   onError={handleLogoError}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
@@ -499,15 +497,15 @@ export default function Home() {
                       '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
                   }}
                 >
-                <ParkingMap
-                  alerts={searchAlerts}
-                  onAlertClick={setSelectedAlert}
-                  userLocation={userLocation}
-                  selectedAlert={selectedAlert}
-                  showRoute={!!selectedAlert}
-                  zoomControl={true}
-                  className="h-full"
-                />
+                  <ParkingMap
+                    alerts={searchAlerts}
+                    onAlertClick={setSelectedAlert}
+                    userLocation={userLocation}
+                    selectedAlert={selectedAlert}
+                    showRoute={!!selectedAlert}
+                    zoomControl={true}
+                    className="h-full"
+                  />
                 </div>
                 {!showFilters && (
                   <Button
@@ -540,7 +538,6 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              
               <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
                 <div className="bg-gray-900/40 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl px-3 py-[6px] flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
@@ -587,27 +584,27 @@ export default function Home() {
                       '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
                   }}
                 >
-                <ParkingMap
-                  useCenterPin={true}
-                  userLocation={userLocation}
-                  zoomControl={true}
-                  className="h-full"
-                  onMapMove={(center) => {
-                    setSelectedPosition({ lat: center[0], lng: center[1] });
-                  }}
-                  onMapMoveEnd={(center) => {
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (data?.address) {
-                          const road = data.address.road || data.address.street || '';
-                          const number = data.address.house_number || '';
-                          setAddress(number ? `${road}, ${number}` : road);
-                        }
-                      })
-                      .catch(() => {});
-                  }}
-                />
+                  <ParkingMap
+                    useCenterPin={true}
+                    userLocation={userLocation}
+                    zoomControl={true}
+                    className="h-full"
+                    onMapMove={(center) => {
+                      setSelectedPosition({ lat: center[0], lng: center[1] });
+                    }}
+                    onMapMoveEnd={(center) => {
+                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                          if (data?.address) {
+                            const road = data.address.road || data.address.street || '';
+                            const number = data.address.house_number || '';
+                            setAddress(number ? `${road}, ${number}` : road);
+                          }
+                        })
+                        .catch(() => {});
+                    }}
+                  />
                 </div>
               </div>
 
@@ -619,7 +616,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 👇 ÚNICO CAMBIO: mt-[2px] para separar la tarjeta 2px hacia abajo */}
               <div className="px-4 mt-[10px] flex-1 min-h-0 flex items-stretch">
                 <div className="w-full h-full">
                   <CreateAlertCard
