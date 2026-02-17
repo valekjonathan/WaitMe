@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 function SimplePinDotIcon() {
   return (
     <span className="relative w-[12px] h-[18px] inline-block">
+      {/* Palito blanco */}
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[12px] rounded-full"
-        style={{ background: '#ef4444' }}
+        style={{ background: '#ffffff' }}
       />
+      {/* Bolita roja */}
       <span
         className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
@@ -45,8 +47,8 @@ export default function CreateAlertCard({
       <div className="flex flex-col justify-between flex-1 min-h-0">
 
         {/* Ubicación */}
-        <div className="flex items-center gap-2">
-          <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
+        <div className="flex items-center gap-3">
+          <MapPin className="w-[28px] h-[28px] text-purple-400 flex-shrink-0" />
 
           <Input
             value={address}
@@ -65,11 +67,11 @@ export default function CreateAlertCard({
           </Button>
         </div>
 
-        {/* Tiempo - icono alineado verticalmente con texto + slider */}
-        <div className="flex items-center gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
+        {/* Tiempo */}
+        <div className="flex items-center gap-3">
+          <Clock className="w-[28px] h-[28px] text-purple-400 flex-shrink-0" />
 
-          <div className="flex-1 space-y-0.5">
+          <div className="flex-1">
             <Label className="text-white text-xs font-medium">
               Me voy en:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
@@ -83,33 +85,32 @@ export default function CreateAlertCard({
               min={5}
               max={60}
               step={5}
-              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+              className="mt-1 py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
             />
           </div>
         </div>
 
-        {/* Precio - icono alineado verticalmente con texto + slider */}
-        <div className="flex items-center gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center" />
+        {/* Precio */}
+        <div className="flex items-center gap-3">
+          <Euro className="w-[28px] h-[28px] text-purple-400 flex-shrink-0" />
 
-          <div className="flex-1 space-y-0.5">
+          <div className="flex-1">
             <Label className="text-white text-xs font-medium">
               Precio:
-              <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
-                {price} €
-              </span>
-              <span className="text-green-400 text-[10px] ml-2 font-semibold">
-                (Ganarás {(price * 0.8).toFixed(2)} €)
-              </span>
             </Label>
+
+            {/* Precio morado alineado debajo de “Me voy en…” */}
+            <div className="text-purple-400 font-bold text-[22px] leading-none">
+              {price} €
+            </div>
 
             <Slider
               value={[price]}
               onValueChange={(v) => setPrice(v[0])}
               min={3}
-              max={99}
+              max={40}
               step={1}
-              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+              className="mt-1 py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
             />
           </div>
         </div>
