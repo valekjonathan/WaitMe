@@ -86,8 +86,7 @@ export default function Notifications() {
         title="Notificaciones"
         showBackButton
         backTo="Home"
-        // ✅ más pequeño + ancho máximo + puntos suspensivos si hiciera falta
-        titleClassName="text-[18px] leading-[18px] max-w-[170px] truncate text-center"
+        titleClassName="text-[18px] leading-[18px]"
       />
 
       <main className="pt-[60px] pb-24">
