@@ -3,13 +3,11 @@ import { NavLink } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
-
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
     "h-[60px] rounded-lg";
 
-  const activeStyle =
-    "bg-purple-700/40 border border-purple-500/50";
+  const activeStyle = "bg-purple-700/40 border border-purple-500/50";
 
   const labelClass =
     "text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap";
@@ -20,14 +18,12 @@ export default function BottomNav() {
   const divider = <div className="w-px h-8 bg-gray-700" />;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-50">
-      <div className="flex items-center max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto">
+      <div className="flex items-center max-w-md mx-auto pointer-events-auto">
 
         <NavLink
           to="/history"
-          className={({ isActive }) =>
-            `${baseBtn} ${isActive ? activeStyle : ""}`
-          }
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
         >
           <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" viewBox="0 0 32 32" fill="none">
             <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
@@ -41,9 +37,7 @@ export default function BottomNav() {
         <NavLink
           to="/"
           end
-          className={({ isActive }) =>
-            `${baseBtn} ${isActive ? activeStyle : ""}`
-          }
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
         >
           <svg
             className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]"
@@ -65,9 +59,7 @@ export default function BottomNav() {
 
         <NavLink
           to="/notifications"
-          className={({ isActive }) =>
-            `${baseBtn} ${isActive ? activeStyle : ""}`
-          }
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
         >
           <Bell className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
           <span className={labelClassLong}>Notificaciones</span>
@@ -77,9 +69,7 @@ export default function BottomNav() {
 
         <NavLink
           to="/chats"
-          className={({ isActive }) =>
-            `${baseBtn} ${isActive ? activeStyle : ""}`
-          }
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
         >
           <MessageCircle className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
           <span className={labelClass}>Chats</span>
