@@ -27,7 +27,6 @@ export default function CreateAlertCard({
     >
       <div className="flex flex-col justify-center gap-3 flex-1 min-h-0">
         <div className="flex items-center gap-2">
-          {/* ICONO UBICACIÓN (más grande) */}
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
           <Input
             value={address}
@@ -50,9 +49,11 @@ export default function CreateAlertCard({
 
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            {/* ICONO RELOJ (más grande) */}
             <Clock className="w-[22px] h-[22px] text-purple-400" />
-            Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
+            Me voy en:
+            <span className="text-purple-400 font-bold text-[22px] leading-none">
+              {minutes} minutos.
+            </span>
           </Label>
           <Slider
             value={[minutes]}
@@ -66,10 +67,14 @@ export default function CreateAlertCard({
 
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            {/* ICONO € (más grande) */}
             <Euro className="w-[22px] h-[22px] text-purple-400" />
-            Precio: <span className="text-purple-400 font-bold">{price} €</span>
-            <span className="text-green-400 text-[10px] ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)} €)</span>
+            Precio:
+            <span className="text-purple-400 font-bold text-[22px] leading-none">
+              {price} €
+            </span>
+            <span className="text-green-400 text-[10px] ml-2 font-semibold">
+              (Ganarás {(price * 0.8).toFixed(2)} €)
+            </span>
           </Label>
           <Slider
             value={[price]}
