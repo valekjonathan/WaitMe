@@ -9,6 +9,7 @@ export default function Header({
   showBackButton = false,
   backTo = 'Home',
   onBack,
+  // ✅ NUEVO: permite ajustar tamaño SOLO donde lo pases
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
