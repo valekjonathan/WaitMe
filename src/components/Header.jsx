@@ -4,6 +4,25 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
+function OutlinedLucide({ Icon, className }) {
+  // Contorno blanco fino SIN sombras (doble capa)
+  return (
+    <span className="relative inline-flex">
+      <Icon
+        className={`${className} absolute inset-0 text-white`}
+        style={{ strokeWidth: 3 }}
+        aria-hidden
+      />
+      <Icon
+        className={className}
+        style={{ strokeWidth: 2 }}
+        aria-hidden
+      />
+    </span>
+  );
+}
+
+
 export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
@@ -77,13 +96,13 @@ export default function Header({
           <div className="flex items-center justify-end gap-[11px]">
             <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer ml-[31px]">
-                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+                <OutlinedLucide Icon={Settings} className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
               </div>
             </Link>
 
             <Link to={createPageUrl('Profile')}>
               <div className="cursor-pointer">
-                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+                <OutlinedLucide Icon={User} className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
               </div>
             </Link>
           </div>
