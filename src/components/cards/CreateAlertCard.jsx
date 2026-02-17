@@ -26,22 +26,21 @@ export default function CreateAlertCard({
       style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}
     >
       <div className="flex flex-col justify-center gap-3 flex-1 min-h-0">
-        {/* Dirección (BAJADA 5px junto con su icono) */}
+        {/* Dirección (BAJADA 5px junto con su icono) + Botón a la derecha */}
         <div className="flex items-center gap-2 relative top-[5px]">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
+
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
             placeholder="Calle, número..."
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
           />
-        </div>
 
-        <div className="flex items-center gap-2">
-          <div className="w-[22px] flex-shrink-0"></div>
           <Button
-            className="flex-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white h-7 text-[11px] font-semibold"
+            className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white h-8 px-2 text-[10px] font-semibold whitespace-nowrap"
             onClick={onUseCurrentLocation}
+            type="button"
           >
             <Navigation className="w-3 h-3 mr-1" />
             {useCurrentLocationLabel}
