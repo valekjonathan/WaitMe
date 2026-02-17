@@ -56,7 +56,7 @@ export default function Header({
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (
-              <div className="w-10" />
+              <div className="w-10 h-10" />
             )}
 
             <Link to={createPageUrl('Settings')}>

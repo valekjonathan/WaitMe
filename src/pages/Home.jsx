@@ -74,6 +74,8 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState(null); // null | 'search' | 'create'
+  const [logoSrc, setLogoSrc] = useState(appLogo);
+  const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -160,6 +162,13 @@ export default function Home() {
     getCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
+  const handleLogoError = () => {
+    if (logoRetryCount >= 1) return;
+    setLogoRetryCount((c) => c + 1);
+    setLogoSrc(`${appLogo}?v=${Date.now()}`);
+  };
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -407,8 +416,12 @@ export default function Home() {
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
-                  src={appLogo}
+                  src={logoSrc}
                   alt="WaitMe!"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  onError={handleLogoError}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
