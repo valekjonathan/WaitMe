@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 import Home from './pages/Home';
 import Chats from './pages/Chats';
@@ -13,11 +13,13 @@ import NotificationSettings from './pages/NotificationSettings';
 export default function App() {
   return (
     <Routes>
-      {/* Entradas válidas (Base44 a veces abre /Home) */}
-      <Route path="/" element={<Home />} />
-      <Route path="/Home" element={<Home />} />
-      <Route path="/home" element={<Home />} />
 
+      {/* HOME SIN REDIRECCIONES */}
+      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/Home" element={<Home />} />
+
+      {/* RESTO DE RUTAS */}
       <Route path="/chats" element={<Chats />} />
       <Route path="/chat/:id" element={<Chat />} />
       <Route path="/notifications" element={<Notifications />} />
@@ -27,8 +29,6 @@ export default function App() {
       <Route path="/history" element={<History />} />
       <Route path="/navigate" element={<NavigatePage />} />
 
-      {/* fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
