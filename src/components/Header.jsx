@@ -4,6 +4,21 @@ import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
+// Icono morado con una fina línea blanca exterior (sin sombras)
+function OutlinedLucideIcon({ Icon, sizeClass = 'w-7 h-7', className = '' }) {
+  return (
+    <span className={`relative inline-block ${sizeClass} ${className}`} aria-hidden="true">
+      {/* contorno blanco */}
+      <Icon className={`absolute inset-0 ${sizeClass} text-white`} strokeWidth={3} />
+      {/* icono principal morado */}
+      <Icon
+        className={`relative ${sizeClass} text-purple-500 group-hover:text-purple-400 transition-colors`}
+        strokeWidth={2}
+      />
+    </span>
+  );
+}
+
 export default function Header({
   title = 'WaitMe!',
   showBackButton = false,
@@ -76,14 +91,14 @@ export default function Header({
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
             <Link to={createPageUrl('Settings')}>
-              <div className="cursor-pointer ml-[31px]">
-                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
+              <div className="cursor-pointer ml-[31px] group">
+                <OutlinedLucideIcon Icon={Settings} />
               </div>
             </Link>
 
             <Link to={createPageUrl('Profile')}>
-              <div className="cursor-pointer">
-                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors" />
+              <div className="cursor-pointer group">
+                <OutlinedLucideIcon Icon={User} />
               </div>
             </Link>
           </div>
