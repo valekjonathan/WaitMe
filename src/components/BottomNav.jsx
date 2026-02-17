@@ -59,7 +59,7 @@ export default function BottomNav() {
         <button
           type="button"
           className="flex-1"
-          onClick={() => navigate(`${createPageUrl('Home')}?reset=1&k=${Date.now()}`)}
+          onClick={() => window.dispatchEvent(new Event('waitme:goLogo'))}
         >
           <div className={`${baseBtn} ${isActive('Home') ? activeStyle : ''}`}>
 <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">

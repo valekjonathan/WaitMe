@@ -102,65 +102,62 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: (, {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      refetchInterval: 3000,
-      staleTime: 0
-    }) => base44.auth.me(),
+    queryFn: () => base44.auth.me(),
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+
+
 
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
     enabled: !!user?.id,
-    queryFn: async (, {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      refetchInterval: 3000,
-      staleTime: 0
-    }) => {
+    queryFn: async () => {
       const notifications = await base44.entities.Notification.filter({
         user_id: user.id,
         read: false
       });
       return notifications?.length || 0;
     },
-    staleTime: 30 * 1000,
+    staleTime: 0,
     gcTime: 5 * 60 * 1000,
-    refetchInterval: 30000
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+
+
 
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
-    queryFn: async (, {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      refetchInterval: 3000,
-      staleTime: 0
-    }) => {
+    queryFn: async () => {
       return [];
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 60000
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+
+
 
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
-    queryFn: async (, {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      refetchInterval: 3000,
-      staleTime: 0
-    }) => {
+    queryFn: async () => {
       return [];
     },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000
+    staleTime: 0,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
+
+
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
