@@ -8,14 +8,14 @@ import { Label } from '@/components/ui/label';
 function SimplePinDotIcon() {
   return (
     <span className="relative w-[12px] h-[20px] inline-block">
-      {/* Palito (más pequeño) */}
+      {/* Palito (más corto) */}
       <span
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
-        style={{ background: '#ffffff', height: '14px' }}
+        style={{ background: '#ffffff', height: '8px' }}
       />
       {/* Bolita roja */}
       <span
-        className="absolute bottom-[12px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
         style={{ background: '#ef4444' }}
       />
     </span>
@@ -57,7 +57,7 @@ export default function CreateAlertCard({
             idPrefix="waitme-address"
           />
 
-          {/* MISMA ALTURA que la caja (h-8) + 5px MÁS ANCHO (padding exacto +2.5px por lado) */}
+          {/* MISMA ALTURA que la caja (h-8) + 5px MÁS ANCHO */}
           <Button
             className="h-8 min-h-[32px] px-[6.5px] text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
@@ -100,9 +100,6 @@ export default function CreateAlertCard({
               Precio:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-[42px]">
                 {price} €
-              </span>
-              <span className="text-green-400 text-[10px] ml-2 font-semibold">
-                (Ganarás {(price * 0.8).toFixed(2)} €)
               </span>
             </Label>
 
