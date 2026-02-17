@@ -57,9 +57,9 @@ export default function CreateAlertCard({
             idPrefix="waitme-address"
           />
 
-          {/* +5px alto el botón, icono centrado */}
+          {/* MISMA ALTURA que la caja (h-8) + 5px MÁS ANCHO (padding exacto +2.5px por lado) */}
           <Button
-            className="h-[37px] min-h-[37px] px-1 text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-8 min-h-[32px] px-[6.5px] text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
@@ -70,7 +70,6 @@ export default function CreateAlertCard({
 
         {/* Tiempo */}
         <div className="flex items-center gap-2">
-          {/* bajar 1px más (antes 3px, ahora 4px) */}
           <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
@@ -94,13 +93,11 @@ export default function CreateAlertCard({
 
         {/* Precio */}
         <div className="flex items-center gap-2">
-          {/* bajar 1px más (antes 3px, ahora 4px) */}
           <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
               Precio:
-              {/* mover "3 €" a la derecha para alinearlo con el "0" de "10 minutos" */}
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-[42px]">
                 {price} €
               </span>
