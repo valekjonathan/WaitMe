@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
-import { MapPin, Clock, Euro, Navigation } from 'lucide-react';
+import { MapPin, Clock, Euro } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+
+function PinDotIcon() {
+  return (
+    <span className="relative w-[14px] h-[18px] inline-block">
+      <span
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[12px] rounded-full"
+        style={{ background: '#a855f7' }}
+      />
+      <span
+        className="absolute bottom-[10px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
+        style={{ background: '#a855f7', boxShadow: '0 0 10px rgba(168, 85, 247, 0.8)' }}
+      />
+    </span>
+  );
+}
 
 export default function CreateAlertCard({
   address,
@@ -27,7 +42,7 @@ export default function CreateAlertCard({
     >
       {/* 4 BLOQUES con separación vertical uniforme */}
       <div className="flex flex-col justify-between flex-1 min-h-0">
-        {/* 1) Ubicación + calle + botón */}
+        {/* 1) Ubicación + calle + botón (a la derecha) */}
         <div className="flex items-center gap-2">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
 
@@ -38,14 +53,14 @@ export default function CreateAlertCard({
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
           />
 
-          {/* 3) Botón más pequeño horizontalmente */}
+          {/* Botón: icono bolita/palito, centrado, siempre iluminado, un poco más estrecho */}
           <Button
-            className="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white h-8 px-1.5 text-[9px] font-semibold whitespace-nowrap"
+            className="h-8 px-1 text-[9px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
             onClick={onUseCurrentLocation}
             type="button"
           >
-            <Navigation className="w-3 h-3 mr-1" />
-            {useCurrentLocationLabel}
+            <PinDotIcon />
+            <span className="leading-none">{useCurrentLocationLabel}</span>
           </Button>
         </div>
 
