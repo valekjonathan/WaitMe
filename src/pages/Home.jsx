@@ -529,15 +529,7 @@ export default function Home() {
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[10px]">
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 text-purple-400" />
-                    <input
-                      type="text"
-                      placeholder="Buscar dirección..."
-                      value={searchInput}
-                      onChange={handleSearchInputChange}
-                      onFocus={() => setShowSuggestions(true)}
-                      className="w-full bg-transparent text-white pl-10 pr-4 py-1 text-sm focus:outline-none border-none"
-                    />
-                  </div>
+                    
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
                       {suggestions.map((suggestion, idx) => (
