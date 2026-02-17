@@ -12,11 +12,9 @@ import NavigatePage from './pages/Navigate';
 export default function App() {
   return (
     <Routes>
-      {/* Redirecciones seguras */}
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="/Home" element={<Navigate to="/home" replace />} />
 
-      {/* Rutas reales */}
       <Route path="/home" element={<Home />} />
       <Route path="/chats" element={<Chats />} />
       <Route path="/chat/:id" element={<Chat />} />
