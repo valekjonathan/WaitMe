@@ -68,14 +68,12 @@ export default function Profile() {
     autoSave(newData);
   };
 
-  // FORMATO MATRÍCULA 1234ABC → 1234 ABC
   const formatPlate = (value) => {
     const clean = value.replace(/\s+/g, '').toUpperCase();
     if (clean.length <= 4) return clean;
     return clean.slice(0, 4) + ' ' + clean.slice(4, 7);
   };
 
-  // FOTO INSTANTÁNEA
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,26 +97,24 @@ export default function Profile() {
       return (
         <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
           <path d="M6 16 L8 10 L16 7 L32 7 L40 10 L44 14 L44 18 L6 18 Z"
-            fill={color} stroke="white" strokeWidth="1.5" />
+            fill={color} stroke="white" strokeWidth="1.5"/>
           <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
           <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
         </svg>
       );
     }
 
-    // FURGONETA DERECHA
     if (type === 'van') {
       return (
         <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
           <path d="M4 18 L4 11 L20 11 L24 7 L40 7 L44 11 L44 18 Z"
-            fill={color} stroke="white" strokeWidth="1.5" />
+            fill={color} stroke="white" strokeWidth="1.5"/>
           <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
           <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
         </svg>
       );
     }
 
-    // TRANSPORTER REALISTA
     if (type === 'transporter') {
       return (
         <svg viewBox="0 0 60 24" className="w-16 h-10" fill="none">
@@ -144,7 +140,8 @@ export default function Profile() {
     <div className="h-screen bg-black text-white overflow-hidden">
       <Header title="Mi Perfil" showBackButton backTo="Home" />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto h-screen overflow-hidden">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-y-auto h-screen">
+
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
 
           {/* TARJETA */}
@@ -199,15 +196,68 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* MATRÍCULA INPUT */}
-          <div>
-            <Label className="text-gray-400 text-sm">Matrícula</Label>
-            <Input
-              value={formatPlate(formData.car_plate)}
-              onChange={(e) => updateField('car_plate', e.target.value.replace(/\s+/g, ''))}
-              className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
-              maxLength={8}
-            />
+          {/* FORM COMPLETO */}
+          <div className="space-y-3">
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-gray-400 text-sm">Nombre</Label>
+                <Input
+                  value={formData.display_name}
+                  onChange={(e) => updateField('display_name', e.target.value)}
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-400 text-sm">Teléfono</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
+              </div>
+            </div>
+
+            <div className="bg-gray-900 rounded-lg p-2 border border-gray-800 flex justify-between">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-purple-400"/>
+                <p className="text-sm">Permitir llamadas</p>
+              </div>
+              <Switch
+                checked={formData.allow_phone_calls}
+                onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-400 text-sm">Marca</Label>
+              <Input
+                value={formData.car_brand}
+                onChange={(e) => updateField('car_brand', e.target.value)}
+                className="bg-gray-900 border-gray-700 text-white h-9"
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-400 text-sm">Modelo</Label>
+              <Input
+                value={formData.car_model}
+                onChange={(e) => updateField('car_model', e.target.value)}
+                className="bg-gray-900 border-gray-700 text-white h-9"
+              />
+            </div>
+
+            <div>
+              <Label className="text-gray-400 text-sm">Matrícula</Label>
+              <Input
+                value={formatPlate(formData.car_plate)}
+                onChange={(e) => updateField('car_plate', e.target.value.replace(/\s+/g, ''))}
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
+                maxLength={8}
+              />
+            </div>
+
           </div>
 
         </motion.div>
