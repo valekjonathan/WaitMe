@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
-export default function CreateAlertCard({ 
-  address, 
+export default function CreateAlertCard({
+  address,
   onAddressChange,
   onUseCurrentLocation,
   onCreateAlert,
@@ -25,7 +25,7 @@ export default function CreateAlertCard({
       {/* Dirección */}
       <div className="flex flex-col justify-center gap-3 flex-1 min-h-0">
         <div className="flex items-center gap-2">
-          <MapPin className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+          <MapPin className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 scale-110" />
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
@@ -47,7 +47,7 @@ export default function CreateAlertCard({
         {/* Tiempo */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Clock className="w-3.5 h-3.5 text-purple-400" />
+            <Clock className="w-3.5 h-3.5 text-purple-400 scale-110" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
@@ -63,7 +63,7 @@ export default function CreateAlertCard({
         {/* Precio */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Euro className="w-3.5 h-3.5 text-purple-400" />
+            <Euro className="w-3.5 h-3.5 text-purple-400 scale-110" />
             Precio: <span className="text-purple-400 font-bold">{price} €</span>
             <span className="text-green-400 text-[10px] ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)} €)</span>
           </Label>
