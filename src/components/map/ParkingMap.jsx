@@ -28,9 +28,9 @@ const carColors = {
 
 function createCarIcon(color, price, vehicleType = 'car') {
   const carColor = carColors[color] || '#6b7280';
-
+  
   let vehicleSVG = '';
-
+  
   if (vehicleType === 'van') {
     vehicleSVG = `
       <svg width="80" height="50" viewBox="0 0 48 30" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
@@ -75,15 +75,15 @@ function createCarIcon(color, price, vehicleType = 'car') {
   });
 }
 
-// Crear icono de ubicación del usuario (bolita con palito) PARPADEANDO
+// Crear icono de ubicación del usuario estilo Uber
 function createUserLocationIcon() {
   return L.divIcon({
     className: 'user-location-marker',
     html: `
       <style>
-        @keyframes blink-pin {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.25; }
+        @keyframes pulse-purple {
+          0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
       </style>
       <div style="position: relative; width: 40px; height: 60px;">
@@ -95,7 +95,6 @@ function createUserLocationIcon() {
           width: 2px;
           height: 35px;
           background: #a855f7;
-          animation: blink-pin 1s ease-in-out infinite;
         "></div>
         <div style="
           position: absolute;
@@ -107,7 +106,7 @@ function createUserLocationIcon() {
           background: #a855f7;
           border-radius: 50%;
           box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-          animation: blink-pin 1s ease-in-out infinite;
+          animation: pulse-purple 1.5s ease-in-out infinite;
         "></div>
       </div>
     `,
@@ -131,18 +130,25 @@ function LocationMarker({ position, setPosition, isSelecting }) {
     }
   }, [position, map]);
 
-  return position === null ? null : <Marker position={position}></Marker>;
+  return position === null ? null :
+  <Marker position={position}>
+    </Marker>;
+
 }
 
 function CenterPinMarker({ onMapMove, onMapMoveEnd }) {
   const map = useMapEvents({
     move() {
       const center = map.getCenter();
-      if (onMapMove) onMapMove([center.lat, center.lng]);
+      if (onMapMove) {
+        onMapMove([center.lat, center.lng]);
+      }
     },
     moveend() {
       const center = map.getCenter();
-      if (onMapMoveEnd) onMapMoveEnd([center.lat, center.lng]);
+      if (onMapMoveEnd) {
+        onMapMoveEnd([center.lat, center.lng]);
+      }
     }
   });
 
@@ -181,20 +187,23 @@ export default function ParkingMap({
   onMapMove,
   onMapMoveEnd
 }) {
-  const normalizedUserLocation = userLocation
-    ? (Array.isArray(userLocation)
-      ? userLocation
-      : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
+  // Convertir userLocation a formato [lat, lng] si es objeto
+  const normalizedUserLocation = userLocation 
+    ? (Array.isArray(userLocation) 
+        ? userLocation 
+        : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
     : null;
-
+  
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
 
+  // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
     if (showRoute && normalizedUserLocation) {
+      // Usar sellerLocation si está disponible, sino usar selectedAlert
       const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
-
+      
       if (!targetLocation) {
         setRoute(null);
         setRouteDistance(null);
@@ -204,16 +213,17 @@ export default function ParkingMap({
       const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
       const end = { lat: targetLocation[0], lng: targetLocation[1] };
 
-      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.routes && data.routes[0]) {
-            const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
-            setRoute(coords);
-            setRouteDistance((data.routes[0].distance / 1000).toFixed(2));
-          }
-        })
-        .catch((err) => console.log('Error calculando ruta:', err));
+      // Usar OSRM para calcular la ruta
+      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
+      then((res) => res.json()).
+      then((data) => {
+        if (data.routes && data.routes[0]) {
+          const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
+          setRoute(coords);
+          setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
+        }
+      }).
+      catch((err) => console.log('Error calculando ruta:', err));
     } else {
       setRoute(null);
       setRouteDistance(null);
@@ -248,46 +258,84 @@ export default function ParkingMap({
           </div>
         </div>
       )}
-
       <style>{`
+        .leaflet-top.leaflet-left {
+          top: 10px !important;
+          left: 10px !important;
+          z-index: 1000 !important;
+          display: block !important;
+          visibility: visible !important;
+        }
+        .leaflet-control-zoom {
+          border: 1px solid rgba(168, 85, 247, 0.3) !important;
+          border-radius: 8px !important;
+          overflow: hidden !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+          background: transparent !important;
+          display: flex !important;
+          flex-direction: column !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        .leaflet-control-zoom a {
+          background-color: rgba(0, 0, 0, 0.6) !important;
+          backdrop-filter: blur(4px) !important;
+          color: white !important;
+          border: none !important;
+          width: 40px !important;
+          height: 40px !important;
+          line-height: 40px !important;
+          font-size: 20px !important;
+          font-weight: bold !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-decoration: none !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background-color: rgba(168, 85, 247, 0.6) !important;
+        }
         .leaflet-control-zoom-in {
+          border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
           border-radius: 8px 8px 0 0 !important;
         }
         .leaflet-control-zoom-out {
           border-radius: 0 0 8px 8px !important;
         }
       `}</style>
-
       <MapContainer
         center={defaultCenter}
         zoom={16}
         style={{ height: '100%', width: '100%' }}
         className="rounded-2xl"
         zoomControl={zoomControl}
-        key={`map-${zoomControl}`}
-      >
+        key={`map-${zoomControl}`}>
+
         <TileLayer
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-        />
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
+        
         {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
+        
         {useCenterPin && <CenterPinMarker onMapMove={onMapMove} onMapMoveEnd={onMapMoveEnd} />}
+        
         {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
-
-        {normalizedUserLocation && !useCenterPin && (
-          <Marker
-            position={normalizedUserLocation}
-            icon={createUserLocationIcon()}
-            draggable={isSelecting}
-          >
+        
+        {/* Marcador de ubicación del usuario estilo Uber */}
+        {normalizedUserLocation && !useCenterPin &&
+        <Marker 
+          position={normalizedUserLocation}
+          icon={createUserLocationIcon()}
+          draggable={isSelecting}>
           </Marker>
-        )}
+        }
 
+        {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
         {buyerLocations.map((loc) => (
-          <Marker
+          <Marker 
             key={loc.id}
-            position={[loc.latitude, loc.longitude]}
+            position={[loc.latitude, loc.longitude]} 
             icon={L.divIcon({
               className: 'custom-buyer-icon',
               html: `
@@ -298,8 +346,8 @@ export default function ParkingMap({
                   }
                 </style>
                 <div style="
-                  width: 40px;
-                  height: 40px;
+                  width: 40px; 
+                  height: 40px; 
                   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
                   border: 3px solid white;
                   border-radius: 50%;
@@ -323,21 +371,26 @@ export default function ParkingMap({
           </Marker>
         ))}
 
+        {/* Seller location actualizada en tiempo real */}
         {sellerLocation && showRoute && sellerLocation !== normalizedUserLocation && (
-          <Marker
+          <Marker 
             position={sellerLocation}
             icon={L.divIcon({
               className: 'custom-seller-icon',
               html: `
                 <style>
                   @keyframes pulse-seller {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-                    50% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+                    0%, 100% { 
+                      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+                    }
+                    50% { 
+                      box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+                    }
                   }
                 </style>
                 <div style="
-                  width: 40px;
-                  height: 40px;
+                  width: 40px; 
+                  height: 40px; 
                   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
                   border: 4px solid white;
                   border-radius: 50%;
@@ -360,27 +413,38 @@ export default function ParkingMap({
           </Marker>
         )}
 
-        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] && (
-          <Marker position={selectedPosition} icon={createUserLocationIcon()}>
+        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
+        <Marker
+          position={selectedPosition}
+          icon={createUserLocationIcon()}>
+          </Marker>
+        }
+        
+        {/* Ruta */}
+        {route &&
+        <Polyline
+          positions={route}
+          color="#a855f7"
+          weight={4}
+          opacity={0.8}
+          dashArray="10, 10" />
+
+        }
+        
+        {/* Alertas */}
+        {alerts.map((alert) =>
+        <Marker
+          key={alert.id}
+          position={[alert.latitude, alert.longitude]}
+          icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
+          eventHandlers={{
+            click: () => onAlertClick && onAlertClick(alert)
+          }}>
           </Marker>
         )}
-
-        {route && (
-          <Polyline positions={route} color="#a855f7" weight={4} opacity={0.8} dashArray="10, 10" />
-        )}
-
-        {alerts.map((alert) => (
-          <Marker
-            key={alert.id}
-            position={[alert.latitude, alert.longitude]}
-            icon={createCarIcon(alert.car_color, alert.price, alert.vehicle_type)}
-            eventHandlers={{
-              click: () => onAlertClick && onAlertClick(alert)
-            }}
-          >
-          </Marker>
-        ))}
       </MapContainer>
-    </div>
-  );
+
+
+    </div>);
+
 }
