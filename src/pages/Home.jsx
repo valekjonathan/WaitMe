@@ -73,7 +73,29 @@ export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
-  const [mode, setMode] = useState(null); // null | 'search' | 'create'
+  const [mode, setMode] = useState(null);
+  // ✅ Reset inmediato al logo cuando el menú inferior "Mapa" se pulsa (sin recargar)
+  useEffect(() => {
+    const ts = location?.state?.ts;
+    if (location?.state?.goLogo && ts) {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location?.state?.ts]);
+
+  useEffect(() => {
+    const handler = () => {
+      setMode(null);
+      setSelectedAlert(null);
+      setShowFilters(false);
+    };
+    window.addEventListener('waitme:goLogo', handler);
+    return () => window.removeEventListener('waitme:goLogo', handler);
+  }, []);
+
+ // null | 'search' | 'create'
   const [logoSrc, setLogoSrc] = useState(appLogo);
   const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
@@ -377,7 +399,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-black text-white">
+    <div className="relative min-h-screen w-full bg-black text-white">
+      {/* BG MAP (persistente) para que al volver al logo no cargue */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="w-full h-full" style={ opacity: mode === null ? 0.2 : 0, transition: "opacity 120ms linear" }>
+          <ParkingMap
+                    alerts={homeMapAlerts}
+                    userLocation={userLocation}
+                    userLocationOffsetY={120}
+                    zoomControl={false}
+                  />
+        </div>
+      </div>
       <NotificationManager user={user} />
 
       <Header
@@ -401,16 +434,7 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
             >
-              <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
-                <div className="w-full h-full">
-                  <ParkingMap
-                    alerts={homeMapAlerts}
-                    userLocation={userLocation}
-                    userLocationOffsetY={120}
-                    zoomControl={false}
-                  />
-                </div>
-              </div>
+              {/* BG MAP moved to persistent layer */}
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
