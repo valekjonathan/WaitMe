@@ -528,7 +528,7 @@ export default function Home() {
               <div className="px-7 py-3 flex-shrink-0 z-50 relative">
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[10px]">
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 text-purple-400" />
                     <input
                       type="text"
                       placeholder="Buscar dirección..."
