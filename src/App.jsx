@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import Chats from './pages/Chats';
@@ -11,22 +11,20 @@ import NavigatePage from './pages/Navigate';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Redirecciones seguras */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/Home" element={<Navigate to="/home" replace />} />
+    <Routes>
+      {/* Redirecciones seguras */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/Home" element={<Navigate to="/home" replace />} />
 
-        {/* Rutas reales */}
-        <Route path="/home" element={<Home />} />
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/chat/:id" element={<Chat />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/navigate" element={<NavigatePage />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Rutas reales */}
+      <Route path="/home" element={<Home />} />
+      <Route path="/chats" element={<Chats />} />
+      <Route path="/chat/:id" element={<Chat />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/history" element={<History />} />
+      <Route path="/navigate" element={<NavigatePage />} />
+    </Routes>
   );
 }
