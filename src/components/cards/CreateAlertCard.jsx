@@ -21,11 +21,15 @@ export default function CreateAlertCard({
   };
 
   return (
-    <div className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2 border-2 border-purple-500 shadow-xl h-full flex flex-col min-h-0" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}>
+    <div
+      className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2 border-2 border-purple-500 shadow-xl h-full flex flex-col min-h-0"
+      style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)' }}
+    >
       {/* Dirección */}
       <div className="flex flex-col justify-center gap-3 flex-1 min-h-0">
         <div className="flex items-center gap-2">
-          <MapPin className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 scale-110" />
+          {/* ICONO UBICACIÓN (más grande) */}
+          <MapPin className="w-[18px] h-[18px] text-purple-400 flex-shrink-0" />
           <Input
             value={address}
             onChange={(e) => onAddressChange(e.target.value)}
@@ -33,8 +37,9 @@ export default function CreateAlertCard({
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 flex-1 h-8 text-xs"
           />
         </div>
+
         <div className="flex items-center gap-2">
-          <div className="w-3.5 flex-shrink-0"></div>
+          <div className="w-[18px] flex-shrink-0"></div>
           <Button
             className="flex-1 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/50 text-white h-7 text-[11px] font-semibold"
             onClick={onUseCurrentLocation}
@@ -47,7 +52,8 @@ export default function CreateAlertCard({
         {/* Tiempo */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Clock className="w-3.5 h-3.5 text-purple-400 scale-110" />
+            {/* ICONO RELOJ (más grande) */}
+            <Clock className="w-[18px] h-[18px] text-purple-400" />
             Me voy en: <span className="text-purple-400 font-bold">{minutes} min</span>
           </Label>
           <Slider
@@ -63,7 +69,8 @@ export default function CreateAlertCard({
         {/* Precio */}
         <div className="space-y-0.5">
           <Label className="text-white flex items-center gap-2 text-xs font-medium">
-            <Euro className="w-3.5 h-3.5 text-purple-400 scale-110" />
+            {/* ICONO € (más grande) */}
+            <Euro className="w-[18px] h-[18px] text-purple-400" />
             Precio: <span className="text-purple-400 font-bold">{price} €</span>
             <span className="text-green-400 text-[10px] ml-2 font-semibold">(Ganarás {(price * 0.8).toFixed(2)} €)</span>
           </Label>
