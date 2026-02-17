@@ -67,8 +67,8 @@ export default function CreateAlertCard({
         </div>
 
         {/* Tiempo: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
-        <div className="flex items-start gap-2">
-          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 mt-0.5" />
+        <div className="flex items-center gap-2">
+          <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
@@ -90,8 +90,8 @@ export default function CreateAlertCard({
         </div>
 
         {/* Precio: icono a la izquierda, texto+slider empiezan a la derecha del icono */}
-        <div className="flex items-start gap-2">
-          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 mt-0.5" />
+        <div className="flex items-center gap-2">
+          <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
 
           <div className="flex-1 space-y-0.5">
             <Label className="text-white text-xs font-medium">
