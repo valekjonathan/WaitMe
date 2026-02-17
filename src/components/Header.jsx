@@ -45,12 +45,12 @@ export default function Header({
   }, [title, navigate, titleClassName]);
 
   return (
-    <header className=\"fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700 h-[64px]\">
-      <div className="px-4 h-full">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
+      <div className="px-4 h-[64px] flex items-center">
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
-        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2 h-full">
+        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
           {/* IZQUIERDA */}
-          <div className="flex items-center gap-2 h-full">
+          <div className="flex items-center gap-2">
             {showBackButton ? (
               <button onClick={handleBack} className="text-white p-2">
                 <ArrowLeft className="w-6 h-6" />
