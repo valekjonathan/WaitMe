@@ -788,13 +788,14 @@ export default function Home() {
             );
           })()}
 
-          <DialogFooter className="flex justify-center gap-3 mt-4">
+          {/* Botones en fila y sin estirarse (solo ancho del texto) */}
+          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
             <Button
               onClick={() => {
                 setConfirmPublishOpen(false);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-6 bg-red-600 hover:bg-red-700 text-white"
+              className="w-fit px-4 bg-red-600 hover:bg-red-700 text-white"
             >
               Rechazar
             </Button>
@@ -805,7 +806,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-6 bg-purple-600 hover:bg-purple-700"
+              className="w-fit px-4 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
