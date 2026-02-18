@@ -41,12 +41,11 @@ export default function Profile() {
 
   // Foto instantánea: muestra caché local (si existe) y actualiza en segundo plano
   const [photoSrc, setPhotoSrc] = useState('');
-  const getPhotoCacheKey = (uid) => `waitme_profile_photo_cache_${uid || 'default'}`;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const cacheKey = getPhotoCacheKey(user?.id);
+    const cacheKey = `waitme_profile_photo_cache_${user?.id || 'default'}`;
     let cached = '';
     try {
       cached = window.localStorage.getItem(cacheKey) || '';
@@ -136,34 +135,16 @@ export default function Profile() {
   };
 
   const handlePhotoUpload = async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  // Instantáneo: guardamos una copia local (dataURL) al seleccionar la foto
-  try {
-    const reader = new FileReader();
-    const dataUrl = await new Promise((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    if (typeof window !== 'undefined' && typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
-      const cacheKey = getPhotoCacheKey(user?.id);
-      try { window.localStorage.setItem(cacheKey, dataUrl); } catch (_) {}
-      setPhotoSrc(dataUrl);
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        updateField('photo_url', file_url);
+      } catch (error) {
+        console.error('Error subiendo foto:', error);
+      }
     }
-  } catch (_) {}
-
-  // Subida: actualiza la URL en tu perfil para persistir entre dispositivos
-  try {
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    updateField('photo_url', file_url);
-  } catch (error) {
-    console.error('Error subiendo foto:', error);
-  }
-};
-
+  };
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 
@@ -171,85 +152,81 @@ export default function Profile() {
     return (value = '') => {
       const clean = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       const a = clean.slice(0, 4);
-      const b = clean.slice(4, 8);
+      const b = clean.slice(4, 7);
       return b ? `${a} ${b}`.trim() : a;
     };
   }, []);
 
   const handlePlateChange = (raw) => {
-    const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+    const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
     updateField('car_plate', clean);
   };
 
   const VehicleIconProfile = ({ type, color, size = "w-16 h-10" }) => {
-        if (type === 'suv') {
-      return (
-        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Todoterreno">
-  {/* Todoterreno / SUV (morro a la derecha) */}
-  <path
-    d="M6 18V12.6L10.2 10.2L17.2 8.3H29.8L36.6 9.9L42.6 13.4V18H6Z"
-    fill={color}
-    stroke="white"
-    strokeWidth="1.5"
-    strokeLinejoin="round"
-  />
-  {/* Techo alto */}
-  <path d="M16.8 8.3H30.4" stroke="white" strokeWidth="0.8" opacity="0.6" />
-  {/* Ventanas */}
-  <path
-    d="M17.2 9.1L19.2 12H29.1L31.0 9.1Z"
-    fill="rgba(255,255,255,0.22)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  <path d="M30.2 9.1V12" stroke="white" strokeWidth="0.5" opacity="0.6" />
-  {/* Parachoques / faro frontal (derecha) */}
-  <path d="M42.6 15.1H40.8" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-  {/* Ruedas */}
-  <circle cx="14.3" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="14.3" cy="18" r="2" fill="#666" />
-  <circle cx="35.7" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="35.7" cy="18" r="2" fill="#666" />
-</svg>
-      );
-    }
-        if (type === 'van') {
-      return (
-        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
-  {/* Furgoneta grande tipo mercado (morro a la derecha) */}
-  <path
-    d="M5.5 18V9.7H28.5L33.5 7.3H38.8L42.5 10.2V18H5.5Z"
-    fill={color}
-    stroke="white"
-    strokeWidth="1.5"
-    strokeLinejoin="round"
-  />
-  {/* Parabrisas inclinado (derecha) */}
-  <path
-    d="M33.6 9.3L35.6 12H41.0V10.8L38.6 9.3Z"
-    fill="rgba(255,255,255,0.22)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  {/* Ventana cabina */}
-  <path
-    d="M29.3 9.3L31.1 12H34.9L33.0 9.3Z"
-    fill="rgba(255,255,255,0.18)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  {/* Línea puerta */}
-  <path d="M28.5 9.7V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
-  {/* Faro frontal (derecha) */}
-  <path d="M42.5 14.7H41.0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-  {/* Ruedas */}
-  <circle cx="15.0" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="15.0" cy="18" r="1.9" fill="#666" />
-  <circle cx="35.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="35.2" cy="18" r="1.9" fill="#666" />
-</svg>
-      );
-    }
+    if (type === 'suv') {
+  return (
+    <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Todoterreno">
+      {/* Todoterreno / SUV (morro a la derecha) */}
+      <path
+        d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z"
+        fill={color}
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {/* Ventanas */}
+      <path
+        d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z"
+        fill="rgba(255,255,255,0.22)"
+        stroke="white"
+        strokeWidth="0.5"
+      />
+      <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+      {/* Parachoques y faro delantero */}
+      <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="14.2" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="14.2" cy="18" r="2" fill="#666" />
+      <circle cx="35.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="35.6" cy="18" r="2" fill="#666" />
+    </svg>
+  );
+}
+    if (type === 'van') {
+  return (
+    <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
+      {/* Furgoneta grande (morro a la derecha) */}
+      <path
+        d="M5.5 18 V10.2 H15.2 L19.2 7.6 H33.6 L40.5 10.2 L43.5 12.8 V18 H5.5 Z"
+        fill={color}
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {/* Cristales */}
+      <path
+        d="M16.1 9.6 L18.6 12.6 H27.2 L29.1 9.6 Z"
+        fill="rgba(255,255,255,0.22)"
+        stroke="white"
+        strokeWidth="0.5"
+      />
+      <path
+        d="M30.2 9.6 L31.6 12.6 H38.9 V11.2 L35 9.6 Z"
+        fill="rgba(255,255,255,0.16)"
+        stroke="white"
+        strokeWidth="0.5"
+      />
+      {/* Puerta lateral */}
+      <path d="M28.2 9.6 V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
+      {/* Faro delantero */}
+      <path d="M43.3 15.4 H41.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+      {/* Ruedas */}
+      <circle cx="14.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="14.2" cy="18" r="1.9" fill="#666" />
+      <circle cx="35.4" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="35.4" cy="18" r="1.9" fill="#666" />
+    </svg>
+  );
+}
     // car (default)
     return (
       <svg viewBox="0 0 48 24" className={size} fill="none">
@@ -452,78 +429,33 @@ export default function Profile() {
                         Coche normal
                       </div>
                     </SelectItem>
-                    <SelectItem value="suv" className="text-white hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-
-  {/* Todoterreno / SUV (morro a la derecha) */}
-  <path
-    d="M6 18V12.6L10.2 10.2L17.2 8.3H29.8L36.6 9.9L42.6 13.4V18H6Z"
-    fill="#6b7280"
-    stroke="white"
-    strokeWidth="1.5"
-    strokeLinejoin="round"
-  />
-  {/* Techo alto */}
-  <path d="M16.8 8.3H30.4" stroke="white" strokeWidth="0.8" opacity="0.6" />
-  {/* Ventanas */}
-  <path
-    d="M17.2 9.1L19.2 12H29.1L31.0 9.1Z"
-    fill="rgba(255,255,255,0.22)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  <path d="M30.2 9.1V12" stroke="white" strokeWidth="0.5" opacity="0.6" />
-  {/* Parachoques / faro frontal (derecha) */}
-  <path d="M42.6 15.1H40.8" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-  {/* Ruedas */}
-  <circle cx="14.3" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="14.3" cy="18" r="2" fill="#666" />
-  <circle cx="35.7" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="35.7" cy="18" r="2" fill="#666" />
-
-</svg>
-                        Coche voluminoso
+                    
+<SelectItem value="suv" className="text-white hover:bg-gray-800">
+  <div className="flex items-center gap-2">
+    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+      <path d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+      <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+      <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="14.2" cy="18" r="3.4" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="35.6" cy="18" r="3.4" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+    Coche voluminoso
                       </div>
                     </SelectItem>
-                    <SelectItem value="van" className="text-white hover:bg-gray-800">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-
-  {/* Furgoneta grande tipo mercado (morro a la derecha) */}
-  <path
-    d="M5.5 18V9.7H28.5L33.5 7.3H38.8L42.5 10.2V18H5.5Z"
-    fill="#6b7280"
-    stroke="white"
-    strokeWidth="1.5"
-    strokeLinejoin="round"
-  />
-  {/* Parabrisas inclinado (derecha) */}
-  <path
-    d="M33.6 9.3L35.6 12H41.0V10.8L38.6 9.3Z"
-    fill="rgba(255,255,255,0.22)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  {/* Ventana cabina */}
-  <path
-    d="M29.3 9.3L31.1 12H34.9L33.0 9.3Z"
-    fill="rgba(255,255,255,0.18)"
-    stroke="white"
-    strokeWidth="0.5"
-  />
-  {/* Línea puerta */}
-  <path d="M28.5 9.7V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
-  {/* Faro frontal (derecha) */}
-  <path d="M42.5 14.7H41.0" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-  {/* Ruedas */}
-  <circle cx="15.0" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="15.0" cy="18" r="1.9" fill="#666" />
-  <circle cx="35.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-  <circle cx="35.2" cy="18" r="1.9" fill="#666" />
-
-</svg>
-                        Furgoneta
+                    
+<SelectItem value="van" className="text-white hover:bg-gray-800">
+  <div className="flex items-center gap-2">
+    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
+      <path d="M5.5 18 V10.2 H15.2 L19.2 7.6 H33.6 L40.5 10.2 L43.5 12.8 V18 H5.5 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M16.1 9.6 L18.6 12.6 H27.2 L29.1 9.6 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+      <path d="M30.2 9.6 L31.6 12.6 H38.9 V11.2 L35 9.6 Z" fill="rgba(255,255,255,0.16)" stroke="white" strokeWidth="0.5" />
+      <path d="M28.2 9.6 V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
+      <path d="M43.3 15.4 H41.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+      <circle cx="14.2" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="35.4" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+    Furgoneta
                       </div>
                     </SelectItem>
                   </SelectContent>
