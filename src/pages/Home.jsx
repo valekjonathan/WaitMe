@@ -792,7 +792,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="w-[112px] bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -802,7 +802,7 @@ export default function Home() {
                 setConfirmPublishOpen(false);
                 setPendingPublishPayload(null);
               }}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              className="w-[112px] bg-red-600 hover:bg-red-700 text-white"
             >
               Rechazar
             </Button>
@@ -841,7 +841,7 @@ export default function Home() {
             </Button>
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="w-[112px] bg-purple-600 hover:bg-purple-700"
             >
               Enviar solicitud
             </Button>
