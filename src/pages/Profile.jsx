@@ -24,6 +24,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoadingAuth } = useAuth();
   const [hydrated, setHydrated] = useState(false);
+  const [photoSrc, setPhotoSrc] = useState('');
   const [formData, setFormData] = useState({
     display_name: '',
     car_brand: '',
@@ -55,13 +56,45 @@ export default function Profile() {
     setHydrated(true);
   }, [user, hydrated]);
 
-  // Pre-carga de la foto para que sea instantánea al entrar.
+  // Foto instantánea: cache local (dataURL) + refresco en segundo plano.
   useEffect(() => {
     const url = formData.photo_url || user?.photo_url;
+    const uid = user?.id || user?.user_id || user?.email || 'me';
+    const cacheKey = `wm_profile_photo_cache_${uid}`;
+
+    // 1) Pintar inmediatamente desde cache si existe
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached && !photoSrc) setPhotoSrc(cached);
+    } catch (_) {}
+
     if (!url) return;
+
+    // 2) Pre-cargar la URL real
     const img = new Image();
+    img.decoding = 'sync';
     img.src = url;
-  }, [formData.photo_url, user?.photo_url]);
+    img.onload = () => {
+      setPhotoSrc(url);
+      // 3) Refrescar cache (descargar y guardar como dataURL)
+      try {
+        fetch(url, { cache: 'force-cache' })
+          .then((r) => r.blob())
+          .then(
+            (blob) =>
+              new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+              })
+          )
+          .then((dataUrl) => {
+            if (typeof dataUrl === 'string') localStorage.setItem(cacheKey, dataUrl);
+          })
+          .catch(() => {});
+      } catch (_) {}
+    };
+  }, [formData.photo_url, user?.photo_url, user?.id, user?.user_id, user?.email]);
 
   const autoSave = async (data) => {
     try {
@@ -82,6 +115,19 @@ export default function Profile() {
     if (file) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        // Guardar una copia local instantánea (dataURL) para que NO tarde nunca.
+        try {
+          const uid = user?.id || user?.user_id || user?.email || 'me';
+          const cacheKey = `wm_profile_photo_cache_${uid}`;
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+              localStorage.setItem(cacheKey, reader.result);
+              setPhotoSrc(reader.result);
+            }
+          };
+          reader.readAsDataURL(file);
+        } catch (_) {}
         updateField('photo_url', file_url);
       } catch (error) {
         console.error('Error subiendo foto:', error);
@@ -130,18 +176,22 @@ export default function Profile() {
         <svg viewBox="0 0 48 24" className={size} fill="none">
           {/* Furgoneta tipo transporter (morro a la derecha), mismo estilo */}
           <path
-            d="M6 18 V10.5 L15 10.5 L19 7.2 H33.5 L42 11.2 V18 H6 Z"
+            d="M6 18 V10.8 L15.2 10.8 L19.8 7.4 H33.2 L40.6 9.6 L43 12.2 V18 H6 Z"
             fill={color}
             stroke="white"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          <path d="M16 9 L18 12 L27 12 L28.5 9 Z" fill="rgba(255,255,255,0.24)" stroke="white" strokeWidth="0.5" />
-          <path d="M29.5 9 L31 12 L38 12 L38 10.3 L33.5 9 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
+          {/* Ventanas */}
+          <path d="M18.8 8.9 L20.8 12 H29.2 L30.6 8.9 Z" fill="rgba(255,255,255,0.24)" stroke="white" strokeWidth="0.5" />
+          <path d="M31.4 8.9 L33.1 12 H39.6 V10.2 L36.2 8.9 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
+          {/* Morro/parte frontal (derecha) */}
+          <path d="M43 12.2 L41.2 12.2 L41.2 16.6 L43 16.6" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+          {/* Ruedas */}
           <circle cx="14" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
           <circle cx="14" cy="18" r="2" fill="#666" />
-          <circle cx="34" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-          <circle cx="34" cy="18" r="2" fill="#666" />
+          <circle cx="35" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="35" cy="18" r="2" fill="#666" />
         </svg>
       );
     }
@@ -191,7 +241,7 @@ export default function Profile() {
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
                   {formData.photo_url ?
                   <img
-                    src={formData.photo_url}
+                    src={photoSrc || formData.photo_url}
                     alt="Perfil"
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -362,11 +412,12 @@ export default function Profile() {
                     <SelectItem value="van" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-                          <path d="M6 18 V10.5 L15 10.5 L19 7.2 H33.5 L42 11.2 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-                          <path d="M16 9 L18 12 L27 12 L28.5 9 Z" fill="rgba(255,255,255,0.24)" stroke="white" strokeWidth="0.5" />
-                          <path d="M29.5 9 L31 12 L38 12 L38 10.3 L33.5 9 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
+                          <path d="M6 18 V10.8 L15.2 10.8 L19.8 7.4 H33.2 L40.6 9.6 L43 12.2 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                          <path d="M18.8 8.9 L20.8 12 H29.2 L30.6 8.9 Z" fill="rgba(255,255,255,0.24)" stroke="white" strokeWidth="0.5" />
+                          <path d="M31.4 8.9 L33.1 12 H39.6 V10.2 L36.2 8.9 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
+                          <path d="M43 12.2 L41.2 12.2 L41.2 16.6 L43 16.6" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
                           <circle cx="14" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
-                          <circle cx="34" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="35" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
                         </svg>
                         Furgoneta
                       </div>
