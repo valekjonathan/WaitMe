@@ -1727,10 +1727,10 @@ const myFinalizedAlerts = useMemo(() => {
           hideClose
           className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
         >
-          {/* Cabecera: mismo estilo que la X roja de Filtros (Home) */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-8 flex items-center rounded-lg bg-red-600 px-3">
-              <span className="text-white font-extrabold text-xs">Tu alerta ha expirado</span>
+          {/* Cabecera: mismo estilo que el botón "Filtros" */}
+          <div className="flex items-center justify-center mb-3">
+            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
+              Tu alerta ha expirado
             </div>
           </div>
 
@@ -1783,7 +1783,7 @@ const myFinalizedAlerts = useMemo(() => {
                 </div>
 
                 <div className="mt-2">
-                  <CountdownButton text="EXPIRADA" dimmed={true} />
+                  <CountdownButton text="EXPIRADA" dimmed={false} />
                 </div>
               </div>
             );

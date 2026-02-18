@@ -83,7 +83,7 @@ export default function BottomNav() {
             {activeAlertCount > 0 && (
               <span
                 // +15px hacia la derecha (pedido)
-                style={{ transform: 'translateX(15px)' }}
+                style={{ transform: 'translate(18px, -2px)' }}
                 className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}

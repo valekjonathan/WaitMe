@@ -295,6 +295,7 @@ export default function Home() {
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
       await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
       await queryClient.cancelQueries({ queryKey: ['myAlerts', user?.id, user?.email] });
+      await queryClient.cancelQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
@@ -322,6 +323,17 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
       });
+
+      // 🔥 Badge instantáneo: bolita y alerta aparecen a la vez
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        const merged = [optimisticAlert, ...list];
+        // Solo activas/reservadas
+        return merged.filter((a) => {
+          const st = String(a?.status || '').toLowerCase();
+          return st === 'active' || st === 'reserved';
+        });
+      });
     },
     onSuccess: (newAlert) => {
       queryClient.setQueryData(['alerts'], (old) => {
@@ -337,6 +349,16 @@ export default function Home() {
       queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+      });
+
+      // 🔥 Badge instantáneo: sustituye temp_ por la alerta real
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        const merged = [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+        return merged.filter((a) => {
+          const st = String(a?.status || '').toLowerCase();
+          return st === 'active' || st === 'reserved';
+        });
       });
     },
     onError: (error) => {
