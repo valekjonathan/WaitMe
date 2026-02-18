@@ -157,34 +157,17 @@ export default function Home() {
   });
 
   const { data: myActiveAlerts = [] } = useQuery({
-    queryKey: ['myActiveAlerts', user?.id, user?.email],
-    enabled: !!user?.id || !!user?.email,
+    queryKey: ['myActiveAlerts', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      return [];
+    },
     staleTime: 0,
     gcTime: 10 * 60 * 1000,
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    placeholderData: (prev) => prev,
-    queryFn: async () => {
-      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
-      const uid = user?.id;
-      const email = user?.email;
-
-      return (all || []).filter((a) => {
-        if (!a) return false;
-
-        const isMine =
-          (uid && (a.user_id === uid || a.created_by === uid)) ||
-          (email && a.user_email === email);
-
-        if (!isMine) return false;
-
-        const st = String(a.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
-      });
-    }
+    refetchOnMount: true
   });
-
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
@@ -731,7 +714,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between gap-3">
             <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-              <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada. No puedes tener 2 alertas activas.</span>
+              <span className="text-white font-semibold text-sm">Ya tienes una alerta activa.</span>
             </div>
 
             <button
@@ -742,6 +725,10 @@ export default function Home() {
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+
+          <div className="mt-3 px-1">
+            <p className="text-white text-sm font-semibold">No puedes tener 2 alertas activas.</p>
           </div>
         </DialogContent>
       </Dialog>
