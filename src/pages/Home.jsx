@@ -731,70 +731,32 @@ export default function Home() {
         setConfirmPublishOpen(open);
         if (!open) setPendingPublishPayload(null);
       }}>
-        <DialogContent
-          hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
-        >
-          {/* Cabecera: mismo estilo que el aviso EXPIRADA */}
-          <div className="flex items-center justify-center mb-3">
-            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md text-center">
-              Vas a publicar una alerta:
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Vas a publicar una alerta:</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{pendingPublishPayload?.address || ''}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{pendingPublishPayload?.available_in_minutes ?? ''} Minutos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Euro className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">Precio:</span>
+              <span className="text-purple-300 font-bold">{pendingPublishPayload?.price ?? ''}€</span>
             </div>
           </div>
 
-          {/* Tarjeta incrustada */}
-          {(() => {
-            const addr = pendingPublishPayload?.address || '';
-            const minutes = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-            const price = pendingPublishPayload?.price ?? '';
-
-            const waitUntilLabel = Number.isFinite(minutes) && minutes > 0
-              ? new Date(Date.now() + minutes * 60 * 1000).toLocaleString('es-ES', {
-                  timeZone: 'Europe/Madrid',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                })
-              : '--:--';
-
-            return (
-              <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50 relative">
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2 text-xs">
-                    <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white leading-5">
-                      <span className="text-white">En la calle: </span>
-                      <span className="text-white">{addr}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-xs">
-                    <Clock className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white leading-5">
-                      Debes esperar hasta las:{' '}
-                      <span className="text-purple-400 font-bold">{waitUntilLabel}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2 text-xs">
-                    <Euro className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-purple-400 font-bold leading-5">{price} €</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
-          <DialogFooter className="flex gap-3 mt-4">
-            <Button
-              onClick={() => {
-                setConfirmPublishOpen(false);
-                setPendingPublishPayload(null);
-              }}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-            >
-              Rechazar
-            </Button>
+          <DialogFooter className="flex justify-center gap-3">
+            <Button variant="outline" onClick={() => {
+              setConfirmPublishOpen(false);
+              setPendingPublishPayload(null);
+            }} className="px-4 bg-red-600 hover:bg-red-700 text-white border-0">Rechazar</Button>
             <Button
               onClick={() => {
                 if (!pendingPublishPayload) return;
@@ -802,7 +764,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="px-4 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -835,13 +797,13 @@ export default function Home() {
             </p>
           </div>
 
-          <DialogFooter className="flex gap-3">
+          <DialogFooter className="flex justify-center gap-3">
             <Button variant="outline" onClick={() => setConfirmDialog({ open: false, alert: null })} className="flex-1 border-gray-700">
               Cancelar
             </Button>
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="px-4 bg-purple-600 hover:bg-purple-700"
             >
               Enviar solicitud
             </Button>

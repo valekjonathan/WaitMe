@@ -548,7 +548,7 @@ const {
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   // Evita "recargas" al entrar a Alertas, pero sigue actualizando en segundo plano
-  staleTime: 3000,
+  staleTime: 30000,
   gcTime: 5 * 60 * 1000,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
@@ -811,7 +811,7 @@ const myFinalizedAlerts = useMemo(() => {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  const isLoading = loadingAlerts || loadingTransactions;
+  const isLoading = (loadingAlerts && myAlerts.length === 0) || (loadingTransactions && transactions.length === 0);
 
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
@@ -1711,7 +1711,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setCancelConfirmOpen(false);
                 setCancelConfirmAlert(null);
               }}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="px-4 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -1789,7 +1789,7 @@ const myFinalizedAlerts = useMemo(() => {
             );
           })()}
 
-          <DialogFooter className="flex gap-3 mt-4">
+          <DialogFooter className="flex justify-center gap-3 mt-4">
             <Button
               onClick={() => {
                 if (!expirePromptAlert?.id) return;
@@ -1797,7 +1797,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="flex-1 bg-white text-black hover:bg-gray-200"
+              className="px-4 bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>
@@ -1808,7 +1808,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
+              className="px-4 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
