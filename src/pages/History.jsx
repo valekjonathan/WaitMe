@@ -547,34 +547,30 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 5 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
+  staleTime: 0,
+  refetchOnMount: true,
+  refetchOnWindowFocus: true,
+  refetchOnReconnect: true,
   refetchInterval: false,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-  refetchOnMount: false,
-  // Evita “parpadeos”/vacíos mientras refresca
-  placeholderData: (prev) => prev,
   queryFn: async () => {
     const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
-    const filtered = (all || []).filter((a) => {
+    const uid = user?.id;
+    const email = user?.email;
+
+    return (all || []).filter((a) => {
       if (!a) return false;
-      const uid = user?.id;
-      const email = user?.email;
-      const mineById = uid && (
-        a.user_id === uid ||
-        a.created_by === uid ||
-        a.reserved_by_id === uid
-      );
-      const mineByEmail = email && (
-        a.user_email === email ||
-        a.reserved_by_email === email
-      );
-      return !!(mineById || mineByEmail);
+
+      const isMine =
+        (uid && (a.user_id === uid || a.created_by === uid)) ||
+        (email && a.user_email === email);
+
+      return !!isMine;
     });
-    return filtered;
   }
 });
+
+
+
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   queryKey: ['myTransactions', user?.email],
   enabled: !!user?.email,
