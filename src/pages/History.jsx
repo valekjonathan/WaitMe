@@ -781,7 +781,7 @@ const myFinalizedAlerts = useMemo(() => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
       <main className="pt-[56px] pb-20 px-4">

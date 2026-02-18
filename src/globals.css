@@ -60,3 +60,7 @@
 [data-orientation="horizontal"][role="slider"] ~ span {
   @apply bg-purple-600;
 }
+
+/* DVH GLOBAL FIX (iOS PWA / Safari) */
+html, body, #root { height: 100%; }
+body { min-height: 100dvh; background: #000; }
