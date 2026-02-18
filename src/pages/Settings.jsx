@@ -33,6 +33,12 @@ export default function Settings() {
     if (!user) return;
     setPhone(user.phone || '');
     setAllowCalls(user.allow_phone_calls || false);
+
+    // Pre-carga de foto (entrada instantánea)
+    if (user.photo_url) {
+      const img = new Image();
+      img.src = user.photo_url;
+    }
   }, [user]);
 
   const handleSavePhone = async () => {
@@ -73,6 +79,7 @@ export default function Settings() {
                   alt=""
                   loading="eager"
                   decoding="sync"
+                  fetchPriority="high"
                 />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
