@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -23,6 +23,13 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
+
+  // 🔥 PRE-CARGA REAL PARA FOTO INSTANTÁNEA
+  useEffect(() => {
+    if (!user?.photo_url) return;
+    const img = new Image();
+    img.src = user.photo_url;
+  }, [user?.photo_url]);
 
   const handleLogout = () => {
     logout?.(true);
@@ -59,6 +66,7 @@ export default function Settings() {
                   alt=""
                   loading="eager"
                   decoding="sync"
+                  fetchPriority="high"
                 />
               ) : (
                 <div className="w-14 h-14 rounded-xl bg-gray-800 border-2 border-purple-500 flex items-center justify-center">
@@ -123,25 +131,33 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Instagram y Web individuales */}
-          <div className="flex justify-center gap-8 pt-2">
-            <button
-              onClick={() => openExternal(instagramUrl)}
-              disabled={!instagramUrl}
-              className="w-20 h-20 bg-purple-900/60 rounded-xl flex flex-col items-center justify-center gap-2 disabled:opacity-40"
-            >
-              <Instagram className="w-6 h-6 text-purple-400" />
-              <span className="text-xs text-white">Instagram</span>
-            </button>
+          {/* Instagram y Web estilo Créditos */}
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
+            <div className="flex justify-center gap-10">
+              
+              <button
+                onClick={() => openExternal(instagramUrl)}
+                disabled={!instagramUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/40">
+                  <Instagram className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-sm text-white font-medium">Instagram</span>
+              </button>
 
-            <button
-              onClick={() => openExternal(webUrl)}
-              disabled={!webUrl}
-              className="w-20 h-20 bg-purple-900/60 rounded-xl flex flex-col items-center justify-center gap-2 disabled:opacity-40"
-            >
-              <Globe className="w-6 h-6 text-purple-400" />
-              <span className="text-xs text-white">Web</span>
-            </button>
+              <button
+                onClick={() => openExternal(webUrl)}
+                disabled={!webUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/40">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-sm text-white font-medium">Web</span>
+              </button>
+
+            </div>
           </div>
 
           {/* Cerrar sesión */}
