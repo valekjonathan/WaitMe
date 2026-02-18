@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Badge SIEMPRE sincronizado con alertas activas/resevadas del usuario
   const { data: badgeAlerts = [] } = useQuery({
@@ -19,6 +20,7 @@ export default function BottomNav() {
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     refetchInterval: 5000,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
@@ -40,6 +42,15 @@ export default function BottomNav() {
   });
 
   const activeAlertCount = badgeAlerts.length;
+
+  // Refresco inmediato del badge (cuando se crea/expira una alerta)
+  useEffect(() => {
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
+    };
+    window.addEventListener('waitme:badgeRefresh', handler);
+    return () => window.removeEventListener('waitme:badgeRefresh', handler);
+  }, [queryClient, user?.id, user?.email]);
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +

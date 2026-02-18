@@ -322,6 +322,13 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
       });
+
+      // Badge (Alertas) instantáneo
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [optimisticAlert, ...list];
+      });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: (newAlert) => {
       queryClient.setQueryData(['alerts'], (old) => {
@@ -338,6 +345,13 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
       });
+
+
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+      });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
@@ -721,7 +735,7 @@ export default function Home() {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 overflow-x-hidden"
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
         >
           {/* Caja morada centrada */}
           <div className="flex justify-center">
@@ -792,7 +806,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="w-[112px] bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-6 min-w-[118px] bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -802,7 +816,7 @@ export default function Home() {
                 setConfirmPublishOpen(false);
                 setPendingPublishPayload(null);
               }}
-              className="w-[112px] bg-red-600 hover:bg-red-700 text-white"
+              className="w-auto px-6 min-w-[118px] bg-red-600 hover:bg-red-700 text-white"
             >
               Rechazar
             </Button>
@@ -841,7 +855,7 @@ export default function Home() {
             </Button>
             <Button
               onClick={() => buyAlertMutation.mutate(confirmDialog.alert)}
-              className="w-[112px] bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-6 min-w-[118px] bg-purple-600 hover:bg-purple-700"
             >
               Enviar solicitud
             </Button>

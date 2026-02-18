@@ -547,14 +547,13 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  // ✅ Carga instantánea: muestra caché al entrar y refresca después
-  staleTime: 15 * 1000,
+  staleTime: 30 * 1000,
   gcTime: 5 * 60 * 1000,
-  placeholderData: (prev) => prev,
   refetchOnMount: false,
-  refetchOnWindowFocus: true,
-  refetchOnReconnect: true,
+  refetchOnWindowFocus: false,
+  refetchOnReconnect: false,
   refetchInterval: false,
+  placeholderData: (prev) => prev,
   queryFn: async () => {
     const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
     const uid = user?.id;
@@ -580,6 +579,7 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   staleTime: 5 * 60 * 1000,
   gcTime: 10 * 60 * 1000,
   refetchInterval: false,
+  placeholderData: (prev) => prev,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchOnMount: false,
@@ -844,6 +844,8 @@ const myFinalizedAlerts = useMemo(() => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
 
@@ -851,8 +853,17 @@ const myFinalizedAlerts = useMemo(() => {
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
+    onMutate: async (alertId) => {
+      // Quitar badge al instante
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return list.filter((a) => a?.id !== alertId);
+      });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
     }
   });
 
@@ -897,6 +908,8 @@ const myFinalizedAlerts = useMemo(() => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
 
@@ -928,8 +941,8 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black px-4 pt-[11px] pb-[2px] border-t border-gray-800 border-b border-gray-700">
-            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[7px] mb-[2px] h-auto p-0">
+          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black px-4 pt-[14px] pb-[2px] border-t border-gray-800">
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
               </TabsTrigger>
@@ -1727,7 +1740,7 @@ const myFinalizedAlerts = useMemo(() => {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto overflow-x-hidden"
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto"
         >
           {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
           <div className="flex justify-center mb-3">
@@ -1794,18 +1807,11 @@ const myFinalizedAlerts = useMemo(() => {
             <Button
               onClick={() => {
                 if (!expirePromptAlert?.id) return;
-
-                // ✅ Quitar la "bolita" de Alertas INSTANTÁNEO al aceptar
-                try {
-                  queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], []);
-                  queryClient.invalidateQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
-                } catch {}
-
                 expireAlertMutation.mutate(expirePromptAlert.id);
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-[156px] px-4 bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-6 min-w-[140px] bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -1817,7 +1823,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-[156px] px-4 bg-white text-black hover:bg-gray-200"
+              className="w-auto px-6 min-w-[140px] bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>
