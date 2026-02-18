@@ -365,7 +365,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-[100dvh] bg-black flex flex-col">
       <Header title="Chat" showBackButton={true} backTo="Chats" />
 
       {/* Info del usuario */}

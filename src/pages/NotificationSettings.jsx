@@ -53,7 +53,7 @@ export default function NotificationSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-[100dvh] bg-black text-white">
       <Header title="Notificaciones" showBackButton={true} backTo="Settings" />
 
       <main className="pt-20 pb-24 px-4 h-screen overflow-hidden">

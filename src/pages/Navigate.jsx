@@ -371,7 +371,7 @@ export default function Navigate() {
   const mapCenter = displayAlert ? [displayAlert.latitude, displayAlert.longitude] : [defaultLat, defaultLon];
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
       {/* Modal de éxito de pago */}
       {showPaymentSuccess && (
         <motion.div
