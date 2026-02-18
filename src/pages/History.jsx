@@ -993,6 +993,787 @@ const myFinalizedAlerts = useMemo(() => {
                                   dateText={dateText}
                                   dateClassName="text-white"
                                   right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={formatPriceInt(alert.price)}
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          hideKey(cardKey);
+                                          cancelAlertMutation.mutate(alert.id);
+                                        }}
+                                        disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  }
+                                />
+
+                                <div className="border-t border-gray-700/80 mb-2" />
+
+                                {alert.reserved_by_name && (
+                                  <div className="mb-1.5 h-[220px]">
+                                    <UserCard
+                                      userName={alert.reserved_by_name}
+                                      userPhoto={null}
+                                      carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
+                                      carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
+                                      carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
+                                      carPlate={alert.reserved_by_plate}
+                                      vehicleType={alert.reserved_by_vehicle_type}
+                                      address={formatAddress(alert.address)}
+                                      availableInMinutes={alert.available_in_minutes}
+                                      price={alert.price}
+                                      showLocationInfo={false}
+                                      showContactButtons={true}
+                                      onChat={() =>
+                                        (window.location.href = createPageUrl(
+                                          `Chat?alertId=${alert.id}&userId=${
+                                            alert.reserved_by_email || alert.reserved_by_id
+                                          }`
+                                        ))
+                                      }
+                                      onCall={() =>
+                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
+                                      }
+                                      latitude={alert.latitude}
+                                      longitude={alert.longitude}
+                                      allowPhoneCalls={alert.allow_phone_calls}
+                                      isReserved={true}
+                                    />
+                                  </div>
+                                )}
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-gray-400 leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start justify-between text-xs">
+                                  <div className="flex items-start gap-1.5">
+                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                    <span className="text-gray-500 leading-5">
+                                      Te vas en {alert.available_in_minutes} min
+                                    </span>
+                                  </div>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <CardHeaderRow
+                                  left={
+                                    <Badge
+                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                                    >
+                                      Activa
+                                    </Badge>
+                                  }
+                                  dateText={dateText}
+                                  dateClassName="text-white"
+                                  right={
+                                    <div className="flex items-center gap-1">
+                                      <MoneyChip
+                                        mode="green"
+                                        showUpIcon
+                                        amountText={formatPriceInt(alert.price)}
+                                      />
+                                      <button
+                                        onClick={() => {
+  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
+  cancelAlertMutation.mutate(alert.id, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
+    }
+  });
+}}
+                                        disabled={cancelAlertMutation.isPending}
+                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  }
+                                />
+
+                                <div className="border-t border-gray-700/80 mb-2" />
+
+                                <div className="flex items-start gap-1.5 text-xs mb-2">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-white leading-5">
+                                    {formatAddress(alert.address) || 'Ubicación marcada'}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-start gap-1.5 text-xs">
+                                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                                  <span className="text-white leading-5">
+                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                  </span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las {waitUntilLabel}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2">
+                                  <CountdownButton text={countdownText} dimmed={false} />
+                                </div>
+                              </>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                      .slice(0, 1)}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
+                </div>
+
+                {renderableFinalized.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {renderableFinalized.map((item, index) => {
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
+
+                      if (item.type === 'alert') {
+  const a = item.data;
+  // 🔴 NO pintar alertas COMPLETADAS aquí (van como transacción)
+  if (String(a?.status || '').toLowerCase() === 'completed') return null;
+
+  const ts = item.created_date;
+  const dateText = ts ? formatCardDate(ts) : '--';
+
+                        return (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
+                          >
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={formatPriceInt(a.price)}
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      await deleteAlertSafe(a.id);
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              }
+                            />
+
+                            <div className="border-t border-gray-700/80 mb-2" />
+
+                            <div className="flex items-start gap-1.5 text-xs mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
+                              <span className="text-gray-400 leading-5">
+                                {formatAddress(a.address) || 'Ubicación marcada'}
+                              </span>
+                            </div>
+
+                            <div className="mt-2">
+                              <CountdownButton
+                                text={statusLabelFrom(a.status)}
+                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
+                              />
+                            </div>
+                          </motion.div>
+                        );
+                      }
+
+                      const tx = item.data;
+                      const isSeller = tx.seller_id === user?.id;
+
+                      const buyerName = tx.buyer_name || 'Usuario';
+                      const buyerPhoto = tx.buyer_photo_url || tx.buyerPhotoUrl || '';
+                      const buyerCarLabel =
+                        tx.buyer_car ||
+                        tx.buyerCar ||
+                        tx.buyer_car_label ||
+                        tx.buyerCarLabel ||
+                        (tx.buyer_car_brand
+                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
+                          : '');
+                      const buyerPlate =
+                        tx.buyer_plate ||
+                        tx.buyerPlate ||
+                        tx.buyer_car_plate ||
+                        tx.buyerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const buyerColor =
+                        tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
+
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                <MoneyChip
+                                  mode="green"
+                                  showUpIcon
+                                  amountText={formatPriceInt(tx.amount)}
+                                />
+                                <button
+                                  onClick={() => hideKey(key)}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <div className="mb-1.5">
+                            <MarcoContent
+                              photoUrl={buyerPhoto}
+                              name={buyerName}
+                              carLabel={buyerCarLabel || 'Sin datos'}
+                              plate={buyerPlate}
+                              carColor={buyerColor}
+                              address={tx.address}
+                              timeLine={`Transacción completada · ${
+                                ts ? format(new Date(ts), 'HH:mm', { locale: es }) : '--:--'
+                              }`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${tx.alert_id}&userId=${tx.buyer_id}`
+                                ))
+                              }
+                              statusText="COMPLETADA"
+                              dimIcons={true}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  )}
+                  </TabsContent>
+
+                  <TabsContent value="reservations" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
+                  <SectionTag variant="green" text="Activas" />
+
+                {reservationsActiveAll.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna reserva activa.</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {reservationsActiveAll.map((alert, index) => {
+                      const createdTs = getCreatedTs(alert) || nowTs;
+                      const waitUntilTs = getWaitUntilTs(alert);
+                      const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > createdTs;
+
+                      const remainingMs = hasExpiry ? Math.max(0, waitUntilTs - nowTs) : null;
+                      const waitUntilLabel = hasExpiry
+                       ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                       : '--:--';
+
+                      const countdownText =
+                        remainingMs === null
+                          ? '--:--'
+                          : remainingMs > 0
+                          ? formatRemaining(remainingMs)
+                          : 'Reserva finalizada';
+
+                      const key = `res-active-${alert.id}`;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const isMock = String(alert.id).startsWith('mock-');
+
+                      if (
+                        alert.status === 'reserved' &&
+                        hasExpiry &&
+                        remainingMs !== null &&
+                        remainingMs <= 0
+                      ) {
+                        if (!isMock) {
+                          if (!autoFinalizedReservationsRef.current.has(alert.id)) {
+                            autoFinalizedReservationsRef.current.add(alert.id);
+                          }
+}
+                        return null;
+                      }
+
+                      const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
+                      const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
+
+                      const dateText = formatCardDate(createdTs);
+                      const moneyMode = reservationMoneyModeFromStatus('reserved');
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Activa
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-white"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {moneyMode === 'paid' ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={formatPriceInt(alert.price)}
+                                  />
+                                ) : (
+                                  <MoneyChip
+                                    mode="neutral"
+                                    amountText={formatPriceInt(alert.price)}
+                                  />
+                                )}
+
+                                <button
+                                  onClick={async () => {
+                                    hideKey(key);
+                                    if (isMock) return;
+
+                                    await base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' });
+                                    await base44.entities.ChatMessage.create({
+                                      alert_id: alert.id,
+                                      sender_id: user?.email || user?.id,
+                                      sender_name:
+                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+                                      receiver_id: alert.user_email || alert.user_id,
+                                      message: `He cancelado mi reserva de ${Math.trunc(alert.price ?? 0)} €`,
+                                      read: false
+                                    });
+
+                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                  }}
+                                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            bright={true}
+                            photoUrl={alert.user_photo}
+                            name={alert.user_name}
+                            carLabel={carLabel || 'Sin datos'}
+                            plate={alert.car_plate}
+                            carColor={alert.car_color}
+                            address={alert.address}
+                            timeLine={{
+                              main: `Se va en ${alert.available_in_minutes} min ·`,
+                              accent: `Te espera hasta las ${waitUntilLabel}`
+                            }}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
+                              ))
+                            }
+                            statusText={countdownText}
+                            statusEnabled={true}
+                            phoneEnabled={phoneEnabled}
+                            onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
+                          />
+
+                          {/* Línea horizontal y botón de navegación */}
+                          <div className="border-t border-gray-700/80 mt-2 pt-2">
+                            <Button
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
+                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
+                            >
+                              IR
+                              <Navigation className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <SectionTag variant="red" text="Finalizadas" />
+                </div>
+
+                {reservationsFinalAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                  >
+                    <p className="text-gray-500 font-semibold">No tienes ninguna reserva finalizada.</p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-[20px]">
+                    {reservationsFinalAll.map((item, index) => {
+                      const key = item.id;
+                      if (hiddenKeys.has(key)) return null;
+
+                      const finalizedCardClass =
+                        'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
+
+                      if (item.type === 'alert') {
+                        const a = item.data;
+                        const ts = toMs(a.created_date) || nowTs;
+                        const dateText = ts ? formatCardDate(ts) : '--';
+
+                        const waitUntilTs = getWaitUntilTs(a);
+                        const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
+                        const waitUntilLabel = hasExpiry
+                         ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+                         : '--:--';
+
+                        const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+                        const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+
+                        const mode = reservationMoneyModeFromStatus(a.status);
+
+                        return (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={finalizedCardClass}
+                          >
+                            <CardHeaderRow
+                              left={
+                                <Badge
+                                  className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                  Finalizada
+                                </Badge>
+                              }
+                              dateText={dateText}
+                              dateClassName="text-gray-600"
+                              right={
+                                <div className="flex items-center gap-1">
+                                  {mode === 'paid' ? (
+                                    <MoneyChip
+                                      mode="red"
+                                      showDownIcon
+                                      amountText={formatPriceInt(a.price)}
+                                    />
+                                  ) : (
+                                    <MoneyChip mode="neutral" amountText={formatPriceInt(a.price)} />
+                                  )}
+
+                                  <button
+                                    onClick={async () => {
+                                      hideKey(key);
+                                      const isMock = String(a.id).startsWith('mock-');
+                                      if (!isMock) {
+                                        await deleteAlertSafe(a.id);
+                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                      }
+                                    }}
+                                    className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              }
+                            />
+
+                            <div className="border-t border-gray-700/80 mb-2" />
+
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={carLabel || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={phoneEnabled}
+                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                              dimIcons={true}
+                            />
+                          </motion.div>
+                        );
+                      }
+
+                      const tx = item.data;
+                      const ts = toMs(tx.created_date);
+                      const dateText = ts ? formatCardDate(ts) : '--';
+
+                      const sellerName = tx.seller_name || 'Usuario';
+                      const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
+                      const sellerCarLabel =
+                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                      const sellerPlate =
+                        tx.seller_plate ||
+                        tx.sellerPlate ||
+                        tx.seller_car_plate ||
+                        tx.sellerCarPlate ||
+                        tx.car_plate ||
+                        tx.carPlate ||
+                        '';
+                      const sellerColor =
+                        tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
+
+                      const txPaid = String(tx.status || '').toLowerCase() === 'completed';
+
+                      return (
+                        <motion.div
+                          key={key}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={finalizedCardClass}
+                        >
+                          <CardHeaderRow
+                            left={
+                              <Badge
+                                className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}
+                              >
+                                Finalizada
+                              </Badge>
+                            }
+                            dateText={dateText}
+                            dateClassName="text-gray-600"
+                            right={
+                              <div className="flex items-center gap-1">
+                                {txPaid ? (
+                                  <MoneyChip
+                                    mode="red"
+                                    showDownIcon
+                                    amountText={formatPriceInt(tx.amount)}
+                                  />
+                                ) : (
+                                  <MoneyChip mode="neutral" amountText={formatPriceInt(tx.amount)} />
+                                )}
+
+                                <Button
+                                  size="icon"
+                                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-2 py-1 h-7 w-7 border-2 border-gray-500"
+                                  onClick={() => hideKey(key)}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            }
+                          />
+
+                          <div className="border-t border-gray-700/80 mb-2" />
+
+                          <MarcoContent
+                            photoUrl={sellerPhoto}
+                            name={sellerName}
+                            carLabel={sellerCarLabel || 'Sin datos'}
+                            plate={sellerPlate}
+                            carColor={sellerColor}
+                            address={tx.address}
+                            timeLine={`Transacción completada · ${
+                              ts ? new Date(ts).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
+                            }`}
+                            onChat={() =>
+                              (window.location.href = createPageUrl(
+                                `Chat?alertId=${tx.alert_id}&userId=${tx.seller_id}`
+                              ))
+                            }
+                            statusText="COMPLETADA"
+                            statusEnabled={true}
+                            dimIcons={true}
+                          />
+                        </motion.div>
+                      );
+                    })}
+                    </div>
+                    )}
+                    </TabsContent>
+                    </Tabs>
+                    </main>
+
+      <Dialog open={cancelConfirmOpen} onOpenChange={(open) => {
+        setCancelConfirmOpen(open);
+        if (!open) setCancelConfirmAlert(null);
+      }}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Vas a cancelar tu alerta publicada</DialogTitle>
+            <DialogDescription className="text-gray-400">Confirma para moverla a finalizadas como cancelada.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.address || ''}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.available_in_minutes ?? ''} Minutos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Euro className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.price ?? ''}€</span>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button variant="outline" onClick={() => {
+              setCancelConfirmOpen(false);
+              setCancelConfirmAlert(null);
+            }} className="flex-1 border-gray-700">Rechazar</Button>
+            <Button
+              onClick={() => {
+                if (!cancelConfirmAlert?.id) return;
+                cancelAlertMutation.mutate(cancelConfirmAlert.id);
+                setCancelConfirmOpen(false);
+                setCancelConfirmAlert(null);
+              }}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expirePromptOpen} onOpenChange={(open) => {
+        setExpirePromptOpen(open);
+        if (!open) setExpirePromptAlert(null);
+      }}>
+        <DialogContent
+          hideClose
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto"
+        >
+          {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
+          <div className="flex justify-center mb-3">
+            <div className="px-4 py-2 rounded-lg bg-red-600/60 border border-red-500/60">
+              <span className="text-white font-semibold text-sm">Tu alerta ha expirado</span>
+            </div>
+          </div>
+<button
+              onClick={() => {
+                if (expirePromptAlert?.id) {
+                  expireAlertMutation.mutate(expirePromptAlert.id);
+                }
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors"
+              aria-label="Marcar como expirada"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
+          {(() => {
+            const a = expirePromptAlert;
+            if (!a) return null;
+
+            const createdTs = getCreatedTs(a) || nowTs;
+            const waitUntilTs = getWaitUntilTs(a);
+            const waitUntilLabel = waitUntilTs
+              ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                  timeZone: 'Europe/Madrid',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+              : '--:--';
+
+            return (
+              <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
+                <CardHeaderRow
+                  left={
+                    <Badge
+                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                    >
+                      Activa
+                    </Badge>
+                  }
+                  dateText={formatCardDate(createdTs)}
+                  dateClassName="text-white"
+                  right={
                     <div className="flex items-center gap-1">
                       <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(a.price)} />
                     </div>

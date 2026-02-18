@@ -764,7 +764,7 @@ export default function Home() {
               <div className="mt-3 text-center text-purple-400 font-bold text-base">
                 {(() => {
                   const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  if (!mins) return '';
+                  if (!mins) return null;
                   const waitUntil = new Date(Date.now() + mins * 60 * 1000);
                   const hhmm = waitUntil.toLocaleTimeString('es-ES', {
                     timeZone: 'Europe/Madrid',
@@ -772,7 +772,12 @@ export default function Home() {
                     minute: '2-digit',
                     hour12: false
                   });
-                  return `Debes esperar hasta las: ${hhmm}`;
+                  return (
+                    <>
+                      <span className="text-purple-400">Debes esperar hasta las: </span>
+                      <span className="text-white">{hhmm}</span>
+                    </>
+                  );
                 })()}
               </div>
             </div>
