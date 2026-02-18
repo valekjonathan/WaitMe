@@ -14,14 +14,11 @@ export default function BottomNav() {
   const { data: badgeAlerts = [] } = useQuery({
     queryKey: ['badgeAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
-    // Evita "recargas" visuales al entrar/salir de pantallas, pero sigue en tiempo real
-    staleTime: 3000,
-    gcTime: 5 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: 3000,
-    placeholderData: (prev) => prev,
+    refetchInterval: 5000,
     queryFn: async () => {
       const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
@@ -82,8 +79,8 @@ export default function BottomNav() {
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
-                // +15px hacia la derecha (pedido)
-                style={{ transform: 'translate(18px, -2px)' }}
+                // +8px hacia la derecha (pedido)
+                style={{ transform: 'translateX(8px)' }}
                 className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}

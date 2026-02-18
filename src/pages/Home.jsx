@@ -295,7 +295,6 @@ export default function Home() {
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
       await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
       await queryClient.cancelQueries({ queryKey: ['myAlerts', user?.id, user?.email] });
-      await queryClient.cancelQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
@@ -323,17 +322,6 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
       });
-
-      // 🔥 Badge instantáneo: bolita y alerta aparecen a la vez
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        const merged = [optimisticAlert, ...list];
-        // Solo activas/reservadas
-        return merged.filter((a) => {
-          const st = String(a?.status || '').toLowerCase();
-          return st === 'active' || st === 'reserved';
-        });
-      });
     },
     onSuccess: (newAlert) => {
       queryClient.setQueryData(['alerts'], (old) => {
@@ -349,16 +337,6 @@ export default function Home() {
       queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-      });
-
-      // 🔥 Badge instantáneo: sustituye temp_ por la alerta real
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        const merged = [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-        return merged.filter((a) => {
-          const st = String(a?.status || '').toLowerCase();
-          return st === 'active' || st === 'reserved';
-        });
       });
     },
     onError: (error) => {
@@ -727,99 +705,97 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      
-<Dialog open={confirmPublishOpen} onOpenChange={(open) => {
-  setConfirmPublishOpen(open);
-  if (!open) setPendingPublishPayload(null);
-}}>
-  {(() => {
-    const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-    const rawPrice = pendingPublishPayload?.price ?? '';
-    const priceText = String(rawPrice).trim();
-    const showPrice = priceText ? (priceText.includes('€') ? priceText : `${priceText} €`) : '';
-    const waitUntilLabel = mins
-      ? new Date(Date.now() + mins * 60 * 1000).toLocaleTimeString('es-ES', {
-          timeZone: 'Europe/Madrid',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        })
-      : '--:--';
-
-    return (
-      <DialogContent
-        hideClose
-        className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
-      >
-        {/* Caja morada centrada */}
-        <div className="flex items-center justify-center mb-3">
-          <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
-            Vas a publicar una alerta:
-          </div>
-        </div>
-
-        {/* Tarjeta incrustada */}
-        <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50">
-          <div className="flex items-start gap-2 text-xs mb-2">
-            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-            <div className="leading-5">
-              <span className="text-white">En la calle: </span>
-              <span className="text-white">{pendingPublishPayload?.address || ''}</span>
+      <Dialog open={confirmPublishOpen} onOpenChange={(open) => {
+        setConfirmPublishOpen(open);
+        if (!open) setPendingPublishPayload(null);
+      }}>
+        <DialogContent
+          hideClose
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+        >
+          {/* Caja morada centrada */}
+          <div className="flex justify-center">
+            <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
+              <span className="text-white font-semibold text-sm">Vas a publicar una alerta:</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs mb-2">
-            <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-            <div className="leading-5">
-              <span className="text-white">Te vas en: </span>
-              <span className="text-purple-400 font-bold">{mins ? `${mins} minutos` : '--'}</span>
+          {/* Tarjeta incrustada */}
+          <div className="mt-4">
+            <div className="bg-gray-900 rounded-xl p-4 border-2 border-purple-500/50">
+              {/* Calle */}
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-purple-400" />
+                <span className="text-white">En la calle:</span>
+                <span className="text-purple-400 font-semibold">
+                  {pendingPublishPayload?.address || ''}
+                </span>
+              </div>
+
+              {/* Te vas en */}
+              <div className="flex items-center gap-2 text-sm mt-2">
+                <Clock className="w-4 h-4 text-purple-400" />
+                <span className="text-white">Te vas en:</span>
+                <span className="text-purple-400 font-semibold text-base">
+                  {pendingPublishPayload?.available_in_minutes ?? ''} minutos
+                </span>
+              </div>
+
+              {/* Precio */}
+              <div className="flex items-center gap-2 text-sm mt-2">
+                <Euro className="w-4 h-4 text-purple-400" />
+                <span className="text-white">Precio:</span>
+                <span className="text-purple-400 font-semibold text-base">
+                  {pendingPublishPayload?.price ?? ''} €
+                </span>
+              </div>
+
+              {/* Debes esperar... centrado */}
+              <div className="mt-3 text-center text-purple-400 font-bold text-base">
+                {(() => {
+                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+                  if (!mins) return '';
+                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
+                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
+                    timeZone: 'Europe/Madrid',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  });
+                  return `Debes esperar hasta las: ${hhmm}`;
+                })()}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs">
-            <Euro className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-            <div className="leading-5">
-              <span className="text-white">Precio: </span>
-              <span className="text-purple-400 font-bold">{showPrice}</span>
-            </div>
-          </div>
+          {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
+          <DialogFooter className="flex justify-center gap-3 mt-4">
+            <Button
+              onClick={() => {
+                if (!pendingPublishPayload) return;
+                setConfirmPublishOpen(false);
+                createAlertMutation.mutate(pendingPublishPayload);
+                setPendingPublishPayload(null);
+              }}
+              className="w-auto px-6 bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
 
-          {/* Frase morada más grande */}
-          <div className="mt-3 text-purple-400 font-bold text-base">
-            Debes esperar hasta las: {waitUntilLabel}
-          </div>
-        </div>
+            <Button
+              onClick={() => {
+                setConfirmPublishOpen(false);
+                setPendingPublishPayload(null);
+              }}
+              className="w-auto px-6 bg-red-600 hover:bg-red-700 text-white"
+            >
+              Rechazar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Botones: Aceptar izquierda, Rechazar derecha */}
-        <DialogFooter className="flex justify-center gap-3 mt-4">
-          <Button
-            onClick={() => {
-              if (!pendingPublishPayload) return;
-              setConfirmPublishOpen(false);
-              createAlertMutation.mutate(pendingPublishPayload);
-              setPendingPublishPayload(null);
-            }}
-            className="w-auto px-5 bg-purple-600 hover:bg-purple-700"
-          >
-            Aceptar
-          </Button>
-
-          <Button
-            onClick={() => {
-              setConfirmPublishOpen(false);
-              setPendingPublishPayload(null);
-            }}
-            className="w-auto px-5 bg-red-600 hover:bg-red-700 text-white"
-          >
-            Rechazar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    );
-  })()}
-</Dialog>
-
-<Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
+      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>

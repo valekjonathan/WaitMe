@@ -541,52 +541,35 @@ const getCreatedTs = (alert) => {
 
   
 
-
 const {
   data: myAlerts = [],
   isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  // Máxima rapidez: pinta al instante desde caché local y actualiza en segundo plano
-  staleTime: 15000,
-  gcTime: 5 * 60 * 1000,
-  refetchOnMount: false,
-  refetchOnWindowFocus: false,
+  staleTime: 0,
+  refetchOnMount: true,
+  refetchOnWindowFocus: true,
   refetchOnReconnect: true,
-  refetchInterval: 5000,
-  placeholderData: (prev) => prev,
-  initialData: () => {
-    try {
-      const k = `waitme:myAlertsCache:${user?.id || user?.email || 'anon'}`;
-      const raw = localStorage.getItem(k);
-      return raw ? JSON.parse(raw) : undefined;
-    } catch {
-      return undefined;
-    }
-  },
+  refetchInterval: false,
   queryFn: async () => {
-    // Pedimos menos para acelerar (solo necesitas tus últimas alertas)
-    const all = await base44.entities.ParkingAlert.list('-created_date', 500);
+    const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
     const uid = user?.id;
     const email = user?.email;
 
-    const mine = (all || []).filter((a) => {
+    return (all || []).filter((a) => {
       if (!a) return false;
+
       const isMine =
         (uid && (a.user_id === uid || a.created_by === uid)) ||
         (email && a.user_email === email);
+
       return !!isMine;
     });
-
-    try {
-      const k = `waitme:myAlertsCache:${uid || email || 'anon'}`;
-      localStorage.setItem(k, JSON.stringify(mine));
-    } catch {}
-
-    return mine;
   }
 });
+
+
 
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   queryKey: ['myTransactions', user?.email],
@@ -1741,11 +1724,25 @@ const myFinalizedAlerts = useMemo(() => {
           hideClose
           className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
         >
-          {/* Cabecera: mismo estilo que el botón "Filtros" */}
-          <div className="flex items-center justify-center mb-3">
-            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
-              Tu alerta ha expirado
+          {/* Cabecera: mismo estilo que la X roja de Filtros (Home) */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-8 flex items-center rounded-lg bg-red-600 px-3">
+              <span className="text-white font-extrabold text-xs">Tu alerta ha expirado</span>
             </div>
+
+            <button
+              onClick={() => {
+                if (expirePromptAlert?.id) {
+                  expireAlertMutation.mutate(expirePromptAlert.id);
+                }
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors"
+              aria-label="Marcar como expirada"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
@@ -1769,9 +1766,9 @@ const myFinalizedAlerts = useMemo(() => {
                 <CardHeaderRow
                   left={
                     <Badge
-                      className={`bg-red-500/25 text-red-200 border border-red-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                     >
-                      Expirada
+                      Activa
                     </Badge>
                   }
                   dateText={formatCardDate(createdTs)}
@@ -1779,6 +1776,19 @@ const myFinalizedAlerts = useMemo(() => {
                   right={
                     <div className="flex items-center gap-1">
                       <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(a.price)} />
+                      <button
+                        onClick={() => {
+                          if (a?.id) {
+                            expireAlertMutation.mutate(a.id);
+                          }
+                          setExpirePromptOpen(false);
+                          setExpirePromptAlert(null);
+                        }}
+                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                        aria-label="Marcar como expirada"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   }
                 />
@@ -1792,42 +1802,42 @@ const myFinalizedAlerts = useMemo(() => {
 
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-white leading-5">Te ibas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debias esperar hasta las {waitUntilLabel}</span>
+                  <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
-                  <CountdownButton text="EXPIRADA" dimmed={false} />
+                  <CountdownButton text="EXPIRADA" dimmed={true} />
                 </div>
               </div>
             );
           })()}
 
-          
-<DialogFooter className="flex justify-center gap-3 mt-4">
-  <Button
-    onClick={() => {
-      if (!expirePromptAlert?.id) return;
-      expireAlertMutation.mutate(expirePromptAlert.id);
-      setExpirePromptOpen(false);
-      setExpirePromptAlert(null);
-    }}
-    className="w-auto min-w-[150px] px-5 bg-purple-600 hover:bg-purple-700"
-  >
-    Aceptar
-  </Button>
-  <Button
-    onClick={() => {
-      if (!expirePromptAlert?.id) return;
-      repeatAlertMutation.mutate(expirePromptAlert);
-      setExpirePromptOpen(false);
-      setExpirePromptAlert(null);
-    }}
-    className="w-auto min-w-[150px] px-5 bg-white text-black hover:bg-gray-200"
-  >
-    Repetir alerta
-  </Button>
-</DialogFooter>
+          <DialogFooter className="flex justify-center gap-3 mt-4">
+            <Button
+              onClick={() => {
+                if (!expirePromptAlert?.id) return;
+                expireAlertMutation.mutate(expirePromptAlert.id);
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="w-auto px-6 min-w-[150px] bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
+
+            <Button
+              onClick={() => {
+                if (!expirePromptAlert?.id) return;
+                repeatAlertMutation.mutate(expirePromptAlert);
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="w-auto px-6 min-w-[150px] bg-white text-black hover:bg-gray-200"
+            >
+              Repetir alerta
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
