@@ -547,12 +547,13 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  // Evitar “recargas” al entrar en Alertas: mantenemos datos previos y sincronizamos en segundo plano.
-  staleTime: 1000,
+  // Evita "recargas" al entrar a Alertas, pero sigue actualizando en segundo plano
+  staleTime: 3000,
+  gcTime: 5 * 60 * 1000,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
   refetchOnReconnect: true,
-  refetchInterval: 2000,
+  refetchInterval: 3000,
   placeholderData: (prev) => prev,
   queryFn: async () => {
     const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
@@ -1731,9 +1732,6 @@ const myFinalizedAlerts = useMemo(() => {
             <div className="h-8 flex items-center rounded-lg bg-red-600 px-3">
               <span className="text-white font-extrabold text-xs">Tu alerta ha expirado</span>
             </div>
-
-            {/* Sin “X” (pedido). Mantengo el hueco para no mover la cabecera. */}
-            <div className="w-8 h-8" />
           </div>
 
           {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
@@ -1757,9 +1755,9 @@ const myFinalizedAlerts = useMemo(() => {
                 <CardHeaderRow
                   left={
                     <Badge
-                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                      className={`bg-red-500/25 text-red-200 border border-red-400/50 ${badgePhotoWidth} ${labelNoClick}`}
                     >
-                      Activa
+                      Expirada
                     </Badge>
                   }
                   dateText={formatCardDate(createdTs)}
@@ -1781,7 +1779,7 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te ibas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debías esperar hasta las {waitUntilLabel}</span>
+                  <span className="text-purple-400 leading-5">Debias esperar hasta las {waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
