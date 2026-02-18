@@ -144,53 +144,11 @@ function buildUsers() {
 }
 
 function seedAlerts() {
+  // ⚠️ En modo real, NO seedear alertas automáticamente.
+  // La app solo debe mostrar alertas activas si el usuario las crea desde "Estoy aparcado aquí".
   demoFlow.alerts = [];
-
-  const defs = [
-    { userId: 'u1', status: 'active', price: 3, address: 'Calle Uría, Oviedo', available_in_minutes: 5 },
-    { userId: 'u2', status: 'active', price: 4, address: 'Calle Campoamor, Oviedo', available_in_minutes: 3 },
-    { userId: 'u3', status: 'active', price: 6, address: 'Plaza de la Escandalera, Oviedo', available_in_minutes: 7 },
-    { userId: 'u4', status: 'active', price: 5, address: 'Calle Rosal, Oviedo', available_in_minutes: 4 },
-    { userId: 'u5', status: 'active', price: 7, address: 'Calle Cervantes, Oviedo', available_in_minutes: 6 },
-
-    { userId: 'u6', status: 'reserved', price: 4, address: 'Calle Jovellanos, Oviedo', available_in_minutes: 2 },
-    { userId: 'u7', status: 'thinking', price: 3, address: 'Calle San Francisco, Oviedo', available_in_minutes: 8 },
-    { userId: 'u8', status: 'extended', price: 5, address: 'Calle Toreno, Oviedo', available_in_minutes: 1 },
-    { userId: 'u9', status: 'cancelled', price: 4, address: 'Calle Fruela, Oviedo', available_in_minutes: 9 },
-    { userId: 'u10', status: 'completed', price: 6, address: 'Calle Independencia, Oviedo', available_in_minutes: 0 }
-  ];
-
-  defs.forEach((d, i) => {
-    const u = pickUser(d.userId);
-    const id = `alert_${i + 1}`;
-
-    demoFlow.alerts.push({
-      id,
-      is_demo: true,
-      user_id: u?.id,
-      user_name: u?.name,
-      user_photo: u?.photo,
-      car_brand: u?.car_brand,
-      car_model: u?.car_model,
-      car_color: u?.car_color,
-      car_plate: u?.car_plate,
-      price: d.price,
-      available_in_minutes: d.available_in_minutes,
-      latitude: nearLat(),
-      longitude: nearLng(),
-      address: d.address,
-      allow_phone_calls: true,
-      phone: u?.phone || null,
-
-      reserved_by_id: null,
-      reserved_by_name: null,
-      reserved_by_photo: null,
-
-      target_time: Date.now() + (10 * 60 * 1000),
-      status: d.status
-    });
-  });
 }
+
 
 function seedConversationsAndMessages() {
   demoFlow.conversations = [];

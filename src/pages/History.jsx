@@ -621,6 +621,9 @@ const myActiveAlerts = useMemo(() => {
 
     const status = String(a.status || '').toLowerCase();
 
+      const createdFrom = String(a.created_from || a.createdFrom || '').toLowerCase();
+      if ((status === 'active' || status === 'reserved') && createdFrom !== 'parked_here') return false;
+
     return status === 'active' || status === 'reserved';
   });
   
@@ -880,6 +883,7 @@ const myFinalizedAlerts = useMemo(() => {
         phone: alert.phone || null,
         allow_phone_calls: !!alert.allow_phone_calls,
         wait_until: futureTime.toISOString(),
+        created_from: 'parked_here',
         status: 'active',
         reserved_by_id: null,
         reserved_by_name: null,
@@ -1716,48 +1720,98 @@ const myFinalizedAlerts = useMemo(() => {
         setExpirePromptOpen(open);
         if (!open) setExpirePromptAlert(null);
       }}>
-        <DialogContent className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500">
+        <DialogContent
+          hideClose
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+        >
+          {/* Cabecera: mismo estilo que la X roja de Filtros (Home) */}
           <div className="flex items-center justify-between mb-3">
-            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
-              Tu alerta ha expirado
+            <div className="h-8 flex items-center rounded-lg bg-red-500/20 border border-red-500/50 px-3">
+              <span className="text-red-300 font-bold text-xs">Tu alerta ha expirado</span>
             </div>
+
             <button
               onClick={() => {
+                if (expirePromptAlert?.id) {
+                  expireAlertMutation.mutate(expirePromptAlert.id);
+                }
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
               className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-              aria-label="Cerrar"
+              aria-label="Marcar como expirada"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Tarjeta incrustada (formato compacto) */}
-          <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/40">
-            <div className="flex items-center justify-between mb-2">
-              <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 h-7 px-3 flex items-center justify-center rounded-md cursor-default select-none pointer-events-none">
-                Expirada
-              </Badge>
-              <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(expirePromptAlert?.price)} />
-            </div>
+          {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
+          {(() => {
+            const a = expirePromptAlert;
+            if (!a) return null;
 
-            <div className="border-t border-gray-700/80 mb-2" />
+            const createdTs = getCreatedTs(a) || nowTs;
+            const waitUntilTs = getWaitUntilTs(a);
+            const waitUntilLabel = waitUntilTs
+              ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                  timeZone: 'Europe/Madrid',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+              : '--:--';
 
-            <div className="flex items-start gap-1.5 text-xs mb-2">
-              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5 line-clamp-2">
-                {formatAddress(expirePromptAlert?.address)}
-              </span>
-            </div>
+            return (
+              <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative">
+                <CardHeaderRow
+                  left={
+                    <Badge
+                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                    >
+                      Activa
+                    </Badge>
+                  }
+                  dateText={formatCardDate(createdTs)}
+                  dateClassName="text-white"
+                  right={
+                    <div className="flex items-center gap-1">
+                      <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(a.price)} />
+                      <button
+                        onClick={() => {
+                          if (a?.id) {
+                            expireAlertMutation.mutate(a.id);
+                          }
+                          setExpirePromptOpen(false);
+                          setExpirePromptAlert(null);
+                        }}
+                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                        aria-label="Marcar como expirada"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  }
+                />
 
-            <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5">
-                Te ibas en {expirePromptAlert?.available_in_minutes ?? '--'} min
-              </span>
-            </div>
-          </div>
+                <div className="border-t border-gray-700/80 mb-2" />
+
+                <div className="flex items-start gap-1.5 text-xs mb-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                  <span className="text-white leading-5">{formatAddress(a.address) || 'Ubicación marcada'}</span>
+                </div>
+
+                <div className="flex items-start gap-1.5 text-xs">
+                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                  <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
+                </div>
+
+                <div className="mt-2">
+                  <CountdownButton text="EXPIRADA" dimmed={true} />
+                </div>
+              </div>
+            );
+          })()}
 
           <DialogFooter className="flex gap-3 mt-4">
             <Button
@@ -1785,6 +1839,7 @@ const myFinalizedAlerts = useMemo(() => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+</Dialog>
 
       <BottomNav />
 

@@ -285,6 +285,7 @@ export default function Home() {
         phone: data.phone,
         allow_phone_calls: data.allow_phone_calls,
         wait_until: futureTime.toISOString(),
+        created_from: 'parked_here',
         status: 'active'
       });
     },
@@ -301,6 +302,7 @@ export default function Home() {
         id: `temp_${Date.now()}`,
         ...data,
         wait_until: futureTime.toISOString(),
+        created_from: 'parked_here',
         status: 'active',
         created_date: new Date().toISOString()
       };
