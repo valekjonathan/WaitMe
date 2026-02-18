@@ -283,7 +283,16 @@ function resetDemo() {
    API (EXPORTS) - lo que usan tus pantallas
 ====================================================== */
 
-export function isDemoMode() { return true; }
+export function isDemoMode() {
+  try {
+    if (typeof window === 'undefined') return false;
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get('demo') === '1') return true;
+    return window.localStorage?.getItem('WAITME_DEMO') === '1';
+  } catch {
+    return false;
+  }
+}
 export function getDemoState() { return demoFlow; }
 
 export function startDemoFlow() {

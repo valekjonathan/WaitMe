@@ -59,7 +59,9 @@ export default function BottomNav() {
         >
           <div className="relative">
             {activeAlertCount > 0 && (
-              <span className="absolute left-[-26px] top-[9px] h-7 px-2 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center text-sm font-extrabold text-green-300">
+              <span
+                className="absolute left-[2px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+              >
                 {activeAlertCount}
               </span>
             )}

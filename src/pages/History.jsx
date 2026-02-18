@@ -545,7 +545,7 @@ const {
   data: myAlerts = [],
   isLoading: loadingAlerts
 } = useQuery({
-  queryKey: ['myAlerts', user?.id, user?.email, demoTick],
+  queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   staleTime: 5 * 60 * 1000,
   gcTime: 10 * 60 * 1000,
