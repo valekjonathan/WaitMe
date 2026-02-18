@@ -621,18 +621,18 @@ const myActiveAlerts = useMemo(() => {
 
     const status = String(a.status || '').toLowerCase();
 
-      const createdFrom = String(a.created_from || a.createdFrom || '').toLowerCase();
-      if ((status === 'active' || status === 'reserved') && createdFrom !== 'parked_here') return false;
-
     return status === 'active' || status === 'reserved';
   });
-  
-  // Solo mostrar la última alerta activa (la más reciente)
+
   if (filtered.length === 0) return [];
-  
-  const sorted = [...filtered].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+
+  const sorted = [...filtered].sort(
+    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
+  );
+
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email]);
+
 const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
