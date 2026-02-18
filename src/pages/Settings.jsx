@@ -67,7 +67,13 @@ export default function Settings() {
           <Link to={createPageUrl('Profile')}>
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
               {user?.photo_url ? (
-                <img src={user.photo_url} className="w-14 h-14 rounded-full object-cover" alt="" />
+                <img
+                  src={user.photo_url}
+                  className="w-14 h-14 rounded-full object-cover"
+                  alt=""
+                  loading="eager"
+                  decoding="sync"
+                />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
                   <User className="w-7 h-7 text-gray-500" />

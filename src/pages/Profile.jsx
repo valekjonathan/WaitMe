@@ -172,6 +172,8 @@ export default function Profile() {
                   <img
                     src={formData.photo_url}
                     alt="Perfil"
+                    loading="eager"
+                    decoding="sync"
                     className="w-full h-full object-cover" /> :
 
 

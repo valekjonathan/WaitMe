@@ -7,6 +7,9 @@ import Chats from '@/pages/Chats';
 import Chat from '@/pages/Chat';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
+import NotificationSettings from '@/pages/NotificationSettings';
+import Navigate from '@/pages/Navigate';
+import PageNotFound from '@/lib/PageNotFound';
 
 function HomeWrapper() {
   const location = useLocation();
@@ -25,6 +28,9 @@ export default function App() {
       <Route path="/chat/:id" element={<Chat />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/notificationsettings" element={<NotificationSettings />} />
+      <Route path="/navigate" element={<Navigate />} />
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 }
