@@ -89,14 +89,9 @@ export default function Profile() {
     if (type === 'suv') {
       return (
         <svg viewBox="0 0 48 24" className={size} fill="none">
-          {/* Estilo igual que "coche normal" pero más alto (voluminoso) */}
-          <path
-            d="M8 15 L10 8.8 L16 7 L33 7 L38.5 9 L42 12.5 L42 18 L8 18 Z"
-            fill={color}
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
+          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+          <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+          <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
           <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
           <circle cx="14" cy="18" r="2" fill="#666" />
           <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
@@ -108,18 +103,25 @@ export default function Profile() {
     if (type === 'van') {
       return (
         <svg viewBox="0 0 48 24" className={size} fill="none">
-          {/* Estilo igual que "coche normal" pero furgoneta tipo Transporter */}
+          {/* Carrocería (furgoneta) */}
           <path
-            d="M7 18 L7 10.5 L16 10.5 L19 8 L34.5 8 L41 11.2 L42 13.6 L42 18 Z"
+            d="M6 18 V10 L14 10 L18 6 H34 L42 10 V18 H6 Z"
             fill={color}
             stroke="white"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
+
+          {/* Ventanas */}
+          <rect x="15" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+          <rect x="24" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+          <rect x="33" y="11" width="6" height="2" rx="1" fill="rgba(255,255,255,0.18)" />
+
+          {/* Ruedas */}
           <circle cx="14" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
           <circle cx="14" cy="18" r="2" fill="#666" />
-          <circle cx="35" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-          <circle cx="35" cy="18" r="2" fill="#666" />
+          <circle cx="34" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="34" cy="18" r="2" fill="#666" />
         </svg>
       );
     }
@@ -158,11 +160,10 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0 }}
           className="space-y-4">
 
           {/* Tarjeta tipo DNI */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl mt-[4px]">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
             <div className="flex gap-4">
               {/* Foto */}
               <div className="relative">
@@ -171,10 +172,7 @@ export default function Profile() {
                   <img
                     src={formData.photo_url}
                     alt="Perfil"
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                    decoding="sync"
-                    fetchPriority="high" /> :
+                    className="w-full h-full object-cover" /> :
 
 
                   <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
@@ -219,7 +217,6 @@ export default function Profile() {
                     </span>
                   </div>
                 </div>
-              </div>
               </div>
             </div>
           </div>
@@ -315,7 +312,7 @@ export default function Profile() {
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent side="top" className="bg-gray-900 border-gray-700">
+                  <SelectContent className="bg-gray-900 border-gray-700">
                     <SelectItem value="car" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
@@ -329,9 +326,11 @@ export default function Profile() {
                     <SelectItem value="suv" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-                          <path d="M8 15 L10 8.8 L16 7 L33 7 L38.5 9 L42 12.5 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-                          <circle cx="14" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
-                          <circle cx="36" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
+                          <path d="M8 14 L10 8 L16 6 L32 6 L38 8 L42 12 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
+                          <rect x="12" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <rect x="24" y="7" width="10" height="6" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
                         </svg>
                         Coche voluminoso
                       </div>
@@ -339,9 +338,12 @@ export default function Profile() {
                     <SelectItem value="van" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
                         <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-                          <path d="M7 18 L7 10.5 L16 10.5 L19 8 L34.5 8 L41 11.2 L42 13.6 L42 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                          <path d="M6 18 V10 L14 10 L18 6 H34 L42 10 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                          <rect x="15" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+                          <rect x="24" y="8" width="8" height="5" rx="1" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+                          <rect x="33" y="11" width="6" height="2" rx="1" fill="rgba(255,255,255,0.18)" />
                           <circle cx="14" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
-                          <circle cx="35" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
+                          <circle cx="34" cy="18" r="3.2" fill="#333" stroke="white" strokeWidth="1" />
                         </svg>
                         Furgoneta
                       </div>
@@ -358,7 +360,7 @@ export default function Profile() {
                 onChange={(e) => updateField('car_plate', e.target.value.toUpperCase())}
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
-                maxLength={8} />
+                maxLength={7} />
             </div>
           </div>
         </motion.div>
