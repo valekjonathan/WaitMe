@@ -186,7 +186,7 @@ export default function Settings() {
               disabled={!instagramUrl}
               className="flex flex-col items-center gap-2 disabled:opacity-40"
             >
-              <Instagram className="w-6 h-6 text-purple-500" />
+              <Instagram className="w-6 h-6 text-purple-600" />
               <span className="text-sm text-white">Instagram</span>
             </button>
 
@@ -196,7 +196,7 @@ export default function Settings() {
               disabled={!webUrl}
               className="flex flex-col items-center gap-2 disabled:opacity-40"
             >
-              <Globe className="w-6 h-6 text-purple-500" />
+              <Globe className="w-6 h-6 text-purple-600" />
               <span className="text-sm text-white">Web</span>
             </button>
           </div>
