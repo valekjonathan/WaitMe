@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, MapPin, Clock, Euro } from 'lucide-react';
+import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -694,14 +694,24 @@ export default function Home() {
       <BottomNav />
 
       <Dialog open={oneActiveAlertOpen} onOpenChange={setOneActiveAlertOpen}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Solo puedes tener una alerta activa</DialogTitle>
-            <DialogDescription className="text-gray-400">Cierra tu alerta actual antes de publicar otra.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setOneActiveAlertOpen(false)} className="w-full bg-purple-600 hover:bg-purple-700">Aceptar</Button>
-          </DialogFooter>
+        <DialogContent
+          hideClose
+          className="bg-gray-900 border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
+              <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada.</span>
+            </div>
+
+            <button
+              onClick={() => setOneActiveAlertOpen(false)}
+              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+              aria-label="Cerrar"
+              type="button"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -769,7 +779,7 @@ export default function Home() {
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
-          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
+          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4 w-full">
             <Button
               onClick={() => {
                 if (!pendingPublishPayload) return;
@@ -777,7 +787,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-4 bg-purple-600 hover:bg-purple-700"
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -787,7 +797,7 @@ export default function Home() {
                 setConfirmPublishOpen(false);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-4 bg-red-600 hover:bg-red-700 text-white"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
               Rechazar
             </Button>
