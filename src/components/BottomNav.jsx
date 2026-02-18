@@ -35,13 +35,13 @@ export default function BottomNav() {
         const st = String(a.status || '').toLowerCase();
         return st === 'active' || st === 'reserved';
       });
+
+  const activeCount = badgeAlerts.length;
     }
   });
 
-  const activeCount = badgeAlerts.length;
 
 
-const activeCount = myAlerts?.filter(a => {
   const st = String(a?.status || '').toLowerCase();
   return st === 'active' || st === 'reserved';
 }).length || 0;
