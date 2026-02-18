@@ -1,161 +1,95 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import {
-  User,
-  Coins,
-  Bell,
-  Shield,
-  LogOut,
-  ChevronRight,
-  CreditCard,
-  HelpCircle,
-  Star
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import Logo from '@/components/Logo';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
+import { motion } from 'framer-motion';
+import { Instagram, Globe } from 'lucide-react';
+import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
+import { Button } from '@/components/ui/button';
 
-export default function Settings() {
-  const { user, isLoadingAuth, logout } = useAuth();
+export default function Configuracion() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [photoSrc, setPhotoSrc] = useState('');
 
-  // Mantengo estos estados por si ya los estabas usando en el código (sin bloquear la pantalla)
-  const [phone, setPhone] = useState('');
-  const [allowCalls, setAllowCalls] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // Hidrata desde el usuario en cuanto exista (sin pantalla de carga)
+  // ✅ FOTO INSTANTÁNEA
   useEffect(() => {
-    if (!user) return;
-    setPhone(user.phone || '');
-    setAllowCalls(user.allow_phone_calls || false);
+    if (!user?.photo_url) return;
 
-    // Pre-carga de foto (entrada instantánea)
-    if (user.photo_url) {
-      const img = new Image();
-      img.src = user.photo_url;
-    }
-  }, [user]);
+    const img = new Image();
+    img.src = user.photo_url;
+    img.onload = () => {
+      setPhotoSrc(user.photo_url);
+    };
+  }, [user?.photo_url]);
 
-  const handleSavePhone = async () => {
-    setSaving(true);
-    try {
-      await base44.auth.updateMe({ phone, allow_phone_calls: allowCalls });
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setSaving(false);
-    }
+  const handleLogout = async () => {
+    await base44.auth.logout();
+    navigate('/Login');
   };
-
-  const handleLogout = () => {
-    // Logout “oficial” del contexto (más fiable)
-    logout?.(true);
-  };
-
-  const displayName = user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <Header title="Ajustes" showBackButton={true} backTo="Home" />
+    <div className="h-screen bg-black text-white overflow-hidden">
+      <Header title="Configuración" showBackButton={true} backTo="Home" />
 
-      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto h-screen overflow-hidden">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          {/* Perfil resumen */}
-          <Link to={createPageUrl('Profile')}>
-            <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
-              {user?.photo_url ? (
+          {/* FOTO PERFIL */}
+          <div className="flex flex-col items-center mt-4">
+            <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-purple-500 bg-gray-800">
+              {photoSrc ? (
                 <img
-                  src={user.photo_url}
-                  className="w-14 h-14 rounded-full object-cover"
-                  alt=""
+                  src={photoSrc}
+                  alt="Perfil"
+                  className="w-full h-full object-cover"
                   loading="eager"
                   decoding="sync"
                   fetchPriority="high"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
-                  <User className="w-7 h-7 text-gray-500" />
+                <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
+                  👤
                 </div>
               )}
-              <div className="flex-1">
-                <p className="font-semibold">{displayName}</p>
-                <p className="text-sm text-gray-400">{user?.email || ''}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
             </div>
-          </Link>
-
-          {/* Créditos */}
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <Coins className="w-6 h-6 text-purple-400" />
-                <span className="font-medium">Mis créditos</span>
-              </div>
-              <span className="text-2xl font-bold text-purple-400">
-                {(user?.credits || 0).toFixed(2)}€
-              </span>
-            </div>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoadingAuth}>
-              <CreditCard className="w-4 h-4 mr-2" />
-              Añadir créditos
-            </Button>
           </div>
 
-          {/* Opciones */}
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 divide-y divide-gray-800">
-            <Link
-              to={createPageUrl('NotificationSettings')}
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
+          {/* ICONOS REDES */}
+          <div className="flex justify-center gap-8 pt-4">
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-colors"
             >
-              <Bell className="w-5 h-5 text-purple-500" />
-              <span className="flex-1">Notificaciones</span>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
-            </Link>
+              <Instagram className="w-7 h-7" />
+              <span className="text-sm">Instagram</span>
+            </a>
 
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
-              <Shield className="w-5 h-5 text-purple-500" />
-              <span className="flex-1">Privacidad</span>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
-            </button>
-
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
-              <Star className="w-5 h-5 text-purple-500" />
-              <span className="flex-1">Valorar la app</span>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
-            </button>
-
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
-              <HelpCircle className="w-5 h-5 text-purple-500" />
-              <span className="flex-1">Ayuda</span>
-              <ChevronRight className="w-5 h-5 text-gray-500" />
-            </button>
+            <a
+              href="https://waitme.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 text-white hover:text-purple-400 transition-colors"
+            >
+              <Globe className="w-7 h-7" />
+              <span className="text-sm">Web</span>
+            </a>
           </div>
 
-          {/* Cerrar sesión */}
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-            disabled={isLoadingAuth}
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Cerrar sesión
-          </Button>
-
-          {/* Footer */}
-          <div className="text-center pt-4">
-            <Logo size="sm" />
-            <p className="text-xs text-gray-500 mt-2">Versión 1.0.0</p>
+          {/* BOTÓN CERRAR SESIÓN */}
+          <div className="pt-6">
+            <Button
+              onClick={handleLogout}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold"
+            >
+              Cerrar sesión
+            </Button>
           </div>
         </motion.div>
       </main>
