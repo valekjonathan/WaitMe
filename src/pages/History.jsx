@@ -810,7 +810,31 @@ const myFinalizedAlerts = useMemo(() => {
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
     mutationFn: async (alertId) => {
+      // Cancela la alerta seleccionada
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+
+      // Si por cualquier motivo tienes varias activas, cancelarlas también
+      // (evita que "aparezca otra" automáticamente al cancelar una).
+      try {
+        const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+        const uid = user?.id;
+        const email = user?.email;
+        const mine = (all || []).filter((a) => {
+          if (!a) return false;
+          const isMine =
+            (uid && (a.user_id === uid || a.created_by === uid)) ||
+            (email && a.user_email === email);
+          if (!isMine) return false;
+          const st = String(a.status || '').toLowerCase();
+          return st === 'active';
+        });
+
+        await Promise.all(
+          mine
+            .filter((a) => a.id && a.id !== alertId)
+            .map((a) => base44.entities.ParkingAlert.update(a.id, { status: 'cancelled' }).catch(() => null))
+        );
+      } catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
@@ -1692,27 +1716,50 @@ const myFinalizedAlerts = useMemo(() => {
         setExpirePromptOpen(open);
         if (!open) setExpirePromptAlert(null);
       }}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Tu alerta ha expirado</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500">
+          <div className="flex items-center justify-between mb-3">
+            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
+              Tu alerta ha expirado
+            </div>
+            <button
+              onClick={() => {
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="w-4 h-4 text-purple-400" />
-              <span className="text-gray-200">{expirePromptAlert?.address || ''}</span>
+          {/* Tarjeta incrustada (formato compacto) */}
+          <div className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/40">
+            <div className="flex items-center justify-between mb-2">
+              <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 h-7 px-3 flex items-center justify-center rounded-md cursor-default select-none pointer-events-none">
+                Expirada
+              </Badge>
+              <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(expirePromptAlert?.price)} />
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-purple-400" />
-              <span className="text-gray-200">{expirePromptAlert?.available_in_minutes ?? ''} Minutos</span>
+
+            <div className="border-t border-gray-700/80 mb-2" />
+
+            <div className="flex items-start gap-1.5 text-xs mb-2">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5 line-clamp-2">
+                {formatAddress(expirePromptAlert?.address)}
+              </span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Euro className="w-4 h-4 text-purple-400" />
-              <span className="text-gray-200">{expirePromptAlert?.price ?? ''}€</span>
+
+            <div className="flex items-start gap-1.5 text-xs">
+              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5">
+                Te ibas en {expirePromptAlert?.available_in_minutes ?? '--'} min
+              </span>
             </div>
           </div>
 
-          <DialogFooter className="flex gap-3">
+          <DialogFooter className="flex gap-3 mt-4">
             <Button
               onClick={() => {
                 if (!expirePromptAlert?.id) return;
@@ -1720,8 +1767,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              variant="outline"
-              className="flex-1 border-gray-700"
+              className="flex-1 bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>
