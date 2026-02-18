@@ -925,7 +925,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black px-4 pt-[11px] pb-[2px]">
+          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black px-4 pt-[11px] pb-[2px] border-b border-gray-700">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
@@ -1724,7 +1724,7 @@ const myFinalizedAlerts = useMemo(() => {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto"
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto overflow-x-hidden"
         >
           {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
           <div className="flex justify-center mb-3">
@@ -1791,6 +1791,13 @@ const myFinalizedAlerts = useMemo(() => {
             <Button
               onClick={() => {
                 if (!expirePromptAlert?.id) return;
+
+                // ✅ Quitar la "bolita" de Alertas INSTANTÁNEO al aceptar
+                try {
+                  queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], []);
+                  queryClient.invalidateQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
+                } catch {}
+
                 expireAlertMutation.mutate(expirePromptAlert.id);
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);

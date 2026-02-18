@@ -721,7 +721,7 @@ export default function Home() {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 overflow-x-hidden"
         >
           {/* Caja morada centrada */}
           <div className="flex justify-center">
