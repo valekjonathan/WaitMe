@@ -12,12 +12,11 @@ import NotificationSettings from './pages/NotificationSettings';
 
 export default function Layout() {
   return (
-    <div className="flex flex-col flex-1 w-full min-h-[100dvh]">
+    <div className="flex flex-col flex-1 w-full">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/Home" element={<Home />} />
-
         <Route path="/chats" element={<Chats />} />
         <Route path="/chat/:id" element={<Chat />} />
         <Route path="/notifications" element={<Notifications />} />
