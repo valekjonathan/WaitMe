@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
   MapPin,
+  Euro,
   TrendingUp,
   TrendingDown,
   Loader,
@@ -15,6 +16,7 @@ import {
   Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -32,6 +34,11 @@ export default function History() {
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const [demoTick, setDemoTick] = useState(0);
+
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelConfirmAlert, setCancelConfirmAlert] = useState(null);
+  const [expirePromptOpen, setExpirePromptOpen] = useState(false);
+  const [expirePromptAlert, setExpirePromptAlert] = useState(null);
 
 useEffect(() => {
   const id = setInterval(() => {
@@ -543,7 +550,23 @@ const {
   // Evita “parpadeos”/vacíos mientras refresca
   placeholderData: (prev) => prev,
   queryFn: async () => {
-    return [];
+    const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+    const filtered = (all || []).filter((a) => {
+      if (!a) return false;
+      const uid = user?.id;
+      const email = user?.email;
+      const mineById = uid && (
+        a.user_id === uid ||
+        a.created_by === uid ||
+        a.reserved_by_id === uid
+      );
+      const mineByEmail = email && (
+        a.user_email === email ||
+        a.reserved_by_email === email
+      );
+      return !!(mineById || mineByEmail);
+    });
+    return filtered;
   }
 });
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
@@ -557,7 +580,15 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   refetchOnMount: false,
   placeholderData: (prev) => prev,
   queryFn: async () => {
-    return [];
+    // Si no existe esta entidad en tu backend, simplemente devuelve []
+    try {
+      const allTx = await base44.entities.Transaction.list('-created_date', 5000);
+      const email = user?.email;
+      if (!email) return [];
+      return (allTx || []).filter((t) => t?.buyer_email === email || t?.seller_email === email || t?.user_email === email);
+    } catch {
+      return [];
+    }
   }
 });
 const mockReservationsFinal = useMemo(() => {
@@ -618,8 +649,25 @@ const visibleActiveAlerts = useMemo(() => {
 
     toExpire.forEach((a) => autoFinalizedRef.current.add(a.id));
 
+    const mine = toExpire.find((a) => {
+      const uid = user?.id;
+      const email = user?.email;
+      const isMine =
+        (uid && (a.user_id === uid || a.created_by === uid)) ||
+        (email && a.user_email === email);
+      return isMine;
+    });
+
+    // Si es tu alerta, mostramos el aviso dentro de la app (no la expiramos hasta que elijas)
+    if (mine && !expirePromptOpen) {
+      setExpirePromptAlert(mine);
+      setExpirePromptOpen(true);
+    }
+
+    const others = toExpire.filter((a) => !mine || a.id !== mine.id);
+
     Promise.all(
-      toExpire.map((a) =>
+      others.map((a) =>
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
@@ -758,6 +806,50 @@ const myFinalizedAlerts = useMemo(() => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
+
+
+  const repeatAlertMutation = useMutation({
+    mutationFn: async (alert) => {
+      if (!alert) return null;
+
+      // 1) Marca la actual como expirada
+      await base44.entities.ParkingAlert.update(alert.id, { status: 'expired' });
+
+      // 2) Crea una nueva con la misma configuración (sin reserva)
+      const now = Date.now();
+      const minutes = Number(alert.available_in_minutes || 0);
+      const futureTime = new Date(now + minutes * 60 * 1000);
+
+      const payload = {
+        user_id: alert.user_id,
+        user_email: alert.user_email,
+        user_name: alert.user_name,
+        user_photo: alert.user_photo,
+        latitude: alert.latitude,
+        longitude: alert.longitude,
+        address: alert.address,
+        price: alert.price,
+        available_in_minutes: minutes,
+        car_brand: alert.car_brand || '',
+        car_model: alert.car_model || '',
+        car_color: alert.car_color || '',
+        car_plate: alert.car_plate || '',
+        phone: alert.phone || null,
+        allow_phone_calls: !!alert.allow_phone_calls,
+        wait_until: futureTime.toISOString(),
+        status: 'active',
+        reserved_by_id: null,
+        reserved_by_name: null,
+        reserved_by_email: null
+      };
+
+      return base44.entities.ParkingAlert.create(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    }
+  });
+
 
   // ====== Badge ancho igual que la foto (95px) ======
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
@@ -1532,6 +1624,103 @@ const myFinalizedAlerts = useMemo(() => {
                     </TabsContent>
                     </Tabs>
                     </main>
+
+      <Dialog open={cancelConfirmOpen} onOpenChange={(open) => {
+        setCancelConfirmOpen(open);
+        if (!open) setCancelConfirmAlert(null);
+      }}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Vas a cancelar tu alerta publicada</DialogTitle>
+            <DialogDescription className="text-gray-400">Confirma para moverla a finalizadas como cancelada.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.address || ''}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.available_in_minutes ?? ''} Minutos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Euro className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{cancelConfirmAlert?.price ?? ''}€</span>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button variant="outline" onClick={() => {
+              setCancelConfirmOpen(false);
+              setCancelConfirmAlert(null);
+            }} className="flex-1 border-gray-700">Rechazar</Button>
+            <Button
+              onClick={() => {
+                if (!cancelConfirmAlert?.id) return;
+                cancelAlertMutation.mutate(cancelConfirmAlert.id);
+                setCancelConfirmOpen(false);
+                setCancelConfirmAlert(null);
+              }}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expirePromptOpen} onOpenChange={(open) => {
+        setExpirePromptOpen(open);
+        if (!open) setExpirePromptAlert(null);
+      }}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Tu alerta ha expirado</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{expirePromptAlert?.address || ''}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{expirePromptAlert?.available_in_minutes ?? ''} Minutos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Euro className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{expirePromptAlert?.price ?? ''}€</span>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              onClick={() => {
+                if (!expirePromptAlert?.id) return;
+                repeatAlertMutation.mutate(expirePromptAlert);
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              variant="outline"
+              className="flex-1 border-gray-700"
+            >
+              Repetir alerta
+            </Button>
+            <Button
+              onClick={() => {
+                if (!expirePromptAlert?.id) return;
+                expireAlertMutation.mutate(expirePromptAlert.id);
+                setExpirePromptOpen(false);
+                setExpirePromptAlert(null);
+              }}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
 

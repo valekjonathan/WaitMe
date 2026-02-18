@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, MapPin } from 'lucide-react';
+import { SlidersHorizontal, MapPin, Clock, Euro } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -80,6 +80,10 @@ export default function Home() {
   const location = useLocation();
   const [mode, setMode] = useState(null);
   // null | 'search' | 'create'
+
+  const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
+  const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
+  const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
   const [logoSrc, setLogoSrc] = useState(appLogo);
   const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
@@ -324,7 +328,7 @@ export default function Home() {
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
-        alert('Solo puedes tener 1 alerta activa');
+        setOneActiveAlertOpen(true);
       }
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
@@ -656,7 +660,13 @@ export default function Home() {
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
 
-                      createAlertMutation.mutate(payload);
+                      if (myActiveAlerts && myActiveAlerts.length > 0) {
+                        setOneActiveAlertOpen(true);
+                        return;
+                      }
+
+                      setPendingPublishPayload(payload);
+                      setConfirmPublishOpen(true);
                     }}
                     isLoading={createAlertMutation.isPending}
                   />
@@ -668,6 +678,62 @@ export default function Home() {
       </main>
 
       <BottomNav />
+
+      <Dialog open={oneActiveAlertOpen} onOpenChange={setOneActiveAlertOpen}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Solo puedes tener una alerta activa</DialogTitle>
+            <DialogDescription className="text-gray-400">Cierra tu alerta actual antes de publicar otra.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setOneActiveAlertOpen(false)} className="w-full bg-purple-600 hover:bg-purple-700">Aceptar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmPublishOpen} onOpenChange={(open) => {
+        setConfirmPublishOpen(open);
+        if (!open) setPendingPublishPayload(null);
+      }}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Vas a publicar una alerta:</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{pendingPublishPayload?.address || ''}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{pendingPublishPayload?.available_in_minutes ?? ''} Minutos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Euro className="w-4 h-4 text-purple-400" />
+              <span className="text-gray-200">{pendingPublishPayload?.price ?? ''}€</span>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button variant="outline" onClick={() => {
+              setConfirmPublishOpen(false);
+              setPendingPublishPayload(null);
+            }} className="flex-1 border-gray-700">Rechazar</Button>
+            <Button
+              onClick={() => {
+                if (!pendingPublishPayload) return;
+                setConfirmPublishOpen(false);
+                createAlertMutation.mutate(pendingPublishPayload);
+                setPendingPublishPayload(null);
+              }}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              Aceptar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">

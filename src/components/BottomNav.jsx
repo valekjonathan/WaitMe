@@ -1,10 +1,28 @@
 import React, { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+
+  const { data: myActiveAlerts = [] } = useQuery({
+    queryKey: ['myActiveAlerts', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      return base44.entities.ParkingAlert.filter({
+        user_id: user?.id,
+        status: 'active'
+      });
+    },
+    refetchInterval: 5000
+  });
+
+  const activeAlertCount = (myActiveAlerts || []).length;
 
   const baseBtn =
     "flex-1 flex flex-col items-center justify-center text-purple-400 " +
@@ -39,10 +57,17 @@ export default function BottomNav() {
           to="/history"
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
         >
-          <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" viewBox="0 0 32 32" fill="none">
+          <div className="relative">
+            {activeAlertCount > 0 && (
+              <span className="absolute left-[-10px] top-[12px] w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-[11px] font-extrabold text-black">
+                1
+              </span>
+            )}
+            <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" viewBox="0 0 32 32" fill="none">
             <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
             <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
           </svg>
+          </div>
           <span className={labelClass}>Alertas</span>
         </NavLink>
 
