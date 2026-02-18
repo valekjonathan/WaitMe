@@ -64,3 +64,13 @@
 /* DVH GLOBAL FIX (iOS PWA / Safari) */
 html, body, #root { height: 100%; }
 body { min-height: 100dvh; background: #000; }
+
+
+/* Ocultar la barra de scroll (mantener scroll) */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}

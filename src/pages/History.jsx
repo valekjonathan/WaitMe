@@ -925,7 +925,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="sticky top-[56px] z-40 bg-black pt-[11px] pb-[2px]">
+          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black px-4 pt-[11px] pb-[2px]">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
@@ -935,6 +935,8 @@ const myFinalizedAlerts = useMemo(() => {
               </TabsTrigger>
             </TabsList>
           </div>
+          <div className="h-[59px]" />
+
 
           <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
@@ -1726,25 +1728,10 @@ const myFinalizedAlerts = useMemo(() => {
         >
           {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
           <div className="flex justify-center mb-3">
-            <div className="px-4 py-2 rounded-lg bg-red-600/60 border border-red-500/60">
+            <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
               <span className="text-white font-semibold text-sm">Tu alerta ha expirado</span>
             </div>
           </div>
-<button
-              onClick={() => {
-                if (expirePromptAlert?.id) {
-                  expireAlertMutation.mutate(expirePromptAlert.id);
-                }
-                setExpirePromptOpen(false);
-                setExpirePromptAlert(null);
-              }}
-              className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors"
-              aria-label="Marcar como expirada"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
           {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
           {(() => {
             const a = expirePromptAlert;
