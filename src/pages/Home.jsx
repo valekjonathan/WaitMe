@@ -727,94 +727,99 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={confirmPublishOpen} onOpenChange={(open) => {
-        setConfirmPublishOpen(open);
-        if (!open) setPendingPublishPayload(null);
-      }}>
-        <DialogContent
-          hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
-        >
-          {/* Cabecera: mismo estilo que el aviso EXPIRADA */}
-          <div className="flex items-center justify-center mb-3">
-            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md text-center">
-              Vas a publicar una alerta:
+      
+<Dialog open={confirmPublishOpen} onOpenChange={(open) => {
+  setConfirmPublishOpen(open);
+  if (!open) setPendingPublishPayload(null);
+}}>
+  {(() => {
+    const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+    const rawPrice = pendingPublishPayload?.price ?? '';
+    const priceText = String(rawPrice).trim();
+    const showPrice = priceText ? (priceText.includes('€') ? priceText : `${priceText} €`) : '';
+    const waitUntilLabel = mins
+      ? new Date(Date.now() + mins * 60 * 1000).toLocaleTimeString('es-ES', {
+          timeZone: 'Europe/Madrid',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        })
+      : '--:--';
+
+    return (
+      <DialogContent
+        hideClose
+        className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+      >
+        {/* Caja morada centrada */}
+        <div className="flex items-center justify-center mb-3">
+          <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md">
+            Vas a publicar una alerta:
+          </div>
+        </div>
+
+        {/* Tarjeta incrustada */}
+        <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50">
+          <div className="flex items-start gap-2 text-xs mb-2">
+            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+            <div className="leading-5">
+              <span className="text-white">En la calle: </span>
+              <span className="text-white">{pendingPublishPayload?.address || ''}</span>
             </div>
           </div>
 
-          {/* Tarjeta incrustada */}
-          {(() => {
-            const addr = pendingPublishPayload?.address || '';
-            const minutes = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-            const price = pendingPublishPayload?.price ?? '';
+          <div className="flex items-start gap-2 text-xs mb-2">
+            <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+            <div className="leading-5">
+              <span className="text-white">Te vas en: </span>
+              <span className="text-purple-400 font-bold">{mins ? `${mins} minutos` : '--'}</span>
+            </div>
+          </div>
 
-            const waitUntilLabel = Number.isFinite(minutes) && minutes > 0
-              ? new Date(Date.now() + minutes * 60 * 1000).toLocaleString('es-ES', {
-                  timeZone: 'Europe/Madrid',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                })
-              : '--:--';
+          <div className="flex items-start gap-2 text-xs">
+            <Euro className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+            <div className="leading-5">
+              <span className="text-white">Precio: </span>
+              <span className="text-purple-400 font-bold">{showPrice}</span>
+            </div>
+          </div>
 
-            return (
-              <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500/50 relative">
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2 text-xs">
-                    <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white leading-5">
-                      <span className="text-white">En la calle: </span>
-                      <span className="text-white">{addr}</span>
-                    </span>
-                  </div>
+          {/* Frase morada más grande */}
+          <div className="mt-3 text-purple-400 font-bold text-base">
+            Debes esperar hasta las: {waitUntilLabel}
+          </div>
+        </div>
 
-                  <div className="flex items-start gap-2 text-xs">
-                    <Clock className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-white leading-5">
-                      Debes esperar hasta las:{' '}
-                      <span className="text-purple-400 font-bold">{waitUntilLabel}</span>
-                    </span>
-                  </div>
+        {/* Botones: Aceptar izquierda, Rechazar derecha */}
+        <DialogFooter className="flex justify-center gap-3 mt-4">
+          <Button
+            onClick={() => {
+              if (!pendingPublishPayload) return;
+              setConfirmPublishOpen(false);
+              createAlertMutation.mutate(pendingPublishPayload);
+              setPendingPublishPayload(null);
+            }}
+            className="w-auto px-5 bg-purple-600 hover:bg-purple-700"
+          >
+            Aceptar
+          </Button>
 
-                  <div className="flex items-start gap-2 text-xs">
-                    <Euro className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                    <span className="leading-5">
-                      <span className="text-white">Precio:&nbsp;</span>
-                      <span className="text-purple-400 font-bold">{price} €</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
+          <Button
+            onClick={() => {
+              setConfirmPublishOpen(false);
+              setPendingPublishPayload(null);
+            }}
+            className="w-auto px-5 bg-red-600 hover:bg-red-700 text-white"
+          >
+            Rechazar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    );
+  })()}
+</Dialog>
 
-          {/* Botones en fila y sin estirarse (solo ancho del texto) */}
-          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
-            <Button
-              onClick={() => {
-                setConfirmPublishOpen(false);
-                setPendingPublishPayload(null);
-              }}
-              className="w-fit px-4 bg-red-600 hover:bg-red-700 text-white"
-            >
-              Rechazar
-            </Button>
-            <Button
-              onClick={() => {
-                if (!pendingPublishPayload) return;
-                setConfirmPublishOpen(false);
-                createAlertMutation.mutate(pendingPublishPayload);
-                setPendingPublishPayload(null);
-              }}
-              className="w-fit px-4 bg-purple-600 hover:bg-purple-700"
-            >
-              Aceptar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
+<Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, alert: confirmDialog.alert })}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">Confirmar reserva</DialogTitle>

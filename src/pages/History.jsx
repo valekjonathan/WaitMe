@@ -541,38 +541,52 @@ const getCreatedTs = (alert) => {
 
   
 
+
 const {
   data: myAlerts = [],
   isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  // Evita "recargas" al entrar a Alertas, pero sigue actualizando en segundo plano
-  staleTime: 3000,
+  // Máxima rapidez: pinta al instante desde caché local y actualiza en segundo plano
+  staleTime: 15000,
   gcTime: 5 * 60 * 1000,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
   refetchOnReconnect: true,
-  refetchInterval: 3000,
+  refetchInterval: 5000,
   placeholderData: (prev) => prev,
+  initialData: () => {
+    try {
+      const k = `waitme:myAlertsCache:${user?.id || user?.email || 'anon'}`;
+      const raw = localStorage.getItem(k);
+      return raw ? JSON.parse(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  },
   queryFn: async () => {
-    const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+    // Pedimos menos para acelerar (solo necesitas tus últimas alertas)
+    const all = await base44.entities.ParkingAlert.list('-created_date', 500);
     const uid = user?.id;
     const email = user?.email;
 
-    return (all || []).filter((a) => {
+    const mine = (all || []).filter((a) => {
       if (!a) return false;
-
       const isMine =
         (uid && (a.user_id === uid || a.created_by === uid)) ||
         (email && a.user_email === email);
-
       return !!isMine;
     });
+
+    try {
+      const k = `waitme:myAlertsCache:${uid || email || 'anon'}`;
+      localStorage.setItem(k, JSON.stringify(mine));
+    } catch {}
+
+    return mine;
   }
 });
-
-
 
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   queryKey: ['myTransactions', user?.email],
@@ -1789,31 +1803,31 @@ const myFinalizedAlerts = useMemo(() => {
             );
           })()}
 
-          {/* Botones en fila y del mismo ancho (igual al texto más largo: "Repetir alerta") */}
-          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
-            <Button
-              onClick={() => {
-                if (!expirePromptAlert?.id) return;
-                repeatAlertMutation.mutate(expirePromptAlert);
-                setExpirePromptOpen(false);
-                setExpirePromptAlert(null);
-              }}
-              className="w-fit min-w-[140px] justify-center px-4 bg-white text-black hover:bg-gray-200"
-            >
-              Repetir alerta
-            </Button>
-            <Button
-              onClick={() => {
-                if (!expirePromptAlert?.id) return;
-                expireAlertMutation.mutate(expirePromptAlert.id);
-                setExpirePromptOpen(false);
-                setExpirePromptAlert(null);
-              }}
-              className="w-fit min-w-[140px] justify-center px-4 bg-purple-600 hover:bg-purple-700"
-            >
-              Aceptar
-            </Button>
-          </DialogFooter>
+          
+<DialogFooter className="flex justify-center gap-3 mt-4">
+  <Button
+    onClick={() => {
+      if (!expirePromptAlert?.id) return;
+      expireAlertMutation.mutate(expirePromptAlert.id);
+      setExpirePromptOpen(false);
+      setExpirePromptAlert(null);
+    }}
+    className="w-auto min-w-[150px] px-5 bg-purple-600 hover:bg-purple-700"
+  >
+    Aceptar
+  </Button>
+  <Button
+    onClick={() => {
+      if (!expirePromptAlert?.id) return;
+      repeatAlertMutation.mutate(expirePromptAlert);
+      setExpirePromptOpen(false);
+      setExpirePromptAlert(null);
+    }}
+    className="w-auto min-w-[150px] px-5 bg-white text-black hover:bg-gray-200"
+  >
+    Repetir alerta
+  </Button>
+</DialogFooter>
         </DialogContent>
       </Dialog>
 
