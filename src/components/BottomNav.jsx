@@ -79,9 +79,8 @@ export default function BottomNav() {
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
-                // +8px hacia la derecha (pedido)
-                style={{ transform: 'translateX(8px)' }}
-                className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+                // Ajuste fino: +3px derecha, -2px arriba (sin moverla a la izquierda)
+                className="absolute left-[-23px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>

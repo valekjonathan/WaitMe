@@ -1813,7 +1813,7 @@ const myFinalizedAlerts = useMemo(() => {
             );
           })()}
 
-          <DialogFooter className="flex justify-center gap-3 mt-4">
+          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
             <Button
               onClick={() => {
                 if (!expirePromptAlert?.id) return;
@@ -1821,7 +1821,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-auto px-6 min-w-[150px] bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-4 min-w-[170px] bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -1833,7 +1833,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-auto px-6 min-w-[150px] bg-white text-black hover:bg-gray-200"
+              className="w-auto px-4 min-w-[170px] bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>

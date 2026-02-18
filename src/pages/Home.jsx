@@ -769,7 +769,7 @@ export default function Home() {
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
-          <DialogFooter className="flex justify-center gap-3 mt-4">
+          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4">
             <Button
               onClick={() => {
                 if (!pendingPublishPayload) return;
@@ -777,7 +777,7 @@ export default function Home() {
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-6 bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-4 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -787,7 +787,7 @@ export default function Home() {
                 setConfirmPublishOpen(false);
                 setPendingPublishPayload(null);
               }}
-              className="w-auto px-6 bg-red-600 hover:bg-red-700 text-white"
+              className="w-auto px-4 bg-red-600 hover:bg-red-700 text-white"
             >
               Rechazar
             </Button>
