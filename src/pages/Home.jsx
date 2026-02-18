@@ -760,8 +760,8 @@ export default function Home() {
                 </span>
               </div>
 
-              {/* Debes esperar... centrado (hora en blanco) */}
-              <div className="mt-3 text-center font-bold text-base">
+              {/* Debes esperar... centrado */}
+              <div className="mt-3 text-center text-purple-400 font-bold text-base">
                 {(() => {
                   const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
                   if (!mins) return '';
@@ -772,12 +772,7 @@ export default function Home() {
                     minute: '2-digit',
                     hour12: false
                   });
-                  return (
-                    <>
-                      <span className="text-purple-400">Debes esperar hasta las:&nbsp;</span>
-                      <span className="text-white">{hhmm}</span>
-                    </>
-                  );
+                  return `Debes esperar hasta las: ${hhmm}`;
                 })()}
               </div>
             </div>
