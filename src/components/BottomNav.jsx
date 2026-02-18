@@ -12,10 +12,10 @@ export default function BottomNav() {
 
   // Badge SIEMPRE sincronizado con alertas activas/resevadas del usuario
   const { data: badgeAlerts = [] } = useQuery({
-    queryKey: ['myAlerts', user?.id, user?.email],
+    queryKey: ['badgeAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
     // Evita "recargas" visuales al entrar/salir de pantallas, pero sigue en tiempo real
-    staleTime: 30000,
+    staleTime: 3000,
     gcTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -84,7 +84,7 @@ export default function BottomNav() {
               <span
                 // +15px hacia la derecha (pedido)
                 style={{ transform: 'translate(18px, -2px)' }}
-                className="absolute left-[-35px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+                className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>

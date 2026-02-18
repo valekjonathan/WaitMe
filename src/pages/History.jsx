@@ -548,7 +548,7 @@ const {
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
   // Evita "recargas" al entrar a Alertas, pero sigue actualizando en segundo plano
-  staleTime: 30000,
+  staleTime: 3000,
   gcTime: 5 * 60 * 1000,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
@@ -811,7 +811,7 @@ const myFinalizedAlerts = useMemo(() => {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  const isLoading = (loadingAlerts && myAlerts.length === 0) || (loadingTransactions && transactions.length === 0);
+  const isLoading = loadingAlerts || loadingTransactions;
 
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
@@ -1711,7 +1711,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setCancelConfirmOpen(false);
                 setCancelConfirmAlert(null);
               }}
-              className="px-4 bg-purple-600 hover:bg-purple-700"
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -1797,7 +1797,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="px-4 bg-white text-black hover:bg-gray-200"
+              className="w-auto px-6 bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>
@@ -1808,7 +1808,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="px-4 bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-6 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
