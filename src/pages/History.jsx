@@ -547,13 +547,15 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 0,
+  staleTime: 2000,
+  gcTime: 5 * 60 * 1000,
   refetchOnMount: true,
   refetchOnWindowFocus: true,
   refetchOnReconnect: true,
   refetchInterval: false,
+  placeholderData: (prev) => prev,
   queryFn: async () => {
-    const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+    const all = await base44.entities.ParkingAlert.list('-created_date', 1000);
     const uid = user?.id;
     const email = user?.email;
 
@@ -847,6 +849,23 @@ const myFinalizedAlerts = useMemo(() => {
   const expireAlertMutation = useMutation({
     mutationFn: async (alertId) => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
+    },
+    onMutate: async (alertId) => {
+      // Actualiza UI + badge al instante (sin esperar al refetch)
+      await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
+      const previous = queryClient.getQueryData(['myAlerts', user?.id, user?.email]);
+
+      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old = []) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(['myAlerts', user?.id, user?.email], ctx.previous);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
@@ -1722,7 +1741,7 @@ const myFinalizedAlerts = useMemo(() => {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+          className="bg-gray-900 border border-gray-800 text-white w-[calc(100vw-32px)] max-w-sm max-h-[85vh] overflow-y-auto border-t-2 border-b-2 border-purple-500"
         >
           {/* Cabecera: mismo estilo que la X roja de Filtros (Home) */}
           <div className="flex items-center justify-between mb-3">

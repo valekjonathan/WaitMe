@@ -10,17 +10,19 @@ export default function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Badge SIEMPRE sincronizado con alertas activas/resevadas del usuario
-  const { data: badgeAlerts = [] } = useQuery({
-    queryKey: ['badgeAlerts', user?.id, user?.email],
+  // Badge: reutiliza la misma query de "mis alertas" para evitar doble carga y que aparezca a la vez
+  const { data: myAlerts = [] } = useQuery({
+    queryKey: ['myAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
-    staleTime: 0,
+    staleTime: 2000,
+    gcTime: 5 * 60 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: 5000,
+    refetchInterval: false,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
-      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+      const all = await base44.entities.ParkingAlert.list('-created_date', 1000);
       const uid = user?.id;
       const email = user?.email;
 
@@ -31,15 +33,15 @@ export default function BottomNav() {
           (uid && (a.user_id === uid || a.created_by === uid)) ||
           (email && a.user_email === email);
 
-        if (!isMine) return false;
-
-        const st = String(a.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
+        return !!isMine;
       });
     }
   });
 
-  const activeAlertCount = badgeAlerts.length;
+  const activeAlertCount = (myAlerts || []).filter((a) => {
+    const st = String(a?.status || '').toLowerCase();
+    return st === 'active' || st === 'reserved';
+  }).length;
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
@@ -74,13 +76,13 @@ export default function BottomNav() {
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
         <NavLink
           to="/history"
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
+          className={({ isActive }) => `${baseBtn} pl-[5px] ${isActive ? activeStyle : ''}`}
         >
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
                 // Ajuste fino: +3px derecha, -2px arriba (sin moverla a la izquierda)
-                className="absolute left-[-23px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+                className="absolute left-[-18px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>
