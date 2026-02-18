@@ -44,7 +44,18 @@ useEffect(() => {
   const id = setInterval(() => {
     setNowTs(Date.now());
   }, 1000);
-  return () => clearInterval(id);
+  
+  // ====== Finalizadas renderizables (para estado vacío correcto) ======
+  const renderableFinalized = myFinalizedAll
+    .filter((item) => !hiddenKeys.has(item.id))
+    .filter((item) => {
+      if (item.type === 'alert') {
+        const st = String(item.data?.status || '').toLowerCase();
+        if (st === 'completed') return false; // las completadas van como transacción
+      }
+      return true;
+    });
+return () => clearInterval(id);
 }, []);
 
 useEffect(() => {
@@ -95,6 +106,12 @@ const queryClient = useQueryClient();
     
     return formatted;
   };
+  const formatPriceInt = (v) => {
+    const n = Number(v ?? 0);
+    if (!Number.isFinite(n)) return '0 €';
+    return `${Math.trunc(n)} €`;
+  };
+
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
   const formatAddress = (addr) => {
@@ -314,7 +331,7 @@ const getCreatedTs = (alert) => {
   const CardHeaderRow = ({ left, dateText, dateClassName, right }) => (
     <div className="flex items-center gap-2 mb-2">
       <div className="flex-shrink-0">{left}</div>
-      <div className={`flex-1 text-center text-xs ${dateClassName || ''}`}>{dateText}</div>
+      <div className={`flex-1 text-center text-xs whitespace-nowrap truncate ${dateClassName || ''}`}>{dateText}</div>
       <div className="flex-shrink-0">{right}</div>
     </div>
   );
@@ -950,7 +967,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       <MoneyChip
                                         mode="green"
                                         showUpIcon
-                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                        amountText={formatPriceInt(alert.price)}
                                       />
                                       <button
                                         onClick={() => {
@@ -1041,7 +1058,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       <MoneyChip
                                         mode="green"
                                         showUpIcon
-                                        amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                        amountText={formatPriceInt(alert.price)}
                                       />
                                       <button
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
@@ -1097,17 +1114,17 @@ const myFinalizedAlerts = useMemo(() => {
                   <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {myFinalizedAll.filter((item) => !hiddenKeys.has(item.id)).length === 0 ? (
+                {renderableFinalized.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
                   >
-                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta finalizada.</p>
+                    <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
                   </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
-                    {myFinalizedAll.map((item, index) => {
+                    {renderableFinalized.map((item, index) => {
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
                       const key = item.id;
@@ -1348,12 +1365,12 @@ const myFinalizedAlerts = useMemo(() => {
                                   <MoneyChip
                                     mode="red"
                                     showDownIcon
-                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                    amountText={formatPriceInt(alert.price)}
                                   />
                                 ) : (
                                   <MoneyChip
                                     mode="neutral"
-                                    amountText={`${(alert.price ?? 0).toFixed(2)}€`}
+                                    amountText={formatPriceInt(alert.price)}
                                   />
                                 )}
 
