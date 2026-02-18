@@ -620,11 +620,8 @@ const myActiveAlerts = useMemo(() => {
     if (!isMine) return false;
 
     const status = String(a.status || '').toLowerCase();
-    const createdFrom = String(a.created_from || '').toLowerCase();
 
-    // SOLO mostrar las creadas desde "Estoy aparcado aquí"
-    if (createdFrom !== 'parked_here') return false;
-
+    // Solo mostrar activas o reservadas
     return status === 'active' || status === 'reserved';
   });
 
@@ -634,8 +631,10 @@ const myActiveAlerts = useMemo(() => {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
+  // Solo la más reciente
   return [sorted[0]];
 }, [myAlerts, user?.id, user?.email]);
+
 
 
 const visibleActiveAlerts = useMemo(() => {
