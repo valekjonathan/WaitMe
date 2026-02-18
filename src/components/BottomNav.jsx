@@ -1,15 +1,16 @@
 import React, { useCallback } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, MessageCircle } from 'lucide-react';
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
 
+  // Badge SIEMPRE sincronizado con alertas activas/resevadas del usuario
   const { data: badgeAlerts = [] } = useQuery({
     queryKey: ['badgeAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
@@ -17,7 +18,7 @@ export default function BottomNav() {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: false,
+    refetchInterval: 5000,
     queryFn: async () => {
       const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
@@ -35,78 +36,64 @@ export default function BottomNav() {
         const st = String(a.status || '').toLowerCase();
         return st === 'active' || st === 'reserved';
       });
-
-  const activeCount = badgeAlerts.length;
     }
   });
 
-
-
-  const st = String(a?.status || '').toLowerCase();
-  return st === 'active' || st === 'reserved';
-}).length || 0;
-
-
-  const { data: myActiveAlerts = [] } = useQuery({
-    queryKey: ['myActiveAlerts', user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const res = await base44.entities.ParkingAlert.filter({
-          user_id: user?.id,
-          status: 'active'
-        });
-        return (res || []).filter((a) => String(a?.created_from || a?.createdFrom || '').toLowerCase() === 'parked_here');
-      },
-    refetchInterval: 5000
-  });
-
-  const activeAlertCount = (myActiveAlerts || []).length;
+  const activeAlertCount = badgeAlerts.length;
 
   const baseBtn =
-    "flex-1 flex flex-col items-center justify-center text-purple-400 " +
-    "h-[60px] rounded-lg";
+    'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
+    'h-[60px] rounded-lg';
 
-  const activeStyle = "bg-purple-700/40 border border-purple-500/50";
+  const activeStyle = 'bg-purple-700/40 border border-purple-500/50';
 
   const labelClass =
-    "text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap";
+    'text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap';
 
   const labelClassLong =
-    "text-[9px] font-bold leading-none mt-[2px] whitespace-nowrap tracking-tight";
+    'text-[9px] font-bold leading-none mt-[2px] whitespace-nowrap tracking-tight';
 
   const divider = <div className="w-px h-8 bg-gray-700" />;
 
-  const isMapActive = location.pathname === "/";
+  const isMapActive = location.pathname === '/';
 
-  const handleMapClick = useCallback((e) => {
-    // SIEMPRE: volver al logo + 2 botones (aunque ya estés en "/")
-    e?.preventDefault?.();
-    try {
-      window.dispatchEvent(new Event('waitme:goLogo'));
-    } catch {}
-    navigate('/', { replace: false });
-  }, [navigate]);
+  const handleMapClick = useCallback(
+    (e) => {
+      // SIEMPRE: volver al logo + 2 botones (aunque ya estés en "/")
+      e?.preventDefault?.();
+      try {
+        window.dispatchEvent(new Event('waitme:goLogo'));
+      } catch {}
+      navigate('/', { replace: false });
+    },
+    [navigate]
+  );
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto">
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
-
         <NavLink
           to="/history"
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
+                // +8px hacia la derecha (pedido)
+                style={{ transform: 'translateX(8px)' }}
                 className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>
             )}
-            <svg className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" viewBox="0 0 32 32" fill="none">
-            <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor"/>
-            <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor"/>
-          </svg>
+            <svg
+              className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]"
+              viewBox="0 0 32 32"
+              fill="none"
+            >
+              <path d="M30 8 L14 8 L14 5 L8 10 L14 15 L14 12 L30 12 Z" fill="currentColor" />
+              <path d="M2 20 L18 20 L18 17 L24 22 L18 27 L18 24 L2 24 Z" fill="currentColor" />
+            </svg>
           </div>
           <span className={labelClass}>Alertas</span>
         </NavLink>
@@ -117,7 +104,7 @@ export default function BottomNav() {
         <a
           href="/"
           onClick={handleMapClick}
-          className={`${baseBtn} ${isMapActive ? activeStyle : ""}`}
+          className={`${baseBtn} ${isMapActive ? activeStyle : ''}`}
         >
           <svg
             className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]"
@@ -139,7 +126,7 @@ export default function BottomNav() {
 
         <NavLink
           to="/notifications"
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <Bell className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
           <span className={labelClassLong}>Notificaciones</span>
@@ -149,12 +136,11 @@ export default function BottomNav() {
 
         <NavLink
           to="/chats"
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ""}`}
+          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <MessageCircle className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
           <span className={labelClass}>Chats</span>
         </NavLink>
-
       </div>
     </nav>
   );
