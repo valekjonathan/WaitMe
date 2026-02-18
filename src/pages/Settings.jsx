@@ -189,4 +189,4 @@ export default function Settings() {
       <BottomNav />
     </div>
   );
-}
+} 
