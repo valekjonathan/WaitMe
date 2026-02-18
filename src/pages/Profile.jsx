@@ -191,42 +191,41 @@ export default function Profile() {
     </svg>
   );
 }
-    if (type === 'van') {
-  return (
-    <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
-      {/* Furgoneta grande (morro a la derecha) */}
-      <path
-        d="M5.5 18 V10.2 H15.2 L19.2 7.6 H33.6 L40.5 10.2 L43.5 12.8 V18 H5.5 Z"
-        fill={color}
-        stroke="white"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      {/* Cristales */}
-      <path
-        d="M16.1 9.6 L18.6 12.6 H27.2 L29.1 9.6 Z"
-        fill="rgba(255,255,255,0.22)"
-        stroke="white"
-        strokeWidth="0.5"
-      />
-      <path
-        d="M30.2 9.6 L31.6 12.6 H38.9 V11.2 L35 9.6 Z"
-        fill="rgba(255,255,255,0.16)"
-        stroke="white"
-        strokeWidth="0.5"
-      />
-      {/* Puerta lateral */}
-      <path d="M28.2 9.6 V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
-      {/* Faro delantero */}
-      <path d="M43.3 15.4 H41.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      {/* Ruedas */}
-      <circle cx="14.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="14.2" cy="18" r="1.9" fill="#666" />
-      <circle cx="35.4" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="35.4" cy="18" r="1.9" fill="#666" />
-    </svg>
-  );
-}
+        if (type === 'van') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
+          {/* Furgoneta estilo VW (morro a la derecha) */}
+          <path
+            d="M6 18 V9.8 H16.2 L19.4 7.2 H31.4 L38.8 9.8 H44 V18 H6 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16.8 10.1 L18.8 12.7 H26.6 L28.3 10.1 Z"
+            fill="rgba(255,255,255,0.22)"
+            stroke="white"
+            strokeWidth="0.5"
+          />
+          <path
+            d="M29.2 10.1 L30.6 12.7 H37.8 V11.1 L34.4 10.1 Z"
+            fill="rgba(255,255,255,0.18)"
+            stroke="white"
+            strokeWidth="0.5"
+          />
+          <path d="M39.6 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
+          <path d="M41.0 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
+          <circle cx="42.4" cy="14.4" r="1.2" fill="rgba(255,255,255,0.6)" stroke="white" strokeWidth="0.6" />
+          <path d="M27.6 10.1 V18" stroke="white" strokeWidth="0.6" opacity="0.55" />
+          <circle cx="14.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="14.2" cy="18" r="1.9" fill="#666" />
+          <circle cx="35.6" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="35.6" cy="18" r="1.9" fill="#666" />
+          <path d="M44 15.8 H42.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      );
+    }
     // car (default)
     return (
       <svg viewBox="0 0 48 24" className={size} fill="none">
@@ -446,18 +445,21 @@ export default function Profile() {
                     
 <SelectItem value="van" className="text-white hover:bg-gray-800">
   <div className="flex items-center gap-2">
-    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-      <path d="M5.5 18 V10.2 H15.2 L19.2 7.6 H33.6 L40.5 10.2 L43.5 12.8 V18 H5.5 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M16.1 9.6 L18.6 12.6 H27.2 L29.1 9.6 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
-      <path d="M30.2 9.6 L31.6 12.6 H38.9 V11.2 L35 9.6 Z" fill="rgba(255,255,255,0.16)" stroke="white" strokeWidth="0.5" />
-      <path d="M28.2 9.6 V18" stroke="white" strokeWidth="0.6" opacity="0.6" />
-      <path d="M43.3 15.4 H41.7" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none" aria-hidden="true">
+      <path d="M6 18 V9.8 H16.2 L19.4 7.2 H31.4 L38.8 9.8 H44 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M16.8 10.1 L18.8 12.7 H26.6 L28.3 10.1 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
+      <path d="M29.2 10.1 L30.6 12.7 H37.8 V11.1 L34.4 10.1 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
+      <path d="M39.6 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
+      <path d="M41.0 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
+      <circle cx="42.4" cy="14.4" r="1.2" fill="rgba(255,255,255,0.6)" stroke="white" strokeWidth="0.6" />
+      <path d="M27.6 10.1 V18" stroke="white" strokeWidth="0.6" opacity="0.55" />
       <circle cx="14.2" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="35.4" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="35.6" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
+      <path d="M44 15.8 H42.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
     Furgoneta
-                      </div>
-                    </SelectItem>
+  </div>
+</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
