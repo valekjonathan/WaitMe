@@ -156,3 +156,20 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* iOS PWA / Safari: 100vh no es la altura visible real.
+   Forzamos una base estable para que no quede "hueco negro" abajo. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  background: #000;
+}
+
+#root {
+  min-height: 100dvh;
+}
