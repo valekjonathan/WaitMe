@@ -547,11 +547,13 @@ const {
 } = useQuery({
   queryKey: ['myAlerts', user?.id, user?.email],
   enabled: !!user?.id || !!user?.email,
-  staleTime: 0,
-  refetchOnMount: true,
-  refetchOnWindowFocus: true,
+  // Evitar “recargas” al entrar en Alertas: mantenemos datos previos y sincronizamos en segundo plano.
+  staleTime: 1000,
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
   refetchOnReconnect: true,
-  refetchInterval: false,
+  refetchInterval: 2000,
+  placeholderData: (prev) => prev,
   queryFn: async () => {
     const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
     const uid = user?.id;
@@ -1730,19 +1732,8 @@ const myFinalizedAlerts = useMemo(() => {
               <span className="text-white font-extrabold text-xs">Tu alerta ha expirado</span>
             </div>
 
-            <button
-              onClick={() => {
-                if (expirePromptAlert?.id) {
-                  expireAlertMutation.mutate(expirePromptAlert.id);
-                }
-                setExpirePromptOpen(false);
-                setExpirePromptAlert(null);
-              }}
-              className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors"
-              aria-label="Marcar como expirada"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {/* Sin “X” (pedido). Mantengo el hueco para no mover la cabecera. */}
+            <div className="w-8 h-8" />
           </div>
 
           {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}
@@ -1776,19 +1767,6 @@ const myFinalizedAlerts = useMemo(() => {
                   right={
                     <div className="flex items-center gap-1">
                       <MoneyChip mode="green" showUpIcon amountText={formatPriceInt(a.price)} />
-                      <button
-                        onClick={() => {
-                          if (a?.id) {
-                            expireAlertMutation.mutate(a.id);
-                          }
-                          setExpirePromptOpen(false);
-                          setExpirePromptAlert(null);
-                        }}
-                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-                        aria-label="Marcar como expirada"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
                     </div>
                   }
                 />
@@ -1802,8 +1780,8 @@ const myFinalizedAlerts = useMemo(() => {
 
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
+                  <span className="text-white leading-5">Te ibas en {a.available_in_minutes} min · </span>
+                  <span className="text-purple-400 leading-5">Debías esperar hasta las {waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">

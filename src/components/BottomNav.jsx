@@ -14,11 +14,13 @@ export default function BottomNav() {
   const { data: badgeAlerts = [] } = useQuery({
     queryKey: ['badgeAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    // Evitar “recargas” visuales al navegar, pero mantener sincronización en tiempo real.
+    staleTime: 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    refetchInterval: 5000,
+    refetchInterval: 2000,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
@@ -34,7 +36,8 @@ export default function BottomNav() {
         if (!isMine) return false;
 
         const st = String(a.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
+        // “Bolita” solo si hay alerta ACTIVA (pedido)
+        return st === 'active';
       });
     }
   });
@@ -79,8 +82,8 @@ export default function BottomNav() {
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
-                // +8px hacia la derecha (pedido)
-                style={{ transform: 'translateX(8px)' }}
+                // +15px hacia la derecha (pedido)
+                style={{ transform: 'translateX(15px)' }}
                 className="absolute left-[-38px] top-[6px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
