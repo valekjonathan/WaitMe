@@ -95,13 +95,13 @@ export default function Profile() {
     return (value = '') => {
       const clean = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       const a = clean.slice(0, 4);
-      const b = clean.slice(4, 7);
+      const b = clean.slice(4, 8);
       return b ? `${a} ${b}`.trim() : a;
     };
   }, []);
 
   const handlePlateChange = (raw) => {
-    const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+    const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
     updateField('car_plate', clean);
   };
 
