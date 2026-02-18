@@ -1740,7 +1740,7 @@ const myFinalizedAlerts = useMemo(() => {
       }}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto"
+          className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0"
         >
           {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
           <div className="flex justify-center mb-3">
@@ -1811,7 +1811,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-auto px-6 min-w-[140px] bg-purple-600 hover:bg-purple-700"
+              className="w-auto px-4 py-2 bg-purple-600 hover:bg-purple-700"
             >
               Aceptar
             </Button>
@@ -1823,7 +1823,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-auto px-6 min-w-[140px] bg-white text-black hover:bg-gray-200"
+              className="w-auto px-4 py-2 bg-white text-black hover:bg-gray-200"
             >
               Repetir alerta
             </Button>

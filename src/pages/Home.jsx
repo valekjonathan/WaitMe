@@ -714,7 +714,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between gap-3">
             <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-              <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada.</span>
+              <span className="text-white font-semibold text-sm">Ya tienes una alerta activa.</span>
             </div>
 
             <button
@@ -725,6 +725,10 @@ export default function Home() {
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+
+          <div className="mt-3 px-1">
+            <p className="text-white text-sm font-semibold">No puedes tener 2 alertas activas.</p>
           </div>
         </DialogContent>
       </Dialog>

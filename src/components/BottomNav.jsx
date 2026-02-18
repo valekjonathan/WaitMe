@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -90,8 +90,8 @@ export default function BottomNav() {
           <div className="relative">
             {activeAlertCount > 0 && (
               <span
-                // Ajuste fino: +3px derecha, -2px arriba (sin moverla a la izquierda)
-                className="absolute left-[-18px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+                // Ajuste fino: +4px derecha (número más centrado)
+                className="absolute left-[-14px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>
