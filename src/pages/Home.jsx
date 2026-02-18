@@ -21,6 +21,11 @@ import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 // ======================
 // Helpers
 // ======================
+const FALLBACK_LAT = 43.3623; // Oviedo
+const FALLBACK_LNG = -5.8489; // Oviedo
+
+
+// ======================
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -180,8 +185,13 @@ export default function Home() {
           })
           .catch(() => {});
       },
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      () => {
+        // iOS PWA a veces deniega/retarda la geo: ponemos fallback para que SIEMPRE haya mapa + tarjetas.
+        setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
+        setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
+        if (!address) setAddress('Oviedo');
+      },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
     );
   };
 

@@ -12,13 +12,13 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
 const carColors = [
-{ value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
-{ value: 'negro', label: 'Negro', fill: '#1a1a1a' },
-{ value: 'rojo', label: 'Rojo', fill: '#ef4444' },
-{ value: 'azul', label: 'Azul', fill: '#3b82f6' },
-{ value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
-{ value: 'gris', label: 'Gris', fill: '#6b7280' }];
-
+  { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
+  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
+  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
+  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
+  { value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
+  { value: 'gris', label: 'Gris', fill: '#6b7280' },
+];
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -35,9 +35,8 @@ export default function Profile() {
     phone: '',
     allow_phone_calls: false,
     notifications_enabled: true,
-    email_notifications: true
+    email_notifications: true,
   });
-
 
   // Foto instantánea: muestra caché local (si existe) y actualiza en segundo plano
   const [photoSrc, setPhotoSrc] = useState('');
@@ -93,7 +92,6 @@ export default function Profile() {
     };
   }, [formData.photo_url, user?.id]);
 
-
   useEffect(() => {
     if (!user || hydrated) return;
     setFormData({
@@ -107,7 +105,7 @@ export default function Profile() {
       phone: user.phone || '',
       allow_phone_calls: user.allow_phone_calls || false,
       notifications_enabled: user.notifications_enabled !== false,
-      email_notifications: user.email_notifications !== false
+      email_notifications: user.email_notifications !== false,
     });
     setHydrated(true);
   }, [user, hydrated]);
@@ -162,39 +160,36 @@ export default function Profile() {
     updateField('car_plate', clean);
   };
 
-  const VehicleIconProfile = ({ type, color, size = "w-16 h-10" }) => {
+  const VehicleIconProfile = ({ type, color, size = 'w-16 h-10' }) => {
     if (type === 'suv') {
-  return (
-    <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Todoterreno">
-      {/* Todoterreno / SUV (morro a la derecha) */}
-      <path
-        d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z"
-        fill={color}
-        stroke="white"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      {/* Ventanas */}
-      <path
-        d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z"
-        fill="rgba(255,255,255,0.22)"
-        stroke="white"
-        strokeWidth="0.5"
-      />
-      <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
-      {/* Parachoques y faro delantero */}
-      <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="14.2" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="14.2" cy="18" r="2" fill="#666" />
-      <circle cx="35.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="35.6" cy="18" r="2" fill="#666" />
-    </svg>
-  );
-}
-        if (type === 'van') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Todoterreno">
+          <path
+            d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z"
+            fill="rgba(255,255,255,0.22)"
+            stroke="white"
+            strokeWidth="0.5"
+          />
+          <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+          <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="14.2" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="14.2" cy="18" r="2" fill="#666" />
+          <circle cx="35.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="35.6" cy="18" r="2" fill="#666" />
+        </svg>
+      );
+    }
+
+    if (type === 'van') {
       return (
         <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
-          {/* Furgoneta (misma línea que el SUV pero más larga, morro a la derecha) */}
           <path
             d="M4 18 V12.8 L7.5 10.8 L14 8.8 H32.2 L40.2 10.2 L45.6 13.8 L46 18 H4 Z"
             fill={color}
@@ -202,7 +197,6 @@ export default function Profile() {
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          {/* Ventanas */}
           <path
             d="M15.5 9.6 L18 12.6 H31.2 L33.2 9.6 Z"
             fill="rgba(255,255,255,0.22)"
@@ -210,12 +204,9 @@ export default function Profile() {
             strokeWidth="0.5"
           />
           <path d="M24.2 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
-          {/* Detalle lateral (puerta) */}
           <path d="M12.4 12.8 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
           <path d="M33.8 12.6 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
-          {/* Faro delantero */}
           <path d="M46 15.6 H44.4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-          {/* Ruedas (más separadas para dar sensación de longitud) */}
           <circle cx="13.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
           <circle cx="13.6" cy="18" r="2" fill="#666" />
           <circle cx="37.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
@@ -223,9 +214,9 @@ export default function Profile() {
         </svg>
       );
     }
-    // car (default)
+
     return (
-      <svg viewBox="0 0 48 24" className={size} fill="none">
+      <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Coche">
         <path
           d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
           fill={color}
@@ -241,24 +232,36 @@ export default function Profile() {
     );
   };
 
-
-  const CarIconSmall = ({ color }) =>
-  <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none">
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none" aria-hidden="true">
       <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
       <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
       <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-    </svg>;
+    </svg>
+  );
+
+  // ✅ CAMBIO: etiquetas del desplegable
+  const vehicleLabel = (t) => {
+    if (t === 'suv') return 'Voluminoso';
+    if (t === 'van') return 'Furgoneta';
+    return 'Normal';
+  };
+
+  // ✅ CAMBIO: icono pequeño = MISMO SVG que arriba (misma forma)
+  const VehicleIconSmall = ({ type }) => (
+    <VehicleIconProfile
+      type={type}
+      color={selectedColor?.fill}
+      size="w-6 h-4"
+    />
+  );
 
   return (
     <div className="h-screen bg-black text-white overflow-hidden">
       <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden h-screen">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4">
-
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           {/* +4px de separación negra respecto a la línea del menú superior */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -266,37 +269,31 @@ export default function Profile() {
               {/* Foto */}
               <div className="relative">
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
-                  {formData.photo_url ?
-                  <img
-                    src={photoSrc || formData.photo_url}
-                    alt="Perfil"
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                    decoding="sync"
-                    fetchPriority="high"
-                  /> :
-
-
-                  <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">
-                      👤
-                    </div>
-                  }
+                  {formData.photo_url ? (
+                    <img
+                      src={photoSrc || formData.photo_url}
+                      alt="Perfil"
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      decoding="sync"
+                      fetchPriority="high"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
+                  )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
                   <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload} />
-
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                 </label>
               </div>
 
               {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
-                <p className="text-xl font-bold text-white">{formData.display_name || user?.full_name?.split(' ')[0]}</p>
-                
+                <p className="text-xl font-bold text-white">
+                  {formData.display_name || user?.full_name?.split(' ')[0]}
+                </p>
+
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium text-sm">
@@ -313,9 +310,7 @@ export default function Profile() {
                       <span className="text-white text-[8px] font-bold">E</span>
                     </div>
                     <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                      {formData.car_plate ? 
-                        `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : 
-                        '0000 XXX'}
+                      {formData.car_plate ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : '0000 XXX'}
                     </span>
                   </div>
                 </div>
@@ -334,7 +329,8 @@ export default function Profile() {
                   onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
                   placeholder="Tu nombre"
                   className="bg-gray-900 border-gray-700 text-white h-9"
-                  maxLength={15} />
+                  maxLength={15}
+                />
               </div>
 
               <div className="space-y-2">
@@ -369,7 +365,8 @@ export default function Profile() {
                   value={formData.car_brand}
                   onChange={(e) => updateField('car_brand', e.target.value)}
                   placeholder="Seat, Renault..."
-                  className="bg-gray-900 border-gray-700 text-white h-9" />
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -378,85 +375,62 @@ export default function Profile() {
                   value={formData.car_model}
                   onChange={(e) => updateField('car_model', e.target.value)}
                   placeholder="Ibiza, Megane..."
-                  className="bg-gray-900 border-gray-700 text-white h-9" />
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-gray-400 text-sm">Color</Label>
-                <Select
-                  value={formData.car_color}
-                  onValueChange={(value) => updateField('car_color', value)}>
-
+                <Select value={formData.car_color} onValueChange={(value) => updateField('car_color', value)}>
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent side="top" sideOffset={8} className="bg-gray-900 border-gray-700">
-                    {carColors.map((color) =>
-                    <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                    {carColors.map((color) => (
+                      <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
                         <div className="flex items-center gap-2">
                           <CarIconSmall color={color.fill} />
                           {color.label}
                         </div>
                       </SelectItem>
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1.5">
                 <Label className="text-gray-400 text-sm">Vehículo</Label>
-                <Select
-                  value={formData.vehicle_type || 'car'}
-                  onValueChange={(value) => updateField('vehicle_type', value)}>
-
+                <Select value={formData.vehicle_type || 'car'} onValueChange={(value) => updateField('vehicle_type', value)}>
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                    <SelectValue />
+                    <div className="flex items-center gap-2">
+                      <VehicleIconSmall type={formData.vehicle_type || 'car'} />
+                      <span className="text-white">{vehicleLabel(formData.vehicle_type || 'car')}</span>
+                    </div>
                   </SelectTrigger>
+
                   <SelectContent side="top" sideOffset={8} className="bg-gray-900 border-gray-700">
                     <SelectItem value="car" className="text-white hover:bg-gray-800">
                       <div className="flex items-center gap-2">
-                        <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-                          <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" />
-                          <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                          <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-                        </svg>
-                        Coche normal
+                        <VehicleIconSmall type="car" />
+                        Normal
                       </div>
                     </SelectItem>
-                    
-<SelectItem value="suv" className="text-white hover:bg-gray-800">
-  <div className="flex items-center gap-2">
-    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none">
-      <path d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
-      <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
-      <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="14.2" cy="18" r="3.4" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="35.6" cy="18" r="3.4" fill="#333" stroke="white" strokeWidth="1" />
-    </svg>
-    Coche voluminoso
+
+                    <SelectItem value="suv" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <VehicleIconSmall type="suv" />
+                        Voluminoso
                       </div>
                     </SelectItem>
-                    
-<SelectItem value="van" className="text-white hover:bg-gray-800">
-  <div className="flex items-center gap-2">
-    <svg className="w-6 h-4" viewBox="0 0 48 24" fill="none" aria-hidden="true">
-      <path d="M6 18 V9.8 H16.2 L19.4 7.2 H31.4 L38.8 9.8 H44 V18 H6 Z" fill="#6b7280" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M16.8 10.1 L18.8 12.7 H26.6 L28.3 10.1 Z" fill="rgba(255,255,255,0.22)" stroke="white" strokeWidth="0.5" />
-      <path d="M29.2 10.1 L30.6 12.7 H37.8 V11.1 L34.4 10.1 Z" fill="rgba(255,255,255,0.18)" stroke="white" strokeWidth="0.5" />
-      <path d="M39.6 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
-      <path d="M41.0 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
-      <circle cx="42.4" cy="14.4" r="1.2" fill="rgba(255,255,255,0.6)" stroke="white" strokeWidth="0.6" />
-      <path d="M27.6 10.1 V18" stroke="white" strokeWidth="0.6" opacity="0.55" />
-      <circle cx="14.2" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="35.6" cy="18" r="3.3" fill="#333" stroke="white" strokeWidth="1" />
-      <path d="M44 15.8 H42.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-    Furgoneta
-  </div>
-</SelectItem>
+
+                    <SelectItem value="van" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <VehicleIconSmall type="van" />
+                        Furgoneta
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -469,13 +443,14 @@ export default function Profile() {
                 onChange={(e) => handlePlateChange(e.target.value)}
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
-                maxLength={8} />
+                maxLength={8}
+              />
             </div>
           </div>
         </motion.div>
-        </main>
+      </main>
 
-        <BottomNav />
-        </div>);
-
-        }
+      <BottomNav />
+    </div>
+  );
+}

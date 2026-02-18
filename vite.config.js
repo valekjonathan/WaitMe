@@ -4,6 +4,10 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    // Logos/PNG pequeños inline => carga instantánea (iOS PWA incluido)
+    assetsInlineLimit: 200000,
+  },
   logLevel: 'error', // Suppress warnings, only show errors
   plugins: [
     base44({

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -10,7 +10,9 @@ import {
   ChevronRight,
   CreditCard,
   HelpCircle,
-  Star
+  Star,
+  Instagram,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -18,46 +20,31 @@ import Logo from '@/components/Logo';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/lib/AuthContext';
-import { base44 } from '@/api/base44Client';
 
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
 
-  // Mantengo estos estados por si ya los estabas usando en el código (sin bloquear la pantalla)
-  const [phone, setPhone] = useState('');
-  const [allowCalls, setAllowCalls] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  // Hidrata desde el usuario en cuanto exista (sin pantalla de carga)
+  // Precarga real para que la foto salga instantánea
   useEffect(() => {
-    if (!user) return;
-    setPhone(user.phone || '');
-    setAllowCalls(user.allow_phone_calls || false);
-
-    // Pre-carga de foto (entrada instantánea)
-    if (user.photo_url) {
-      const img = new Image();
-      img.src = user.photo_url;
-    }
-  }, [user]);
-
-  const handleSavePhone = async () => {
-    setSaving(true);
-    try {
-      await base44.auth.updateMe({ phone, allow_phone_calls: allowCalls });
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
+    if (!user?.photo_url) return;
+    const img = new Image();
+    img.src = user.photo_url;
+  }, [user?.photo_url]);
 
   const handleLogout = () => {
-    // Logout “oficial” del contexto (más fiable)
     logout?.(true);
   };
 
-  const displayName = user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
+  const instagramUrl = user?.instagram_url || user?.instagram || '';
+  const webUrl = user?.website_url || user?.web || '';
+
+  const openExternal = (url) => {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const displayName =
+    user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -75,14 +62,14 @@ export default function Settings() {
               {user?.photo_url ? (
                 <img
                   src={user.photo_url}
-                  className="w-14 h-14 rounded-full object-cover"
+                  className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 bg-gray-800"
                   alt=""
                   loading="eager"
                   decoding="sync"
                   fetchPriority="high"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center">
+                <div className="w-14 h-14 rounded-xl bg-gray-800 border-2 border-purple-500 flex items-center justify-center">
                   <User className="w-7 h-7 text-gray-500" />
                 </div>
               )}
@@ -105,7 +92,10 @@ export default function Settings() {
                 {(user?.credits || 0).toFixed(2)}€
               </span>
             </div>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoadingAuth}>
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              disabled={isLoadingAuth}
+            >
               <CreditCard className="w-4 h-4 mr-2" />
               Añadir créditos
             </Button>
@@ -122,30 +112,56 @@ export default function Settings() {
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </Link>
 
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Shield className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Privacidad</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
 
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Star className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Valorar la app</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
 
-            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors" type="button">
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <HelpCircle className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Ayuda</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
           </div>
 
+          {/* Instagram y Web - cajas individuales estilo Créditos */}
+          <div className="flex justify-center gap-6">
+            
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
+              <button
+                onClick={() => openExternal(instagramUrl)}
+                disabled={!instagramUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Instagram className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Instagram</span>
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
+              <button
+                onClick={() => openExternal(webUrl)}
+                disabled={!webUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Globe className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Web</span>
+              </button>
+            </div>
+
+          </div>
+
           {/* Cerrar sesión */}
           <Button
             onClick={handleLogout}
-            variant="outline"
-            className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
             disabled={isLoadingAuth}
           >
             <LogOut className="w-5 h-5 mr-2" />

@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
 
 /* ======================================================
    DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
@@ -524,9 +523,8 @@ export function setDemoMode() { return true; }
 
 export default function DemoFlowManager() {
   useEffect(() => {
+    // Siempre activo: la app arranca con datos y se ve igual en Preview y en iPhone (PWA).
     startDemoFlow();
-    toast({ title: 'Modo Demo Activo', description: 'La app tiene vida simulada.' });
-    // no limpiamos timer: Base44 recarga mucho
   }, []);
   return null;
 }
