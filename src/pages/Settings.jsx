@@ -23,93 +23,51 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
-
-  // Foto instantánea: muestra caché local (si existe) y actualiza en segundo plano
   const [photoSrc, setPhotoSrc] = useState('');
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const cacheKey = `waitme_settings_photo_cache_${user?.id || 'default'}`;
-    let cached = '';
-    try {
-      cached = window.localStorage.getItem(cacheKey) || '';
-      if (cached) setPhotoSrc(cached);
-    } catch (_) {}
-
-    const url = user?.photo_url || '';
-    if (!url) return;
-
-    // Precarga inmediata (para que no "tarde" al entrar)
+    if (!user?.photo_url) return;
     const img = new Image();
     img.decoding = 'sync';
-    img.src = url;
-
-    img.onload = () => {
-      if (!cached) setPhotoSrc(url);
-
-      // Intento de caché local como dataURL (si CORS lo permite)
-      fetch(url)
-        .then((r) => r.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        )
-        .then((dataUrl) => {
-          if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
-            try {
-              window.localStorage.setItem(cacheKey, dataUrl);
-              setPhotoSrc(dataUrl);
-            } catch (_) {}
-          }
-        })
-        .catch(() => {});
-    };
-
-    img.onerror = () => {
-      if (!cached) setPhotoSrc(url);
-    };
-  }, [user?.photo_url, user?.id]);
+    img.src = user.photo_url;
+    setPhotoSrc(user.photo_url);
+  }, [user?.photo_url]);
 
   const handleLogout = () => {
     logout?.(true);
   };
 
-  // NO invento URLs. Si no existen en user, los botones quedan deshabilitados.
   const instagramUrl = user?.instagram_url || user?.instagram || '';
   const webUrl = user?.website_url || user?.web || '';
 
   const openExternal = (url) => {
     if (!url) return;
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (_) {}
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const displayName = user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
+  const displayName =
+    user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
       <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
           {/* Perfil resumen */}
           <Link to={createPageUrl('Profile')}>
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
               {user?.photo_url ? (
                 <img
-                  src={photoSrc || user.photo_url}
+                  src={photoSrc}
                   className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 bg-gray-800"
                   alt=""
                   loading="eager"
                   decoding="sync"
-                  fetchPriority="high"
                 />
               ) : (
                 <div className="w-14 h-14 rounded-xl bg-gray-800 border-2 border-purple-500 flex items-center justify-center">
@@ -131,9 +89,14 @@ export default function Settings() {
                 <Coins className="w-6 h-6 text-purple-400" />
                 <span className="font-medium">Mis créditos</span>
               </div>
-              <span className="text-2xl font-bold text-purple-400">{(user?.credits || 0).toFixed(2)}€</span>
+              <span className="text-2xl font-bold text-purple-400">
+                {(user?.credits || 0).toFixed(2)}€
+              </span>
             </div>
-            <Button className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoadingAuth}>
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              disabled={isLoadingAuth}
+            >
               <CreditCard className="w-4 h-4 mr-2" />
               Añadir créditos
             </Button>
@@ -178,30 +141,34 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Instagram + Web (encima del botón Cerrar sesión) */}
-          <div className="flex items-center justify-center gap-10 pt-2">
-            <button
-              type="button"
-              onClick={() => openExternal(instagramUrl)}
-              disabled={!instagramUrl}
-              className="flex flex-col items-center gap-2 disabled:opacity-40"
-            >
-              <Instagram className="w-6 h-6 text-purple-600" />
-              <span className="text-sm text-white">Instagram</span>
-            </button>
+          {/* Instagram + Web en contenedor morado tipo tarjeta */}
+          <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-2xl p-4 border-2 border-purple-500">
+            <div className="flex items-center justify-center gap-14">
+              <button
+                type="button"
+                onClick={() => openExternal(instagramUrl)}
+                disabled={!instagramUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Instagram className="w-6 h-6 text-white" />
+                <span className="text-sm text-white font-medium">
+                  Instagram
+                </span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => openExternal(webUrl)}
-              disabled={!webUrl}
-              className="flex flex-col items-center gap-2 disabled:opacity-40"
-            >
-              <Globe className="w-6 h-6 text-purple-600" />
-              <span className="text-sm text-white">Web</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => openExternal(webUrl)}
+                disabled={!webUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Globe className="w-6 h-6 text-white" />
+                <span className="text-sm text-white font-medium">Web</span>
+              </button>
+            </div>
           </div>
 
-          {/* Cerrar sesión (rojo) */}
+          {/* Cerrar sesión */}
           <Button
             onClick={handleLogout}
             className="w-full bg-red-600 hover:bg-red-700 text-white"
