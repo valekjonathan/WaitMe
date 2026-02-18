@@ -44,18 +44,7 @@ useEffect(() => {
   const id = setInterval(() => {
     setNowTs(Date.now());
   }, 1000);
-  
-  // ====== Finalizadas renderizables (para estado vacío correcto) ======
-  const renderableFinalized = myFinalizedAll
-    .filter((item) => !hiddenKeys.has(item.id))
-    .filter((item) => {
-      if (item.type === 'alert') {
-        const st = String(item.data?.status || '').toLowerCase();
-        if (st === 'completed') return false; // las completadas van como transacción
-      }
-      return true;
-    });
-return () => clearInterval(id);
+  return () => clearInterval(id);
 }, []);
 
 useEffect(() => {
@@ -331,7 +320,7 @@ const getCreatedTs = (alert) => {
   const CardHeaderRow = ({ left, dateText, dateClassName, right }) => (
     <div className="flex items-center gap-2 mb-2">
       <div className="flex-shrink-0">{left}</div>
-      <div className={`flex-1 text-center text-xs whitespace-nowrap truncate ${dateClassName || ''}`}>{dateText}</div>
+      <div className={`flex-1 text-center text-xs whitespace-nowrap ${dateClassName || ''}`}>{dateText}</div>
       <div className="flex-shrink-0">{right}</div>
     </div>
   );
@@ -772,6 +761,19 @@ const myFinalizedAlerts = useMemo(() => {
     }))
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
+
+  const renderableFinalized = useMemo(() => {
+    return myFinalizedAll
+      .filter((item) => !hiddenKeys.has(item.id))
+      .filter((item) => {
+        if (item.type === 'alert') {
+          const st = String(item.data?.status || '').toLowerCase();
+          if (st === 'completed') return false; // las completadas van como transacción
+        }
+        return true;
+      });
+  }, [myFinalizedAll, hiddenKeys]);
+
  
     
 
@@ -1061,7 +1063,6 @@ const myFinalizedAlerts = useMemo(() => {
                                         amountText={formatPriceInt(alert.price)}
                                       />
                                       <button
-                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                         onClick={() => {
   hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
   cancelAlertMutation.mutate(alert.id, {
@@ -1160,7 +1161,7 @@ const myFinalizedAlerts = useMemo(() => {
                                 <div className="flex items-center gap-1">
                                   <MoneyChip
                                     mode="neutral"
-                                    amountText={`${((a.price ?? 0) * 1).toFixed(2)}€`}
+                                    amountText={formatPriceInt(a.price)}
                                   />
                                   <button
                                     onClick={async () => {
@@ -1245,7 +1246,7 @@ const myFinalizedAlerts = useMemo(() => {
                                 <MoneyChip
                                   mode="green"
                                   showUpIcon
-                                  amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                  amountText={formatPriceInt(tx.amount)}
                                 />
                                 <button
                                   onClick={() => hideKey(key)}
@@ -1386,7 +1387,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       sender_name:
                                         user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
                                       receiver_id: alert.user_email || alert.user_id,
-                                      message: `He cancelado mi reserva de ${(alert.price ?? 0).toFixed(2)}€`,
+                                      message: `He cancelado mi reserva de ${Math.trunc(alert.price ?? 0)} €`,
                                       read: false
                                     });
 
@@ -1502,10 +1503,10 @@ const myFinalizedAlerts = useMemo(() => {
                                     <MoneyChip
                                       mode="red"
                                       showDownIcon
-                                      amountText={`${(a.price ?? 0).toFixed(2)}€`}
+                                      amountText={formatPriceInt(a.price)}
                                     />
                                   ) : (
-                                    <MoneyChip mode="neutral" amountText={`${(a.price ?? 0).toFixed(2)}€`} />
+                                    <MoneyChip mode="neutral" amountText={formatPriceInt(a.price)} />
                                   )}
 
                                   <button
@@ -1595,10 +1596,10 @@ const myFinalizedAlerts = useMemo(() => {
                                   <MoneyChip
                                     mode="red"
                                     showDownIcon
-                                    amountText={`${(tx.amount ?? 0).toFixed(2)}€`}
+                                    amountText={formatPriceInt(tx.amount)}
                                   />
                                 ) : (
-                                  <MoneyChip mode="neutral" amountText={`${(tx.amount ?? 0).toFixed(2)}€`} />
+                                  <MoneyChip mode="neutral" amountText={formatPriceInt(tx.amount)} />
                                 )}
 
                                 <Button
