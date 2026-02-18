@@ -10,6 +10,12 @@ export default function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
 
+const activeCount = myAlerts?.filter(a => {
+  const st = String(a?.status || '').toLowerCase();
+  return st === 'active' || st === 'reserved';
+}).length || 0;
+
+
   const { data: myActiveAlerts = [] } = useQuery({
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
