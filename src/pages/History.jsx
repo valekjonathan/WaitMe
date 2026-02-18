@@ -941,7 +941,7 @@ const myFinalizedAlerts = useMemo(() => {
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="fixed top-[56px] left-0 right-0 z-50 bg-black/90 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800">
+          <div className="fixed top-[56px] left-0 right-0 z-40 bg-black/90 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800">
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
@@ -1093,12 +1093,12 @@ const myFinalizedAlerts = useMemo(() => {
                               <>
                                 <CardHeaderRow
                                   left={
-                                    <Badge
-                                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
-                                    >
-                                      Activa
-                                    </Badge>
-                                  }
+                    <div
+                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
+                    >
+                      Expirada
+                    </div>
+                  }
                                   dateText={dateText}
                                   dateClassName="text-white"
                                   right={

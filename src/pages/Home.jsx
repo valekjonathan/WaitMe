@@ -722,14 +722,15 @@ export default function Home() {
           hideClose
           className="bg-gray-900 border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-              <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada. No puedes tener 2 activas.</span>
+          <div className="flex items-stretch justify-between gap-3">
+            <div className="flex-1 px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60 flex flex-col justify-center">
+              <span className="text-white font-semibold text-sm leading-tight">Ya tienes una alerta publicada.</span>
+              <span className="text-white font-semibold text-sm leading-tight">No puedes tener 2 alertas activas.</span>
             </div>
 
             <button
               onClick={() => setOneActiveAlertOpen(false)}
-              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+              className="h-full aspect-square rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
               aria-label="Cerrar"
               type="button"
             >
