@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
@@ -23,15 +23,6 @@ import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
-  const [photoSrc, setPhotoSrc] = useState('');
-
-  useEffect(() => {
-    if (!user?.photo_url) return;
-    const img = new Image();
-    img.decoding = 'sync';
-    img.src = user.photo_url;
-    setPhotoSrc(user.photo_url);
-  }, [user?.photo_url]);
 
   const handleLogout = () => {
     logout?.(true);
@@ -63,7 +54,7 @@ export default function Settings() {
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
               {user?.photo_url ? (
                 <img
-                  src={photoSrc}
+                  src={user.photo_url}
                   className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 bg-gray-800"
                   alt=""
                   loading="eager"
@@ -113,59 +104,44 @@ export default function Settings() {
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </Link>
 
-            <button
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
-              type="button"
-            >
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Shield className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Privacidad</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
 
-            <button
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
-              type="button"
-            >
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <Star className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Valorar la app</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
 
-            <button
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
-              type="button"
-            >
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
               <HelpCircle className="w-5 h-5 text-purple-500" />
               <span className="flex-1">Ayuda</span>
               <ChevronRight className="w-5 h-5 text-gray-500" />
             </button>
           </div>
 
-          {/* Instagram + Web en contenedor morado tipo tarjeta */}
-          <div className="bg-gradient-to-r from-purple-700 to-purple-600 rounded-2xl p-4 border-2 border-purple-500">
-            <div className="flex items-center justify-center gap-14">
-              <button
-                type="button"
-                onClick={() => openExternal(instagramUrl)}
-                disabled={!instagramUrl}
-                className="flex flex-col items-center gap-2 disabled:opacity-40"
-              >
-                <Instagram className="w-6 h-6 text-white" />
-                <span className="text-sm text-white font-medium">
-                  Instagram
-                </span>
-              </button>
+          {/* Instagram y Web individuales */}
+          <div className="flex justify-center gap-8 pt-2">
+            <button
+              onClick={() => openExternal(instagramUrl)}
+              disabled={!instagramUrl}
+              className="w-20 h-20 bg-purple-900/60 rounded-xl flex flex-col items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <Instagram className="w-6 h-6 text-purple-400" />
+              <span className="text-xs text-white">Instagram</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => openExternal(webUrl)}
-                disabled={!webUrl}
-                className="flex flex-col items-center gap-2 disabled:opacity-40"
-              >
-                <Globe className="w-6 h-6 text-white" />
-                <span className="text-sm text-white font-medium">Web</span>
-              </button>
-            </div>
+            <button
+              onClick={() => openExternal(webUrl)}
+              disabled={!webUrl}
+              className="w-20 h-20 bg-purple-900/60 rounded-xl flex flex-col items-center justify-center gap-2 disabled:opacity-40"
+            >
+              <Globe className="w-6 h-6 text-purple-400" />
+              <span className="text-xs text-white">Web</span>
+            </button>
           </div>
 
           {/* Cerrar sesión */}
@@ -189,4 +165,4 @@ export default function Settings() {
       <BottomNav />
     </div>
   );
-} 
+}
