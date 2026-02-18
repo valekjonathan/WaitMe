@@ -160,7 +160,17 @@ export default function Home() {
     queryKey: ['myActiveAlerts', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      return [];
+      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+      const uid = user?.id;
+      const email = user?.email;
+
+      return (all || []).filter((a) => {
+        if (!a) return false;
+        const isMine = (uid && a.user_id === uid) || (email && a.user_email === email);
+        if (!isMine) return false;
+        const st = String(a.status || '').toLowerCase();
+        return st === 'active' || st === 'reserved';
+      });
     },
     staleTime: 0,
     gcTime: 10 * 60 * 1000,
@@ -714,7 +724,7 @@ export default function Home() {
         >
           <div className="flex items-center justify-between gap-3">
             <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-              <span className="text-white font-semibold text-sm">Ya tienes una alerta activa.</span>
+              <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada. No puedes tener 2 activas.</span>
             </div>
 
             <button
