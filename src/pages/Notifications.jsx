@@ -81,7 +81,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* ⬇️ MÁS PEQUEÑO SOLO AQUÍ para que no choque con el botón del dinero */}
       <Header
         title="Notificaciones"

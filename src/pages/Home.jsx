@@ -412,7 +412,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-black text-white">
+    <div className="min-h-screen w-full bg-black text-white">
       <NotificationManager user={user} />
 
       <Header

@@ -47,7 +47,7 @@ export default function Settings() {
     user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
       <main className="pt-20 pb-24 px-4 max-w-md mx-auto">

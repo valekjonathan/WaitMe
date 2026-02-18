@@ -17,26 +17,6 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, []);
 
-  const isPublishedHost = () => {
-    if (typeof window === 'undefined') return false;
-    const host = window.location.hostname || '';
-    // ✅ Dominio publicado en Base44 (PWA / iPhone)
-    return host.includes('base44.app');
-  };
-
-  const redirectToLoginOnce = () => {
-    if (typeof window === 'undefined') return;
-    try {
-      const key = 'waitme_login_redirected_v1';
-      const already = window.sessionStorage.getItem(key);
-      if (already === 'true') return;
-      window.sessionStorage.setItem(key, 'true');
-      base44.auth.redirectToLogin(window.location.href);
-    } catch {
-      base44.auth.redirectToLogin(window.location.href);
-    }
-  };
-
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
@@ -57,17 +37,6 @@ export const AuthProvider = ({ children }) => {
         const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
         setAppPublicSettings(publicSettings);
         
-        // ✅ En dominio publicado (iPhone/PWA), si no hay token => no estás logueado.
-        // Forzamos login para que se vean los mismos datos que en el Preview.
-        if (!appParams.token && isPublishedHost()) {
-          setAuthError({ type: 'auth_required', message: 'Authentication required' });
-          setIsLoadingAuth(false);
-          setIsAuthenticated(false);
-          setIsLoadingPublicSettings(false);
-          redirectToLoginOnce();
-          return;
-        }
-
         // If we got the app public settings successfully, check if user is authenticated
         if (appParams.token) {
           await checkUserAuth();
@@ -87,19 +56,11 @@ export const AuthProvider = ({ children }) => {
               type: 'auth_required',
               message: 'Authentication required'
             });
-
-            if (!appParams.token && isPublishedHost()) {
-              redirectToLoginOnce();
-            }
           } else if (reason === 'user_not_registered') {
             setAuthError({
               type: 'user_not_registered',
               message: 'User not registered for this app'
             });
-
-            if (!appParams.token && isPublishedHost()) {
-              redirectToLoginOnce();
-            }
           } else {
             setAuthError({
               type: reason,

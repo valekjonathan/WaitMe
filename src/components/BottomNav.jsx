@@ -32,7 +32,7 @@ export default function BottomNav() {
   }, [navigate]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-[calc(8px+env(safe-area-inset-bottom))] z-[2147483647] pointer-events-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto">
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
 
         <NavLink

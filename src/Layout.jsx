@@ -12,20 +12,22 @@ import NotificationSettings from './pages/NotificationSettings';
 
 export default function Layout() {
   return (
-    <div className="flex flex-col flex-1 w-full">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/Home" element={<Home />} />
-        <Route path="/chats" element={<Chats />} />
-        <Route path="/chat/:id" element={<Chat />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/notification-settings" element={<NotificationSettings />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/navigate" element={<NavigatePage />} />
-      </Routes>
-    </div>
+    <Routes>
+
+      {/* HOME DIRECTO SIN REDIRECCIONES */}
+      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/Home" element={<Home />} />
+
+      <Route path="/chats" element={<Chats />} />
+      <Route path="/chat/:id" element={<Chat />} />
+      <Route path="/notifications" element={<Notifications />} />
+      <Route path="/notification-settings" element={<NotificationSettings />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/history" element={<History />} />
+      <Route path="/navigate" element={<NavigatePage />} />
+
+    </Routes>
   );
 }

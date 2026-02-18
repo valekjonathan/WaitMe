@@ -540,7 +540,7 @@ const badgeCls = isCompletedOrCanceled
   }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
 
       <main className="pt-[60px] pb-24">
