@@ -194,35 +194,32 @@ export default function Profile() {
         if (type === 'van') {
       return (
         <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
-          {/* Furgoneta estilo VW (morro a la derecha) */}
+          {/* Furgoneta (misma línea que el SUV pero más larga, morro a la derecha) */}
           <path
-            d="M6 18 V9.8 H16.2 L19.4 7.2 H31.4 L38.8 9.8 H44 V18 H6 Z"
+            d="M4 18 V12.8 L7.5 10.8 L14 8.8 H32.2 L40.2 10.2 L45.6 13.8 L46 18 H4 Z"
             fill={color}
             stroke="white"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
+          {/* Ventanas */}
           <path
-            d="M16.8 10.1 L18.8 12.7 H26.6 L28.3 10.1 Z"
+            d="M15.5 9.6 L18 12.6 H31.2 L33.2 9.6 Z"
             fill="rgba(255,255,255,0.22)"
             stroke="white"
             strokeWidth="0.5"
           />
-          <path
-            d="M29.2 10.1 L30.6 12.7 H37.8 V11.1 L34.4 10.1 Z"
-            fill="rgba(255,255,255,0.18)"
-            stroke="white"
-            strokeWidth="0.5"
-          />
-          <path d="M39.6 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
-          <path d="M41.0 10.0 V13.1" stroke="white" strokeWidth="0.6" opacity="0.7" />
-          <circle cx="42.4" cy="14.4" r="1.2" fill="rgba(255,255,255,0.6)" stroke="white" strokeWidth="0.6" />
-          <path d="M27.6 10.1 V18" stroke="white" strokeWidth="0.6" opacity="0.55" />
-          <circle cx="14.2" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-          <circle cx="14.2" cy="18" r="1.9" fill="#666" />
-          <circle cx="35.6" cy="18" r="3.6" fill="#333" stroke="white" strokeWidth="1" />
-          <circle cx="35.6" cy="18" r="1.9" fill="#666" />
-          <path d="M44 15.8 H42.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          <path d="M24.2 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+          {/* Detalle lateral (puerta) */}
+          <path d="M12.4 12.8 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
+          <path d="M33.8 12.6 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
+          {/* Faro delantero */}
+          <path d="M46 15.6 H44.4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          {/* Ruedas (más separadas para dar sensación de longitud) */}
+          <circle cx="13.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="13.6" cy="18" r="2" fill="#666" />
+          <circle cx="37.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="37.6" cy="18" r="2" fill="#666" />
         </svg>
       );
     }
