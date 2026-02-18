@@ -1839,7 +1839,6 @@ const myFinalizedAlerts = useMemo(() => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-</Dialog>
 
       <BottomNav />
 
