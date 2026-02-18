@@ -24,7 +24,7 @@ import { useAuth } from '@/lib/AuthContext';
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
 
-  // 🔥 PRE-CARGA REAL PARA FOTO INSTANTÁNEA
+  // Precarga real para que la foto salga instantánea
   useEffect(() => {
     if (!user?.photo_url) return;
     const img = new Image();
@@ -131,33 +131,31 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Instagram y Web estilo Créditos */}
-          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
-            <div className="flex justify-center gap-10">
-              
+          {/* Instagram y Web - cajas individuales estilo Créditos */}
+          <div className="flex justify-center gap-6">
+            
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
               <button
                 onClick={() => openExternal(instagramUrl)}
                 disabled={!instagramUrl}
                 className="flex flex-col items-center gap-2 disabled:opacity-40"
               >
-                <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/40">
-                  <Instagram className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-sm text-white font-medium">Instagram</span>
+                <Instagram className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Instagram</span>
               </button>
+            </div>
 
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
               <button
                 onClick={() => openExternal(webUrl)}
                 disabled={!webUrl}
                 className="flex flex-col items-center gap-2 disabled:opacity-40"
               >
-                <div className="w-14 h-14 rounded-xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/40">
-                  <Globe className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-sm text-white font-medium">Web</span>
+                <Globe className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Web</span>
               </button>
-
             </div>
+
           </div>
 
           {/* Cerrar sesión */}
