@@ -10,6 +10,37 @@ export default function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
 
+  const { data: badgeAlerts = [] } = useQuery({
+    queryKey: ['badgeAlerts', user?.id, user?.email],
+    enabled: !!user?.id || !!user?.email,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: false,
+    queryFn: async () => {
+      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
+      const uid = user?.id;
+      const email = user?.email;
+
+      return (all || []).filter((a) => {
+        if (!a) return false;
+
+        const isMine =
+          (uid && (a.user_id === uid || a.created_by === uid)) ||
+          (email && a.user_email === email);
+
+        if (!isMine) return false;
+
+        const st = String(a.status || '').toLowerCase();
+        return st === 'active' || st === 'reserved';
+      });
+    }
+  });
+
+  const activeCount = badgeAlerts.length;
+
+
 const activeCount = myAlerts?.filter(a => {
   const st = String(a?.status || '').toLowerCase();
   return st === 'active' || st === 'reserved';
