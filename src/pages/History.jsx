@@ -1726,8 +1726,8 @@ const myFinalizedAlerts = useMemo(() => {
         >
           {/* Cabecera: mismo estilo que la X roja de Filtros (Home) */}
           <div className="flex items-center justify-between mb-3">
-            <div className="h-8 flex items-center rounded-lg bg-red-500/20 border border-red-500/50 px-3">
-              <span className="text-red-300 font-bold text-xs">Tu alerta ha expirado</span>
+            <div className="h-8 flex items-center rounded-lg bg-red-600 px-3">
+              <span className="text-white font-extrabold text-xs">Tu alerta ha expirado</span>
             </div>
 
             <button
@@ -1738,7 +1738,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpirePromptOpen(false);
                 setExpirePromptAlert(null);
               }}
-              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+              className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors"
               aria-label="Marcar como expirada"
             >
               <X className="w-5 h-5" />

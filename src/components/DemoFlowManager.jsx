@@ -245,8 +245,7 @@ export function isDemoMode() {
   try {
     if (typeof window === 'undefined') return false;
     const qs = new URLSearchParams(window.location.search);
-    if (qs.get('demo') === '1') return true;
-    return window.localStorage?.getItem('WAITME_DEMO') === '1';
+    return qs.get('demo') === '1';
   } catch {
     return false;
   }
