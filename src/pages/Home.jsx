@@ -294,6 +294,7 @@ export default function Home() {
 
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
       await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
+      await queryClient.cancelQueries({ queryKey: ['myAlerts', user?.id, user?.email] });
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
@@ -316,6 +317,11 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
       });
+
+      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [optimisticAlert, ...list];
+      });
     },
     onSuccess: (newAlert) => {
       queryClient.setQueryData(['alerts'], (old) => {
@@ -327,6 +333,11 @@ export default function Home() {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
       });
+
+      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+      });
     },
     onError: (error) => {
       if (error.message === 'ALREADY_HAS_ALERT') {
@@ -334,6 +345,7 @@ export default function Home() {
       }
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
 
