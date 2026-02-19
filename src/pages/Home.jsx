@@ -768,13 +768,15 @@ export default function Home() {
         <X className="w-4 h-4" />
       </button>
 
-      <div className="flex justify-center">
-        <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-          <span className="text-white font-semibold text-sm">
-            Ya tienes una alerta publicada.
-          </span>
-        </div>
-      </div>
+      <div className="flex flex-col items-center text-center space-y-3">
+  <span className="text-white font-semibold text-base">
+    Ya tienes una alerta publicada.
+  </span>
+
+  <span className="text-gray-400 text-sm">
+    No puedes tener 2 alertas activas.
+  </span>
+</div>
     </div>
   </div>
 )}
