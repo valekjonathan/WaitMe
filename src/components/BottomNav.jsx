@@ -11,11 +11,12 @@ export default function BottomNav() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Badge SIEMPRE sincronizado con alertas activas/resevadas del usuario
-  const { data: badgeAlerts = [] } = useQuery({
-    queryKey: ['badgeAlerts', user?.id, user?.email],
-    enabled: !!user?.id || !!user?.email,
+  // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
+  const { data: myAlerts = [] } = useQuery({
+    queryKey: ['myAlerts'],
+    enabled: true,
     staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -24,32 +25,29 @@ export default function BottomNav() {
     queryFn: async () => {
       const uid = user?.id;
       const email = user?.email;
+      if (!uid && !email) return [];
 
       let mine = [];
-      if (uid) {
-        mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
-      } else if (email) {
-        mine = await base44.entities.ParkingAlert.filter({ user_email: email });
-      }
+      if (uid) mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
+      else mine = await base44.entities.ParkingAlert.filter({ user_email: email });
 
-      return (mine || []).filter((a) => {
-        if (!a) return false;
-        const st = String(a.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
-      });
+      return (mine || []).slice();
     }
   });
 
-  const activeAlertCount = badgeAlerts.length;
+  const activeAlertCount = (myAlerts || []).filter((a) => {
+    const st = String(a?.status || '').toLowerCase();
+    return st === 'active' || st === 'reserved';
+  }).length;
 
-  // Refresco inmediato del badge (cuando se crea/expira una alerta)
+  // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {
     const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['badgeAlerts', user?.id, user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     };
     window.addEventListener('waitme:badgeRefresh', handler);
     return () => window.removeEventListener('waitme:badgeRefresh', handler);
-  }, [queryClient, user?.id, user?.email]);
+  }, [queryClient]);
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +

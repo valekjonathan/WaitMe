@@ -156,28 +156,38 @@ export default function Home() {
     refetchOnMount: true
   });
 
-  const { data: myActiveAlerts = [] } = useQuery({
-    queryKey: ['myActiveAlerts', user?.id],
-    enabled: !!user?.id,
+  // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
+  const { data: myAlerts = [] } = useQuery({
+    queryKey: ['myAlerts'],
+    enabled: true,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
-      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
       const email = user?.email;
+      if (!uid && !email) return [];
 
-      return (all || []).filter((a) => {
-        if (!a) return false;
-        const isMine = (uid && a.user_id === uid) || (email && a.user_email === email);
-        if (!isMine) return false;
-        const st = String(a.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
-      });
-    },
-    staleTime: 0,
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 3000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+      if (uid) return (await base44.entities.ParkingAlert.filter({ user_id: uid })) || [];
+      return (await base44.entities.ParkingAlert.filter({ user_email: email })) || [];
+    }
   });
+
+  const myActiveAlerts = useMemo(() => {
+    return (myAlerts || []).filter((a) => {
+      const st = String(a?.status || '').toLowerCase();
+      return st === 'active' || st === 'reserved';
+    });
+  }, [myAlerts]);
+
+  useEffect(() => {
+    if (!user?.id && !user?.email) return;
+    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.email]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
@@ -271,8 +281,26 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
-      if (myActiveAlerts && myActiveAlerts.length > 0) {
-        throw new Error('ALREADY_HAS_ALERT');
+      // Validación robusta: no depender de tiempos de carga
+      if (myActiveAlerts && myActiveAlerts.length > 0) throw new Error('ALREADY_HAS_ALERT');
+
+      // Si aún no cargó myAlerts, verificamos en backend antes de crear
+      try {
+        const uid = user?.id;
+        const email = user?.email;
+        if (uid || email) {
+          const mine = uid
+            ? await base44.entities.ParkingAlert.filter({ user_id: uid })
+            : await base44.entities.ParkingAlert.filter({ user_email: email });
+
+          const hasActive = (mine || []).some((a) => {
+            const st = String(a?.status || '').toLowerCase();
+            return st === 'active' || st === 'reserved';
+          });
+          if (hasActive) throw new Error('ALREADY_HAS_ALERT');
+        }
+      } catch (e) {
+        if (String(e?.message || '') === 'ALREADY_HAS_ALERT') throw e;
       }
 
       const now = Date.now();
@@ -303,8 +331,7 @@ export default function Home() {
       navigate(createPageUrl('History'), { replace: true });
 
       await queryClient.cancelQueries({ queryKey: ['alerts'] });
-      await queryClient.cancelQueries({ queryKey: ['myActiveAlerts', user?.id] });
-      await queryClient.cancelQueries({ queryKey: ['myAlerts', user?.id, user?.email] });
+      await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
 
       const now = Date.now();
       const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
@@ -323,18 +350,7 @@ export default function Home() {
         return [optimisticAlert, ...list];
       });
 
-      queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [optimisticAlert, ...list];
-      });
-
-      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [optimisticAlert, ...list];
-      });
-
-      // Badge (Alertas) instantáneo
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [optimisticAlert, ...list];
       });
@@ -346,18 +362,7 @@ export default function Home() {
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
       });
 
-      queryClient.setQueryData(['myActiveAlerts', user?.id], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-      });
-
-      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-      });
-
-
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
       });
@@ -368,7 +373,6 @@ export default function Home() {
         setOneActiveAlertOpen(true);
       }
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
@@ -437,7 +441,8 @@ export default function Home() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
 
@@ -675,7 +680,7 @@ export default function Home() {
                     onAddressChange={setAddress}
                     onUseCurrentLocation={getCurrentLocation}
                     useCurrentLocationLabel="Ubicación actual"
-                    onCreateAlert={(data) => {
+                    onCreateAlert={async (data) => {
                       if (!selectedPosition || !address) {
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
@@ -698,10 +703,28 @@ export default function Home() {
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
 
+                      // Mensaje SIEMPRE: no depende de que la query haya terminado
                       if (myActiveAlerts && myActiveAlerts.length > 0) {
                         setOneActiveAlertOpen(true);
                         return;
                       }
+                      try {
+                        const uid = user?.id;
+                        const email = user?.email;
+                        if (uid || email) {
+                          const mine = uid
+                            ? await base44.entities.ParkingAlert.filter({ user_id: uid })
+                            : await base44.entities.ParkingAlert.filter({ user_email: email });
+                          const hasActive = (mine || []).some((a) => {
+                            const st = String(a?.status || '').toLowerCase();
+                            return st === 'active' || st === 'reserved';
+                          });
+                          if (hasActive) {
+                            setOneActiveAlertOpen(true);
+                            return;
+                          }
+                        }
+                      } catch {}
 
                       setPendingPublishPayload(payload);
                       setConfirmPublishOpen(true);

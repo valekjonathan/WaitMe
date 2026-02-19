@@ -545,8 +545,8 @@ const {
   data: myAlerts = [],
   isLoading: loadingAlerts
 } = useQuery({
-  queryKey: ['myAlerts', user?.id, user?.email],
-  enabled: !!user?.id || !!user?.email,
+  queryKey: ['myAlerts'],
+  enabled: true,
   staleTime: 30 * 1000,
   gcTime: 5 * 60 * 1000,
   refetchOnMount: false,
@@ -557,17 +557,24 @@ const {
   queryFn: async () => {
     const uid = user?.id;
     const email = user?.email;
+    if (!uid && !email) return [];
 
     let mine = [];
-    if (uid) {
-      mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
-    } else if (email) {
-      mine = await base44.entities.ParkingAlert.filter({ user_email: email });
-    }
+    if (uid) mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
+    else mine = await base44.entities.ParkingAlert.filter({ user_email: email });
 
-    return (mine || []).slice().sort((a, b) => (toMs(b?.created_date) || 0) - (toMs(a?.created_date) || 0));
+    return (mine || [])
+      .slice()
+      .sort((a, b) => (toMs(b?.created_date) || 0) - (toMs(a?.created_date) || 0));
   }
 });
+
+// Cuando el usuario se hidrata (AuthContext), forzamos refetch inmediato
+useEffect(() => {
+  if (!user?.id && !user?.email) return;
+  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [user?.id, user?.email]);
 
 
 
@@ -848,13 +855,8 @@ const myFinalizedAlerts = useMemo(() => {
       } catch {}
     },
   onMutate: async (alertId) => {
-      // Quitar badge y "activa" al instante (mismo render que la UI)
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.filter((a) => a?.id !== alertId);
-      });
-
-      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
+      // Quitar la activa y la bolita EN EL MISMO INSTANTE
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
       });
@@ -863,7 +865,6 @@ const myFinalizedAlerts = useMemo(() => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -873,16 +874,15 @@ const myFinalizedAlerts = useMemo(() => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
     onMutate: async (alertId) => {
-      // Quitar badge al instante
-      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+      // Marcar como expirada en cache (badge se recalcula desde myAlerts)
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.filter((a) => a?.id !== alertId);
+        return list.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
       });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
     }
   });
 
@@ -927,7 +927,6 @@ const myFinalizedAlerts = useMemo(() => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
