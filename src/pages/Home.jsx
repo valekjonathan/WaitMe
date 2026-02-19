@@ -740,29 +740,28 @@ export default function Home() {
 
       <BottomNav />
 
-      <Dialog open={oneActiveAlertOpen} onOpenChange={setOneActiveAlertOpen}>
-        <DialogContent
-          hideClose
-          className="bg-gray-900 border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 relative"
-        >
-          <button
-            onClick={() => setOneActiveAlertOpen(false)}
-            className="absolute top-3 right-3 w-7 h-7 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-            aria-label="Cerrar"
-            type="button"
-          >
-            <X className="w-4 h-4" />
-          </button>
+      {oneActiveAlertOpen && (
+  <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center">
+    <div className="relative bg-gray-900 border-t-2 border-b-2 border-purple-500 max-w-sm w-[90%] rounded-xl p-6">
+      
+      <button
+        onClick={() => setOneActiveAlertOpen(false)}
+        className="absolute top-3 right-3 w-7 h-7 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+        type="button"
+      >
+        <X className="w-4 h-4" />
+      </button>
 
-          <div className="px-2 py-5">
-            <div className="flex justify-center">
-              <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-                <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada.</span>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <div className="flex justify-center">
+        <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
+          <span className="text-white font-semibold text-sm">
+            Ya tienes una alerta publicada.
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       <Dialog open={confirmPublishOpen} onOpenChange={(open) => {
         setConfirmPublishOpen(open);
