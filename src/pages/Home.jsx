@@ -754,8 +754,12 @@ export default function Home() {
             <X className="w-4 h-4" />
           </button>
 
-          <div className="px-2 py-4">
-            <p className="text-white text-sm font-semibold text-center">Ya tienes una alerta publicada.</p>
+          <div className="px-2 py-5">
+            <div className="flex justify-center">
+              <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
+                <span className="text-white font-semibold text-sm">Ya tienes una alerta publicada.</span>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
