@@ -4,6 +4,7 @@ import { Bell, MessageCircle } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { isDemoMode, getDemoAlerts } from '@/components/DemoFlowManager';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -23,6 +24,10 @@ export default function BottomNav() {
     refetchInterval: false,
     placeholderData: (prev) => prev,
     queryFn: async () => {
+      if (isDemoMode()) {
+        const list = getDemoAlerts();
+        return (list || []).filter((a) => (a?.user_id === 'me' || a?.created_by === 'me'));
+      }
       const uid = user?.id;
       const email = user?.email;
       if (!uid && !email) return [];
@@ -88,7 +93,7 @@ export default function BottomNav() {
             {activeAlertCount > 0 && (
               <span
                 // Ajuste fino: +4px derecha (número más centrado)
-                className="absolute left-[-16px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
+                className="absolute left-[-11px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
                 {activeAlertCount}
               </span>

@@ -264,6 +264,7 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
+      if (demoMode) return getDemoConversations();
       return [];
     },
     enabled: !!user,
@@ -279,6 +280,7 @@ export default function Chats() {
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
+      if (demoMode) return getDemoAlerts();
       return [];
     },
     enabled: !!user,

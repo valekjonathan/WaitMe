@@ -74,3 +74,13 @@ body { min-height: 100dvh; background: #000; }
 *::-webkit-scrollbar {
   display: none;
 }
+
+
+/* ========= iOS: evitar zoom al enfocar inputs + desactivar gestos de zoom en la app ========= */
+html, body {
+  touch-action: manipulation;
+}
+
+input, textarea, select, button {
+  font-size: max(16px, 1rem);
+}

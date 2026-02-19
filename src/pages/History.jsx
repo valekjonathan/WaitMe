@@ -1760,10 +1760,10 @@ const myFinalizedAlerts = useMemo(() => {
           hideClose
           className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0"
         >
-          {/* Cabecera centrada (mismo estilo que "Vas a publicar una alerta") */}
+          {/* Cabecera centrada (mismo estilo que "VAS A PUBLICAR UNA ALERTA") */}
           <div className="flex justify-center mb-3">
             <div className="px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60">
-              <span className="text-white font-semibold text-sm">Tu alerta ha expirado</span>
+              <span className="text-white font-semibold text-sm">TU ALERTA HA EXPIRADO</span>
             </div>
           </div>
           {/* Tarjeta incrustada: EXACTAMENTE mismo layout que una Activa, pero el botón del contador pone EXPIRADA */}

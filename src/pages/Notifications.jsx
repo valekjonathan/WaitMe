@@ -15,7 +15,8 @@ import {
   ensureConversationForAlert,
   ensureInitialWaitMeMessage,
   markDemoNotificationRead,
-  applyDemoAction
+  applyDemoAction,
+  getDemoNotifications
 } from '@/components/DemoFlowManager';
 
 const iconMap = {
@@ -45,7 +46,7 @@ export default function Notifications() {
   }, []);
 
   const notifications = useMemo(() => {
-    return [];
+    return getDemoNotifications();
   }, [tick]);
 
   const openChat = (conversationId, alertId) => {
