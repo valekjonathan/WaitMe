@@ -144,132 +144,17 @@ function buildUsers() {
 }
 
 function seedAlerts() {
-  // DEMO: una semana de actividad completa y sincronizada
-  const now = Date.now();
-
-  const mePhoto = null;
-  demoFlow.me = { id: 'me', name: 'Tú', photo: mePhoto };
-
-  const byId = (id) => demoFlow.users.find((u) => u.id === id);
-
-  const mk = ({
-    id,
-    user_id,
-    status,
-    price,
-    lat,
-    lng,
-    minutes = 3,
-    createdAgoMs = 0,
-    reservedByMe = false,
-    title = null
-  }) => {
-    const u = user_id === 'me' ? demoFlow.me : byId(user_id);
-    const createdAt = new Date(now - createdAgoMs);
-    const waitUntil = new Date(createdAt.getTime() + minutes * 60 * 1000);
-
-    return {
-      id: id || genId('alert'),
-      user_id,
-      user_email: user_id === 'me' ? 'me@demo.local' : `${(u?.name || 'user').toLowerCase()}@demo.local`,
-      user_name: user_id === 'me' ? demoFlow.me.name : (u?.name || 'Usuario'),
-      user_photo: user_id === 'me' ? demoFlow.me.photo : (u?.photo || null),
-
-      latitude: lat,
-      longitude: lng,
-      address: 'Oviedo (demo)',
-
-      price: price ?? 6,
-      available_in_minutes: minutes,
-      wait_until: waitUntil.toISOString(),
-      created_date: createdAt.toISOString(),
-      created_from: 'demo',
-
-      car_brand: user_id === 'me' ? 'Seat' : (u?.car_brand || ''),
-      car_model: user_id === 'me' ? 'Ibiza' : (u?.car_model || ''),
-      car_color: user_id === 'me' ? 'gris' : (u?.car_color || 'gris'),
-      car_plate: user_id === 'me' ? '1234 ABC' : (u?.car_plate || ''),
-      phone: user_id === 'me' ? '+34600000000' : (u?.phone || null),
-      allow_phone_calls: true,
-
-      status,
-
-      // si está reservada/relacionada conmigo
-      reserved_by_id: reservedByMe ? 'me' : null,
-      reserved_by_name: reservedByMe ? demoFlow.me.name : null,
-      reserved_by_photo: reservedByMe ? demoFlow.me.photo : null,
-
-      demo_title: title || null
-    };
-  };
-
-  // --- 10 coches alrededor (alertas activas de otros usuarios) ---
-  const othersActive = (demoFlow.users || []).map((u, i) =>
-    mk({
-      id: `a_other_active_${u.id}`,
-      user_id: u.id,
-      status: 'active',
-      price: 3 + (i % 8),
-      lat: nearLat(),
-      lng: nearLng(),
-      minutes: 2 + (i % 7),
-      createdAgoMs: (10 + i) * 60 * 1000
-    })
-  );
-
-  // --- Mis alertas (1 activa + muchas finalizadas con TODOS los estados) ---
-  const myActive = mk({
-    id: 'a_me_active',
-    user_id: 'me',
-    status: 'active',
-    price: 7,
-    lat: BASE_LAT,
-    lng: BASE_LNG,
-    minutes: 4,
-    createdAgoMs: 5 * 60 * 1000,
-    title: 'Mi alerta activa'
-  });
-
-  const myFinals = [
-    mk({ id: 'a_me_reserved', user_id: 'me', status: 'reserved', price: 9, lat: BASE_LAT, lng: BASE_LNG, minutes: 3, createdAgoMs: 1 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_thinking', user_id: 'me', status: 'thinking', price: 6, lat: BASE_LAT, lng: BASE_LNG, minutes: 5, createdAgoMs: 2 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_extended', user_id: 'me', status: 'extended', price: 8, lat: BASE_LAT, lng: BASE_LNG, minutes: 6, createdAgoMs: 3 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_completed', user_id: 'me', status: 'completed', price: 12, lat: BASE_LAT, lng: BASE_LNG, minutes: 4, createdAgoMs: 4 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_rejected', user_id: 'me', status: 'rejected', price: 5, lat: BASE_LAT, lng: BASE_LNG, minutes: 3, createdAgoMs: 5 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_expired', user_id: 'me', status: 'expired', price: 4, lat: BASE_LAT, lng: BASE_LNG, minutes: 2, createdAgoMs: 6 * 24 * 60 * 60 * 1000 }),
-    mk({ id: 'a_me_cancelled', user_id: 'me', status: 'cancelled', price: 10, lat: BASE_LAT, lng: BASE_LNG, minutes: 3, createdAgoMs: 6 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000 })
-  ];
-
-  // --- Alertas vinculadas a chat/notis con los 10 usuarios (no activas) ---
-  const linkedForChats = (demoFlow.users || []).map((u, i) =>
-    mk({
-      id: `a_link_${u.id}`,
-      user_id: u.id,
-      status: (['reserved', 'thinking', 'extended', 'completed', 'cancelled', 'rejected', 'expired'][i % 7]),
-      price: 4 + (i % 10),
-      lat: nearLat(),
-      lng: nearLng(),
-      minutes: 3 + (i % 5),
-      createdAgoMs: (i + 1) * 12 * 60 * 60 * 1000,
-      reservedByMe: true
-    })
-  );
-
-  demoFlow.alerts = [
-    myActive,
-    ...myFinals,
-    ...othersActive,
-    ...linkedForChats
-  ];
+  // ⚠️ En modo real, NO seedear alertas automáticamente.
+  // La app solo debe mostrar alertas activas si el usuario las crea desde "Estoy aparcado aquí".
+  demoFlow.alerts = [];
 }
-
 
 
 function seedConversationsAndMessages() {
   demoFlow.conversations = [];
   demoFlow.messages = {};
 
-  const linked = demoFlow.alerts.filter((a) => a?.user_id !== 'me' && normalize(a.status) !== 'active');
+  const linked = demoFlow.alerts.filter((a) => normalize(a.status) !== 'active');
 
   linked.forEach((a) => {
     const other = pickUser(a.user_id);
@@ -358,14 +243,11 @@ function resetDemo() {
 
 export function isDemoMode() {
   try {
-    if (typeof window === 'undefined') return true;
+    if (typeof window === 'undefined') return false;
     const qs = new URLSearchParams(window.location.search);
-    // Si forzas demo=0, desactiva el modo demo
-    if (qs.get('demo') === '0') return false;
-    // Por defecto: DEMO siempre activo (datos visibles en Preview + iPhone)
-    return true;
+    return qs.get('demo') === '1';
   } catch {
-    return true;
+    return false;
   }
 }
 export function getDemoState() { return demoFlow; }

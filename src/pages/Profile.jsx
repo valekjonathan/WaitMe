@@ -257,7 +257,8 @@ export default function Profile() {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
+    // Sin scroll en "Mi perfil"
+    <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">

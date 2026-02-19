@@ -24,48 +24,6 @@ import { useAuth } from '@/lib/AuthContext';
 export default function Settings() {
   const { user, isLoadingAuth, logout } = useAuth();
 
-
-  // Foto instantánea (caché local) para que NO tarde en cargar
-  const [photoSrc, setPhotoSrc] = React.useState('');
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const cacheKey = `waitme_settings_photo_cache_${user?.id || 'default'}`;
-    let cached = '';
-    try {
-      cached = window.localStorage.getItem(cacheKey) || '';
-      if (cached) setPhotoSrc(cached);
-    } catch (_) {}
-
-    const url = user?.photo_url || '';
-    if (!url) return;
-
-    const img = new Image();
-    img.decoding = 'sync';
-    img.src = url;
-    img.onload = () => {
-      if (!cached) setPhotoSrc(url);
-      fetch(url)
-        .then((r) => r.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        )
-        .then((dataUrl) => {
-          if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
-            try { window.localStorage.setItem(cacheKey, dataUrl); } catch (_) {}
-          }
-        })
-        .catch(() => null);
-    };
-  }, [user?.id, user?.photo_url]);
-
-
   // Precarga real para que la foto salga instantánea
   useEffect(() => {
     if (!user?.photo_url) return;
@@ -92,7 +50,7 @@ export default function Settings() {
     <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
-      <main className="pt-20 pb-24 px-4 w-full flex-1">
+      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +61,7 @@ export default function Settings() {
             <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
               {user?.photo_url ? (
                 <img
-                  src={photoSrc || user.photo_url}
+                  src={user.photo_url}
                   className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 bg-gray-800"
                   alt=""
                   loading="eager"
