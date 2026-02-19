@@ -280,102 +280,118 @@ export default function Home() {
   }, [mode, filteredAlerts]);
 
   const createAlertMutation = useMutation({
-    mutationFn: async (data) => {
-      // Validación robusta: no depender de tiempos de carga
-      if (myActiveAlerts && myActiveAlerts.length > 0) throw new Error('ALREADY_HAS_ALERT');
-
-      // Si aún no cargó myAlerts, verificamos en backend antes de crear
-      try {
-        const uid = user?.id;
-        const email = user?.email;
-        if (uid || email) {
-          const mine = uid
-            ? await base44.entities.ParkingAlert.filter({ user_id: uid })
-            : await base44.entities.ParkingAlert.filter({ user_email: email });
-
-          const hasActive = (mine || []).some((a) => {
-            const st = String(a?.status || '').toLowerCase();
-            return st === 'active' || st === 'reserved';
-          });
-          if (hasActive) throw new Error('ALREADY_HAS_ALERT');
-        }
-      } catch (e) {
-        if (String(e?.message || '') === 'ALREADY_HAS_ALERT') throw e;
-      }
-
-      const now = Date.now();
-      const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-
-      return base44.entities.ParkingAlert.create({
-        user_id: user?.id,
-        user_email: user?.email,
-        user_name: data.user_name,
-        user_photo: data.user_photo,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        address: data.address,
-        price: data.price,
-        available_in_minutes: data.available_in_minutes,
-        car_brand: data.car_brand || '',
-        car_model: data.car_model || '',
-        car_color: data.car_color || '',
-        car_plate: data.car_plate || '',
-        phone: data.phone,
-        allow_phone_calls: data.allow_phone_calls,
-        wait_until: futureTime.toISOString(),
-        created_from: 'parked_here',
-        status: 'active'
-      });
-    },
-    onMutate: async (data) => {
-      navigate(createPageUrl('History'), { replace: true });
-
-      await queryClient.cancelQueries({ queryKey: ['alerts'] });
-      await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
-
-      const now = Date.now();
-      const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
-
-      const optimisticAlert = {
-        id: `temp_${Date.now()}`,
-        ...data,
-        wait_until: futureTime.toISOString(),
-        created_from: 'parked_here',
-        status: 'active',
-        created_date: new Date().toISOString()
-      };
-
-      queryClient.setQueryData(['alerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [optimisticAlert, ...list];
-      });
-
-      queryClient.setQueryData(['myAlerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [optimisticAlert, ...list];
-      });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    },
-    onSuccess: (newAlert) => {
-      queryClient.setQueryData(['alerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-      });
-
-      queryClient.setQueryData(['myAlerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
-      });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    },
-    onError: (error) => {
-      if (error.message === 'ALREADY_HAS_ALERT') {
-        setOneActiveAlertOpen(true);
-      }
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  mutationFn: async (data) => {
+    if (myActiveAlerts && myActiveAlerts.length > 0) {
+      throw new Error('ALREADY_HAS_ALERT');
     }
-  });
+
+    const uid = user?.id;
+    const email = user?.email;
+
+    if (uid || email) {
+      const mine = uid
+        ? await base44.entities.ParkingAlert.filter({ user_id: uid })
+        : await base44.entities.ParkingAlert.filter({ user_email: email });
+
+      const hasActive = (mine || []).some((a) => {
+        const st = String(a?.status || '').toLowerCase();
+        return st === 'active' || st === 'reserved';
+      });
+
+      if (hasActive) {
+        throw new Error('ALREADY_HAS_ALERT');
+      }
+    }
+
+    const now = Date.now();
+    const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+
+    return base44.entities.ParkingAlert.create({
+      user_id: user?.id,
+      user_email: user?.email,
+      user_name: data.user_name,
+      user_photo: data.user_photo,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      address: data.address,
+      price: data.price,
+      available_in_minutes: data.available_in_minutes,
+      car_brand: data.car_brand || '',
+      car_model: data.car_model || '',
+      car_color: data.car_color || '',
+      car_plate: data.car_plate || '',
+      phone: data.phone,
+      allow_phone_calls: data.allow_phone_calls,
+      wait_until: futureTime.toISOString(),
+      created_from: 'parked_here',
+      status: 'active'
+    });
+  },
+
+  onMutate: async (data) => {
+    navigate(createPageUrl('History'), { replace: true });
+
+    await queryClient.cancelQueries({ queryKey: ['alerts'] });
+    await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
+
+    const now = Date.now();
+    const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+
+    const optimisticAlert = {
+      id: `temp_${Date.now()}`,
+      ...data,
+      wait_until: futureTime.toISOString(),
+      created_from: 'parked_here',
+      status: 'active',
+      created_date: new Date().toISOString()
+    };
+
+    queryClient.setQueryData(['alerts'], (old) => {
+      const list = Array.isArray(old) ? old : (old?.data || []);
+      return [optimisticAlert, ...list];
+    });
+
+    queryClient.setQueryData(['myAlerts'], (old) => {
+      const list = Array.isArray(old) ? old : (old?.data || []);
+      return [optimisticAlert, ...list];
+    });
+
+    try {
+      window.dispatchEvent(new Event('waitme:badgeRefresh'));
+    } catch {}
+  },
+
+  onSuccess: (newAlert) => {
+    queryClient.setQueryData(['alerts'], (old) => {
+      const list = Array.isArray(old) ? old : (old?.data || []);
+      return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+    });
+
+    queryClient.setQueryData(['myAlerts'], (old) => {
+      const list = Array.isArray(old) ? old : (old?.data || []);
+      return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
+    });
+
+    try {
+      window.dispatchEvent(new Event('waitme:badgeRefresh'));
+    } catch {}
+  },
+
+  onError: (error) => {
+    if (error?.message === 'ALREADY_HAS_ALERT') {
+      // CERRAMOS CUALQUIER DIALOG ABIERTO
+      setConfirmPublishOpen(false);
+      setPendingPublishPayload(null);
+
+      // ABRIMOS SOLO EL MENSAJE MORADO
+      setOneActiveAlertOpen(true);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  }
+});
 
   const buyAlertMutation = useMutation({
     mutationFn: async (alert) => {
