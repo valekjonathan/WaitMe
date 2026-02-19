@@ -15,26 +15,25 @@ export default function BottomNav() {
   const { data: badgeAlerts = [] } = useQuery({
     queryKey: ['badgeAlerts', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    refetchInterval: 5000,
+    staleTime: 30 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
     placeholderData: (prev) => prev,
     queryFn: async () => {
-      const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
       const uid = user?.id;
       const email = user?.email;
 
-      return (all || []).filter((a) => {
+      let mine = [];
+      if (uid) {
+        mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
+      } else if (email) {
+        mine = await base44.entities.ParkingAlert.filter({ user_email: email });
+      }
+
+      return (mine || []).filter((a) => {
         if (!a) return false;
-
-        const isMine =
-          (uid && (a.user_id === uid || a.created_by === uid)) ||
-          (email && a.user_email === email);
-
-        if (!isMine) return false;
-
         const st = String(a.status || '').toLowerCase();
         return st === 'active' || st === 'reserved';
       });

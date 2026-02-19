@@ -555,19 +555,17 @@ const {
   refetchInterval: false,
   placeholderData: (prev) => prev,
   queryFn: async () => {
-    const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
     const uid = user?.id;
     const email = user?.email;
 
-    return (all || []).filter((a) => {
-      if (!a) return false;
+    let mine = [];
+    if (uid) {
+      mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
+    } else if (email) {
+      mine = await base44.entities.ParkingAlert.filter({ user_email: email });
+    }
 
-      const isMine =
-        (uid && (a.user_id === uid || a.created_by === uid)) ||
-        (email && a.user_email === email);
-
-      return !!isMine;
-    });
+    return (mine || []).slice().sort((a, b) => (toMs(b?.created_date) || 0) - (toMs(a?.created_date) || 0));
   }
 });
 
@@ -822,9 +820,16 @@ const myFinalizedAlerts = useMemo(() => {
       // Si por cualquier motivo tienes varias activas, cancelarlas también
       // (evita que "aparezca otra" automáticamente al cancelar una).
       try {
-        const all = await base44.entities.ParkingAlert.list('-created_date', 5000);
         const uid = user?.id;
         const email = user?.email;
+
+        let all = [];
+        if (uid) {
+          all = await base44.entities.ParkingAlert.filter({ user_id: uid });
+        } else if (email) {
+          all = await base44.entities.ParkingAlert.filter({ user_email: email });
+        }
+
         const mine = (all || []).filter((a) => {
           if (!a) return false;
           const isMine =
@@ -1783,9 +1788,9 @@ const myFinalizedAlerts = useMemo(() => {
                 <CardHeaderRow
                   left={
                     <Badge
-                      className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                      className={`bg-purple-700/60 text-white border border-purple-500/60 ${badgePhotoWidth} ${labelNoClick}`}
                     >
-                      Activa
+                      Expirada
                     </Badge>
                   }
                   dateText={formatCardDate(createdTs)}
