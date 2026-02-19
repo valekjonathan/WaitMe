@@ -720,26 +720,19 @@ export default function Home() {
       <Dialog open={oneActiveAlertOpen} onOpenChange={setOneActiveAlertOpen}>
         <DialogContent
           hideClose
-          className="bg-gray-900 border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500"
+          className="bg-gray-900 border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 relative"
         >
-          <div className="flex items-stretch justify-between gap-3">
-            <div className="flex-1 px-4 py-2 rounded-lg bg-purple-700/60 border border-purple-500/60 flex flex-col justify-center">
-              <span className="text-white font-semibold text-sm leading-tight">Ya tienes una alerta publicada.</span>
-              <span className="text-white font-semibold text-sm leading-tight">No puedes tener 2 alertas activas.</span>
-            </div>
+          <button
+            onClick={() => setOneActiveAlertOpen(false)}
+            className="absolute top-3 right-3 w-7 h-7 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+            aria-label="Cerrar"
+            type="button"
+          >
+            <X className="w-4 h-4" />
+          </button>
 
-            <button
-              onClick={() => setOneActiveAlertOpen(false)}
-              className="h-full aspect-square rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
-              aria-label="Cerrar"
-              type="button"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="mt-3 px-1">
-            <p className="text-white text-sm font-semibold">No puedes tener 2 alertas activas.</p>
+          <div className="px-2 py-4">
+            <p className="text-white text-sm font-semibold text-center">Ya tienes una alerta publicada.</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -765,7 +758,7 @@ export default function Home() {
               {/* Calle */}
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-purple-400" />
-                <span className="text-white">En la calle:</span>
+                <span className="text-white">En:</span>
                 <span className="text-purple-400 font-semibold">
                   {pendingPublishPayload?.address || ''}
                 </span>

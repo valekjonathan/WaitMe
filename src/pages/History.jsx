@@ -842,6 +842,20 @@ const myFinalizedAlerts = useMemo(() => {
         );
       } catch {}
     },
+  onMutate: async (alertId) => {
+      // Quitar badge y "activa" al instante (mismo render que la UI)
+      queryClient.setQueryData(['badgeAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return list.filter((a) => a?.id !== alertId);
+      });
+
+      queryClient.setQueryData(['myAlerts', user?.id, user?.email], (old) => {
+        const list = Array.isArray(old) ? old : (old?.data || []);
+        return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
+      });
+
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['badgeAlerts'] });
@@ -1094,9 +1108,9 @@ const myFinalizedAlerts = useMemo(() => {
                                 <CardHeaderRow
                                   left={
                     <div
-                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
+                      className={`bg-green-500/20 text-green-300 border border-green-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
                     >
-                      Expirada
+                      Activa
                     </div>
                   }
                                   dateText={dateText}
@@ -1399,10 +1413,10 @@ const myFinalizedAlerts = useMemo(() => {
                           <CardHeaderRow
                             left={
                               <Badge
-                                className={`bg-green-500/25 text-green-300 border border-green-400/50 ${badgePhotoWidth} ${labelNoClick}`}
-                              >
-                                Activa
-                              </Badge>
+                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 ${badgePhotoWidth} ${labelNoClick}`}
+                    >
+                      Expirada
+                    </Badge>
                             }
                             dateText={dateText}
                             dateClassName="text-white"
