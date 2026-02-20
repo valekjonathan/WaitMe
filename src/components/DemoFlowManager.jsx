@@ -339,6 +339,44 @@ function triggerLocalPush(title, body) {
    SOLICITUD ENTRANTE (a los 60s de crear alerta)
 ====================================================== */
 
+
+export function upsertDemoAlertFromReal(realAlert) {
+  try {
+    if (!realAlert) return;
+    startDemoFlow();
+    const id = String(realAlert.id || '');
+    if (!id) return;
+
+    const alerts = (demoFlow.alerts || (demoFlow.alerts = []));
+    const existing = alerts.find((a) => String(a.id) === id);
+
+    const mapped = {
+      ...(existing || {}),
+      id,
+      status: realAlert.status || existing?.status || 'active',
+      address: realAlert.address || existing?.address || realAlert.street || 'Oviedo',
+      price: typeof realAlert.price !== 'undefined' ? realAlert.price : (existing?.price ?? 3),
+      created_date: realAlert.created_date || realAlert.createdAt || existing?.created_date || new Date().toISOString(),
+      wait_until: realAlert.wait_until || existing?.wait_until,
+      expires_at: realAlert.expires_at || existing?.expires_at,
+      user_id: realAlert.user_id || existing?.user_id,
+      user_email: realAlert.user_email || existing?.user_email,
+      vehicle_type: realAlert.vehicle_type || existing?.vehicle_type,
+      latitude: typeof realAlert.latitude !== 'undefined' ? realAlert.latitude : existing?.latitude,
+      longitude: typeof realAlert.longitude !== 'undefined' ? realAlert.longitude : existing?.longitude
+    };
+
+    if (existing) {
+      Object.assign(existing, mapped);
+    } else {
+      alerts.unshift(mapped);
+    }
+
+    persist();
+    notify();
+  } catch {}
+}
+
 export function scheduleIncomingWaitMeRequest(alertId, delayMs = 60000) {
   startDemoFlow();
   window.setTimeout(() => {

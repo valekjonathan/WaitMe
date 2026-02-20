@@ -16,9 +16,9 @@ export default function BottomNav() {
     queryKey: ['myAlerts'],
     enabled: true,
     // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 0,
+    staleTime: 15000,
     gcTime: 5 * 60 * 1000,
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
@@ -41,7 +41,7 @@ export default function BottomNav() {
     const st = String(a?.status || '').toLowerCase();
     return st === 'active' || st === 'reserved';
   });
-  const showActiveBadge = isFetched && !isFetching && hasActiveAlert;
+  const showActiveBadge = (isFetched || (myAlerts || []).length > 0) && hasActiveAlert;
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {

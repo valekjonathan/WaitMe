@@ -27,7 +27,7 @@ import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, upsertDemoAlertFromReal } from '@/components/DemoFlowManager';
 
 export default function History() {
   const { user } = useAuth();
@@ -570,7 +570,13 @@ const {
 });
 
 // DEMO: una semana de actividad sincronizada
-const effectiveAlerts = isDemoMode() ? getDemoAlerts() : myAlerts;
+const effectiveAlerts = isDemoMode() ? (() => {
+    const real = Array.isArray(myAlerts) ? myAlerts : [];
+    const demo = Array.isArray(getDemoAlerts()) ? getDemoAlerts() : [];
+    const map = new Map();
+    [...demo, ...real].forEach((a) => { if (a?.id) map.set(String(a.id), a); });
+    return Array.from(map.values());
+  })() : myAlerts;
 
 
 // Cuando el usuario se hidrata (AuthContext), forzamos refetch inmediato
@@ -865,7 +871,9 @@ const myFinalizedAlerts = useMemo(() => {
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
       });
 
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); 
+      try { upsertDemoAlertFromReal?.({ ...alert, status: 'canceled' }); } catch {}
+} catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });

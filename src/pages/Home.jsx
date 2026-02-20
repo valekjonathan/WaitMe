@@ -15,7 +15,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoMarketAlerts, scheduleIncomingWaitMeRequest } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoMarketAlerts, scheduleIncomingWaitMeRequest, upsertDemoAlertFromReal } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // ======================
@@ -154,7 +154,7 @@ export default function Home() {
   const { data: rawAlerts } = useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
-      if (isDemoMode?.()) return getDemoMarketAlerts?.() || [];
+      if (isDemoMode()) return getDemoMarketAlerts?.() || [];
       return [];
     },
     staleTime: 60 * 1000,
@@ -248,7 +248,7 @@ export default function Home() {
   }, [location.search, resetToLogo]);
 
   const homeMapAlerts = useMemo(() => {
-    if (isDemoMode?.()) return getDemoMarketAlerts?.() || [];
+    if (isDemoMode()) return getDemoMarketAlerts?.() || [];
     return [];
   }, []);
 
@@ -379,10 +379,11 @@ export default function Home() {
     } catch {}
 
 
-    // DEMO: 1 minuto después, entra una solicitud de reserva
-    try {
-      if (isDemoMode?.()) scheduleIncomingWaitMeRequest?.(newAlert?.id, 60000);
-    } catch {}
+    // DEMO/SIM: sincroniza la alerta recién creada con el demo flow para que todo se refleje en Notificaciones/Chats/Alertas
+    try { upsertDemoAlertFromReal?.(newAlert); } catch {}
+
+    // 1 minuto después, entra una solicitud de reserva (simulada)
+    try { scheduleIncomingWaitMeRequest?.(newAlert?.id, 60000); } catch {}
   },
 
   onError: (error) => {
