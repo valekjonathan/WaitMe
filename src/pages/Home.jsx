@@ -843,7 +843,7 @@ export default function Home() {
                   return (
                     <>
                       <span className="text-purple-400">Debes esperar hasta las: </span>
-                      <span className="text-white">{hhmm}</span>
+<span className="text-white text-lg font-bold">{hhmm}</span>
                     </>
                   );
                 })()}
