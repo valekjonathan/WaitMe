@@ -261,7 +261,7 @@ export default function Chats() {
     }
   }, []);
 
-  const { data: serverConversations = [] } = useQuery({
+  const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
       return [];
@@ -276,7 +276,7 @@ export default function Chats() {
     refetchInterval: false
   });
 
-  const { data: serverAlerts = [] } = useQuery({
+  const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
       return [];
@@ -291,19 +291,7 @@ export default function Chats() {
     refetchInterval: false
   });
 
-  
-
-const conversations = useMemo(() => {
-  if (demoMode) return (getDemoConversations?.() || []);
-  return serverConversations || [];
-}, [demoTick, serverConversations, demoMode]);
-
-const alerts = useMemo(() => {
-  if (demoMode) return (getDemoAlerts?.() || []);
-  return serverAlerts || [];
-}, [demoTick, serverAlerts, demoMode]);
-
-const alertsMap = useMemo(() => {
+  const alertsMap = useMemo(() => {
     const map = new Map();
     alerts.forEach((a) => map.set(a.id, a));
     return map;

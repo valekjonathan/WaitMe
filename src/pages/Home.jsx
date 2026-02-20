@@ -15,7 +15,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, getDemoMarketAlerts, scheduleIncomingWaitMeRequest, upsertDemoAlertFromReal } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // ======================
@@ -84,15 +84,8 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const logoSrc = appLogo;
-  useEffect(() => {
-    // Preload del logo para que vuelva instantáneo al volver a Home
-    try {
-      const img = new Image();
-      img.src = appLogo;
-    } catch {}
-  }, []);
-
+  const [logoSrc, setLogoSrc] = useState(appLogo);
+  const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -152,20 +145,15 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts', userLocation?.latitude ?? userLocation?.lat ?? null, userLocation?.longitude ?? userLocation?.lng ?? null],
+    queryKey: ['alerts'],
     queryFn: async () => {
-      if (isDemoMode()) {
-        const lat = userLocation?.latitude ?? userLocation?.lat ?? null;
-        const lng = userLocation?.longitude ?? userLocation?.lng ?? null;
-        return getDemoMarketAlerts?.({ lat, lng }) || [];
-      }
       return [];
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
@@ -231,19 +219,17 @@ export default function Home() {
     );
   };
 
-  // Autoubicar al entrar en “¿Dónde quieres aparcar?”
-  useEffect(() => {
-    if (mode === 'search') {
-      const hasLoc = Array.isArray(userLocation) && userLocation.length === 2 && Number.isFinite(Number(userLocation[0])) && Number.isFinite(Number(userLocation[1]));
-      if (!hasLoc) getCurrentLocation();
-    }
-  }, [mode]);
-
-
   useEffect(() => {
     getCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
+  const handleLogoError = () => {
+    if (logoRetryCount >= 1) return;
+    setLogoRetryCount((c) => c + 1);
+    setLogoSrc(appLogo);
+  };
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -261,7 +247,6 @@ export default function Home() {
   }, [location.search, resetToLogo]);
 
   const homeMapAlerts = useMemo(() => {
-    if (isDemoMode()) return getDemoMarketAlerts?.() || [];
     return [];
   }, []);
 
@@ -390,13 +375,6 @@ export default function Home() {
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
     } catch {}
-
-
-    // DEMO/SIM: sincroniza la alerta recién creada con el demo flow para que todo se refleje en Notificaciones/Chats/Alertas
-    try { upsertDemoAlertFromReal?.(newAlert); } catch {}
-
-    // 1 minuto después, entra una solicitud de reserva (simulada)
-    try { scheduleIncomingWaitMeRequest?.(newAlert?.id, 60000); } catch {}
   },
 
   onError: (error) => {
@@ -484,21 +462,6 @@ export default function Home() {
     }
   });
 
-  // Hora HH:mm para el mensaje "Debes esperar hasta las" del modal de publicación
-  const pendingWaitHHMM = useMemo(() => {
-    const iso = pendingPublishPayload?.wait_until;
-    const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-    const target = iso ? new Date(iso) : new Date(Date.now() + (Number.isFinite(mins) ? mins : 0) * 60 * 1000);
-    const t = target.getTime();
-    if (!Number.isFinite(t)) return '--:--';
-    return target.toLocaleTimeString('es-ES', {
-      timeZone: 'Europe/Madrid',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  }, [pendingPublishPayload?.wait_until, pendingPublishPayload?.available_in_minutes]);
-
   const handleBuyAlert = (alert) => {
     setConfirmDialog({ open: true, alert });
   };
@@ -551,10 +514,11 @@ export default function Home() {
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
                   loading="eager"
-                  decoding="sync"
+                  decoding="async"
                   fetchPriority="high"
                   src={logoSrc}
                   alt="WaitMe!"
+                  onError={handleLogoError}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
@@ -570,10 +534,7 @@ export default function Home() {
               {/* BOTONES */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
                 <Button
-                  onClick={() => {
-                    getCurrentLocation();
-                    setMode('search');
-                  }}
+                  onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
@@ -581,14 +542,10 @@ export default function Home() {
                 </Button>
 
                 <Button
-                  onClick={() => {
-                    // Al entrar en "Estoy aparcado aquí" debe autoubicar y rellenar calle.
-                    getCurrentLocation();
-                    setMode('create');
-                  }}
+                  onClick={() => setMode('create')}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                 >
-                  <CarIconProfile color="#000000" size="w-20 h-14" />
+                  <CarIconProfile size="w-20 h-14" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
@@ -860,10 +817,6 @@ export default function Home() {
                 </span>
               </div>
 
-              <div className="mt-2 text-xs text-gray-400">
-                Tu alerta se mostrará en <span className="text-white font-semibold">Alertas &gt; Activas</span>.
-              </div>
-
               {/* Precio */}
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Euro className="w-4 h-4 text-purple-400" />
@@ -872,13 +825,28 @@ export default function Home() {
                   {pendingPublishPayload?.price ?? ''} €
                 </span>
               </div>
-            </div>
-          </div>
 
-          {/* Debes esperar hasta... (entre la tarjeta y los botones) */}
-          <div className="mt-3 text-center">
-            <span className="text-purple-400">Debes esperar hasta las: </span>
-            <span className="text-white font-extrabold text-[17px]">{pendingWaitHHMM}</span>
+              {/* Debes esperar... centrado */}
+              <div className="mt-3 text-center text-purple-400 font-bold text-base">
+                {(() => {
+                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+                  if (!mins) return null;
+                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
+                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
+                    timeZone: 'Europe/Madrid',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  });
+                  return (
+                    <>
+                      <span className="text-purple-400">Debes esperar hasta las: </span>
+                      <span className="text-white">{hhmm}</span>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}

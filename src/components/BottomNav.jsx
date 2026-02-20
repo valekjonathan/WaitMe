@@ -12,16 +12,16 @@ export default function BottomNav() {
   const queryClient = useQueryClient();
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
-  const { data: myAlerts = [], isFetched, isFetching } = useQuery({
+  const { data: myAlerts = [] } = useQuery({
     queryKey: ['myAlerts'],
     enabled: true,
-    // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 15000,
+    staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const uid = user?.id;
       const email = user?.email;
@@ -35,13 +35,10 @@ export default function BottomNav() {
     }
   });
 
-  // La app solo permite 1 alerta activa.
-  // Badge binario y SOLO cuando tenemos datos frescos (sin "2" fugaz).
-  const hasActiveAlert = (myAlerts || []).some((a) => {
+  const activeAlertCount = (myAlerts || []).filter((a) => {
     const st = String(a?.status || '').toLowerCase();
     return st === 'active' || st === 'reserved';
-  });
-  const showActiveBadge = (isFetched || (myAlerts || []).length > 0) && hasActiveAlert;
+  }).length;
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {
@@ -88,12 +85,12 @@ export default function BottomNav() {
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <div className="relative">
-            {showActiveBadge && (
+            {activeAlertCount > 0 && (
               <span
                 // Ajuste fino: +4px derecha (número más centrado)
                 className="absolute left-[-16px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
-                1
+                {activeAlertCount}
               </span>
             )}
             <svg

@@ -27,7 +27,7 @@ import Header from '@/components/Header';
 import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts, upsertDemoAlertFromReal } from '@/components/DemoFlowManager';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
 export default function History() {
   const { user } = useAuth();
@@ -250,36 +250,22 @@ const getCreatedTs = (alert) => {
   createdFallbackRef.current.set(key, now);
   return now;
 };
+
   const getWaitUntilTs = (alert) => {
-    // Preferimos wait_until explícito (evita expiraciones instantáneas si created_date viene desfasado)
-    const wu = alert?.wait_until || alert?.waitUntil || alert?.wait_until_ts || null;
-    if (wu !== null && wu !== undefined && wu !== '') {
-      // number
-      if (typeof wu === 'number' && Number.isFinite(wu)) return wu;
-      // numeric string (ms o s)
-      if (typeof wu === 'string' && /^\d{10,13}$/.test(wu.trim())) {
-        const n = Number(wu.trim());
-        if (Number.isFinite(n)) return wu.trim().length === 10 ? n * 1000 : n;
-      }
-      // ISO/date string
-      const t = new Date(wu).getTime();
-      if (Number.isFinite(t)) return t;
-    }
+  const created = getCreatedTs(alert);
+  const mins = Number(alert?.available_in_minutes);
 
-    const created = getCreatedTs(alert);
-    const mins = Number(alert?.available_in_minutes ?? alert?.minutes ?? alert?.availableInMinutes ?? 0);
+  if (
+    typeof created === 'number' &&
+    created > 0 &&
+    Number.isFinite(mins) &&
+    mins > 0
+  ) {
+    return created + mins * 60 * 1000;
+  }
 
-    if (
-      typeof created === 'number' &&
-      created > 0 &&
-      Number.isFinite(mins) &&
-      mins > 0
-    ) {
-      return created + mins * 60 * 1000;
-    }
-
-    return null;
-  };
+  return null;
+};
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
@@ -583,20 +569,10 @@ const {
   }
 });
 
-// DEMO: una semana de actividad sincronizada
-const effectiveAlerts = isDemoMode() ? (() => {
-    const real = Array.isArray(myAlerts) ? myAlerts : [];
-    const demo = Array.isArray(getDemoAlerts()) ? getDemoAlerts() : [];
-    const map = new Map();
-    [...demo, ...real].forEach((a) => { if (a?.id) map.set(String(a.id), a); });
-    return Array.from(map.values());
-  })() : myAlerts;
-
-
 // Cuando el usuario se hidrata (AuthContext), forzamos refetch inmediato
 useEffect(() => {
   if (!user?.id && !user?.email) return;
-  queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [user?.id, user?.email]);
 
@@ -638,7 +614,7 @@ const mockReservationsFinal = useMemo(() => {
 
 
 const myActiveAlerts = useMemo(() => {
-  const filtered = effectiveAlerts.filter((a) => {
+  const filtered = myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -661,7 +637,7 @@ const myActiveAlerts = useMemo(() => {
 
   // Solo la más reciente
   return [sorted[0]];
-}, [effectiveAlerts, user?.id, user?.email]);
+}, [myAlerts, user?.id, user?.email]);
 
 
 
@@ -678,8 +654,9 @@ const visibleActiveAlerts = useMemo(() => {
       if (String(a.status || '').toLowerCase() !== 'active') return false;
       if (autoFinalizedRef.current.has(a.id)) return false;
 
+      const createdTs = getCreatedTs(a);
       const waitUntilTs = getWaitUntilTs(a);
-      if (!waitUntilTs) return false;
+      if (!waitUntilTs || !createdTs) return false;
 
       const remainingMs = Math.max(0, waitUntilTs - nowTs);
       return remainingMs === 0;
@@ -711,12 +688,12 @@ const visibleActiveAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     });
   }, [nowTs, visibleActiveAlerts, queryClient]);
 
 const myFinalizedAlerts = useMemo(() => {
-  return effectiveAlerts.filter((a) => {
+  return myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -729,17 +706,17 @@ const myFinalizedAlerts = useMemo(() => {
       String(a.status || '').toLowerCase()
     );
   });
-}, [effectiveAlerts, user?.id, user?.email]);
+}, [myAlerts, user?.id, user?.email]);
     
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
-    return effectiveAlerts.filter((a) => {
+    return myAlerts.filter((a) => {
       if (a.reserved_by_id !== user?.id) return false;
       if (a.status !== 'reserved') return false;
 
       return true;
     });
-  }, [effectiveAlerts, user?.id]);
+  }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
 
   // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
@@ -769,7 +746,7 @@ const myFinalizedAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     });
   }, [nowTs, reservationsActiveAll, queryClient]);
 
@@ -812,7 +789,7 @@ const myFinalizedAlerts = useMemo(() => {
     
 
   const reservationsFinalAllBase = [
-  ...effectiveAlerts
+  ...myAlerts
     .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
     .map((a) => ({
       type: 'alert',
@@ -879,17 +856,15 @@ const myFinalizedAlerts = useMemo(() => {
     },
   onMutate: async (alertId) => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
-      queryClient.setQueryData(['effectiveAlerts'], (old) => {
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
       });
 
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); 
-      try { upsertDemoAlertFromReal?.({ ...alert, status: 'canceled' }); } catch {}
-} catch {}
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -899,15 +874,15 @@ const myFinalizedAlerts = useMemo(() => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
     onMutate: async (alertId) => {
-      // Marcar como expirada en cache (badge se recalcula desde effectiveAlerts)
-      queryClient.setQueryData(['effectiveAlerts'], (old) => {
+      // Marcar como expirada en cache (badge se recalcula desde myAlerts)
+      queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
       });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
 
@@ -951,7 +926,7 @@ const myFinalizedAlerts = useMemo(() => {
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -1018,7 +993,7 @@ const myFinalizedAlerts = useMemo(() => {
 
 
 
-                         const remainingMs = waitUntilTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1123,10 +1098,9 @@ const myFinalizedAlerts = useMemo(() => {
                                       Te vas en {alert.available_in_minutes} min
                                     </span>
                                   </div>
-                                  <span className="leading-5">
-  <span className="text-purple-400">Debes esperar hasta las: </span>
-  <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
-</span>
+                                  <span className="text-purple-400 leading-5">
+                                    Debes esperar hasta las: {waitUntilLabel}
+                                  </span>
                                 </div>
 
                                 <div className="mt-2">
@@ -1157,7 +1131,7 @@ const myFinalizedAlerts = useMemo(() => {
   hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
   cancelAlertMutation.mutate(alert.id, {
     onSuccess: () => {
-      queryClient.invalidateQueries(['effectiveAlerts']); // 2. Refresca datos sin recargar
+      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
     }
   });
 }}
@@ -1257,7 +1231,7 @@ const myFinalizedAlerts = useMemo(() => {
                                     onClick={async () => {
                                       hideKey(key);
                                       await deleteAlertSafe(a.id);
-                                      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                     }}
                                     className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                   >
@@ -1481,7 +1455,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       read: false
                                     });
 
-                                    queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                   }}
                                   className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                 >
@@ -1605,7 +1579,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       const isMock = String(a.id).startsWith('mock-');
                                       if (!isMock) {
                                         await deleteAlertSafe(a.id);
-                                        queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
+                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                       }
                                     }}
                                     className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
@@ -1837,14 +1811,11 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las: </span>
-                  <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
-                  <div className="w-full h-10 rounded-xl bg-red-600 flex items-center justify-center text-white font-extrabold tracking-wide">
-                    EXPIRADA
-                  </div>
+                  <CountdownButton text="EXPIRADA" dimmed={false} />
                 </div>
               </div>
             );

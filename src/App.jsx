@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import Layout from './Layout';
-import GlobalExpiryManager from '@/components/GlobalExpiryManager';
 import DemoFlowManager from '@/components/DemoFlowManager';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -25,7 +24,6 @@ export default function App() {
     <div className="min-h-[100dvh] bg-black flex flex-col">
       <DemoFlowManager />
       <AuthGate />
-      <GlobalExpiryManager />
       <Layout />
     </div>
   );
