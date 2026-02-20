@@ -293,23 +293,15 @@ export default function Chats() {
 
   
 
-const [demoTick, setDemoTick] = useState(0);
-
-useEffect(() => {
-  if (!isDemoMode?.()) return;
-  const unsub = subscribeDemoFlow?.(() => setDemoTick((t) => t + 1));
-  return () => unsub?.();
-}, []);
-
 const conversations = useMemo(() => {
-  if (isDemoMode?.()) return getDemoConversations?.() || [];
+  if (demoMode) return (getDemoConversations?.() || []);
   return serverConversations || [];
-}, [demoTick, serverConversations]);
+}, [demoTick, serverConversations, demoMode]);
 
 const alerts = useMemo(() => {
-  if (isDemoMode?.()) return getDemoAlerts?.() || [];
+  if (demoMode) return (getDemoAlerts?.() || []);
   return serverAlerts || [];
-}, [demoTick, serverAlerts]);
+}, [demoTick, serverAlerts, demoMode]);
 
 const alertsMap = useMemo(() => {
     const map = new Map();
