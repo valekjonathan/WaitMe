@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Settings, User, X } from 'lucide-react';
+import { ArrowLeft, Settings, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
@@ -71,7 +71,7 @@ export default function Header({
       load();
       setShowBanner(true);
       // auto-hide estilo WhatsApp
-      setTimeout(() => setShowBanner(false), 7000);
+      setTimeout(() => setShowBanner(false), 5000);
     };
 
     window.addEventListener('waitme:requestsChanged', onChange);
@@ -87,7 +87,7 @@ export default function Header({
     // si hay pending al entrar, lo mostramos una vez
     if (bannerReq) {
       setShowBanner(true);
-      setTimeout(() => setShowBanner(false), 7000);
+      setTimeout(() => setShowBanner(false), 5000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bannerReq?.id]);
@@ -122,15 +122,15 @@ export default function Header({
 
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
-            <Link to={createPageUrl('Profile')}>
+            <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer">
-                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
 
-            <Link to={createPageUrl('Settings')}>
-              <div className="cursor-pointer ml-[20px]">
-                <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+            <Link to={createPageUrl('Profile')}>
+              <div className="cursor-pointer ml-[31px]">
+                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
           </div>
