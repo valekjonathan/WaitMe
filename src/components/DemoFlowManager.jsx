@@ -271,7 +271,7 @@ export function startDemoFlow() {
   try {
     const already = (demoFlow.notifications || []).some((n) => n?.type === 'incoming_waitme');
     const active = (demoFlow.alerts || []).find((a) => String(a?.status || '').toLowerCase() === 'active');
-    if (!already && active) scheduleIncomingWaitMeRequest(active.id, 60_000);
+    if (!already && active) scheduleIncomingWaitMeRequest(active.id, 60000);
   } catch {}
 
   tickTimer = window.setInterval(() => notify(), 1000);
@@ -339,7 +339,7 @@ function triggerLocalPush(title, body) {
    SOLICITUD ENTRANTE (a los 60s de crear alerta)
 ====================================================== */
 
-export function scheduleIncomingWaitMeRequest(alertId, delayMs = 60_000) {
+export function scheduleIncomingWaitMeRequest(alertId, delayMs = 60000) {
   startDemoFlow();
   window.setTimeout(() => {
     const alert = getDemoAlertById(alertId);
