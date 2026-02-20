@@ -17,12 +17,11 @@ export default function Header({
   const { user } = useAuth();
 
 
-  // Toast “tipo WhatsApp” (demo)
+  // Toast “tipo WhatsApp”
+  // - demo: se alimenta desde DemoFlowManager
+  // - real: se alimenta desde window event 'waitme:toast'
   const [toastTick, setToastTick] = useState(0);
-  // Toast “tipo WhatsApp” (app real)
-  const [appToast, setAppToast] = useState(null);
-  // Toast “tipo WhatsApp” (app real)
-  const [appToast, setAppToast] = useState(null);
+  const [externalToast, setExternalToast] = useState(null);
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -31,25 +30,15 @@ export default function Header({
     return () => unsub?.();
   }, []);
 
-  useEffect(() => {
-    const handler = (e) => {
-      const d = e?.detail || {};
-      const id = String(Date.now());
-      setAppToast({ id, title: d.title || 'WaitMe!', text: d.text || '' });
-      window.clearTimeout(window.__waitmeToastT);
-      window.__waitmeToastT = window.setTimeout(() => setAppToast(null), 3500);
-    };
-    window.addEventListener('waitme:toast', handler);
-    return () => window.removeEventListener('waitme:toast', handler);
-  }, []);
-
   const toasts = useMemo(() => {
     if (!isDemoMode()) return [];
     return getDemoToasts?.() || [];
   }, [toastTick]);
 
-  const activeToast = appToast || (toasts?.[0] || null);
-  const isAppToast = !!appToast;
+  const demoToast = toasts?.[0] || null;
+
+  // Prioridad: toast real > toast demo
+  const activeToast = externalToast || demoToast;
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
@@ -82,7 +71,7 @@ export default function Header({
   }, [title, navigate, titleClassName]);
 
   return (
-    <header className="fixed relative top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
       <div className="px-4 py-3">
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
         <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
@@ -141,7 +130,10 @@ export default function Header({
                 dragConstraints={{ top: -90, bottom: 0 }}
                 dragElastic={0.12}
                 onDragEnd={(e, info) => {
-                  if (info?.offset?.y < -50) dismissDemoToast?.(activeToast.id);
+                  if (info?.offset?.y < -50) {
+                  if (externalToast) setExternalToast(null);
+                  else dismissDemoToast?.(activeToast.id);
+                }
                 }}
                 className="mx-auto max-w-[520px] bg-gray-900/95 border border-gray-700 rounded-2xl shadow-lg backdrop-blur px-4 py-3 flex items-center gap-3"
               >

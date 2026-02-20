@@ -843,6 +843,20 @@ export default function Home() {
                 <span className="text-purple-400 font-semibold text-base">
                   {pendingPublishPayload?.available_in_minutes ?? ''} minutos
                 </span>
+                              {(() => {
+                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+                  if (!mins) return null;
+                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
+                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
+                    timeZone: 'Europe/Madrid',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  });
+                  return (
+                    <span className="ml-auto text-white font-extrabold text-[17px]">{hhmm}</span>
+                  );
+                })()}
               </div>
 
               {/* Precio */}
@@ -853,7 +867,6 @@ export default function Home() {
                   {pendingPublishPayload?.price ?? ''} €
                 </span>
               </div>
-</div>
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
