@@ -82,8 +82,6 @@ export default function GlobalExpiryManager() {
             detail: {
               id: `expire-${id}`,
               fromName: 'WaitMe!',
-              type: 'time_expired',
-              title: 'WaitMe!',
               text: 'Tu alerta ha expirado'
             }
           })
@@ -176,12 +174,13 @@ export default function GlobalExpiryManager() {
           <div className="flex items-start gap-1.5 text-xs">
             <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
             <span className="text-white leading-5">Te vas en {alert?.available_in_minutes} min · </span>
+            <span className="text-purple-400 leading-5">Debes esperar hasta las: </span>
             <span className="text-white font-extrabold text-[19px] leading-5">{waitUntilLabel}</span>
           </div>
 
-          <div className="mt-3 flex justify-center">
-            <div className="px-5 py-2 rounded-full bg-purple-700/60 border border-purple-500/60 text-white text-xs font-extrabold">
-              EXPIRADA
+          <div className="mt-3">
+            <div className="w-full h-9 rounded-lg border-2 border-red-400/60 bg-red-500/15 flex items-center justify-center">
+              <span className="text-sm font-mono font-extrabold text-red-300">EXPIRADA</span>
             </div>
           </div>
         </div>
@@ -216,9 +215,12 @@ function getCreatedTs(a) {
 }
 
 function getWaitUntilTs(a) {
-  // Preferimos el campo wait_until si existe (evita errores por formatos/zonas horarias)
-  const explicit = toMs(a?.wait_until || a?.waitUntil);
-  if (explicit) return explicit;
+  // Preferimos un timestamp explícito si existe (evita expiraciones instantáneas por desajustes de created_date)
+  const wu = a?.wait_until || a?.waitUntil || a?.wait_until_ts || null;
+  if (wu) {
+    const t = new Date(wu).getTime();
+    if (Number.isFinite(t)) return t;
+  }
 
   const createdTs = getCreatedTs(a);
   const mins = Number(a?.available_in_minutes ?? a?.minutes ?? 0);

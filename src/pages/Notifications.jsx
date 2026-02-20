@@ -172,8 +172,28 @@ export default function Notifications() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-950/40 border border-purple-500/40 rounded-xl p-3">
-                      <p className="text-white font-semibold text-sm mb-2">OPERACIÓN</p>
+                    {t === 'incoming_waitme' ? (
+                      <div className="rounded-xl border-2 border-purple-500/60 bg-gray-900/60 p-3">
+                        <div className="mb-2 text-white font-extrabold text-xs tracking-wider">QUIERE UN WAITME</div>
+                        <MarcoCard
+                      photoUrl={otherPhoto}
+                      name={otherName}
+                      carLabel={carLabel}
+                      plate={plate}
+                      carColor={carColor}
+                      address={address}
+                      timeLine={<span className="text-gray-400">Operación en curso</span>}
+                      onChat={() =>
+                        openChat(n?.conversationId || ensureConversationForAlert(n?.alertId)?.id, n?.alertId)
+                      }
+                      statusText={statusText}
+                      phoneEnabled={phoneEnabled}
+                      onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
+                      dimmed={!isUnread}
+                      role="buyer"
+                    />
+                      </div>
+                    ) : (
                       <MarcoCard
                       photoUrl={otherPhoto}
                       name={otherName}
@@ -190,8 +210,8 @@ export default function Notifications() {
                       onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
                       dimmed={!isUnread}
                       role="buyer"
-                      />
-                    </div>
+                    />
+                    )}
 
                     {hasLatLon && (
                       <div className="mt-2">

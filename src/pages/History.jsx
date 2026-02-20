@@ -250,26 +250,28 @@ const getCreatedTs = (alert) => {
   createdFallbackRef.current.set(key, now);
   return now;
 };
-
   const getWaitUntilTs = (alert) => {
-  // Preferimos wait_until si existe: evita expiraciones instantáneas por formato/zonas horarias
-  const explicit = toMs(alert?.wait_until || alert?.waitUntil);
-  if (typeof explicit === 'number' && explicit > 0) return explicit;
+    // Preferimos wait_until explícito (evita expiraciones instantáneas si created_date viene desfasado)
+    const wu = alert?.wait_until || alert?.waitUntil || alert?.wait_until_ts || null;
+    if (wu) {
+      const t = new Date(wu).getTime();
+      if (Number.isFinite(t)) return t;
+    }
 
-  const created = getCreatedTs(alert);
-  const mins = Number(alert?.available_in_minutes ?? alert?.minutes ?? 0);
+    const created = getCreatedTs(alert);
+    const mins = Number(alert?.available_in_minutes ?? alert?.minutes ?? alert?.availableInMinutes ?? 0);
 
-  if (
-    typeof created === 'number' &&
-    created > 0 &&
-    Number.isFinite(mins) &&
-    mins > 0
-  ) {
-    return created + mins * 60 * 1000;
-  }
+    if (
+      typeof created === 'number' &&
+      created > 0 &&
+      Number.isFinite(mins) &&
+      mins > 0
+    ) {
+      return created + mins * 60 * 1000;
+    }
 
-  return null;
-};
+    return null;
+  };
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
@@ -1828,6 +1830,7 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las: </span>
                   <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
                 </div>
 

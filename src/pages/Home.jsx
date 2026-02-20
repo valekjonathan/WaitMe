@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -84,8 +84,7 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const logoSrcRef = useRef(appLogo);
-  const logoSrc = logoSrcRef.current;
+  const logoSrc = appLogo;
   useEffect(() => {
     // Preload del logo para que vuelva instantáneo al volver a Home
     try {
@@ -541,13 +540,6 @@ export default function Home() {
                   fetchPriority="high"
                   src={logoSrc}
                   alt="WaitMe!"
-                  draggable={false}
-                  onError={(e) => {
-                    try {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = logoSrcRef.current;
-                    } catch {}
-                  }}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
@@ -851,25 +843,23 @@ export default function Home() {
                 <span className="text-purple-400 font-semibold text-base">
                   {pendingPublishPayload?.available_in_minutes ?? ''} minutos
                 </span>
-              </div>
-
-              {/* Debes esperar */}
-              <div className="flex items-center gap-2 text-sm mt-2">
-                <span className="text-purple-400">Debes esperar hasta las:</span>
-                {(() => {
+                              {(() => {
+                  const iso = pendingPublishPayload?.wait_until;
                   const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  if (!mins) return <span className="text-white font-extrabold text-[17px]">--:--</span>;
-                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
-                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
-                    timeZone: 'Europe/Madrid',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  });
+                  const target = iso ? new Date(iso) : new Date(Date.now() + (mins || 0) * 60 * 1000);
+                  const hhmm = target.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
                   return (
-                    <span className="text-white font-extrabold text-[17px]">{hhmm}</span>
+                    <span className="ml-1">
+                      <span className="text-white">· </span>
+                      <span className="text-purple-400">Debes esperar hasta las: </span>
+                      <span className="text-white font-extrabold text-[17px]">{hhmm}</span>
+                    </span>
                   );
                 })()}
+              </div>
+
+              <div className="mt-2 text-xs text-gray-400">
+                Tu alerta se mostrará en <span className="text-white font-semibold">Alertas &gt; Activas</span>.
               </div>
 
               {/* Precio */}
