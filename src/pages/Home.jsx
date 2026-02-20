@@ -328,37 +328,39 @@ export default function Home() {
   },
 
   onMutate: async (data) => {
-    navigate(createPageUrl('History'), { replace: true });
+  navigate(createPageUrl('History'), { replace: true });
 
-    await queryClient.cancelQueries({ queryKey: ['alerts'] });
-    await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
+  await queryClient.cancelQueries({ queryKey: ['alerts'] });
+  await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
 
-    const now = Date.now();
-    const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+  const now = Date.now();
+  const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
 
-    const optimisticAlert = {
-      id: `temp_${Date.now()}`,
-      ...data,
-      wait_until: futureTime.toISOString(),
-      created_from: 'parked_here',
-      status: 'active',
-      created_date: new Date().toISOString()
-    };
+  const optimisticAlert = {
+    id: `temp_${Date.now()}`,
+    ...data,
+    wait_until: futureTime.toISOString(),
+    created_from: 'parked_here',
+    status: 'active',
+    created_date: new Date().toISOString()
+  };
 
-    queryClient.setQueryData(['alerts'], (old) => {
-      const list = Array.isArray(old) ? old : (old?.data || []);
-      return [optimisticAlert, ...list];
-    });
+  queryClient.setQueryData(['alerts'], (old) => {
+    const list = Array.isArray(old) ? old : (old?.data || []);
+    return [optimisticAlert, ...list];
+  });
 
-    queryClient.setQueryData(['myAlerts'], (old) => {
-      const list = Array.isArray(old) ? old : (old?.data || []);
-      return [optimisticAlert, ...list];
-    });
+  queryClient.setQueryData(['myAlerts'], (old) => {
+    const list = Array.isArray(old) ? old : (old?.data || []);
+    return [optimisticAlert, ...list];
+  });
 
-    try {
-      window.dispatchEvent(new Event('waitme:badgeRefresh'));
-    } catch {}
-  },
+  try {
+    window.dispatchEvent(new Event('waitme:badgeRefresh'));
+  } catch {}
+
+  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+},
 
   onSuccess: (newAlert) => {
     queryClient.setQueryData(['alerts'], (old) => {
