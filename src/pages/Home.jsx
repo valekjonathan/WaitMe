@@ -222,10 +222,6 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
-    setLogoRetryCount((c) => c + 1);
-    setLogoSrc(appLogo);
-  };
 
   useEffect(() => {
     if (!isDemoMode()) return;
