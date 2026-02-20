@@ -136,12 +136,45 @@ export default function Header({
         <div className="absolute top-full left-0 right-0 px-4 pt-2">
           <button
             type="button"
-            onClick={() => navigate(createPageUrl('Notifications'))}
-            className="w-full text-left bg-gray-900/95 border border-gray-800 rounded-lg px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
+            onClick={() => {
+              // Nunca navegar a rutas inexistentes (pantalla negra). Abrimos la pantalla real de /notifications.
+              try {
+                setShowBanner(false);
+                navigate('/notifications');
+              } catch {
+                // noop
+              }
+            }}
+            className="w-full text-left bg-gray-900/95 border border-gray-800 rounded-xl px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
           >
-            <span className="text-white text-sm font-semibold">
-              Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
-            </span>
+            <div className="flex items-center gap-3">
+              {/* avatar */}
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700 flex-shrink-0 bg-gray-800">
+                {bannerReq?.buyer?.photo ? (
+                  <img
+                    src={bannerReq.buyer.photo}
+                    alt={bannerReq?.buyer?.name || 'Usuario'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-lg text-gray-500">👤</div>
+                )}
+              </div>
+
+              {/* texto */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-white text-[14px] font-semibold truncate">
+                    {bannerReq?.buyer?.name || 'Usuario'}
+                  </div>
+                  <div className="text-gray-400 text-[12px] flex-shrink-0">Ahora</div>
+                </div>
+                <div className="text-white text-[13px] truncate">
+                  quiere tu Wait<span className="text-purple-500 font-semibold">Me!</span>
+                </div>
+                <div className="text-gray-400 text-[12px] truncate">Pulsa para ver la solicitud</div>
+              </div>
+            </div>
           </button>
         </div>
       )}
