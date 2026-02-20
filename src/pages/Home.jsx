@@ -328,8 +328,6 @@ export default function Home() {
   },
 
   onMutate: async (data) => {
-  navigate(createPageUrl('History'), { replace: true });
-
   await queryClient.cancelQueries({ queryKey: ['alerts'] });
   await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
 
@@ -358,8 +356,6 @@ export default function Home() {
   try {
     window.dispatchEvent(new Event('waitme:badgeRefresh'));
   } catch {}
-
-  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
 },
 
   onSuccess: (newAlert) => {
