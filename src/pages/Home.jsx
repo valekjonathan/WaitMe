@@ -152,9 +152,13 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts'],
+    queryKey: ['alerts', userLocation?.latitude ?? userLocation?.lat ?? null, userLocation?.longitude ?? userLocation?.lng ?? null],
     queryFn: async () => {
-      if (isDemoMode()) return getDemoMarketAlerts?.() || [];
+      if (isDemoMode()) {
+        const lat = userLocation?.latitude ?? userLocation?.lat ?? null;
+        const lng = userLocation?.longitude ?? userLocation?.lng ?? null;
+        return getDemoMarketAlerts?.({ lat, lng }) || [];
+      }
       return [];
     },
     staleTime: 60 * 1000,
@@ -226,6 +230,15 @@ export default function Home() {
       { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
     );
   };
+
+  // Autoubicar al entrar en “¿Dónde quieres aparcar?”
+  useEffect(() => {
+    if (mode === 'search') {
+      const hasLoc = Array.isArray(userLocation) && userLocation.length === 2 && Number.isFinite(Number(userLocation[0])) && Number.isFinite(Number(userLocation[1]));
+      if (!hasLoc) getCurrentLocation();
+    }
+  }, [mode]);
+
 
   useEffect(() => {
     getCurrentLocation();
@@ -542,7 +555,10 @@ export default function Home() {
               {/* BOTONES */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
                 <Button
-                  onClick={() => setMode('search')}
+                  onClick={() => {
+                    getCurrentLocation();
+                    setMode('search');
+                  }}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
                 >
                   <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
@@ -853,7 +869,7 @@ export default function Home() {
                   return (
                     <>
                       <span className="text-purple-400">Debes esperar hasta las: </span>
-                      <span className="text-white">{hhmm}</span>
+                      <span className="text-white text-lg font-extrabold">{hhmm}</span>
                     </>
                   );
                 })()}

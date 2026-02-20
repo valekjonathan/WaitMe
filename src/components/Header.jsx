@@ -1,8 +1,10 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
+import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoToasts, dismissDemoToast } from '@/components/DemoFlowManager';
 
 export default function Header({
   title = 'WaitMe!',
@@ -13,6 +15,24 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+
+  // Toast “tipo WhatsApp” (demo)
+  const [toastTick, setToastTick] = useState(0);
+
+  useEffect(() => {
+    if (!isDemoMode()) return;
+    startDemoFlow();
+    const unsub = subscribeDemoFlow(() => setToastTick((t) => t + 1));
+    return () => unsub?.();
+  }, []);
+
+  const toasts = useMemo(() => {
+    if (!isDemoMode()) return [];
+    return getDemoToasts?.() || [];
+  }, [toastTick]);
+
+  const activeToast = toasts?.[0] || null;
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
@@ -45,7 +65,7 @@ export default function Header({
   }, [title, navigate, titleClassName]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
+    <header className="fixed relative top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
       <div className="px-4 py-3">
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
         <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
@@ -88,6 +108,55 @@ export default function Header({
             </Link>
           </div>
         </div>
+
+        {/* Toast bajo el header (desliza hacia arriba para quitar) */}
+        <AnimatePresence>
+          {activeToast ? (
+            <motion.div
+              key={activeToast.id}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute left-0 right-0 top-full px-3 pt-2 z-[60]"
+            >
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: -90, bottom: 0 }}
+                dragElastic={0.12}
+                onDragEnd={(e, info) => {
+                  if (info?.offset?.y < -50) dismissDemoToast?.(activeToast.id);
+                }}
+                className="mx-auto max-w-[520px] bg-gray-900/95 border border-gray-700 rounded-2xl shadow-lg backdrop-blur px-4 py-3 flex items-center gap-3"
+              >
+                {activeToast.fromPhoto ? (
+                  <img
+                    src={activeToast.fromPhoto}
+                    alt=""
+                    className="w-10 h-10 rounded-full object-cover border border-gray-700"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-purple-600/20 border border-purple-500/60" />
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-white font-semibold text-sm truncate">
+                      {activeToast.fromName || activeToast.title || 'WaitMe!'}
+                    </span>
+                    <span className="text-gray-400 text-xs flex-none">
+                      ahora
+                    </span>
+                  </div>
+                  <div className="text-gray-200 text-sm truncate">
+                    {activeToast.text}
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
       </div>
     </header>
   );

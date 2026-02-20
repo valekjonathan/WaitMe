@@ -1112,7 +1112,7 @@ const myFinalizedAlerts = useMemo(() => {
                                   </div>
                                   <span className="leading-5">
   <span className="text-purple-400">Debes esperar hasta las: </span>
-  <span className="text-white font-semibold text-[15px]">{waitUntilLabel}</span>
+  <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
 </span>
                                 </div>
 
@@ -1832,7 +1832,7 @@ const myFinalizedAlerts = useMemo(() => {
                                 <div className="mt-1">
                                   <span className="leading-5">
                                     <span className="text-purple-400">Debes esperar hasta las: </span>
-                                    <span className="text-white font-semibold text-[15px]">{waitUntilLabel}</span>
+                                    <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
                                   </span>
                                 </div>
 <CountdownButton text="EXPIRADA" dimmed={false} />

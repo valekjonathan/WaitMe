@@ -43,7 +43,13 @@ export const demoFlow = {
   messages: {},
 
   // Notificaciones
-  notifications: []
+  notifications: [],
+
+  // Toasts (tipo WhatsApp bajo el header)
+  toasts: [],
+
+  // Para regenerar mercado cuando cambia el centro del mapa
+  _marketCenterKey: null
 };
 
 /* ======================================================
@@ -76,42 +82,110 @@ export function subscribeToDemoFlow(cb) { return subscribeDemoFlow(cb); }
 ====================================================== */
 
 function buildUsers() {
+  // 17 usuarios (7 cerca de ti + 10 por Oviedo)
   demoFlow.users = [
-    { id: 'u1', name: 'Sofía', photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault', car_model: 'Clio', car_color: 'rojo', car_plate: '7733 MNP', phone: '+34677889901' },
-    { id: 'u2', name: 'Marco', photo: 'https://randomuser.me/api/portraits/men/12.jpg', car_brand: 'BMW', car_model: 'Serie 1', car_color: 'gris', car_plate: '8890 LTR', phone: '+34677889902' },
-    { id: 'u3', name: 'Laura', photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes', car_model: 'Clase A', car_color: 'negro', car_plate: '7788 RTY', phone: '+34677889903' },
-    { id: 'u4', name: 'Carlos', photo: 'https://randomuser.me/api/portraits/men/55.jpg', car_brand: 'Seat', car_model: 'León', car_color: 'azul', car_plate: '4321 PQR', phone: '+34677889904' },
-    { id: 'u5', name: 'Elena', photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini', car_model: 'Cooper', car_color: 'blanco', car_plate: '5567 ZXC', phone: '+34677889905' },
-    { id: 'u6', name: 'Dani', photo: 'https://randomuser.me/api/portraits/men/41.jpg', car_brand: 'Audi', car_model: 'A3', car_color: 'gris', car_plate: '2145 KHB', phone: '+34677889906' },
-    { id: 'u7', name: 'Paula', photo: 'https://randomuser.me/api/portraits/women/12.jpg', car_brand: 'Toyota', car_model: 'Yaris', car_color: 'verde', car_plate: '9001 LKD', phone: '+34677889907' },
-    { id: 'u8', name: 'Iván', photo: 'https://randomuser.me/api/portraits/men/18.jpg', car_brand: 'Volkswagen', car_model: 'Golf', car_color: 'azul', car_plate: '3022 MJC', phone: '+34677889908' },
-    { id: 'u9', name: 'Nerea', photo: 'https://randomuser.me/api/portraits/women/37.jpg', car_brand: 'Kia', car_model: 'Rio', car_color: 'rojo', car_plate: '6100 HJP', phone: '+34677889909' },
-    { id: 'u10', name: 'Hugo', photo: 'https://randomuser.me/api/portraits/men/77.jpg', car_brand: 'Peugeot', car_model: '208', car_color: 'amarillo', car_plate: '4509 LST', phone: '+34677889910' }
+    { id: 'u1',  name: 'Sofía',   photo: 'https://randomuser.me/api/portraits/women/68.jpg', car_brand: 'Renault',   car_model: 'Clio',      car_color: 'rojo',    car_plate: '7733 MNP', phone: '+34677889901' },
+    { id: 'u2',  name: 'Marco',   photo: 'https://randomuser.me/api/portraits/men/12.jpg',   car_brand: 'BMW',       car_model: 'Serie 1',   car_color: 'gris',    car_plate: '8890 LTR', phone: '+34677889902' },
+    { id: 'u3',  name: 'Laura',   photo: 'https://randomuser.me/api/portraits/women/44.jpg', car_brand: 'Mercedes',  car_model: 'Clase A',   car_color: 'negro',   car_plate: '7788 RTY', phone: '+34677889903' },
+    { id: 'u4',  name: 'Carlos',  photo: 'https://randomuser.me/api/portraits/men/55.jpg',   car_brand: 'SEAT',      car_model: 'León',      car_color: 'azul',    car_plate: '4321 PQR', phone: '+34677889904' },
+    { id: 'u5',  name: 'Elena',   photo: 'https://randomuser.me/api/portraits/women/25.jpg', car_brand: 'Mini',      car_model: 'Cooper',    car_color: 'blanco',  car_plate: '5567 ZXC', phone: '+34677889905' },
+    { id: 'u6',  name: 'Dani',    photo: 'https://randomuser.me/api/portraits/men/41.jpg',   car_brand: 'Audi',      car_model: 'A3',        car_color: 'gris',    car_plate: '2145 KHB', phone: '+34677889906' },
+    { id: 'u7',  name: 'Nerea',   photo: 'https://randomuser.me/api/portraits/women/19.jpg', car_brand: 'Toyota',    car_model: 'Yaris',     car_color: 'verde',   car_plate: '6901 JVC', phone: '+34677889907' },
+
+    { id: 'u8',  name: 'Adrián',  photo: 'https://randomuser.me/api/portraits/men/22.jpg',   car_brand: 'Volkswagen',car_model: 'Golf',      car_color: 'azul',    car_plate: '3150 HGD', phone: '+34677889908' },
+    { id: 'u9',  name: 'Paula',   photo: 'https://randomuser.me/api/portraits/women/31.jpg', car_brand: 'Kia',       car_model: 'Sportage',  car_color: 'blanco',  car_plate: '9044 LKP', phone: '+34677889909' },
+    { id: 'u10', name: 'Hugo',    photo: 'https://randomuser.me/api/portraits/men/35.jpg',   car_brand: 'Peugeot',   car_model: '208',       car_color: 'amarillo',car_plate: '1820 GNL', phone: '+34677889910' },
+    { id: 'u11', name: 'Marta',   photo: 'https://randomuser.me/api/portraits/women/52.jpg', car_brand: 'Hyundai',   car_model: 'i20',       car_color: 'rojo',    car_plate: '7712 KTX', phone: '+34677889911' },
+    { id: 'u12', name: 'Iker',    photo: 'https://randomuser.me/api/portraits/men/61.jpg',   car_brand: 'Ford',      car_model: 'Focus',     car_color: 'gris',    car_plate: '4471 DMR', phone: '+34677889912' },
+    { id: 'u13', name: 'Lucía',   photo: 'https://randomuser.me/api/portraits/women/60.jpg', car_brand: 'Citroën',   car_model: 'C3',        car_color: 'naranja', car_plate: '9023 JTS', phone: '+34677889913' },
+    { id: 'u14', name: 'Pablo',   photo: 'https://randomuser.me/api/portraits/men/73.jpg',   car_brand: 'Skoda',     car_model: 'Fabia',     car_color: 'blanco',  car_plate: '6309 FVP', phone: '+34677889914' },
+    { id: 'u15', name: 'Sara',    photo: 'https://randomuser.me/api/portraits/women/73.jpg', car_brand: 'Nissan',    car_model: 'Qashqai',   car_color: 'negro',   car_plate: '1188 LZD', phone: '+34677889915' },
+    { id: 'u16', name: 'Javi',    photo: 'https://randomuser.me/api/portraits/men/84.jpg',   car_brand: 'Opel',      car_model: 'Corsa',     car_color: 'azul',    car_plate: '5012 HLS', phone: '+34677889916' },
+    { id: 'u17', name: 'Claudia', photo: 'https://randomuser.me/api/portraits/women/82.jpg', car_brand: 'Fiat',      car_model: '500',       car_color: 'morado',  car_plate: '3007 KRB', phone: '+34677889917' }
   ];
 }
+
 
 function pickUser(userId) {
   return (demoFlow.users || []).find((u) => u.id === userId) || null;
 }
 
-function seedMarketAlerts() {
-  // 10 coches alrededor (buscador)
-  demoFlow.marketAlerts = (demoFlow.users || []).map((u, idx) => ({
-    id: `m_${u.id}`,
-    user_id: u.id,
-    user_name: u.name,
-    user_photo: u.photo,
-    latitude: nearLat(),
-    longitude: nearLng(),
-    address: idx % 2 === 0 ? 'Oviedo' : 'Calle Campoamor, Oviedo',
-    price: 3 + (idx % 6),
-    available_in_minutes: 5 + (idx % 8) * 5,
-    vehicle_type: idx % 3 === 0 ? 'van' : (idx % 3 === 1 ? 'suv' : 'car'),
-    car_color: u.car_color || 'gris',
-    status: 'active',
-    created_date: new Date(Date.now() - (idx + 1) * 3600 * 1000).toISOString()
-  }));
+function seedMarketAlerts(center) {
+  // 7 usuarios cerca del centro (tu ubicación) + 10 repartidos por Oviedo
+  const cLat = Number(center?.lat ?? center?.latitude);
+  const cLng = Number(center?.lng ?? center?.longitude);
+
+  const hasCenter = Number.isFinite(cLat) && Number.isFinite(cLng);
+  const key = hasCenter ? `${cLat.toFixed(4)},${cLng.toFixed(4)}` : 'oviedo';
+  if (demoFlow._marketCenterKey === key && (demoFlow.marketAlerts || []).length >= 17) return;
+
+  demoFlow._marketCenterKey = key;
+
+  const users = demoFlow.users || [];
+  const nearUsers = users.slice(0, 7);
+  const cityUsers = users.slice(7, 17);
+
+  const near = (lat, lng, rLat = 0.0012, rLng = 0.0016) => ({
+    latitude: lat + rnd(-rLat, rLat),
+    longitude: lng + rnd(-rLng, rLng)
+  });
+
+  const city = () => ({
+    latitude: BASE_LAT + rnd(-0.02, 0.02),
+    longitude: BASE_LNG + rnd(-0.03, 0.03)
+  });
+
+  const pickAddress = (i) => {
+    const a = [
+      'Calle Uría, Oviedo',
+      'Calle Campoamor, Oviedo',
+      'Plaza de América, Oviedo',
+      'Avenida de Galicia, Oviedo',
+      'Calle Rosal, Oviedo',
+      'Calle San Francisco, Oviedo',
+      'Calle Independencia, Oviedo',
+      'Calle Jovellanos, Oviedo',
+      'Calle Matemático Pedrayes, Oviedo',
+      'Calle Cervantes, Oviedo'
+    ];
+    return a[i % a.length];
+  };
+
+  const vehicleTypeByIdx = (idx) => (idx % 3 === 0 ? 'van' : (idx % 3 === 1 ? 'suv' : 'car'));
+
+  const buildOne = (u, idx, pos, isNear) => {
+    const price = [3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20][idx % 13];
+    const minutes = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60][(idx * 2) % 12];
+
+    return {
+      id: `m_${u.id}_${isNear ? 'near' : 'city'}`,
+      user_id: u.id,
+      user_name: u.name,
+      user_photo: u.photo,
+      latitude: pos.latitude,
+      longitude: pos.longitude,
+      address: pickAddress(idx),
+      price,
+      available_in_minutes: minutes,
+      vehicle_type: vehicleTypeByIdx(idx),
+      car_color: u.car_color || 'gris',
+      car_brand: u.car_brand,
+      car_model: u.car_model,
+      car_plate: u.car_plate,
+      status: 'active',
+      created_date: new Date(Date.now() - (idx + 1) * 37 * 60 * 1000).toISOString()
+    };
+  };
+
+  const centerLat = hasCenter ? cLat : BASE_LAT;
+  const centerLng = hasCenter ? cLng : BASE_LNG;
+
+  const nearAlerts = nearUsers.map((u, idx) => buildOne(u, idx, near(centerLat, centerLng), true));
+  const cityAlerts = cityUsers.map((u, idx) => buildOne(u, idx + 7, city(), false));
+
+  demoFlow.marketAlerts = [...nearAlerts, ...cityAlerts];
 }
+
 
 function addConversationForAlert(alertId, otherUserId, lastAt) {
   const other = pickUser(otherUserId);
@@ -143,27 +217,69 @@ function pushMessage(conversationId, { mine, text, at, senderName, senderPhoto }
   if (conv) conv.last_message_at = at || Date.now();
 }
 
+function addToast(t) {
+  demoFlow.toasts.unshift({
+    id: genId('toast'),
+    created_at: Date.now(),
+    ...t
+  });
+  // deja solo las últimas 3 para no saturar
+  demoFlow.toasts = (demoFlow.toasts || []).slice(0, 3);
+}
+
+function dismissToast(id) {
+  if (!id) return;
+  demoFlow.toasts = (demoFlow.toasts || []).filter((x) => x.id !== id);
+  persist();
+  notify();
+}
+
+export function getDemoToasts() {
+  return demoFlow.toasts || [];
+}
+
+export function dismissDemoToast(id) { dismissToast(id); }
+
 function addNotification(n) {
+  const createdAt = Date.now();
   demoFlow.notifications.unshift({
     id: genId('noti'),
-    created_at: Date.now(),
+    created_at: createdAt,
     read: false,
     ...n
   });
+
+  // Toast estilo WhatsApp (bajo el header) — siempre junto a la notificación “grande”
+  addToast({
+    type: n?.type || 'status_update',
+    title: n?.title || 'WaitMe!',
+    text: n?.text || '',
+    fromName: n?.fromName,
+    fromPhoto: n?.fromPhoto,
+    alertId: n?.alertId,
+    conversationId: n?.conversationId
+  });
 }
+
 
 function seedWeekAlertsChatsNotifications() {
   const now = Date.now();
-  // estados posibles que ya usas en UI
-  const statuses = [
-    { st: 'reserved', u: 'u2', daysAgo: 0, price: 3 },
-    { st: 'thinking', u: 'u3', daysAgo: 1, price: 4 },
-    { st: 'extended', u: 'u4', daysAgo: 2, price: 5 },
-    { st: 'cancelled', u: 'u5', daysAgo: 3, price: 6 },
-    { st: 'expired', u: 'u6', daysAgo: 4, price: 7 },
-    { st: 'rejected', u: 'u7', daysAgo: 5, price: 8 },
-    { st: 'completed', u: 'u8', daysAgo: 6, price: 9 }
+
+  // Estados posibles que ya usas en UI (mezcla)
+  const baseStatuses = [
+    { st: 'reserved',   u: 'u2',  daysAgo: 2,  price: 3 },
+    { st: 'thinking',   u: 'u3',  daysAgo: 6,  price: 4 },
+    { st: 'extended',   u: 'u4',  daysAgo: 10, price: 5 },
+    { st: 'cancelled',  u: 'u5',  daysAgo: 14, price: 6 },
+    { st: 'expired',    u: 'u6',  daysAgo: 18, price: 7 },
+    { st: 'rejected',   u: 'u7',  daysAgo: 22, price: 8 },
+    { st: 'completed',  u: 'u8',  daysAgo: 27, price: 9 }
   ];
+
+  const pickStatus = (i) => {
+    const list = ['reserved','thinking','extended','cancelled','expired','rejected','completed'];
+    return list[i % list.length];
+  };
 
   // Tu alerta activa actual (sin usuario todavía)
   const activeCreated = now - 10 * 60 * 1000;
@@ -183,11 +299,18 @@ function seedWeekAlertsChatsNotifications() {
     status: 'active'
   }];
 
-  // Historial semana (finalizadas / reservas)
-  statuses.forEach((s, idx) => {
-    const other = pickUser(s.u);
-    const createdAt = now - s.daysAgo * 24 * 3600 * 1000 - (idx + 1) * 30 * 60 * 1000;
-    const alertId = `a_${s.st}_${s.u}`;
+  // ===== Alertas + chats del último mes (30 días) =====
+  const usedUsers = new Set(['me']);
+
+  const seedAlertConversation = ({ alertId, status, otherId, daysAgo, price }) => {
+    const other = pickUser(otherId);
+    if (!other) return;
+
+    usedUsers.add(otherId);
+
+    const createdAt =
+      now - (Math.max(0, daysAgo) * 24 * 3600 * 1000) - (Math.floor(Math.random() * 6) + 1) * 37 * 60 * 1000;
+
     demoFlow.alerts.push({
       id: alertId,
       user_id: 'me',
@@ -195,13 +318,13 @@ function seedWeekAlertsChatsNotifications() {
       user_photo: demoFlow.me.photo,
       latitude: BASE_LAT,
       longitude: BASE_LNG,
-      address: idx % 2 === 0 ? 'Calle Melquíades Álvarez, Oviedo' : 'Calle Uría, Oviedo',
-      price: s.price,
-      available_in_minutes: 10 + idx * 5,
-      wait_until: new Date(createdAt + (10 + idx * 5) * 60 * 1000).toISOString(),
+      address: Math.random() > 0.5 ? 'Calle Uría, Oviedo' : 'Calle Melquíades Álvarez, Oviedo',
+      price,
+      available_in_minutes: 10 + (Math.floor(Math.random() * 8) * 5),
+      wait_until: new Date(createdAt + (10 + (Math.floor(Math.random() * 8) * 5)) * 60 * 1000).toISOString(),
       created_date: new Date(createdAt).toISOString(),
       created_from: 'parked_here',
-      status: s.st,
+      status,
       other_user_id: other?.id,
       other_user_name: other?.name,
       other_user_photo: other?.photo,
@@ -214,32 +337,62 @@ function seedWeekAlertsChatsNotifications() {
     });
 
     const convId = addConversationForAlert(alertId, other?.id, createdAt + 5 * 60 * 1000);
-    // Mensajes variados
-    pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Estoy listo cuando quieras.', at: createdAt + 2 * 60 * 1000 });
-    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Voy de camino 🚗', at: createdAt + 5 * 60 * 1000 });
-    if (s.st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Dame 1 minuto que lo miro…', at: createdAt + 8 * 60 * 1000 });
-    if (s.st === 'extended') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: '¿Puedes darme prórroga? (+1€)', at: createdAt + 9 * 60 * 1000 });
-    if (s.st === 'rejected') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'No me cuadra, lo siento.', at: createdAt + 10 * 60 * 1000 });
-    if (s.st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Cancelo la operación.', at: createdAt + 10 * 60 * 1000 });
-    if (s.st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅', at: createdAt + 12 * 60 * 1000 });
 
-    // Notificaciones variadas
-    if (s.st === 'reserved') addNotification({ type: 'reservation_accepted', title: 'RESERVA', text: `${other?.name} reservó tu WaitMe.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
-    if (s.st === 'thinking') addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${other?.name} se lo está pensando.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
-    if (s.st === 'extended') addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${other?.name} pide prórroga (+1€).`, fromName: other?.name, fromPhoto: other?.photo, alertId });
-    if (s.st === 'expired') addNotification({ type: 'time_expired', title: 'AGOTADA', text: `El tiempo expiró.`, alertId });
-    if (s.st === 'rejected') addNotification({ type: 'reservation_rejected', title: 'RECHAZADA', text: `Rechazaste una solicitud.`, alertId });
-    if (s.st === 'completed') addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${s.price}€).`, alertId, read: true });
-    if (s.st === 'cancelled') addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, alertId, read: true });
+    // Mensajes (mini-historia)
+    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Buenas, ¿sigues ahí?', at: createdAt + 1 * 60 * 1000 });
+    pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Sí, dime.', at: createdAt + 2 * 60 * 1000 });
+    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Voy de camino 🚗', at: createdAt + 5 * 60 * 1000 });
+
+    if (status === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Dame 1 minuto que lo miro…', at: createdAt + 8 * 60 * 1000 });
+    if (status === 'extended') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: '¿Puedes darme prórroga? (+1€)', at: createdAt + 9 * 60 * 1000 });
+    if (status === 'rejected') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'No me cuadra, lo siento.', at: createdAt + 10 * 60 * 1000 });
+    if (status === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Cancelo la operación.', at: createdAt + 10 * 60 * 1000 });
+    if (status === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅', at: createdAt + 12 * 60 * 1000 });
+    if (status === 'reserved') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Reservado. Te aviso cuando esté llegando.', at: createdAt + 7 * 60 * 1000 });
+    if (status === 'expired') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Se me fue el tiempo, lo siento…', at: createdAt + 12 * 60 * 1000 });
+
+    // Notificaciones (mezcladas)
+    if (status === 'reserved') addNotification({ type: 'reservation_accepted', title: 'RESERVA', text: `${other?.name} reservó tu WaitMe.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (status === 'thinking') addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${other?.name} se lo está pensando.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (status === 'extended') addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${other?.name} pide prórroga (+1€).`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (status === 'expired') addNotification({ type: 'time_expired', title: 'AGOTADA', text: `El tiempo expiró.`, alertId });
+    if (status === 'rejected') addNotification({ type: 'reservation_rejected', title: 'RECHAZADA', text: `Rechazaste una solicitud.`, alertId });
+    if (status === 'completed') addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${price}€).`, alertId, read: true });
+    if (status === 'cancelled') addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, alertId, read: true });
+  };
+
+  // Seed base (7 casos “combinaciones”)
+  baseStatuses.forEach((s) => seedAlertConversation({
+    alertId: `a_${s.st}_${s.u}`,
+    status: s.st,
+    otherId: s.u,
+    daysAgo: s.daysAgo,
+    price: s.price
+  }));
+
+  // Resto de usuarios: conversaciones del mes (sin repetir)
+  const remaining = (demoFlow.users || []).filter((u) => !usedUsers.has(u.id));
+  remaining.forEach((u, idx) => {
+    const daysAgo = 1 + (idx * 3) % 29;
+    const status = pickStatus(idx + 2);
+    const price = [3,4,5,6,7,8,9,10,12,14,16,18,20][(idx + 5) % 13];
+    seedAlertConversation({
+      alertId: `a_chat_${u.id}`,
+      status,
+      otherId: u.id,
+      daysAgo,
+      price
+    });
   });
 
   // Ordena chats por última actividad
   demoFlow.conversations.sort((a, b) => (b.last_message_at || 0) - (a.last_message_at || 0));
 }
 
+
 function seedAll() {
   buildUsers();
-  seedMarketAlerts();
+  seedMarketAlerts({ lat: BASE_LAT, lng: BASE_LNG });
   seedWeekAlertsChatsNotifications();
 }
 
@@ -284,7 +437,11 @@ export function startDemoFlow() {
 
 export function getDemoConversations() { return demoFlow.conversations || []; }
 export function getDemoAlerts() { return demoFlow.alerts || []; }
-export function getDemoMarketAlerts() { return demoFlow.marketAlerts || []; }
+export function getDemoMarketAlerts(center) {
+  seedMarketAlerts(center);
+  return demoFlow.marketAlerts || [];
+}
+
 
 export function getDemoConversation(conversationId) {
   return (demoFlow.conversations || []).find((c) => c.id === conversationId) || null;
@@ -458,10 +615,59 @@ export function sendDemoMessage(conversationId, text, attachments = null, isMine
   if (!conversationId) return;
   const conv = getDemoConversation(conversationId);
   const other = pickUser(conv?.otherUserId);
-  pushMessage(conversationId, { mine: !!isMine, senderName: isMine ? demoFlow.me.name : other?.name, senderPhoto: isMine ? demoFlow.me.photo : other?.photo, text, at: Date.now() });
+
+  const trimmed = String(text || '').trim();
+  if (!trimmed && !attachments) return;
+
+  pushMessage(conversationId, {
+    mine: !!isMine,
+    senderName: isMine ? demoFlow.me.name : other?.name,
+    senderPhoto: isMine ? demoFlow.me.photo : other?.photo,
+    text: trimmed,
+    at: Date.now()
+  });
+
+  // Si hablas tú, te contestan
+  if (isMine && other) {
+    const replies = [
+      'Vale, perfecto. ¿Me avisas cuando estés cerca?',
+      'Dale, te lo guardo. Estoy pendiente.',
+      'Ok. Te paso la ubicación en un momento.',
+      'Genial, tengo sitio. ¿En cuántos minutos llegas?',
+      'Recibido 👍',
+      'Hecho. Si ves que tardas, dímelo.'
+    ];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    const delay = 900 + Math.floor(Math.random() * 2200);
+
+    window.setTimeout(() => {
+      pushMessage(conversationId, {
+        mine: false,
+        senderName: other?.name,
+        senderPhoto: other?.photo,
+        text: reply,
+        at: Date.now()
+      });
+
+      // también genera notificación + toast
+      addNotification({
+        type: 'status_update',
+        title: 'CHAT',
+        text: `${other?.name || 'Usuario'}: ${reply}`,
+        fromName: other?.name,
+        fromPhoto: other?.photo,
+        conversationId
+      });
+
+      persist();
+      notify();
+    }, delay);
+  }
+
   persist();
   notify();
 }
+
 
 /* ======================================================
    ACCIONES (Aceptar / Rechazar)
