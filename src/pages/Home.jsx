@@ -484,6 +484,21 @@ export default function Home() {
     }
   });
 
+  // Hora HH:mm para el mensaje "Debes esperar hasta las" del modal de publicación
+  const pendingWaitHHMM = useMemo(() => {
+    const iso = pendingPublishPayload?.wait_until;
+    const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+    const target = iso ? new Date(iso) : new Date(Date.now() + (Number.isFinite(mins) ? mins : 0) * 60 * 1000);
+    const t = target.getTime();
+    if (!Number.isFinite(t)) return '--:--';
+    return target.toLocaleTimeString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }, [pendingPublishPayload?.wait_until, pendingPublishPayload?.available_in_minutes]);
+
   const handleBuyAlert = (alert) => {
     setConfirmDialog({ open: true, alert });
   };
@@ -843,19 +858,6 @@ export default function Home() {
                 <span className="text-purple-400 font-semibold text-base">
                   {pendingPublishPayload?.available_in_minutes ?? ''} minutos
                 </span>
-                              {(() => {
-                  const iso = pendingPublishPayload?.wait_until;
-                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  const target = iso ? new Date(iso) : new Date(Date.now() + (mins || 0) * 60 * 1000);
-                  const hhmm = target.toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-                  return (
-                    <span className="ml-1">
-                      <span className="text-white">· </span>
-                      <span className="text-purple-400">Debes esperar hasta las: </span>
-                      <span className="text-white font-extrabold text-[17px]">{hhmm}</span>
-                    </span>
-                  );
-                })()}
               </div>
 
               <div className="mt-2 text-xs text-gray-400">
@@ -871,6 +873,12 @@ export default function Home() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Debes esperar hasta... (entre la tarjeta y los botones) */}
+          <div className="mt-3 text-center">
+            <span className="text-purple-400">Debes esperar hasta las: </span>
+            <span className="text-white font-extrabold text-[17px]">{pendingWaitHHMM}</span>
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}

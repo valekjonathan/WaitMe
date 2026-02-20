@@ -23,6 +23,18 @@ export default function Header({
   const [toastTick, setToastTick] = useState(0);
   const [externalToast, setExternalToast] = useState(null);
 
+  // Toast real: se recibe por evento window.dispatchEvent(new CustomEvent('waitme:toast', { detail }))
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e?.detail;
+      if (!detail) return;
+      const id = detail.id || `ext_${Date.now()}`;
+      setExternalToast({ ...detail, id });
+    };
+    window.addEventListener('waitme:toast', handler);
+    return () => window.removeEventListener('waitme:toast', handler);
+  }, []);
+
   useEffect(() => {
     if (!isDemoMode()) return;
     startDemoFlow();
@@ -46,28 +58,6 @@ export default function Header({
     if (!hay.includes('quiere un waitme')) return null;
     return activeToast;
   }, [activeToast]);
-
-const displayNameNode = useMemo(() => {
-  if (!onlyWaitMeToast) return null;
-
-  const rawName =
-    onlyWaitMeToast?.fromName ||
-    onlyWaitMeToast?.title ||
-    'Usuario';
-
-  const norm = String(rawName).trim().toLowerCase().replace(/\s+/g, '');
-  const isWaitMe = norm === 'waitme!' || norm === 'waitme';
-
-  return isWaitMe ? (
-    <>
-      <span className="text-white">Wait</span>
-      <span className="text-purple-500">Me!</span>
-    </>
-  ) : (
-    rawName
-  );
-}, [onlyWaitMeToast]);
-
 
   // AUTO-DISMISS (5s)
   useEffect(() => {
@@ -126,6 +116,22 @@ const displayNameNode = useMemo(() => {
       </button>
     );
   }, [title, navigate, titleClassName]);
+
+  const toastNameNode = useMemo(() => {
+    if (!onlyWaitMeToast) return null;
+    const rawName = onlyWaitMeToast?.fromName || onlyWaitMeToast?.title || 'Usuario';
+    const norm = String(rawName).trim().toLowerCase().replace(/\s+/g, '');
+    const isWaitMe = norm === 'waitme!' || norm === 'waitme';
+    if (isWaitMe) {
+      return (
+        <>
+          <span className="text-white">Wait</span>
+          <span className="text-purple-500">Me!</span>
+        </>
+      );
+    }
+    return rawName;
+  }, [onlyWaitMeToast]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
@@ -208,7 +214,7 @@ const displayNameNode = useMemo(() => {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-white font-semibold text-sm truncate">
-                      {displayNameNode}
+                      {toastNameNode}
                     </span>
                     <span className="text-gray-400 text-xs flex-none">
                       ahora

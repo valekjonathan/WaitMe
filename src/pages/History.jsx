@@ -253,7 +253,15 @@ const getCreatedTs = (alert) => {
   const getWaitUntilTs = (alert) => {
     // Preferimos wait_until explícito (evita expiraciones instantáneas si created_date viene desfasado)
     const wu = alert?.wait_until || alert?.waitUntil || alert?.wait_until_ts || null;
-    if (wu) {
+    if (wu !== null && wu !== undefined && wu !== '') {
+      // number
+      if (typeof wu === 'number' && Number.isFinite(wu)) return wu;
+      // numeric string (ms o s)
+      if (typeof wu === 'string' && /^\d{10,13}$/.test(wu.trim())) {
+        const n = Number(wu.trim());
+        if (Number.isFinite(n)) return wu.trim().length === 10 ? n * 1000 : n;
+      }
+      // ISO/date string
       const t = new Date(wu).getTime();
       if (Number.isFinite(t)) return t;
     }
@@ -670,9 +678,8 @@ const visibleActiveAlerts = useMemo(() => {
       if (String(a.status || '').toLowerCase() !== 'active') return false;
       if (autoFinalizedRef.current.has(a.id)) return false;
 
-      const createdTs = getCreatedTs(a);
       const waitUntilTs = getWaitUntilTs(a);
-      if (!waitUntilTs || !createdTs) return false;
+      if (!waitUntilTs) return false;
 
       const remainingMs = Math.max(0, waitUntilTs - nowTs);
       return remainingMs === 0;
@@ -1011,7 +1018,7 @@ const myFinalizedAlerts = useMemo(() => {
 
 
 
-                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                         const remainingMs = waitUntilTs ? Math.max(0, waitUntilTs - nowTs) : 0;
                          const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
                            timeZone: 'Europe/Madrid', 
                            hour: '2-digit', 
@@ -1835,7 +1842,9 @@ const myFinalizedAlerts = useMemo(() => {
                 </div>
 
                 <div className="mt-2">
-<CountdownButton text="EXPIRADA" dimmed={false} />
+                  <div className="w-full h-10 rounded-xl bg-red-600 flex items-center justify-center text-white font-extrabold tracking-wide">
+                    EXPIRADA
+                  </div>
                 </div>
               </div>
             );
