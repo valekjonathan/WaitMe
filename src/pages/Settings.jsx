@@ -50,7 +50,7 @@ export default function Settings() {
     <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
       <Header title="Ajustes" showBackButton={true} backTo="Home" />
 
-      <main className="pt-20 pb-24 px-4 max-w-md mx-auto">
+      <main className="pt-20 pb-24 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings, User, X } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
@@ -122,8 +122,14 @@ export default function Header({
 
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
+            <Link to={createPageUrl('Profile')}>
+              <div className="cursor-pointer">
+                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+              </div>
+            </Link>
+
             <Link to={createPageUrl('Settings')}>
-              <div className="cursor-pointer ml-[31px]">
+              <div className="cursor-pointer ml-[20px]">
                 <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
@@ -140,13 +146,20 @@ export default function Header({
               // Nunca navegar a rutas inexistentes (pantalla negra). Abrimos la pantalla real de /notifications.
               try {
                 setShowBanner(false);
-                navigate('/notifications');
+                navigate(createPageUrl('Notifications'));
               } catch {
                 // noop
               }
             }}
-            className="w-full text-left bg-gray-900/95 border border-gray-800 rounded-xl px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
+            className="relative w-full text-left bg-gray-900/95 border border-gray-800 rounded-xl px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
           >
+            <button
+                onClick={(e) => { e.stopPropagation(); setShowBanner(false); }}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-400"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
             <div className="flex items-center gap-3">
               {/* avatar */}
               <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-700 flex-shrink-0 bg-gray-800">
