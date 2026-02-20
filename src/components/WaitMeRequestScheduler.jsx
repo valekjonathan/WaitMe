@@ -12,13 +12,12 @@ export default function WaitMeRequestScheduler() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Evita duplicados en el mismo dispositivo
-    const KEY = 'waitme_last_incoming_req_ts_v1';
-    const now = Date.now();
-    const last = Number(window?.localStorage?.getItem(KEY) || 0);
-
-    // si ya se generó hace menos de 10 min, no repetir
-    if (Number.isFinite(last) && now - last < 10 * 60 * 1000) return;
+    // Solo 1 vez por apertura de app (session)
+    const KEY = 'waitme_incoming_fired_v1';
+    try {
+      if (window?.sessionStorage?.getItem(KEY) === '1') return;
+      window?.sessionStorage?.setItem(KEY, '1');
+    } catch {}
 
     const t = setTimeout(async () => {
       try {
@@ -64,7 +63,6 @@ export default function WaitMeRequestScheduler() {
 
         upsertWaitMeRequest(req);
 
-        try { window.localStorage.setItem(KEY, String(Date.now())); } catch {}
         try { window.dispatchEvent(new Event('waitme:showIncomingBanner')); } catch {}
       } catch {
         // si falla, no rompe la app

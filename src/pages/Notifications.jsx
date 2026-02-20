@@ -53,7 +53,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-min-h-[100dvh] w-full bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] w-full bg-black text-white flex flex-col">
       <Header title="Notificaciones" />
 
       <main className="pt-[72px] pb-[96px] px-4">

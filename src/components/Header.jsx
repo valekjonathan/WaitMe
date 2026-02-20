@@ -15,6 +15,12 @@ export default function Header({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // base44 puede devolver credits como string -> forzar number para evitar pantallazo negro
+  const creditsNumber = (() => {
+    const n = Number(user?.credits ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  })();
+
   // Banner tipo WhatsApp (petición entrante)
   const [bannerReq, setBannerReq] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
@@ -88,19 +94,8 @@ export default function Header({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
+      {/* barra superior */}
       <div className="px-4 py-3">
-        {showBanner && bannerReq && (
-          <button
-            type="button"
-            onClick={() => navigate(createPageUrl('Notifications'))}
-            className="mt-2 w-full text-left bg-gray-900/90 border border-gray-800 rounded-lg px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
-          >
-            <span className="text-white text-sm font-semibold">
-              Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
-            </span>
-          </button>
-        )}
-
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
         <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
           {/* IZQUIERDA */}
@@ -116,7 +111,7 @@ export default function Header({
             <Link to={createPageUrl('Settings')}>
               <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
                 <span className="text-purple-400 font-bold text-sm">
-                  {(user?.credits || 0).toFixed(2)}€
+                  {creditsNumber.toFixed(2)}€
                 </span>
               </div>
             </Link>
@@ -135,6 +130,21 @@ export default function Header({
           </div>
         </div>
       </div>
+
+      {/* banner tipo WhatsApp: SIEMPRE debajo del menú superior */}
+      {showBanner && bannerReq && (
+        <div className="absolute top-full left-0 right-0 px-4 pt-2">
+          <button
+            type="button"
+            onClick={() => navigate(createPageUrl('Notifications'))}
+            className="w-full text-left bg-gray-900/95 border border-gray-800 rounded-lg px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
+          >
+            <span className="text-white text-sm font-semibold">
+              Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
+            </span>
+          </button>
+        </div>
+      )}
     </header>
   );
 }
