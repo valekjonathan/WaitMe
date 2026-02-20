@@ -84,8 +84,6 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const [logoSrc, setLogoSrc] = useState(appLogo);
-  const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -113,7 +111,7 @@ export default function Home() {
 
   // Botón "Mapa": escucha el evento global y vuelve al logo SIEMPRE.
   useEffect(() => {
-    const goLogo = () => resetToLogo({ invalidate: true });
+    const goLogo = () => resetToLogo({ invalidate: false });
     window.addEventListener('waitme:goLogo', goLogo);
     return () => window.removeEventListener('waitme:goLogo', goLogo);
   }, [resetToLogo]);
@@ -225,8 +223,6 @@ export default function Home() {
   }, []);
 
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
-  const handleLogoError = () => {
-    if (logoRetryCount >= 1) return;
     setLogoRetryCount((c) => c + 1);
     setLogoSrc(appLogo);
   };
@@ -514,12 +510,11 @@ export default function Home() {
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
                   loading="eager"
-                  decoding="async"
+                  decoding="sync"
                   fetchPriority="high"
-                  src={logoSrc}
+                  src={appLogo}
                   alt="WaitMe!"
-                  onError={handleLogoError}
-                  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
+                                    className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-65px]">

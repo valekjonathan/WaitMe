@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -9,19 +9,19 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
-  const { data: myAlerts = [], isFetched, isFetching } = useQuery({
+  const { data: myAlerts = [], isFetched } = useQuery({
     queryKey: ['myAlerts'],
     enabled: true,
     // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 0,
+    staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const uid = user?.id;
       const email = user?.email;
@@ -41,16 +41,8 @@ export default function BottomNav() {
     const st = String(a?.status || '').toLowerCase();
     return st === 'active' || st === 'reserved';
   });
-  const showActiveBadge = isFetched && !isFetching && hasActiveAlert;
+  const showActiveBadge = isFetched ? hasActiveAlert : false;
 
-  // Refresco inmediato (cuando se crea/cancela/expira una alerta)
-  useEffect(() => {
-    const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    };
-    window.addEventListener('waitme:badgeRefresh', handler);
-    return () => window.removeEventListener('waitme:badgeRefresh', handler);
-  }, [queryClient]);
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +

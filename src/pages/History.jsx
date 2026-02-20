@@ -688,7 +688,7 @@ const visibleActiveAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // No invalidamos para evitar recargas; el cache ya refleja el cambio.
     });
   }, [nowTs, visibleActiveAlerts, queryClient]);
 
@@ -746,7 +746,7 @@ const myFinalizedAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // No invalidamos para evitar recargas; el cache ya refleja el cambio.
     });
   }, [nowTs, reservationsActiveAll, queryClient]);
 
@@ -864,25 +864,8 @@ const myFinalizedAlerts = useMemo(() => {
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // No invalidamos: el cache ya se actualizó en onMutate para que sea instantáneo.
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    }
-  });
-
-  const expireAlertMutation = useMutation({
-    mutationFn: async (alertId) => {
-      await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
-    },
-    onMutate: async (alertId) => {
-      // Marcar como expirada en cache (badge se recalcula desde myAlerts)
-      queryClient.setQueryData(['myAlerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
-      });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     }
   });
 
