@@ -4,7 +4,7 @@ let alerts = [];
 let listeners = [];
 
 /* ======================
-SUBSCRIPCIÓN
+SUBSCRIBE
 ====================== */
 export const subscribeAlerts = (callback) => {
   listeners.push(callback);
@@ -25,7 +25,7 @@ GET
 export const getAlerts = () => alerts;
 
 /* ======================
-OPTIMISTIC ADD
+ADD OPTIMISTIC
 ====================== */
 export const addAlertOptimistic = (alert) => {
   alerts = [alert, ...alerts];
@@ -33,7 +33,7 @@ export const addAlertOptimistic = (alert) => {
 };
 
 /* ======================
-REPLACE (cuando responde backend)
+REPLACE
 ====================== */
 export const replaceAlert = (tempId, realAlert) => {
   alerts = alerts.map(a => a.id === tempId ? realAlert : a);
@@ -49,12 +49,12 @@ export const removeAlert = (id) => {
 };
 
 /* ======================
-CREAR ALERTA TEMPORAL (CLAVE)
+CREATE TEMP ALERT (CLAVE)
 ====================== */
 export const createTempAlert = (data) => {
   const tempId = 'temp-' + Date.now();
 
-  const tempAlert = {
+  const temp = {
     ...data,
     id: tempId,
     status: 'active',
@@ -62,7 +62,7 @@ export const createTempAlert = (data) => {
     created_date: new Date().toISOString()
   };
 
-  addAlertOptimistic(tempAlert);
+  addAlertOptimistic(temp);
 
   return tempId;
 };
