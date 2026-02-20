@@ -47,6 +47,28 @@ export default function Header({
     return activeToast;
   }, [activeToast]);
 
+const displayNameNode = useMemo(() => {
+  if (!onlyWaitMeToast) return null;
+
+  const rawName =
+    onlyWaitMeToast?.fromName ||
+    onlyWaitMeToast?.title ||
+    'Usuario';
+
+  const norm = String(rawName).trim().toLowerCase().replace(/\s+/g, '');
+  const isWaitMe = norm === 'waitme!' || norm === 'waitme';
+
+  return isWaitMe ? (
+    <>
+      <span className="text-white">Wait</span>
+      <span className="text-purple-500">Me!</span>
+    </>
+  ) : (
+    rawName
+  );
+}, [onlyWaitMeToast]);
+
+
   // AUTO-DISMISS (5s)
   useEffect(() => {
     if (!activeToast?.id) return;
@@ -186,19 +208,7 @@ export default function Header({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-white font-semibold text-sm truncate">
-                      (() => {
-                        const raw = onlyWaitMeToast.fromName || onlyWaitMeToast.title || 'WaitMe!';
-                        const norm = String(raw).trim().toLowerCase().replace(/\s+/g, '');
-                        if (norm === 'waitme!' || norm === 'waitme') {
-                          return (
-                            <>
-                              <span className="text-white">Wait</span>
-                              <span className="text-purple-500">Me!</span>
-                            </>
-                          );
-                        }
-                        return raw;
-                      })()
+                      {displayNameNode}
                     </span>
                     <span className="text-gray-400 text-xs flex-none">
                       ahora
