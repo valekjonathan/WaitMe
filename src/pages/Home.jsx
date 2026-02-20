@@ -853,28 +853,7 @@ export default function Home() {
                   {pendingPublishPayload?.price ?? ''} €
                 </span>
               </div>
-
-              {/* Debes esperar... centrado */}
-              <div className="mt-3 text-center text-purple-400 font-bold text-base">
-                {(() => {
-                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  if (!mins) return null;
-                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
-                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
-                    timeZone: 'Europe/Madrid',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  });
-                  return (
-                    <>
-                      <span className="text-purple-400">Debes esperar hasta las: </span>
-                      <span className="text-white text-lg font-extrabold">{hhmm}</span>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
+</div>
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}

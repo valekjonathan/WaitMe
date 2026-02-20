@@ -19,6 +19,10 @@ export default function Header({
 
   // Toast “tipo WhatsApp” (demo)
   const [toastTick, setToastTick] = useState(0);
+  // Toast “tipo WhatsApp” (app real)
+  const [appToast, setAppToast] = useState(null);
+  // Toast “tipo WhatsApp” (app real)
+  const [appToast, setAppToast] = useState(null);
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -27,12 +31,25 @@ export default function Header({
     return () => unsub?.();
   }, []);
 
+  useEffect(() => {
+    const handler = (e) => {
+      const d = e?.detail || {};
+      const id = String(Date.now());
+      setAppToast({ id, title: d.title || 'WaitMe!', text: d.text || '' });
+      window.clearTimeout(window.__waitmeToastT);
+      window.__waitmeToastT = window.setTimeout(() => setAppToast(null), 3500);
+    };
+    window.addEventListener('waitme:toast', handler);
+    return () => window.removeEventListener('waitme:toast', handler);
+  }, []);
+
   const toasts = useMemo(() => {
     if (!isDemoMode()) return [];
     return getDemoToasts?.() || [];
   }, [toastTick]);
 
-  const activeToast = toasts?.[0] || null;
+  const activeToast = appToast || (toasts?.[0] || null);
+  const isAppToast = !!appToast;
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();

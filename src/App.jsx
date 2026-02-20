@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Layout from './Layout';
 import DemoFlowManager from '@/components/DemoFlowManager';
+import AlertExpiryManager from '@/components/AlertExpiryManager';
 import { useAuth } from '@/lib/AuthContext';
 
 function AuthGate() {
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <div className="min-h-[100dvh] bg-black flex flex-col">
       <DemoFlowManager />
+      <AlertExpiryManager />
       <AuthGate />
       <Layout />
     </div>

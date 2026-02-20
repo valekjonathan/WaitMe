@@ -462,7 +462,7 @@ const getCreatedTs = (alert) => {
                 {isTimeObj ? (
                   <span className={lineTextCls}>
                     {timeLine.main}{' '}
-                    <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
+                    <span className="text-white font-extrabold text-[15px]">{timeLine.accent}</span>
                   </span>
                 ) : (
                   <span className={lineTextCls}>{timeLine}</span>
@@ -1110,11 +1110,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       Te vas en {alert.available_in_minutes} min
                                     </span>
                                   </div>
-                                  <span className="leading-5">
-  <span className="text-purple-400">Debes esperar hasta las: </span>
-  <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
-</span>
-                                </div>
+</div>
 
                                 <div className="mt-2">
                                   <CountdownButton text={countdownText} dimmed={false} />
@@ -1824,17 +1820,10 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las </span><span className="text-white font-extrabold text-[15px] leading-5">{waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
-                  
-                                <div className="mt-1">
-                                  <span className="leading-5">
-                                    <span className="text-purple-400">Debes esperar hasta las: </span>
-                                    <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
-                                  </span>
-                                </div>
 <CountdownButton text="EXPIRADA" dimmed={false} />
                 </div>
               </div>
