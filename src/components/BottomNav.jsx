@@ -12,9 +12,10 @@ export default function BottomNav() {
   const queryClient = useQueryClient();
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
-  const { data: myAlerts = [] } = useQuery({
+  const { data: myAlerts = [], isFetched, isFetching } = useQuery({
     queryKey: ['myAlerts'],
     enabled: true,
+    // Evita flashes con datos antiguos al navegar entre pantallas.
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnMount: false,
@@ -35,15 +36,20 @@ export default function BottomNav() {
     }
   });
 
-  const activeAlertCount = (myAlerts || []).filter((a) => {
+  // La app solo permite 1 alerta activa.
+  // Badge binario y SOLO cuando tenemos datos frescos (sin "2" fugaz).
+  const hasActiveAlert = (myAlerts || []).some((a) => {
     const st = String(a?.status || '').toLowerCase();
     return st === 'active' || st === 'reserved';
-  }).length;
+  });
+  const showActiveBadge = isFetched ? hasActiveAlert : false;
+  // Mantener el badge estable incluso mientras refresca (sin parpadeos)
+  // Usamos placeholderData para conservar myAlerts durante fetch.
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {
     const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'], refetchType: 'none' });
     };
     window.addEventListener('waitme:badgeRefresh', handler);
     return () => window.removeEventListener('waitme:badgeRefresh', handler);
@@ -85,12 +91,12 @@ export default function BottomNav() {
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <div className="relative">
-            {activeAlertCount > 0 && (
+            {showActiveBadge && (
               <span
                 // Ajuste fino: +4px derecha (número más centrado)
                 className="absolute left-[-16px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
-                {activeAlertCount}
+                1
               </span>
             )}
             <svg

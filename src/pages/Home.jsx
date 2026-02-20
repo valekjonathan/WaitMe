@@ -84,8 +84,6 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const [logoSrc, setLogoSrc] = useState(appLogo);
-  const [logoRetryCount, setLogoRetryCount] = useState(0);
   const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
@@ -225,11 +223,6 @@ export default function Home() {
   }, []);
 
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
-  const handleLogoError = () => {
-    if (logoRetryCount >= 1) return;
-    setLogoRetryCount((c) => c + 1);
-    setLogoSrc(appLogo);
-  };
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -514,11 +507,10 @@ export default function Home() {
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
                   loading="eager"
-                  decoding="async"
+                  decoding="sync"
                   fetchPriority="high"
-                  src={logoSrc}
+                  src={appLogo}
                   alt="WaitMe!"
-                  onError={handleLogoError}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
@@ -542,10 +534,14 @@ export default function Home() {
                 </Button>
 
                 <Button
-                  onClick={() => setMode('create')}
+                  onClick={() => {
+                    // Al entrar en "Estoy aparcado aquí" debe autoubicar y rellenar calle.
+                    getCurrentLocation();
+                    setMode('create');
+                  }}
                   className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                 >
-                  <CarIconProfile size="w-20 h-14" />
+                  <CarIconProfile color="#000000" size="w-20 h-14" />
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>

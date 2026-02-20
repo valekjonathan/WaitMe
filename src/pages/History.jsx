@@ -864,7 +864,7 @@ const myFinalizedAlerts = useMemo(() => {
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // Sin invalidate: el cache ya está actualizado en onMutate
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -882,7 +882,7 @@ const myFinalizedAlerts = useMemo(() => {
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // Sin invalidate: el cache ya está actualizado en onMutate
     }
   });
 
@@ -926,7 +926,7 @@ const myFinalizedAlerts = useMemo(() => {
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      // Sin invalidate: el cache ya está actualizado en onMutate
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
