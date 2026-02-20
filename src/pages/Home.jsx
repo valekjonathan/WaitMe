@@ -857,7 +857,6 @@ export default function Home() {
               onClick={() => {
                 if (!pendingPublishPayload) return;
                 setConfirmPublishOpen(false);
-                const tempId = alertsService.createTempAlert(pendingPublishPayload);
                 createAlertMutation.mutate(pendingPublishPayload);
                 setPendingPublishPayload(null);
               }}
