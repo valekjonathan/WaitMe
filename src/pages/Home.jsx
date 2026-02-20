@@ -328,9 +328,6 @@ export default function Home() {
   },
 
   onMutate: async (data) => {
-  navigate(createPageUrl('History'), { replace: true });
-
-  await queryClient.cancelQueries({ queryKey: ['alerts'] });
   await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
 
   const now = Date.now();
@@ -345,19 +342,12 @@ export default function Home() {
     created_date: new Date().toISOString()
   };
 
-  queryClient.setQueryData(['alerts'], (old) => {
-    const list = Array.isArray(old) ? old : (old?.data || []);
-    return [optimisticAlert, ...list];
-  });
-
   queryClient.setQueryData(['myAlerts'], (old) => {
-    const list = Array.isArray(old) ? old : (old?.data || []);
+    const list = Array.isArray(old) ? old : [];
     return [optimisticAlert, ...list];
   });
 
-  try {
-    window.dispatchEvent(new Event('waitme:badgeRefresh'));
-  } catch {}
+  window.dispatchEvent(new Event('waitme:badgeRefresh'));
 },
 
   onSuccess: (newAlert) => {
@@ -843,7 +833,7 @@ export default function Home() {
                   return (
                     <>
                       <span className="text-purple-400">Debes esperar hasta las: </span>
-<span className="text-white text-lg font-bold">{hhmm}</span>
+<span className="text-white text-xl font-bold">{hhmm}</span>
                     </>
                   );
                 })()}
