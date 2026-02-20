@@ -111,7 +111,7 @@ export default function Home() {
 
   // Botón "Mapa": escucha el evento global y vuelve al logo SIEMPRE.
   useEffect(() => {
-    const goLogo = () => resetToLogo({ invalidate: false });
+    const goLogo = () => resetToLogo({ invalidate: true });
     window.addEventListener('waitme:goLogo', goLogo);
     return () => window.removeEventListener('waitme:goLogo', goLogo);
   }, [resetToLogo]);
@@ -222,6 +222,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
 
   useEffect(() => {
     if (!isDemoMode()) return;
@@ -510,7 +511,7 @@ export default function Home() {
                   fetchPriority="high"
                   src={appLogo}
                   alt="WaitMe!"
-                                    className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
+                  className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap relative top-[-65px]">

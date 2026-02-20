@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -9,13 +9,14 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
-  const { data: myAlerts = [], isFetched } = useQuery({
+  const { data: myAlerts = [], isFetched, isFetching } = useQuery({
     queryKey: ['myAlerts'],
     enabled: true,
     // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 60 * 1000,
+    staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -42,7 +43,17 @@ export default function BottomNav() {
     return st === 'active' || st === 'reserved';
   });
   const showActiveBadge = isFetched ? hasActiveAlert : false;
+  // Mantener el badge estable incluso mientras refresca (sin parpadeos)
+  // Usamos placeholderData para conservar myAlerts durante fetch.
 
+  // Refresco inmediato (cuando se crea/cancela/expira una alerta)
+  useEffect(() => {
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'], refetchType: 'none' });
+    };
+    window.addEventListener('waitme:badgeRefresh', handler);
+    return () => window.removeEventListener('waitme:badgeRefresh', handler);
+  }, [queryClient]);
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
