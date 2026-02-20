@@ -5,6 +5,9 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import {
   Bell,
   CheckCircle,
@@ -47,13 +50,111 @@ function normalize(s) {
 
 export default function Notifications() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [tick, setTick] = useState(0);
+
+  // Solicitudes reales (localStorage) tipo “Usuario quiere tu WaitMe!”
+  const [requestsTick, setRequestsTick] = useState(0);
+  const [requests, setRequests] = useState([]);
+  const [alertsById, setAlertsById] = useState({});
 
   useEffect(() => {
     startDemoFlow();
     const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
     return () => unsub?.();
   }, []);
+
+  useEffect(() => {
+    const load = () => {
+      const list = getWaitMeRequests() || [];
+      setRequests(Array.isArray(list) ? list : []);
+      setRequestsTick((t) => t + 1);
+    };
+
+    load();
+    const onChange = () => load();
+    window.addEventListener('waitme:requestsChanged', onChange);
+    return () => window.removeEventListener('waitme:requestsChanged', onChange);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const ids = (requests || [])
+        .map((r) => r?.alertId)
+        .filter(Boolean)
+        .filter((id) => !alertsById?.[id]);
+
+      if (!ids.length) return;
+
+      try {
+        const pairs = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const a = await base44.entities.ParkingAlert.get(id);
+              return [id, a];
+            } catch {
+              return [id, null];
+            }
+          })
+        );
+
+        if (cancelled) return;
+        setAlertsById((prev) => {
+          const next = { ...(prev || {}) };
+          pairs.forEach(([id, a]) => {
+            if (a) next[id] = a;
+          });
+          return next;
+        });
+      } catch {
+        // noop
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestsTick]);
+
+  const acceptRequest = async (req) => {
+    try {
+      const alertId = req?.alertId;
+      if (!alertId) return;
+
+      const buyer = req?.buyer || {};
+
+      await base44.entities.ParkingAlert.update(alertId, {
+        status: 'reserved',
+        reserved_by_id: buyer?.id || 'buyer',
+        reserved_by_email: null,
+        reserved_by_name: buyer?.name || 'Usuario',
+        reserved_by_photo: buyer?.photo || null,
+        reserved_by_car: String(buyer?.car_model || '').trim(),
+        reserved_by_car_color: buyer?.car_color || 'gris',
+        reserved_by_plate: buyer?.plate || '',
+        reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
+      });
+
+      setWaitMeRequestStatus(req?.id, 'accepted');
+
+      await queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+    } catch {
+      // noop
+    }
+  };
+
+  const rejectRequest = (req) => {
+    try {
+      setWaitMeRequestStatus(req?.id, 'rejected');
+    } catch {
+      // noop
+    }
+  };
 
   const notifications = useMemo(() => {
     const list = getDemoNotifications?.() || [];
@@ -110,6 +211,84 @@ export default function Notifications() {
       />
 
       <main className="pt-20 pb-24">
+        {/* Solicitudes entrantes (reales) */}
+        {requests.filter((r) => r?.type === 'incoming_waitme_request').length > 0 && (
+          <div className="px-4 pt-4 space-y-4">
+            {requests
+              .filter((r) => r?.type === 'incoming_waitme_request')
+              .map((r) => {
+                const buyer = r?.buyer || {};
+                const alert = r?.alertId ? alertsById?.[r.alertId] : null;
+
+                const status = String(r?.status || 'pending');
+                const statusText =
+                  status === 'rejected' ? 'RECHAZADA' : status === 'accepted' ? 'ACEPTADA' : 'PENDIENTE';
+
+                const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                const plate = buyer?.plate || '';
+                const carColor = buyer?.car_color || 'gris';
+
+                const address = alert?.address || '';
+                const mins = alert?.available_in_minutes;
+                const price = alert?.price;
+
+                return (
+                  <div
+                    key={r?.id}
+                    className="rounded-xl border-2 border-gray-700 bg-gray-900/60 p-4"
+                  >
+                    {/* Título grande */}
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="text-white text-[16px] font-semibold">
+                        Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
+                      </div>
+                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
+                        {statusText}
+                      </Badge>
+                    </div>
+
+                    {/* Operación incrustada */}
+                    <MarcoCard
+                      photoUrl={buyer?.photo || null}
+                      name={buyer?.name || 'Usuario'}
+                      carLabel={carLabel}
+                      plate={plate}
+                      carColor={carColor}
+                      onChat={() => {}}
+                      address={address}
+                      timeLine={
+                        <span className="text-gray-400">
+                          {typeof mins === 'number' ? `Te vas en ${mins} min` : 'Operación en curso'}
+                          {price != null ? ` · ${Number(price) || price}€` : ''}
+                        </span>
+                      }
+                      statusText={statusText}
+                      dimmed={status !== 'pending'}
+                      role="buyer"
+                    />
+
+                    {status === 'pending' && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <Button
+                          className="bg-purple-600 hover:bg-purple-700"
+                          onClick={() => acceptRequest(r)}
+                        >
+                          Aceptar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => rejectRequest(r)}
+                        >
+                          Rechazar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
         {notifications.length === 0 ? (
           <div className="min-h-[calc(100vh-80px-96px)] flex items-center justify-center px-4">
             <div className="text-center">

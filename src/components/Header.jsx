@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Settings, User } from 'lucide-react';
+import { ArrowLeft, Settings, User, X } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
@@ -139,8 +139,9 @@ export default function Header({
       {/* banner tipo WhatsApp: SIEMPRE debajo del menú superior */}
       {showBanner && bannerReq && (
         <div className="absolute top-full left-0 right-0 px-4 pt-2">
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => {
               // Nunca navegar a rutas inexistentes (pantalla negra). Abrimos la pantalla real de /notifications.
               try {
@@ -150,14 +151,27 @@ export default function Header({
                 // noop
               }
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                try {
+                  setShowBanner(false);
+                  navigate(createPageUrl('Notifications'));
+                } catch {}
+              }
+            }}
             className="relative w-full text-left bg-gray-900/95 border border-gray-800 rounded-xl px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.55)]"
           >
             <button
-                onClick={(e) => { e.stopPropagation(); setShowBanner(false); }}
-                className="absolute top-2 right-2 text-red-500 hover:text-red-400"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBanner(false);
+              }}
+              className="absolute top-2 right-2 text-red-500 hover:text-red-400"
+            >
+              <X className="w-4 h-4" />
+            </button>
 
             <div className="flex items-center gap-3">
               {/* avatar */}
@@ -182,12 +196,12 @@ export default function Header({
                   <div className="text-gray-400 text-[12px] flex-shrink-0">Ahora</div>
                 </div>
                 <div className="text-white text-[13px] truncate">
-                  quiere tu Wait<span className="text-purple-500 font-semibold">Me!</span>
+                  Usuario quiere tu Wait<span className="text-purple-500 font-semibold">Me!</span>
                 </div>
                 <div className="text-gray-400 text-[12px] truncate">Pulsa para ver la solicitud</div>
               </div>
             </div>
-          </button>
+          </div>
         </div>
       )}
     </header>
