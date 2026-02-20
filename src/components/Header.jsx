@@ -127,9 +127,8 @@ export default function Header({
                 <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
-
             <Link to={createPageUrl('Profile')}>
-              <div className="cursor-pointer ml-[31px]">
+              <div className="cursor-pointer ml-[8px]">
                 <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
