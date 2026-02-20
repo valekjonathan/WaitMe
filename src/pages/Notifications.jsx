@@ -12,10 +12,10 @@ import {
   startDemoFlow,
   subscribeDemoFlow,
   getDemoAlertById,
+  getDemoNotifications,
   ensureConversationForAlert,
   ensureInitialWaitMeMessage,
   markDemoNotificationRead,
-  markDemoNotificationType,
   applyDemoAction
 } from '@/components/DemoFlowManager';
 
@@ -46,7 +46,7 @@ export default function Notifications() {
   }, []);
 
   const notifications = useMemo(() => {
-    return [];
+    return getDemoNotifications();
   }, [tick]);
 
   const openChat = (conversationId, alertId) => {
@@ -66,7 +66,6 @@ export default function Notifications() {
   const runAction = (n, action) => {
     if (!n) return;
 
-    const type = n?.type || 'status_update';
     const alertId = n.alertId || null;
     const conv = ensureConversationForAlert(alertId, { fromName: n.fromName });
     ensureInitialWaitMeMessage(conv?.id);
@@ -74,21 +73,10 @@ export default function Notifications() {
     applyDemoAction({
       conversationId: conv?.id,
       alertId,
-      action,
-      fromName: n?.fromName || 'Usuario'
+      action
     });
 
-    if (n?.id) {
-      if (action === 'rejected') markDemoNotificationType(n.id, 'reservation_rejected', true);
-      else if (action === 'reserved') markDemoNotificationType(n.id, 'reservation_accepted', true);
-      else markDemoNotificationRead(n.id);
-    }
-
-    // Si es una solicitud entrante y aceptas/rechazas, vamos a Alertas o dejamos en Notificaciones.
-    if (type === 'incoming_waitme' && action === 'reserved') {
-      navigate(createPageUrl('History'));
-      return;
-    }
+    if (n?.id) markDemoNotificationRead(n.id);
 
     openChat(conv?.id, alertId);
   };
@@ -202,30 +190,20 @@ export default function Notifications() {
                       role="buyer"
                     />
 
-                    
-
                     {hasLatLon && (
-                      t === 'incoming_waitme' ? (
-                        <div className="mt-2">
-                          <Button disabled variant="outline" className="w-full border-gray-700 text-gray-500">
-                            <Navigation className="w-4 h-4 mr-2" /> Ir
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="mt-2">
-                          <Button
-                            className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              openNavigate(n?.alertId);
-                            }}
-                          >
-                            <Navigation className="w-4 h-4 mr-2" />
-                            IR
-                          </Button>
-                        </div>
-                      )
+                      <div className="mt-2">
+                        <Button
+                          className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openNavigate(n?.alertId);
+                          }}
+                        >
+                          <Navigation className="w-4 h-4 mr-2" />
+                          IR
+                        </Button>
+                      </div>
                     )}
 
                     {t === 'incoming_waitme' && (

@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 
 /* ======================================================
-   DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)
-   - Unifica datos para Home / History / Chats / Chat / Notifications
-   - Mantiene la app “viva” siempre
-   - Compatibilidad: exports legacy + aliases
+   DEMO FLOW (UNA SEMANA DE ACTIVIDAD) — SINCRONIZADO
+   - Chats, Notificaciones, Alertas, Reservas, Mapa (10 coches)
+   - NO toca visual: solo datos y lógica
 ====================================================== */
 
 let started = false;
@@ -20,18 +19,6 @@ function genId(prefix = 'id') {
 
 function normalize(s) { return String(s || '').trim().toLowerCase(); }
 
-function statusToTitle(status) {
-  const s = normalize(status);
-  if (s === 'thinking' || s === 'me_lo_pienso' || s === 'me lo pienso' || s === 'pending') return 'ME LO PIENSO';
-  if (s === 'extended' || s === 'prorroga' || s === 'prórroga' || s === 'prorrogada') return 'PRÓRROGA';
-  if (s === 'cancelled' || s === 'canceled' || s === 'cancelada') return 'CANCELADA';
-  if (s === 'expired' || s === 'expirada' || s === 'agotada') return 'AGOTADA';
-  if (s === 'rejected' || s === 'rechazada') return 'RECHAZADA';
-  if (s === 'completed' || s === 'completada') return 'COMPLETADA';
-  if (s === 'reserved' || s === 'activa' || s === 'active') return 'ACTIVA';
-  return 'ACTUALIZACIÓN';
-}
-
 const BASE_LAT = 43.3623;   // Oviedo aprox
 const BASE_LNG = -5.8489;
 
@@ -39,181 +26,53 @@ function rnd(min, max) { return Math.random() * (max - min) + min; }
 function nearLat() { return BASE_LAT + rnd(-0.0045, 0.0045); }
 function nearLng() { return BASE_LNG + rnd(-0.0060, 0.0060); }
 
-/* ======================================================
-   ESTADO DEMO (ÚNICA FUENTE DE VERDAD)
-====================================================== */
-
 export const demoFlow = {
-  me: { id: 'me', name: 'Tú', photo: null },
+  me: { id: 'me', name: 'Jonathan', photo: null },
 
+  // 10 usuarios
   users: [],
+
+  // Alertas del usuario (Tus alertas / Tus reservas) + historial
   alerts: [],
 
-  // lista para Chats
-  conversations: [],
+  // Alertas “mercado” para el mapa (10 coches alrededor)
+  marketAlerts: [],
 
-  // messages[conversationId] = []
+  // Chats (lista) y mensajes
+  conversations: [],
   messages: {},
 
-  // lista para Notifications
+  // Notificaciones
   notifications: []
 };
 
 /* ======================================================
-   HELPERS INTERNOS
+   DEMO MODE
 ====================================================== */
 
-function getConversation(conversationId) {
-  return (demoFlow.conversations || []).find((c) => c.id === conversationId) || null;
-}
-
-function getAlert(alertId) {
-  return (demoFlow.alerts || []).find((a) => a.id === alertId) || null;
-}
-
-function ensureMessagesArray(conversationId) {
-  if (!demoFlow.messages) demoFlow.messages = {};
-  if (!demoFlow.messages[conversationId]) demoFlow.messages[conversationId] = [];
-  return demoFlow.messages[conversationId];
-}
-
-function pushMessage(conversationId, { mine, senderName, senderPhoto, text, attachments = null }) {
-  const arr = ensureMessagesArray(conversationId);
-
-  const msg = {
-    id: genId('msg'),
-    mine: !!mine,
-    senderName: senderName || (mine ? demoFlow.me.name : 'Usuario'),
-    senderPhoto: senderPhoto || null,
-    text: String(text || '').trim(),
-    attachments,
-    ts: Date.now()
-  };
-
-  if (!msg.text) return null;
-
-  arr.push(msg);
-
-  const conv = getConversation(conversationId);
-  if (conv) {
-    conv.last_message_text = msg.text;
-    conv.last_message_at = msg.ts;
-    if (!msg.mine) conv.unread_count_p1 = Math.min(99, (conv.unread_count_p1 || 0) + 1);
-  }
-
-  return msg;
-}
-
-function addNotification({ type, title, text, conversationId, alertId, fromName = null, read = false }) {
-  const noti = {
-    id: genId('noti'),
-    type: type || 'status_update',
-    title: title || 'ACTUALIZACIÓN',
-    text: text || 'Actualización.',
-    conversationId: conversationId || null,
-    alertId: alertId || null,
-    fromName: fromName || null,
-    createdAt: Date.now(),
-    read: !!read
-  };
-
-  demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
-  return noti;
-}
-
-// ====== PUSH/LOCAL NOTIFICATION (PWA) ======
-function triggerLocalPush({ title, body, onClickHash }) {
+export function isDemoMode() {
   try {
-    if (typeof window === 'undefined') return;
-    const hash = onClickHash || '#/notifications';
-
-    // Intento 1: Notification API (si hay permiso)
-    if (typeof Notification !== 'undefined') {
-      if (Notification.permission === 'granted') {
-        const n = new Notification(title || 'WaitMe!', { body: body || '' });
-        n.onclick = () => {
-          try { window.focus?.(); } catch {}
-          try { window.location.hash = hash; } catch {}
-        };
-        return;
-      }
-
-      if (Notification.permission === 'default') {
-        // Pedimos permiso una sola vez y, si lo concede, lanzamos la notificación.
-        Notification.requestPermission?.().then((p) => {
-          if (p === 'granted') {
-            const n = new Notification(title || 'WaitMe!', { body: body || '' });
-            n.onclick = () => {
-              try { window.focus?.(); } catch {}
-              try { window.location.hash = hash; } catch {}
-            };
-          }
-        }).catch(() => {});
-      }
-    }
-
-    // Fallback: evento interno (por si el navegador bloquea notificaciones)
-    window.dispatchEvent(new CustomEvent('waitme:push', { detail: { title, body, hash } }));
-  } catch {}
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('demo') === 'false') return false;
+    // En preview queremos SIEMPRE demo vivo.
+    return true;
+  } catch {
+    return true;
+  }
 }
 
-function scheduleIncomingWaitMeRequest({ alertId }) {
-  if (!alertId) return;
+export function getDemoState() { return demoFlow; }
 
-  // Evita duplicados
-  const key = `waitme_req_${alertId}`;
-  if (demoFlow._timers?.[key]) return;
-  if (!demoFlow._timers) demoFlow._timers = {};
-
-  demoFlow._timers[key] = setTimeout(() => {
-    // Si la alerta ya no existe o ya no está activa, no hacemos nada.
-    const alert = getAlert(alertId);
-    if (!alert) return;
-    const st = normalize(alert.status);
-    if (st !== 'active') return;
-
-    // Elegimos un “usuario” demo como comprador
-    const buyer =
-      (demoFlow.users || []).find((u) => u?.id && u.id !== 'me') ||
-      { id: 'buyer_demo', name: 'Usuario', photo: null, phone: '' };
-
-    const convId = ensureConversationForAlert(alertId, { fromName: buyer.name })?.id || `conv_${alertId}_me`;
-
-    // Guardamos quién está solicitando el WaitMe (para completar al aceptar)
-    alert._pending_request = {
-      buyer_id: buyer.id,
-      buyer_name: buyer.name,
-      buyer_photo: buyer.photo || null,
-      buyer_phone: buyer.phone || '',
-      distance_km: 0.4
-    };
-
-    addNotification({
-      type: 'incoming_waitme',
-      title: 'WaitMe!',
-      text: `${buyer.name} quiere un WaitMe!`,
-      conversationId: convId,
-      alertId,
-      fromName: buyer.name,
-      read: false
-    });
-
-    triggerLocalPush({
-      title: 'WaitMe!',
-      body: `${buyer.name} quiere un WaitMe!`,
-      onClickHash: '#/notifications'
-    });
-
-    notify();
-  }, 60_000);
+export function subscribeDemoFlow(cb) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
 }
 
-function pickUser(userId) {(userId) {
-  return (demoFlow.users || []).find((u) => u.id === userId) || null;
-}
+// alias legacy
+export function subscribeToDemoFlow(cb) { return subscribeDemoFlow(cb); }
 
 /* ======================================================
-   SEED (10 USUARIOS + ALERTAS + CONVERS + MENSAJES + NOTIS)
+   SEED: 10 usuarios + 7 días de actividad
 ====================================================== */
 
 function buildUsers() {
@@ -231,415 +90,407 @@ function buildUsers() {
   ];
 }
 
-function seedAlerts() {
-  // ⚠️ En modo real, NO seedear alertas automáticamente.
-  // La app solo debe mostrar alertas activas si el usuario las crea desde "Estoy aparcado aquí".
-  demoFlow.alerts = [];
+function pickUser(userId) {
+  return (demoFlow.users || []).find((u) => u.id === userId) || null;
 }
 
+function seedMarketAlerts() {
+  // 10 coches alrededor (buscador)
+  demoFlow.marketAlerts = (demoFlow.users || []).map((u, idx) => ({
+    id: `m_${u.id}`,
+    user_id: u.id,
+    user_name: u.name,
+    user_photo: u.photo,
+    latitude: nearLat(),
+    longitude: nearLng(),
+    address: idx % 2 === 0 ? 'Oviedo' : 'Calle Campoamor, Oviedo',
+    price: 3 + (idx % 6),
+    available_in_minutes: 5 + (idx % 8) * 5,
+    vehicle_type: idx % 3 === 0 ? 'van' : (idx % 3 === 1 ? 'suv' : 'car'),
+    car_color: u.car_color || 'gris',
+    status: 'active',
+    created_date: new Date(Date.now() - (idx + 1) * 3600 * 1000).toISOString()
+  }));
+}
 
-function seedConversationsAndMessages() {
-  demoFlow.conversations = [];
-  demoFlow.messages = {};
+function addConversationForAlert(alertId, otherUserId, lastAt) {
+  const other = pickUser(otherUserId);
+  const id = `conv_${alertId}_${otherUserId}`;
+  demoFlow.conversations.push({
+    id,
+    alertId,
+    otherUserId,
+    otherName: other?.name || 'Usuario',
+    otherPhoto: other?.photo || null,
+    last_message_at: lastAt,
+    unread: 0
+  });
+  demoFlow.messages[id] = [];
+  return id;
+}
 
-  const linked = demoFlow.alerts.filter((a) => normalize(a.status) !== 'active');
+function pushMessage(conversationId, { mine, text, at, senderName, senderPhoto }) {
+  if (!demoFlow.messages[conversationId]) demoFlow.messages[conversationId] = [];
+  demoFlow.messages[conversationId].push({
+    id: genId('msg'),
+    mine: !!mine,
+    text: text || '',
+    created_at: at || Date.now(),
+    senderName: senderName || (mine ? demoFlow.me.name : 'Usuario'),
+    senderPhoto: senderPhoto || null
+  });
+  const conv = demoFlow.conversations.find((c) => c.id === conversationId);
+  if (conv) conv.last_message_at = at || Date.now();
+}
 
-  linked.forEach((a) => {
-    const other = pickUser(a.user_id);
-    const convId = `conv_${a.id}_me`;
+function addNotification(n) {
+  demoFlow.notifications.unshift({
+    id: genId('noti'),
+    created_at: Date.now(),
+    read: false,
+    ...n
+  });
+}
 
-    a.reserved_by_id = 'me';
-    a.reserved_by_name = demoFlow.me.name;
-    a.reserved_by_photo = demoFlow.me.photo;
+function seedWeekAlertsChatsNotifications() {
+  const now = Date.now();
+  // estados posibles que ya usas en UI
+  const statuses = [
+    { st: 'reserved', u: 'u2', daysAgo: 0, price: 3 },
+    { st: 'thinking', u: 'u3', daysAgo: 1, price: 4 },
+    { st: 'extended', u: 'u4', daysAgo: 2, price: 5 },
+    { st: 'cancelled', u: 'u5', daysAgo: 3, price: 6 },
+    { st: 'expired', u: 'u6', daysAgo: 4, price: 7 },
+    { st: 'rejected', u: 'u7', daysAgo: 5, price: 8 },
+    { st: 'completed', u: 'u8', daysAgo: 6, price: 9 }
+  ];
 
-    const conv = {
-      id: convId,
+  // Tu alerta activa actual (sin usuario todavía)
+  const activeCreated = now - 10 * 60 * 1000;
+  demoFlow.alerts = [{
+    id: 'a_active_me',
+    user_id: 'me',
+    user_name: demoFlow.me.name,
+    user_photo: demoFlow.me.photo,
+    latitude: BASE_LAT,
+    longitude: BASE_LNG,
+    address: 'Calle Campoamor, Oviedo',
+    price: 3,
+    available_in_minutes: 5,
+    wait_until: new Date(now + 5 * 60 * 1000).toISOString(),
+    created_date: new Date(activeCreated).toISOString(),
+    created_from: 'parked_here',
+    status: 'active'
+  }];
 
-      participant1_id: 'me',
-      participant2_id: other?.id,
-      participant1_name: demoFlow.me.name,
-      participant2_name: other?.name,
-      participant1_photo: demoFlow.me.photo,
-      participant2_photo: other?.photo,
+  // Historial semana (finalizadas / reservas)
+  statuses.forEach((s, idx) => {
+    const other = pickUser(s.u);
+    const createdAt = now - s.daysAgo * 24 * 3600 * 1000 - (idx + 1) * 30 * 60 * 1000;
+    const alertId = `a_${s.st}_${s.u}`;
+    demoFlow.alerts.push({
+      id: alertId,
+      user_id: 'me',
+      user_name: demoFlow.me.name,
+      user_photo: demoFlow.me.photo,
+      latitude: BASE_LAT,
+      longitude: BASE_LNG,
+      address: idx % 2 === 0 ? 'Calle Melquíades Álvarez, Oviedo' : 'Calle Uría, Oviedo',
+      price: s.price,
+      available_in_minutes: 10 + idx * 5,
+      wait_until: new Date(createdAt + (10 + idx * 5) * 60 * 1000).toISOString(),
+      created_date: new Date(createdAt).toISOString(),
+      created_from: 'parked_here',
+      status: s.st,
+      other_user_id: other?.id,
+      other_user_name: other?.name,
+      other_user_photo: other?.photo,
+      other_user_phone: other?.phone,
+      other_car_brand: other?.car_brand,
+      other_car_model: other?.car_model,
+      other_car_color: other?.car_color,
+      other_car_plate: other?.car_plate,
+      distance_km: Number((rnd(0.2, 3.8)).toFixed(1))
+    });
 
-      other_name: other?.name,
-      other_photo: other?.photo,
+    const convId = addConversationForAlert(alertId, other?.id, createdAt + 5 * 60 * 1000);
+    // Mensajes variados
+    pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Estoy listo cuando quieras.', at: createdAt + 2 * 60 * 1000 });
+    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Voy de camino 🚗', at: createdAt + 5 * 60 * 1000 });
+    if (s.st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Dame 1 minuto que lo miro…', at: createdAt + 8 * 60 * 1000 });
+    if (s.st === 'extended') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: '¿Puedes darme prórroga? (+1€)', at: createdAt + 9 * 60 * 1000 });
+    if (s.st === 'rejected') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'No me cuadra, lo siento.', at: createdAt + 10 * 60 * 1000 });
+    if (s.st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, text: 'Cancelo la operación.', at: createdAt + 10 * 60 * 1000 });
+    if (s.st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅', at: createdAt + 12 * 60 * 1000 });
 
-      alert_id: a.id,
-
-      last_message_text: '',
-      last_message_at: Date.now() - 60_000,
-      unread_count_p1: 0,
-      unread_count_p2: 0
-    };
-
-    demoFlow.conversations.push(conv);
-    ensureMessagesArray(convId);
-
-    pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Ey! te he enviado un WaitMe!' });
-    pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Perfecto, lo tengo. Te leo por aquí.' });
-
-    const st = normalize(a.status);
-    if (st === 'thinking') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Me lo estoy pensando… ahora te digo.' });
-    if (st === 'extended') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'He pagado la prórroga.' });
-    if (st === 'cancelled') pushMessage(convId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: 'Cancelo la operación.' });
-    if (st === 'completed') pushMessage(convId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Operación completada ✅' });
+    // Notificaciones variadas
+    if (s.st === 'reserved') addNotification({ type: 'reservation_accepted', title: 'RESERVA', text: `${other?.name} reservó tu WaitMe.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (s.st === 'thinking') addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${other?.name} se lo está pensando.`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (s.st === 'extended') addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${other?.name} pide prórroga (+1€).`, fromName: other?.name, fromPhoto: other?.photo, alertId });
+    if (s.st === 'expired') addNotification({ type: 'time_expired', title: 'AGOTADA', text: `El tiempo expiró.`, alertId });
+    if (s.st === 'rejected') addNotification({ type: 'reservation_rejected', title: 'RECHAZADA', text: `Rechazaste una solicitud.`, alertId });
+    if (s.st === 'completed') addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${s.price}€).`, alertId, read: true });
+    if (s.st === 'cancelled') addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, alertId, read: true });
   });
 
+  // Ordena chats por última actividad
   demoFlow.conversations.sort((a, b) => (b.last_message_at || 0) - (a.last_message_at || 0));
 }
 
-function seedNotifications() {
-  demoFlow.notifications = [];
-
-  const findBy = (st) => demoFlow.alerts.find((a) => normalize(a.status) === st);
-
-  const aReserved = findBy('reserved');
-  const aThinking = findBy('thinking');
-  const aExtended = findBy('extended');
-  const aCancelled = findBy('cancelled');
-  const aCompleted = findBy('completed');
-
-  const convReserved = aReserved ? `conv_${aReserved.id}_me` : null;
-  const convThinking = aThinking ? `conv_${aThinking.id}_me` : null;
-  const convExtended = aExtended ? `conv_${aExtended.id}_me` : null;
-  const convCancelled = aCancelled ? `conv_${aCancelled.id}_me` : null;
-  const convCompleted = aCompleted ? `conv_${aCompleted.id}_me` : null;
-
-  if (aReserved) addNotification({ type: 'incoming_waitme', title: 'ACTIVA', text: `${aReserved.user_name} te ha enviado un WaitMe.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aThinking) addNotification({ type: 'status_update', title: 'ME LO PIENSO', text: `${aThinking.user_name} se lo está pensando.`, conversationId: convThinking, alertId: aThinking.id, read: false });
-  if (aExtended) addNotification({ type: 'prorroga_request', title: 'PRÓRROGA SOLICITADA', text: `${aExtended.user_name} pide una prórroga (+1€).`, conversationId: convExtended, alertId: aExtended.id, read: false });
-  if (aCompleted) addNotification({ type: 'payment_completed', title: 'PAGO COMPLETADO', text: `Pago confirmado (${aCompleted.price}€).`, conversationId: convCompleted, alertId: aCompleted.id, read: true });
-  if (aCancelled) addNotification({ type: 'cancellation', title: 'CANCELACIÓN', text: `Operación cancelada.`, conversationId: convCancelled, alertId: aCancelled.id, read: true });
-
-  if (aReserved) addNotification({ type: 'buyer_nearby', title: 'COMPRADOR CERCA', text: `El comprador está llegando.`, conversationId: convReserved, alertId: aReserved.id, read: false });
-  if (aReserved) addNotification({ type: 'reservation_accepted', title: 'RESERVA ACEPTADA', text: `Reserva aceptada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'reservation_rejected', title: 'RESERVA RECHAZADA', text: `Reserva rechazada.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-  if (aReserved) addNotification({ type: 'time_expired', title: 'TIEMPO AGOTADO', text: `Se agotó el tiempo.`, conversationId: convReserved, alertId: aReserved.id, read: true });
-}
-
-function resetDemo() {
+function seedAll() {
   buildUsers();
-  seedAlerts();
-  seedConversationsAndMessages();
-  seedNotifications();
+  seedMarketAlerts();
+  seedWeekAlertsChatsNotifications();
 }
 
 /* ======================================================
-   API (EXPORTS) - lo que usan tus pantallas
+   START
 ====================================================== */
-
-export function isDemoMode() {
-  try {
-    if (typeof window === 'undefined') return false;
-    const qs = new URLSearchParams(window.location.search);
-    return qs.get('demo') === '1';
-  } catch {
-    return false;
-  }
-}
-export function getDemoState() { return demoFlow; }
 
 export function startDemoFlow() {
   if (started) return;
   started = true;
 
-  resetDemo();
-
-  if (!tickTimer) {
-    tickTimer = setInterval(() => notify(), 1000);
+  // Seed persistente (para que parezca “una semana”)
+  try {
+    const key = 'waitme_demo_seed_v1';
+    const saved = window.localStorage.getItem(key);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(demoFlow, parsed);
+    } else {
+      seedAll();
+      window.localStorage.setItem(key, JSON.stringify(demoFlow));
+    }
+  } catch {
+    seedAll();
   }
 
-  notify();
-}
+  // tick suave para timers UI
+  // Si hay alerta activa, simula 1 solicitud entrante en 60s (solo una vez)
+  try {
+    const already = (demoFlow.notifications || []).some((n) => n?.type === 'incoming_waitme');
+    const active = (demoFlow.alerts || []).find((a) => String(a?.status || '').toLowerCase() === 'active');
+    if (!already && active) scheduleIncomingWaitMeRequest(active.id, 60_000);
+  } catch {}
 
-export function subscribeDemoFlow(cb) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-
-// alias legacy
-export function subscribeToDemoFlow(cb) {
-  return subscribeDemoFlow(cb);
-}
-
-// Chats
-export function getDemoConversations() { return demoFlow.conversations || []; }
-export function getDemoAlerts() { return demoFlow.alerts || []; }
-
-// Alert getters (legacy + nuevos)
-export function getDemoAlert(alertId) { return getAlert(alertId); }
-export function getDemoAlertById(alertId) { return getAlert(alertId); } // <- para que NO rompa
-export function getDemoAlertByID(alertId) { return getAlert(alertId); } // <- alias extra
-
-// Chat
-export function getDemoConversation(conversationId) { return getConversation(conversationId); }
-export function getDemoConversationById(conversationId) { return getConversation(conversationId); }
-
-export function getDemoMessages(conversationId) {
-  return (demoFlow.messages && demoFlow.messages[conversationId]) ? demoFlow.messages[conversationId] : [];
-}
-
-export function sendDemoMessage(conversationId, text, attachments = null, isMine = true) {
-  const clean = String(text || '').trim();
-  if (!conversationId || !clean) return;
-
-  const conv = getConversation(conversationId);
-  if (!conv) return;
-
-  if (isMine) {
-    pushMessage(conversationId, { mine: true, senderName: demoFlow.me.name, senderPhoto: demoFlow.me.photo, text: clean, attachments });
-  } else {
-    pushMessage(conversationId, { mine: false, senderName: conv.participant2_name, senderPhoto: conv.participant2_photo, text: clean, attachments });
-  }
-
-  notify();
-}
-
-// Notifications
-export function getDemoNotifications() { return demoFlow.notifications || []; }
-
-// ✅ EXPORTS LEGACY QUE TE ESTÁN PIDIENDO AHORA MISMO
-export function markDemoRead(notificationId) {
-  const n = (demoFlow.notifications || []).find((x) => x.id === notificationId);
-  if (n) n.read = true;
-  notify();
-}
-
-// alias legacy
-export function markDemoNotificationRead(notificationId) { return markDemoRead(notificationId); }
-export function markDemoNotificationReadLegacy(notificationId) { return markDemoRead(notificationId); }
-export function markAllDemoRead() {
-  (demoFlow.notifications || []).forEach((n) => (n.read = true));
+  tickTimer = window.setInterval(() => notify(), 1000);
   notify();
 }
 
 /* ======================================================
-   CONVERSACIÓN ↔ ALERTA
+   GETTERS
+====================================================== */
+
+export function getDemoConversations() { return demoFlow.conversations || []; }
+export function getDemoAlerts() { return demoFlow.alerts || []; }
+export function getDemoMarketAlerts() { return demoFlow.marketAlerts || []; }
+
+export function getDemoConversation(conversationId) {
+  return (demoFlow.conversations || []).find((c) => c.id === conversationId) || null;
+}
+
+export function getDemoAlertById(alertId) {
+  return (demoFlow.alerts || []).find((a) => a.id === alertId) || null;
+}
+export function getDemoAlert(alertId) { return getDemoAlertById(alertId); }
+// alias
+export function getDemoAlertByID(alertId) { return getDemoAlertById(alertId); }
+
+export function getDemoMessages(conversationId) {
+  return demoFlow.messages?.[conversationId] || [];
+}
+
+export function getDemoNotifications() { return demoFlow.notifications || []; }
+
+export function markDemoNotificationRead(notificationId) {
+  const n = (demoFlow.notifications || []).find((x) => x.id === notificationId);
+  if (n) n.read = true;
+  persist();
+  notify();
+}
+
+export function markDemoRead(notificationId) { return markDemoNotificationRead(notificationId); }
+
+function persist() {
+  try { window.localStorage.setItem('waitme_demo_seed_v1', JSON.stringify(demoFlow)); } catch {}
+}
+
+/* ======================================================
+   NOTIFICACIÓN “PUSH” (si el navegador lo permite)
+====================================================== */
+
+function triggerLocalPush(title, body) {
+  try {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body });
+      return;
+    }
+    if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then((p) => {
+        if (p === 'granted') new Notification(title, { body });
+      });
+    }
+  } catch {}
+}
+
+/* ======================================================
+   SOLICITUD ENTRANTE (a los 60s de crear alerta)
+====================================================== */
+
+export function scheduleIncomingWaitMeRequest(alertId, delayMs = 60_000) {
+  startDemoFlow();
+  window.setTimeout(() => {
+    const alert = getDemoAlertById(alertId);
+    if (!alert) return;
+
+    // Elige un usuario “random” de los 10
+    const other = demoFlow.users[Math.floor(Math.random() * demoFlow.users.length)];
+    const otherName = other?.name || 'Usuario';
+
+    // Rellena datos del otro en la alerta activa (pero sin aceptar todavía)
+    alert.other_user_id = other?.id;
+    alert.other_user_name = otherName;
+    alert.other_user_photo = other?.photo;
+    alert.other_user_phone = other?.phone;
+    alert.other_car_brand = other?.car_brand;
+    alert.other_car_model = other?.car_model;
+    alert.other_car_color = other?.car_color;
+    alert.other_car_plate = other?.car_plate;
+    alert.distance_km = Number((rnd(0.2, 3.5)).toFixed(1));
+
+    addNotification({
+      type: 'incoming_waitme',
+      title: 'ACTIVA',
+      text: `${otherName} quiere un WaitMe!`,
+      fromName: otherName,
+      fromPhoto: other?.photo,
+      alertId: alert.id
+    });
+
+    triggerLocalPush('WaitMe!', `${otherName} quiere un WaitMe!`);
+    persist();
+    notify();
+  }, delayMs);
+}
+
+/* ======================================================
+   CHAT helpers (usa Notifications.jsx)
 ====================================================== */
 
 export function ensureConversationForAlert(alertId, hint = null) {
-  if (!alertId) return null;
-
-  const existing = (demoFlow.conversations || []).find((c) => c.alert_id === alertId);
+  startDemoFlow();
+  const existing = (demoFlow.conversations || []).find((c) => c.alertId === alertId);
   if (existing) return existing;
 
-  const alert = getAlert(alertId);
+  const alert = getDemoAlertById(alertId);
+  const otherId = alert?.other_user_id || (hint?.otherUserId || 'u1');
+  const other = pickUser(otherId) || demoFlow.users[0];
 
-  const otherName =
-    hint?.fromName ||
-    hint?.otherName ||
-    alert?.user_name ||
-    'Usuario';
+  const convId = addConversationForAlert(alertId, other?.id, Date.now());
+  const conv = getDemoConversation(convId);
 
-  const otherPhoto =
-    hint?.otherPhoto ||
-    hint?.fromPhoto ||
-    alert?.user_photo ||
-    null;
+  // mete mensaje inicial
+  if (hint?.fromName) {
+    alert.other_user_name = hint.fromName;
+  }
 
-  const convId = `conv_${alertId}_me`;
-
-  const conv = {
-    id: convId,
-    participant1_id: 'me',
-    participant2_id: alert?.user_id || genId('u'),
-    participant1_name: demoFlow.me.name,
-    participant2_name: otherName,
-    participant1_photo: demoFlow.me.photo,
-    participant2_photo: otherPhoto,
-
-    other_name: otherName,
-    other_photo: otherPhoto,
-
-    alert_id: alertId,
-    last_message_text: '',
-    last_message_at: Date.now(),
-    unread_count_p1: 0,
-    unread_count_p2: 0
-  };
-
-  demoFlow.conversations = [conv, ...(demoFlow.conversations || [])];
-  ensureMessagesArray(convId);
+  persist();
   notify();
   return conv;
 }
 
-// legacy: si algún código espera ID string
-export function ensureConversationForAlertId(alertId) {
-  const conv = ensureConversationForAlert(alertId);
-  return conv?.id || null;
-}
+export function ensureConversationForAlertId(alertId) { return ensureConversationForAlert(alertId); }
 
 export function ensureInitialWaitMeMessage(conversationId) {
-  const conv = getConversation(conversationId);
-  if (!conv) return null;
+  if (!conversationId) return;
+  const msgs = getDemoMessages(conversationId);
+  if (msgs.length > 0) return;
 
-  const arr = ensureMessagesArray(conversationId);
-  const already = arr.some((m) => String(m?.text || '').toLowerCase().includes('te he enviado un waitme'));
-  if (already) return null;
+  const conv = getDemoConversation(conversationId);
+  const other = pickUser(conv?.otherUserId);
 
-  const msg = pushMessage(conversationId, {
-    mine: true,
-    senderName: demoFlow.me.name,
-    senderPhoto: demoFlow.me.photo,
-    text: 'Ey! te he enviado un WaitMe!'
-  });
-
+  pushMessage(conversationId, { mine: false, senderName: other?.name, senderPhoto: other?.photo, text: 'Hola! Quiero hacerte un WaitMe!', at: Date.now() });
+  persist();
   notify();
-  return msg?.id || null;
+}
+
+export function sendDemoMessage(conversationId, text, attachments = null, isMine = true) {
+  if (!conversationId) return;
+  const conv = getDemoConversation(conversationId);
+  const other = pickUser(conv?.otherUserId);
+  pushMessage(conversationId, { mine: !!isMine, senderName: isMine ? demoFlow.me.name : other?.name, senderPhoto: isMine ? demoFlow.me.photo : other?.photo, text, at: Date.now() });
+  persist();
+  notify();
 }
 
 /* ======================================================
-   ACCIONES (Notifications -> applyDemoAction)
+   ACCIONES (Aceptar / Rechazar)
 ====================================================== */
 
-export function applyDemoAction({ conversationId, alertId, action, fromName }) {
-  const a = normalize(action);
-  const title = statusToTitle(a);
+export function applyDemoAction({ conversationId, alertId, action }) {
+  const alert = getDemoAlertById(alertId);
+  if (!alert) return;
 
-  const alert = alertId ? getAlert(alertId) : null;
-  if (alert) alert.status = a;
-  // Si aceptamos un WaitMe, completamos datos del comprador en la alerta (sin tocar visual).
-  if (alert && a === 'reserved') {
-    const _fromName = fromName || null;
-    const pending = alert._pending_request || null;
-    const buyerName = pending?.buyer_name || _fromName || 'Usuario';
-    const buyerId = pending?.buyer_id || 'buyer_demo';
-    alert.reserved_by_id = buyerId;
-    alert.reserved_by_name = buyerName;
-    alert.reserved_by_photo = pending?.buyer_photo || null;
-    alert.reserved_by_phone = pending?.buyer_phone || '';
-    alert.reserved_by_car = alert.reserved_by_car || 'Volkswagen Transporter';
-    alert.reserved_by_plate = alert.reserved_by_plate || '1234 ABC';
-    alert.reserved_by_color = alert.reserved_by_color || 'Blanco';
+  const otherName = alert.other_user_name || 'Usuario';
 
-    // Notificación “al otro usuario” (simulada en demo)
+  if (action === 'accept') {
+    alert.status = 'reserved';
     addNotification({
       type: 'reservation_accepted',
-      title: 'ACEPTADA',
-      text: 'Jonathan ha aceptado tu WaitMe! Debes llegar antes de que finalice el tiempo.',
-      conversationId: null,
+      title: 'RESERVA ACEPTADA',
+      text: `Has aceptado a ${otherName}.`,
+      fromName: otherName,
+      fromPhoto: alert.other_user_photo,
       alertId: alert.id,
-      fromName: 'Jonathan',
-      read: false
+      read: true
     });
+    triggerLocalPush('WaitMe!', `Has aceptado a ${otherName}.`);
+
+    // mensaje al chat
+    if (conversationId) {
+      ensureInitialWaitMeMessage(conversationId);
+      pushMessage(conversationId, { mine: true, senderName: demoFlow.me.name, text: 'Aceptado. Ven antes de que acabe el tiempo.', at: Date.now() });
+    }
   }
 
-
-  const conv = conversationId ? getConversation(conversationId) : (alertId ? ensureConversationForAlert(alertId) : null);
-  const convId = conv?.id || null;
-
-  addNotification({
-    type: 'status_update',
-    title,
-    text: 'Estado actualizado.',
-    conversationId: convId,
-    alertId,
-    read: false
-  });
-
-  if (convId) {
-    let msgText = '';
-    if (title === 'ME LO PIENSO') msgText = 'Me lo estoy pensando…';
-    else if (title === 'PRÓRROGA') msgText = 'Pido una prórroga.';
-    else if (title === 'CANCELADA') msgText = 'Cancelo la operación.';
-    else if (title === 'RECHAZADA') msgText = 'Rechazo la operación.';
-    else if (title === 'COMPLETADA') msgText = 'Operación completada ✅';
-    else if (title === 'ACTIVA') msgText = 'Operación activa.';
-    else msgText = 'Actualización de estado.';
-
-    pushMessage(convId, {
-      mine: false,
-      senderName: conv?.participant2_name || 'Usuario',
-      senderPhoto: conv?.participant2_photo || null,
-      text: msgText
+  if (action === 'reject') {
+    alert.status = 'rejected';
+    addNotification({
+      type: 'reservation_rejected',
+      title: 'RECHAZADA',
+      text: `Has rechazado a ${otherName}.`,
+      fromName: otherName,
+      fromPhoto: alert.other_user_photo,
+      alertId: alert.id,
+      read: true
     });
+    triggerLocalPush('WaitMe!', `Has rechazado a ${otherName}.`);
+    if (conversationId) {
+      ensureInitialWaitMeMessage(conversationId);
+      pushMessage(conversationId, { mine: true, senderName: demoFlow.me.name, text: 'Rechazado.', at: Date.now() });
+    }
   }
 
+  persist();
   notify();
 }
 
 /* ======================================================
-   RESERVAR
+   React helper (opcional)
 ====================================================== */
 
-export function reserveDemoAlert(alertId) {
-  const alert = getAlert(alertId);
-  if (!alert) return null;
-  if (normalize(alert.status) !== 'active') return null;
-
-  alert.status = 'reserved';
-  alert.reserved_by_id = 'me';
-  alert.reserved_by_name = demoFlow.me.name;
-  alert.reserved_by_photo = demoFlow.me.photo;
-
-  const conv = ensureConversationForAlert(alertId, {
-    fromName: alert.user_name,
-    otherPhoto: alert.user_photo
-  });
-
-  ensureInitialWaitMeMessage(conv?.id);
-
-  addNotification({
-    type: 'status_update',
-    title: 'ACTIVA',
-    text: `Has enviado un WaitMe a ${alert.user_name}.`,
-    conversationId: conv?.id,
-    alertId,
-    read: false
-  });
-
-  notify();
-  return conv?.id || null;
-}
-
-// flags legacy
-export function setDemoMode() { return true; }
-
-
-export function markDemoNotificationType(id, type, read = true) {
-  const n = (demoFlow.notifications || []).find((x) => x?.id === id);
-  if (!n) return;
-  if (type) n.type = type;
-  if (read) n.read = true;
-  notify();
-}
-/* ======================================================
-   COMPONENTE
-====================================================== */
-
-export default function DemoFlowManager() {
+export function DemoFlowManager() {
   useEffect(() => {
-    // Siempre activo: la app arranca con datos y se ve igual en Preview y en iPhone (PWA).
+    if (!isDemoMode()) return;
     startDemoFlow();
-
-    const onAlertCreated = (e) => {
-      const alertId = e?.detail?.alertId;
-      // Reflejamos la alerta real en el demoState (si existe), o creamos una copia mínima.
-      if (alertId) {
-        // Si ya hay una alerta con ese id, ok.
-        let a = getAlert(alertId);
-        if (!a) {
-          demoFlow.alerts = Array.isArray(demoFlow.alerts) ? demoFlow.alerts : [];
-          demoFlow.alerts.unshift({
-            id: alertId,
-            user_id: 'me',
-            user_name: demoFlow.me?.name || 'Jonathan',
-            user_photo: demoFlow.me?.photo || null,
-            address: 'Oviedo',
-            price: e?.detail?.price ?? 0,
-            status: 'active',
-            wait_until: e?.detail?.waitUntil || null,
-            created_date: new Date().toISOString()
-          });
-        }
-        scheduleIncomingWaitMeRequest({ alertId });
-      }
+    return () => {
+      if (tickTimer) window.clearInterval(tickTimer);
+      tickTimer = null;
     };
-
-    try { window.addEventListener('waitme:alertCreated', onAlertCreated); } catch {}
-    return () => { try { window.removeEventListener('waitme:alertCreated', onAlertCreated); } catch {} };
   }, []);
   return null;
 }
+
+export default DemoFlowManager;

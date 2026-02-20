@@ -16,13 +16,12 @@ export default function BottomNav() {
     queryKey: ['myAlerts'],
     enabled: true,
     // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 30 * 1000,
+    staleTime: 0,
     gcTime: 5 * 60 * 1000,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     refetchInterval: false,
-    placeholderData: (prev) => prev,
     queryFn: async () => {
       const uid = user?.id;
       const email = user?.email;
@@ -42,14 +41,12 @@ export default function BottomNav() {
     const st = String(a?.status || '').toLowerCase();
     return st === 'active' || st === 'reserved';
   });
-  const showActiveBadge = isFetched ? hasActiveAlert : false;
-  // Mantener el badge estable incluso mientras refresca (sin parpadeos)
-  // Usamos placeholderData para conservar myAlerts durante fetch.
+  const showActiveBadge = isFetched && !isFetching && hasActiveAlert;
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {
     const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'], refetchType: 'none' });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     };
     window.addEventListener('waitme:badgeRefresh', handler);
     return () => window.removeEventListener('waitme:badgeRefresh', handler);

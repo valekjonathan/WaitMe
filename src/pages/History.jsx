@@ -569,10 +569,14 @@ const {
   }
 });
 
+// DEMO: una semana de actividad sincronizada
+const effectiveAlerts = isDemoMode() ? getDemoAlerts() : myAlerts;
+
+
 // Cuando el usuario se hidrata (AuthContext), forzamos refetch inmediato
 useEffect(() => {
   if (!user?.id && !user?.email) return;
-  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+  queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [user?.id, user?.email]);
 
@@ -614,7 +618,7 @@ const mockReservationsFinal = useMemo(() => {
 
 
 const myActiveAlerts = useMemo(() => {
-  const filtered = myAlerts.filter((a) => {
+  const filtered = effectiveAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -637,7 +641,7 @@ const myActiveAlerts = useMemo(() => {
 
   // Solo la más reciente
   return [sorted[0]];
-}, [myAlerts, user?.id, user?.email]);
+}, [effectiveAlerts, user?.id, user?.email]);
 
 
 
@@ -688,12 +692,12 @@ const visibleActiveAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
     });
   }, [nowTs, visibleActiveAlerts, queryClient]);
 
 const myFinalizedAlerts = useMemo(() => {
-  return myAlerts.filter((a) => {
+  return effectiveAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -706,17 +710,17 @@ const myFinalizedAlerts = useMemo(() => {
       String(a.status || '').toLowerCase()
     );
   });
-}, [myAlerts, user?.id, user?.email]);
+}, [effectiveAlerts, user?.id, user?.email]);
     
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
-    return myAlerts.filter((a) => {
+    return effectiveAlerts.filter((a) => {
       if (a.reserved_by_id !== user?.id) return false;
       if (a.status !== 'reserved') return false;
 
       return true;
     });
-  }, [myAlerts, user?.id]);
+  }, [effectiveAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
 
   // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
@@ -746,7 +750,7 @@ const myFinalizedAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
     });
   }, [nowTs, reservationsActiveAll, queryClient]);
 
@@ -789,7 +793,7 @@ const myFinalizedAlerts = useMemo(() => {
     
 
   const reservationsFinalAllBase = [
-  ...myAlerts
+  ...effectiveAlerts
     .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
     .map((a) => ({
       type: 'alert',
@@ -856,7 +860,7 @@ const myFinalizedAlerts = useMemo(() => {
     },
   onMutate: async (alertId) => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
-      queryClient.setQueryData(['myAlerts'], (old) => {
+      queryClient.setQueryData(['effectiveAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
       });
@@ -864,7 +868,7 @@ const myFinalizedAlerts = useMemo(() => {
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      // Sin invalidate: el cache ya está actualizado en onMutate
+      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -874,15 +878,15 @@ const myFinalizedAlerts = useMemo(() => {
       await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
     },
     onMutate: async (alertId) => {
-      // Marcar como expirada en cache (badge se recalcula desde myAlerts)
-      queryClient.setQueryData(['myAlerts'], (old) => {
+      // Marcar como expirada en cache (badge se recalcula desde effectiveAlerts)
+      queryClient.setQueryData(['effectiveAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
       });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     },
     onSuccess: () => {
-      // Sin invalidate: el cache ya está actualizado en onMutate
+      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
     }
   });
 
@@ -926,7 +930,7 @@ const myFinalizedAlerts = useMemo(() => {
       return base44.entities.ParkingAlert.create(payload);
     },
     onSuccess: () => {
-      // Sin invalidate: el cache ya está actualizado en onMutate
+      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
   });
@@ -1099,7 +1103,7 @@ const myFinalizedAlerts = useMemo(() => {
                                     </span>
                                   </div>
                                   <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las: <span className="text-white text-[15px] font-medium">{waitUntilLabel}</span>
+                                    Debes esperar hasta las: {waitUntilLabel}
                                   </span>
                                 </div>
 
@@ -1131,7 +1135,7 @@ const myFinalizedAlerts = useMemo(() => {
   hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
   cancelAlertMutation.mutate(alert.id, {
     onSuccess: () => {
-      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
+      queryClient.invalidateQueries(['effectiveAlerts']); // 2. Refresca datos sin recargar
     }
   });
 }}
@@ -1159,7 +1163,7 @@ const myFinalizedAlerts = useMemo(() => {
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
                                   <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las: <span className="text-white text-[15px] font-medium">{waitUntilLabel}</span>
+                                    Debes esperar hasta las {waitUntilLabel}
                                   </span>
                                 </div>
 
@@ -1231,7 +1235,7 @@ const myFinalizedAlerts = useMemo(() => {
                                     onClick={async () => {
                                       hideKey(key);
                                       await deleteAlertSafe(a.id);
-                                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                      queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
                                     }}
                                     className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                   >
@@ -1455,7 +1459,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       read: false
                                     });
 
-                                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                    queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
                                   }}
                                   className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
                                 >
@@ -1579,7 +1583,7 @@ const myFinalizedAlerts = useMemo(() => {
                                       const isMock = String(a.id).startsWith('mock-');
                                       if (!isMock) {
                                         await deleteAlertSafe(a.id);
-                                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                                        queryClient.invalidateQueries({ queryKey: ['effectiveAlerts'] });
                                       }
                                     }}
                                     className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
@@ -1811,7 +1815,7 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las: <span className="text-white text-[15px] font-medium">{waitUntilLabel}</span></span>
+                  <span className="text-purple-400 leading-5">Debes esperar hasta las {waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
