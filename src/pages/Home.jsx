@@ -867,6 +867,7 @@ export default function Home() {
                   {pendingPublishPayload?.price ?? ''} €
                 </span>
               </div>
+            </div>
           </div>
 
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
