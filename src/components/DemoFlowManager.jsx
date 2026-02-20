@@ -104,7 +104,7 @@ function pushMessage(conversationId, { mine, senderName, senderPhoto, text, atta
   return msg;
 }
 
-function addNotification({ type, title, text, conversationId, alertId, read = false }) {
+function addNotification({ type, title, text, conversationId, alertId, fromName = null, read = false }) {
   const noti = {
     id: genId('noti'),
     type: type || 'status_update',
@@ -112,14 +112,21 @@ function addNotification({ type, title, text, conversationId, alertId, read = fa
     text: text || 'Actualización.',
     conversationId: conversationId || null,
     alertId: alertId || null,
+    fromName: fromName || null,
     createdAt: Date.now(),
     read: !!read
   };
+
+  demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
+  return noti;
+}
+
 // ====== PUSH/LOCAL NOTIFICATION (PWA) ======
 function triggerLocalPush({ title, body, onClickHash }) {
   try {
     if (typeof window === 'undefined') return;
     const hash = onClickHash || '#/notifications';
+
     // Intento 1: Notification API (si hay permiso)
     if (typeof Notification !== 'undefined') {
       if (Notification.permission === 'granted') {
@@ -130,6 +137,7 @@ function triggerLocalPush({ title, body, onClickHash }) {
         };
         return;
       }
+
       if (Notification.permission === 'default') {
         // Pedimos permiso una sola vez y, si lo concede, lanzamos la notificación.
         Notification.requestPermission?.().then((p) => {
@@ -143,6 +151,7 @@ function triggerLocalPush({ title, body, onClickHash }) {
         }).catch(() => {});
       }
     }
+
     // Fallback: evento interno (por si el navegador bloquea notificaciones)
     window.dispatchEvent(new CustomEvent('waitme:push', { detail: { title, body, hash } }));
   } catch {}
@@ -150,6 +159,7 @@ function triggerLocalPush({ title, body, onClickHash }) {
 
 function scheduleIncomingWaitMeRequest({ alertId }) {
   if (!alertId) return;
+
   // Evita duplicados
   const key = `waitme_req_${alertId}`;
   if (demoFlow._timers?.[key]) return;
@@ -163,7 +173,10 @@ function scheduleIncomingWaitMeRequest({ alertId }) {
     if (st !== 'active') return;
 
     // Elegimos un “usuario” demo como comprador
-    const buyer = (demoFlow.users || []).find((u) => u?.id && u.id !== 'me') || { id: 'buyer_demo', name: 'Usuario', photo: null, phone: '' };
+    const buyer =
+      (demoFlow.users || []).find((u) => u?.id && u.id !== 'me') ||
+      { id: 'buyer_demo', name: 'Usuario', photo: null, phone: '' };
+
     const convId = ensureConversationForAlert(alertId, { fromName: buyer.name })?.id || `conv_${alertId}_me`;
 
     // Guardamos quién está solicitando el WaitMe (para completar al aceptar)
@@ -195,12 +208,7 @@ function scheduleIncomingWaitMeRequest({ alertId }) {
   }, 60_000);
 }
 
-
-  demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
-  return noti;
-}
-
-function pickUser(userId) {
+function pickUser(userId) {(userId) {
   return (demoFlow.users || []).find((u) => u.id === userId) || null;
 }
 
