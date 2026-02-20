@@ -30,20 +30,76 @@ export default function Header({
     return () => unsub?.();
   }, []);
 
+  useEffect(() => {
+    const onToast = (ev) => {
+      const detail = ev?.detail || null;
+      if (!detail) return;
+      // Por ahora: SOLO queremos el toast de "usuario quiere un WaitMe!"
+      const type = String(detail.type || '').trim();
+      if (type !== 'incoming_waitme') return;
+      setExternalToast({
+        id: String(detail.id || `ext-${Date.now()}`),
+        type,
+        title: detail.title,
+        text: detail.text,
+        fromName: detail.fromName,
+        fromPhoto: detail.fromPhoto
+      });
+    };
+
+    window.addEventListener('waitme:toast', onToast);
+    return () => window.removeEventListener('waitme:toast', onToast);
+  }, []);
+
   const toasts = useMemo(() => {
     if (!isDemoMode()) return [];
     return getDemoToasts?.() || [];
   }, [toastTick]);
 
-  const demoToast = toasts?.[0] || null;
+  const demoToast = (toasts || []).find((t) => String(t?.type || '').trim() === 'incoming_waitme') || null;
 
   // Prioridad: toast real > toast demo
   const activeToast = externalToast || demoToast;
+
+  // AUTO-DISMISS: 5s
+  useEffect(() => {
+    if (!activeToast?.id) return;
+    const id = activeToast.id;
+    const t = window.setTimeout(() => {
+      // si sigue siendo el mismo
+      if (externalToast?.id === id) setExternalToast(null);
+      else if (demoToast?.id === id) dismissDemoToast?.(id);
+    }, 5000);
+    return () => window.clearTimeout(t);
+  }, [activeToast?.id]);
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
     navigate(createPageUrl(backTo));
   }, [onBack, navigate, backTo]);
+
+  const renderWaitMeWord = useCallback(() => (<>
+        <span className="text-white">Wait</span><span className="text-purple-500">Me!</span>
+      </>), []);
+
+  const renderToastText = useCallback((text) => {
+    const t = String(text || "");
+    const idx = t.toLowerCase().indexOf("waitme");
+    if (idx === -1) return <>{t}</>;
+    // Mantiene el resto del texto igual y solo estiliza la palabra WaitMe!/WaitMe
+    const before = t.slice(0, idx);
+    const after = t.slice(idx);
+    const m = after.match(/^waitme!?/i);
+    const hit = m?.[0] || "WaitMe!";
+    const rest = after.slice(hit.length);
+    return (
+      <>
+        {before}
+        {renderWaitMeWord()}
+        {rest}
+      </>
+    );
+  }, [renderWaitMeWord]);
 
   const titleNode = useMemo(() => {
     const t = (title || '').trim();
@@ -141,24 +197,24 @@ export default function Header({
                   <img
                     src={activeToast.fromPhoto}
                     alt=""
-                    className="w-10 h-10 rounded-full object-cover border border-gray-700"
+                    className="w-10 h-10 rounded-xl object-cover border-2 border-purple-500/70"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-purple-600/20 border border-purple-500/60" />
+                  <div className="w-10 h-10 rounded-xl bg-purple-600/20 border-2 border-purple-500/70" />
                 )}
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-white font-semibold text-sm truncate">
-                      {activeToast.fromName || activeToast.title || 'WaitMe!'}
+                      (String(activeToast?.title||'').toLowerCase().includes('waitme') || String(activeToast?.fromName||'').toLowerCase().includes('waitme')) ? renderWaitMeWord() : (activeToast.fromName || activeToast.title || 'WaitMe!')
                     </span>
                     <span className="text-gray-400 text-xs flex-none">
                       ahora
                     </span>
                   </div>
                   <div className="text-gray-200 text-sm truncate">
-                    {activeToast.text}
+                    {renderToastText(activeToast.text)}
                   </div>
                 </div>
               </motion.div>

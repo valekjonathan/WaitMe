@@ -172,7 +172,9 @@ export default function Notifications() {
                       </div>
                     </div>
 
-                    <MarcoCard
+                    <div className="bg-gray-950/40 border border-purple-500/40 rounded-xl p-3">
+                      <p className="text-white font-semibold text-sm mb-2">OPERACIÓN</p>
+                      <MarcoCard
                       photoUrl={otherPhoto}
                       name={otherName}
                       carLabel={carLabel}
@@ -188,7 +190,8 @@ export default function Notifications() {
                       onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
                       dimmed={!isUnread}
                       role="buyer"
-                    />
+                      />
+                    </div>
 
                     {hasLatLon && (
                       <div className="mt-2">

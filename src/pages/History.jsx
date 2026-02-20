@@ -252,8 +252,12 @@ const getCreatedTs = (alert) => {
 };
 
   const getWaitUntilTs = (alert) => {
+  // Preferimos wait_until si existe: evita expiraciones instantáneas por formato/zonas horarias
+  const explicit = toMs(alert?.wait_until || alert?.waitUntil);
+  if (typeof explicit === 'number' && explicit > 0) return explicit;
+
   const created = getCreatedTs(alert);
-  const mins = Number(alert?.available_in_minutes);
+  const mins = Number(alert?.available_in_minutes ?? alert?.minutes ?? 0);
 
   if (
     typeof created === 'number' &&
@@ -1824,7 +1828,6 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las: </span>
                   <span className="text-white font-extrabold text-[17px]">{waitUntilLabel}</span>
                 </div>
 

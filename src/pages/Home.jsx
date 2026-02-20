@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -84,7 +84,8 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const logoSrc = appLogo;
+  const logoSrcRef = useRef(appLogo);
+  const logoSrc = logoSrcRef.current;
   useEffect(() => {
     // Preload del logo para que vuelva instantáneo al volver a Home
     try {
@@ -540,6 +541,13 @@ export default function Home() {
                   fetchPriority="high"
                   src={logoSrc}
                   alt="WaitMe!"
+                  draggable={false}
+                  onError={(e) => {
+                    try {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = logoSrcRef.current;
+                    } catch {}
+                  }}
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
                 />
 
@@ -843,9 +851,14 @@ export default function Home() {
                 <span className="text-purple-400 font-semibold text-base">
                   {pendingPublishPayload?.available_in_minutes ?? ''} minutos
                 </span>
-                              {(() => {
+              </div>
+
+              {/* Debes esperar */}
+              <div className="flex items-center gap-2 text-sm mt-2">
+                <span className="text-purple-400">Debes esperar hasta las:</span>
+                {(() => {
                   const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  if (!mins) return null;
+                  if (!mins) return <span className="text-white font-extrabold text-[17px]">--:--</span>;
                   const waitUntil = new Date(Date.now() + mins * 60 * 1000);
                   const hhmm = waitUntil.toLocaleTimeString('es-ES', {
                     timeZone: 'Europe/Madrid',
@@ -854,7 +867,7 @@ export default function Home() {
                     hour12: false
                   });
                   return (
-                    <span className="ml-auto text-white font-extrabold text-[17px]">{hhmm}</span>
+                    <span className="text-white font-extrabold text-[17px]">{hhmm}</span>
                   );
                 })()}
               </div>

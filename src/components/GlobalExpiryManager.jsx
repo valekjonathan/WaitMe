@@ -82,6 +82,8 @@ export default function GlobalExpiryManager() {
             detail: {
               id: `expire-${id}`,
               fromName: 'WaitMe!',
+              type: 'time_expired',
+              title: 'WaitMe!',
               text: 'Tu alerta ha expirado'
             }
           })
@@ -214,6 +216,10 @@ function getCreatedTs(a) {
 }
 
 function getWaitUntilTs(a) {
+  // Preferimos el campo wait_until si existe (evita errores por formatos/zonas horarias)
+  const explicit = toMs(a?.wait_until || a?.waitUntil);
+  if (explicit) return explicit;
+
   const createdTs = getCreatedTs(a);
   const mins = Number(a?.available_in_minutes ?? a?.minutes ?? 0);
   if (!createdTs || !mins) return null;
