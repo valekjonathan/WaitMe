@@ -115,6 +115,86 @@ function addNotification({ type, title, text, conversationId, alertId, read = fa
     createdAt: Date.now(),
     read: !!read
   };
+// ====== PUSH/LOCAL NOTIFICATION (PWA) ======
+function triggerLocalPush({ title, body, onClickHash }) {
+  try {
+    if (typeof window === 'undefined') return;
+    const hash = onClickHash || '#/notifications';
+    // Intento 1: Notification API (si hay permiso)
+    if (typeof Notification !== 'undefined') {
+      if (Notification.permission === 'granted') {
+        const n = new Notification(title || 'WaitMe!', { body: body || '' });
+        n.onclick = () => {
+          try { window.focus?.(); } catch {}
+          try { window.location.hash = hash; } catch {}
+        };
+        return;
+      }
+      if (Notification.permission === 'default') {
+        // Pedimos permiso una sola vez y, si lo concede, lanzamos la notificación.
+        Notification.requestPermission?.().then((p) => {
+          if (p === 'granted') {
+            const n = new Notification(title || 'WaitMe!', { body: body || '' });
+            n.onclick = () => {
+              try { window.focus?.(); } catch {}
+              try { window.location.hash = hash; } catch {}
+            };
+          }
+        }).catch(() => {});
+      }
+    }
+    // Fallback: evento interno (por si el navegador bloquea notificaciones)
+    window.dispatchEvent(new CustomEvent('waitme:push', { detail: { title, body, hash } }));
+  } catch {}
+}
+
+function scheduleIncomingWaitMeRequest({ alertId }) {
+  if (!alertId) return;
+  // Evita duplicados
+  const key = `waitme_req_${alertId}`;
+  if (demoFlow._timers?.[key]) return;
+  if (!demoFlow._timers) demoFlow._timers = {};
+
+  demoFlow._timers[key] = setTimeout(() => {
+    // Si la alerta ya no existe o ya no está activa, no hacemos nada.
+    const alert = getAlert(alertId);
+    if (!alert) return;
+    const st = normalize(alert.status);
+    if (st !== 'active') return;
+
+    // Elegimos un “usuario” demo como comprador
+    const buyer = (demoFlow.users || []).find((u) => u?.id && u.id !== 'me') || { id: 'buyer_demo', name: 'Usuario', photo: null, phone: '' };
+    const convId = ensureConversationForAlert(alertId, { fromName: buyer.name })?.id || `conv_${alertId}_me`;
+
+    // Guardamos quién está solicitando el WaitMe (para completar al aceptar)
+    alert._pending_request = {
+      buyer_id: buyer.id,
+      buyer_name: buyer.name,
+      buyer_photo: buyer.photo || null,
+      buyer_phone: buyer.phone || '',
+      distance_km: 0.4
+    };
+
+    addNotification({
+      type: 'incoming_waitme',
+      title: 'WaitMe!',
+      text: `${buyer.name} quiere un WaitMe!`,
+      conversationId: convId,
+      alertId,
+      fromName: buyer.name,
+      read: false
+    });
+
+    triggerLocalPush({
+      title: 'WaitMe!',
+      body: `${buyer.name} quiere un WaitMe!`,
+      onClickHash: '#/notifications'
+    });
+
+    notify();
+  }, 60_000);
+}
+
 
   demoFlow.notifications = [noti, ...(demoFlow.notifications || [])];
   return noti;
@@ -406,12 +486,38 @@ export function ensureInitialWaitMeMessage(conversationId) {
    ACCIONES (Notifications -> applyDemoAction)
 ====================================================== */
 
-export function applyDemoAction({ conversationId, alertId, action }) {
+export function applyDemoAction({ conversationId, alertId, action, fromName }) {
   const a = normalize(action);
   const title = statusToTitle(a);
 
   const alert = alertId ? getAlert(alertId) : null;
   if (alert) alert.status = a;
+  // Si aceptamos un WaitMe, completamos datos del comprador en la alerta (sin tocar visual).
+  if (alert && a === 'reserved') {
+    const _fromName = fromName || null;
+    const pending = alert._pending_request || null;
+    const buyerName = pending?.buyer_name || _fromName || 'Usuario';
+    const buyerId = pending?.buyer_id || 'buyer_demo';
+    alert.reserved_by_id = buyerId;
+    alert.reserved_by_name = buyerName;
+    alert.reserved_by_photo = pending?.buyer_photo || null;
+    alert.reserved_by_phone = pending?.buyer_phone || '';
+    alert.reserved_by_car = alert.reserved_by_car || 'Volkswagen Transporter';
+    alert.reserved_by_plate = alert.reserved_by_plate || '1234 ABC';
+    alert.reserved_by_color = alert.reserved_by_color || 'Blanco';
+
+    // Notificación “al otro usuario” (simulada en demo)
+    addNotification({
+      type: 'reservation_accepted',
+      title: 'ACEPTADA',
+      text: 'Jonathan ha aceptado tu WaitMe! Debes llegar antes de que finalice el tiempo.',
+      conversationId: null,
+      alertId: alert.id,
+      fromName: 'Jonathan',
+      read: false
+    });
+  }
+
 
   const conv = conversationId ? getConversation(conversationId) : (alertId ? ensureConversationForAlert(alertId) : null);
   const convId = conv?.id || null;
@@ -483,6 +589,14 @@ export function reserveDemoAlert(alertId) {
 // flags legacy
 export function setDemoMode() { return true; }
 
+
+export function markDemoNotificationType(id, type, read = true) {
+  const n = (demoFlow.notifications || []).find((x) => x?.id === id);
+  if (!n) return;
+  if (type) n.type = type;
+  if (read) n.read = true;
+  notify();
+}
 /* ======================================================
    COMPONENTE
 ====================================================== */
@@ -491,6 +605,33 @@ export default function DemoFlowManager() {
   useEffect(() => {
     // Siempre activo: la app arranca con datos y se ve igual en Preview y en iPhone (PWA).
     startDemoFlow();
+
+    const onAlertCreated = (e) => {
+      const alertId = e?.detail?.alertId;
+      // Reflejamos la alerta real en el demoState (si existe), o creamos una copia mínima.
+      if (alertId) {
+        // Si ya hay una alerta con ese id, ok.
+        let a = getAlert(alertId);
+        if (!a) {
+          demoFlow.alerts = Array.isArray(demoFlow.alerts) ? demoFlow.alerts : [];
+          demoFlow.alerts.unshift({
+            id: alertId,
+            user_id: 'me',
+            user_name: demoFlow.me?.name || 'Jonathan',
+            user_photo: demoFlow.me?.photo || null,
+            address: 'Oviedo',
+            price: e?.detail?.price ?? 0,
+            status: 'active',
+            wait_until: e?.detail?.waitUntil || null,
+            created_date: new Date().toISOString()
+          });
+        }
+        scheduleIncomingWaitMeRequest({ alertId });
+      }
+    };
+
+    try { window.addEventListener('waitme:alertCreated', onAlertCreated); } catch {}
+    return () => { try { window.removeEventListener('waitme:alertCreated', onAlertCreated); } catch {} };
   }, []);
   return null;
 }

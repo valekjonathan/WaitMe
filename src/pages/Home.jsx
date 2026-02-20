@@ -351,6 +351,9 @@ export default function Home() {
 
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      try {
+        window.dispatchEvent(new CustomEvent('waitme:alertCreated', { detail: { alertId: newAlert?.id, waitUntil: newAlert?.wait_until, price: newAlert?.price } }));
+      } catch {}
     } catch {}
   },
 
@@ -367,6 +370,9 @@ export default function Home() {
 
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      try {
+        window.dispatchEvent(new CustomEvent('waitme:alertCreated', { detail: { alertId: newAlert?.id, waitUntil: newAlert?.wait_until, price: newAlert?.price } }));
+      } catch {}
     } catch {}
   },
 
@@ -451,7 +457,10 @@ export default function Home() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      try {
+        window.dispatchEvent(new CustomEvent('waitme:alertCreated', { detail: { alertId: newAlert?.id, waitUntil: newAlert?.wait_until, price: newAlert?.price } }));
+      } catch {} } catch {}
     }
   });
 
