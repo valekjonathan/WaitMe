@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Settings, User } from 'lucide-react';
+import { ArrowLeft, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
@@ -15,17 +15,21 @@ export default function Header({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Banner tipo WhatsApp (petición entrante)
+  const [bannerReq, setBannerReq] = useState(null);
+  const [showBanner, setShowBanner] = useState(false);
+
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
     navigate(createPageUrl(backTo));
   }, [onBack, navigate, backTo]);
 
-  const titleNode = useMemo(() => {
+  const innerTitle = useMemo(() => {
     const t = (title || '').trim();
     const normalized = t.toLowerCase().replace(/\s+/g, '');
     const isWaitMe = normalized === 'waitme!' || normalized === 'waitme';
 
-    const inner = isWaitMe ? (
+    return isWaitMe ? (
       <>
         <span className="text-white">Wait</span>
         <span className="text-purple-500">Me!</span>
@@ -33,9 +37,19 @@ export default function Header({
     ) : (
       <span className="text-white">{title}</span>
     );
+  }, [title]);
 
-  const [bannerReq, setBannerReq] = useState(null);
-  const [showBanner, setShowBanner] = useState(false);
+  const titleNode = useMemo(() => {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(createPageUrl('Home'))}
+        className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
+      >
+        {innerTitle}
+      </button>
+    );
+  }, [navigate, titleClassName, innerTitle]);
 
   useEffect(() => {
     const load = () => {
@@ -56,6 +70,7 @@ export default function Header({
 
     window.addEventListener('waitme:requestsChanged', onChange);
     window.addEventListener('waitme:showIncomingBanner', onShow);
+
     return () => {
       window.removeEventListener('waitme:requestsChanged', onChange);
       window.removeEventListener('waitme:showIncomingBanner', onShow);
@@ -63,23 +78,13 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    // si hay pending y aún no se ha mostrado, lo mostramos al entrar
+    // si hay pending al entrar, lo mostramos una vez
     if (bannerReq) {
       setShowBanner(true);
       setTimeout(() => setShowBanner(false), 7000);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bannerReq?.id]);
-
-  return (
-      <button
-        type="button"
-        onClick={() => navigate(createPageUrl('Home'))}
-        className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
-      >
-        {inner}
-      </button>
-    );
-  }, [title, navigate, titleClassName]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
@@ -118,21 +123,13 @@ export default function Header({
           </div>
 
           {/* CENTRO */}
-          <div className="min-w-0 px-1">
-            {titleNode}
-          </div>
+          <div className="min-w-0 px-1">{titleNode}</div>
 
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
             <Link to={createPageUrl('Settings')}>
               <div className="cursor-pointer ml-[31px]">
                 <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
-              </div>
-            </Link>
-
-            <Link to={createPageUrl('Profile')}>
-              <div className="cursor-pointer">
-                <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
               </div>
             </Link>
           </div>
