@@ -1,132 +1,227 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Bell, CheckCircle, XCircle, MapPin, Timer, TrendingUp, AlertCircle, Navigation } from 'lucide-react';
 import MarcoCard from '@/components/cards/MarcoCard';
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
-import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
+
+import {
+  startDemoFlow,
+  subscribeDemoFlow,
+  getDemoAlertById,
+  ensureConversationForAlert,
+  ensureInitialWaitMeMessage,
+  markDemoNotificationRead,
+  applyDemoAction
+} from '@/components/DemoFlowManager';
+
+const iconMap = {
+  incoming_waitme: <Bell className="w-5 h-5 text-purple-400" />,
+  reservation_accepted: <CheckCircle className="w-5 h-5 text-green-400" />,
+  reservation_rejected: <XCircle className="w-5 h-5 text-red-400" />,
+  buyer_nearby: <MapPin className="w-5 h-5 text-blue-400" />,
+  prorroga_request: <Timer className="w-5 h-5 text-orange-400" />,
+  payment_completed: <TrendingUp className="w-5 h-5 text-green-400" />,
+  time_expired: <AlertCircle className="w-5 h-5 text-red-400" />,
+  cancellation: <XCircle className="w-5 h-5 text-gray-400" />,
+  status_update: <Bell className="w-5 h-5 text-purple-400" />
+};
+
+function normalize(s) {
+  return String(s || '').trim().toLowerCase();
+}
 
 export default function Notifications() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const onChange = () => setTick((t) => t + 1);
-    window.addEventListener('waitme:requestsChanged', onChange);
-    return () => window.removeEventListener('waitme:requestsChanged', onChange);
+    startDemoFlow();
+    const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
+    return () => unsub?.();
   }, []);
 
   const notifications = useMemo(() => {
-    return getWaitMeRequests();
+    return [];
   }, [tick]);
 
-  const acceptRequest = async (req) => {
-    if (!req?.id) return;
-    try {
-      const alertId = req.alertId;
-      const buyer = req.buyer || {};
-      if (alertId) {
-        await base44.entities.ParkingAlert.update(alertId, {
-          status: 'reserved',
-          reserved_by_id: buyer.id || 'mock_buyer',
-          reserved_by_name: buyer.name || 'Usuario',
-          reserved_by_photo: buyer.photo || null,
-          reserved_by_vehicle_type: buyer.vehicle_type || null,
-          reserved_by_car_model: buyer.car_model || null,
-          reserved_by_car_color: buyer.car_color || null,
-          reserved_by_plate: buyer.plate || null,
-          reserved_by_phone: buyer.phone || null
-        });
-        try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-      }
-      setWaitMeRequestStatus(req.id, 'accepted', { read: true });
-    } catch {
-      setWaitMeRequestStatus(req.id, 'accepted', { read: true });
-    }
+  const openChat = (conversationId, alertId) => {
+    if (!conversationId) return;
+    navigate(
+      createPageUrl(
+        `Chat?demo=true&conversationId=${encodeURIComponent(conversationId)}&alertId=${encodeURIComponent(alertId || '')}`
+      )
+    );
   };
 
-  const rejectRequest = (req) => {
-    if (!req?.id) return;
-    setWaitMeRequestStatus(req.id, 'rejected', { read: true });
+  const openNavigate = (alertId) => {
+    if (!alertId) return;
+    navigate(createPageUrl(`Navigate?alertId=${encodeURIComponent(alertId)}`));
+  };
+
+  const runAction = (n, action) => {
+    if (!n) return;
+
+    const alertId = n.alertId || null;
+    const conv = ensureConversationForAlert(alertId, { fromName: n.fromName });
+    ensureInitialWaitMeMessage(conv?.id);
+
+    applyDemoAction({
+      conversationId: conv?.id,
+      alertId,
+      action
+    });
+
+    if (n?.id) markDemoNotificationRead(n.id);
+
+    openChat(conv?.id, alertId);
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-black text-white flex flex-col">
-      <Header title="Notificaciones" />
+    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
+      {/* ⬇️ MÁS PEQUEÑO SOLO AQUÍ para que no choque con el botón del dinero */}
+      <Header
+        title="Notificaciones"
+        showBackButton
+        backTo="Home"
+        titleClassName="text-[20px] leading-[20px]"
+      />
 
-      <main className="pt-[72px] pb-[96px] px-4">
-        <div className="max-w-md mx-auto space-y-3">
-          {(notifications || []).length === 0 ? (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center text-gray-400">
-              No tienes notificaciones
+      <main className="pt-[60px] pb-24">
+        {notifications.length === 0 ? (
+          <div className="min-h-[calc(100vh-60px-96px)] flex items-center justify-center px-4">
+            <div className="text-center">
+              <Bell className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+              <p className="text-gray-400 text-sm">No hay notificaciones.</p>
             </div>
-          ) : (
-            (notifications || []).map((n) => {
-              const st = String(n?.status || '').toLowerCase();
-              const isRejected = st === 'rejected';
-              const isAccepted = st === 'accepted';
-              const pending = st === 'pending';
+          </div>
+        ) : (
+          <>
+            <div className="px-4 pt-3 pb-2 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-purple-400" />
+                  <p className="text-sm text-gray-300">{notifications.filter((n) => !n.read).length} sin leer</p>
+                </div>
 
-              const buyer = n?.buyer || {};
+                {notifications.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-purple-400 hover:text-purple-300"
+                    onClick={() => notifications.forEach((n) => n?.id && markDemoNotificationRead(n.id))}
+                  >
+                    Marcar todas como leídas
+                  </Button>
+                )}
+              </div>
+            </div>
 
-              return (
-                <div key={n.id} className="bg-gray-900 border border-gray-800 rounded-xl p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-white text-[16px] font-semibold">
-                      Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
+            <div className="px-4 space-y-5 pt-4">
+              {notifications.map((n) => {
+                const type = n?.type || 'status_update';
+                const isUnread = !n?.read;
+                const alert = n?.alertId ? getDemoAlertById(n.alertId) : null;
+
+                const otherName = alert?.user_name || n?.fromName || 'Usuario';
+                const otherPhoto = alert?.user_photo || null;
+
+                const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim();
+                const plate = alert?.car_plate || '';
+                const carColor = alert?.car_color || 'gris';
+                const address = alert?.address || '';
+                const phoneEnabled = !!alert?.allow_phone_calls;
+                const phone = alert?.phone || null;
+
+                const statusText = n?.title || 'ACTIVA';
+                const hasLatLon = typeof alert?.latitude === 'number' && typeof alert?.longitude === 'number';
+
+                const t = normalize(type);
+
+                return (
+                  <div
+                    key={n.id}
+                    className={`rounded-xl border-2 p-4 transition-all ${
+                      isUnread
+                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-purple-400/70 shadow-lg'
+                        : 'bg-gradient-to-br from-gray-900/50 to-gray-900/50 border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className={`p-2 rounded-full ${isUnread ? 'bg-purple-500/20' : 'bg-gray-800'}`}>
+                        {iconMap[type] || iconMap.status_update}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
+                            {n?.title || 'NOTIFICACIÓN'}
+                          </Badge>
+                          {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />}
+                        </div>
+
+                        <p className="text-sm text-white font-medium break-words">{n?.text || '—'}</p>
+
+                        <p className="text-xs text-gray-400 mt-1">
+                          De: <span className="text-purple-300 font-semibold">{otherName}</span>
+                        </p>
+                      </div>
                     </div>
 
-                    {isRejected && (
-                      <Badge className="bg-red-600/20 text-red-300 border border-red-500/30">RECHAZADA</Badge>
-                    )}
-                    {isAccepted && (
-                      <Badge className="bg-green-600/20 text-green-300 border border-green-500/30">ACEPTADA</Badge>
-                    )}
-                    {pending && (
-                      <Badge className="bg-purple-600/20 text-purple-300 border border-purple-500/30">PENDIENTE</Badge>
-                    )}
-                  </div>
-
-                  <div className="mt-3">
                     <MarcoCard
-                      photoUrl={buyer.photo}
-                      name={buyer.name || 'Usuario'}
-                      carLabel={buyer.car_model || 'Vehículo'}
-                      plate={buyer.plate || '--'}
-                      carColor={buyer.car_color || 'gris'}
-                      address={'Oviedo'}
-                      timeLine={{ main: 'Ahora', sub: 'Solicitud de WaitMe' }}
-                      priceChip={{ text: '-- €', mode: 'green' }}
-                      statusText={pending ? 'ACTIVA' : isRejected ? 'RECHAZADA' : 'COMPLETADA'}
-                      statusEnabled
-                      phoneEnabled={false}
+                      photoUrl={otherPhoto}
+                      name={otherName}
+                      carLabel={carLabel}
+                      plate={plate}
+                      carColor={carColor}
+                      address={address}
+                      timeLine={<span className="text-gray-400">Operación en curso</span>}
+                      onChat={() =>
+                        openChat(n?.conversationId || ensureConversationForAlert(n?.alertId)?.id, n?.alertId)
+                      }
+                      statusText={statusText}
+                      phoneEnabled={phoneEnabled}
+                      onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
+                      dimmed={!isUnread}
                       role="buyer"
                     />
-                  </div>
 
-                  {pending && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <Button
-                        onClick={() => rejectRequest(n)}
-                        className="flex-1 bg-white text-black hover:bg-gray-200"
-                      >
-                        Rechazar
-                      </Button>
-                      <Button
-                        onClick={() => acceptRequest(n)}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      >
-                        Aceptar
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+                    {hasLatLon && (
+                      <div className="mt-2">
+                        <Button
+                          className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openNavigate(n?.alertId);
+                          }}
+                        >
+                          <Navigation className="w-4 h-4 mr-2" />
+                          IR
+                        </Button>
+                      </div>
+                    )}
+
+                    {t === 'incoming_waitme' && (
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <Button onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
+                        <Button variant="outline" className="border-gray-600" onClick={() => runAction(n, 'thinking')}>
+                          Me lo pienso
+                        </Button>
+                        <Button variant="destructive" onClick={() => runAction(n, 'rejected')}>
+                          Rechazar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </main>
 
       <BottomNav />
