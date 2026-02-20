@@ -17,6 +17,7 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
+import { getMockNearbyAlerts } from '@/lib/mockNearby';
 
 // ======================
 // Helpers
@@ -143,14 +144,16 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts'],
+    queryKey: ['alerts', mode, userLocation],
+    enabled: mode === 'search',
     queryFn: async () => {
-      return [];
+      // 10 usuarios cerca (demo local)
+      return getMockNearbyAlerts(userLocation);
     },
-    staleTime: 0,
+    staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchInterval: 3000,
-    refetchOnWindowFocus: true,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
     refetchOnMount: true
   });
 
@@ -239,10 +242,6 @@ export default function Home() {
     }
   }, [location.search, resetToLogo]);
 
-  const homeMapAlerts = useMemo(() => {
-    return [];
-  }, []);
-
   const filteredAlerts = useMemo(() => {
     const list = Array.isArray(rawAlerts) ? rawAlerts : [];
     const [uLat, uLng] = Array.isArray(userLocation) ? userLocation : [null, null];
@@ -271,6 +270,12 @@ export default function Home() {
     if (mode !== 'search') return [];
     return filteredAlerts || [];
   }, [mode, filteredAlerts]);
+
+  const homeMapAlerts = useMemo(() => {
+    // Solo mostramos usuarios/alertas en la pantalla "Dónde quieres aparcar"
+    if (mode === 'search') return searchAlerts || [];
+    return [];
+  }, [mode, searchAlerts]);
 
   const createAlertMutation = useMutation({
   mutationFn: async (data) => {

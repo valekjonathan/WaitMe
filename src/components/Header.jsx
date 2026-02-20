@@ -1,8 +1,9 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
 export default function Header({
   title = 'WaitMe!',
@@ -33,7 +34,43 @@ export default function Header({
       <span className="text-white">{title}</span>
     );
 
-    return (
+  const [bannerReq, setBannerReq] = useState(null);
+  const [showBanner, setShowBanner] = useState(false);
+
+  useEffect(() => {
+    const load = () => {
+      const list = getWaitMeRequests();
+      const pending = (list || []).find((r) => String(r?.status || '') === 'pending');
+      setBannerReq(pending || null);
+    };
+
+    load();
+
+    const onChange = () => load();
+    const onShow = () => {
+      load();
+      setShowBanner(true);
+      // auto-hide estilo WhatsApp
+      setTimeout(() => setShowBanner(false), 7000);
+    };
+
+    window.addEventListener('waitme:requestsChanged', onChange);
+    window.addEventListener('waitme:showIncomingBanner', onShow);
+    return () => {
+      window.removeEventListener('waitme:requestsChanged', onChange);
+      window.removeEventListener('waitme:showIncomingBanner', onShow);
+    };
+  }, []);
+
+  useEffect(() => {
+    // si hay pending y aún no se ha mostrado, lo mostramos al entrar
+    if (bannerReq) {
+      setShowBanner(true);
+      setTimeout(() => setShowBanner(false), 7000);
+    }
+  }, [bannerReq?.id]);
+
+  return (
       <button
         type="button"
         onClick={() => navigate(createPageUrl('Home'))}
@@ -47,6 +84,18 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
       <div className="px-4 py-3">
+        {showBanner && bannerReq && (
+          <button
+            type="button"
+            onClick={() => navigate(createPageUrl('Notifications'))}
+            className="mt-2 w-full text-left bg-gray-900/90 border border-gray-800 rounded-lg px-3 py-2 shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+          >
+            <span className="text-white text-sm font-semibold">
+              Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
+            </span>
+          </button>
+        )}
+
         {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
         <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
           {/* IZQUIERDA */}
