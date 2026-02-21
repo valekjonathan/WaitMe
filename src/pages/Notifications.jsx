@@ -22,7 +22,7 @@ import {
   Phone,
   PhoneOff
 } from 'lucide-react';
-import MarcoCard from '@/components/cards/MarcoCard';
+import UserAlertCard from '@/components/cards/UserAlertCard';
 
 import {
   startDemoFlow,
