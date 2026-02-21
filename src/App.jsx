@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import Layout from './Layout';
+import NavigationOverlay from '@/components/navigation/NavigationOverlay';
 import DemoFlowManager from '@/components/DemoFlowManager';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import { useAuth } from '@/lib/AuthContext';
@@ -27,6 +28,7 @@ export default function App() {
       <WaitMeRequestScheduler />
       <AuthGate />
       <Layout />
+      <NavigationOverlay />
     </div>
   );
 }

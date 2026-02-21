@@ -20,8 +20,6 @@ import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 import { getMockNearbyAlerts } from '@/lib/mockNearby';
-import RadarNavButton from '@/components/navigation/RadarNavButton';
-import NavBottomSheet from '@/components/navigation/NavBottomSheet';
 
 // ======================
 // Helpers
@@ -97,9 +95,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
-
-  // Navegación tipo Uber (panel inferior + radar button)
-  const [navSheetOpen, setNavSheetOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     maxPrice: 10,
@@ -190,61 +185,6 @@ export default function Home() {
       return st === 'active' || st === 'reserved';
     });
   }, [myAlerts]);
-
-  // Fuente para navegación:
-  // 1) Si has seleccionado una tarjeta (search) usamos esa.
-  // 2) Si no, si existe una alerta reservada/activa con coordenadas, usamos esa.
-  const navTarget = useMemo(() => {
-    const sel = selectedAlert;
-    if (sel?.latitude != null && sel?.longitude != null) return sel;
-
-    const candidate = (myActiveAlerts || []).find(
-      (a) => a?.latitude != null && a?.longitude != null
-    );
-    return candidate || null;
-  }, [selectedAlert, myActiveAlerts]);
-
-  const navSellerLocation = useMemo(() => {
-    if (!navTarget) return null;
-    // ParkingMap espera [lat,lng]
-    return [Number(navTarget.latitude), Number(navTarget.longitude)];
-  }, [navTarget]);
-
-  const navUserCard = useMemo(() => {
-    if (!navTarget) return null;
-
-    const name = navTarget.user_name || navTarget.userName || 'Usuario';
-    const photo = navTarget.user_photo || navTarget.userPhoto;
-    const car = [navTarget.car_brand, navTarget.car_model].filter(Boolean).join(' ');
-    const plate = navTarget.car_plate;
-    const addressText = navTarget.address;
-
-    return (
-      <div className="bg-black/75 backdrop-blur-md border border-purple-500/25 rounded-2xl p-4 shadow-[0_0_22px_rgba(168,85,247,0.15)]">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 overflow-hidden flex items-center justify-center">
-            {photo ? (
-              <img src={photo} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-purple-400/40" />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-white font-bold leading-tight truncate">{name}</p>
-            <p className="text-xs text-gray-300 truncate">
-              {car}{plate ? ` · ${plate}` : ''}
-            </p>
-            {addressText && <p className="text-[11px] text-gray-400 truncate mt-1">{addressText}</p>}
-          </div>
-          <div className="text-right">
-            <span className="text-[10px] font-bold text-purple-300 bg-purple-500/15 border border-purple-500/25 px-2 py-1 rounded-lg">
-              Llegando
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }, [navTarget]);
 
   useEffect(() => {
     if (!user?.id && !user?.email) return;
@@ -811,27 +751,6 @@ export default function Home() {
       </main>
 
       <BottomNav />
-
-      {/* Botón radar de navegación (solo aparece cuando hay un objetivo con coordenadas) */}
-      {navTarget && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-[2147483646]"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 90px)' }}
-        >
-          <RadarNavButton
-            isActive={!!navSellerLocation}
-            onClick={() => setNavSheetOpen(true)}
-          />
-        </div>
-      )}
-
-      <NavBottomSheet
-        open={navSheetOpen}
-        onClose={() => setNavSheetOpen(false)}
-        userLocation={userLocation}
-        sellerLocation={navSellerLocation}
-        userCard={navUserCard}
-      />
 
       {oneActiveAlertOpen && (
   <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center">

@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, MessageCircle } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import NavPillButton from '@/components/navigation/NavPillButton';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -35,6 +36,31 @@ export default function BottomNav() {
       return (mine || []).slice();
     }
   });
+
+  // Objetivo de navegación (lo usaremos para mostrar el botón y el mapa)
+  const navTarget = useMemo(() => {
+    const list = myAlerts || [];
+    // Preferimos 'reserved' (alguien en camino) y si no, 'active'
+    const pick = list.find((a) => String(a?.status || '').toLowerCase() === 'reserved')
+      || list.find((a) => String(a?.status || '').toLowerCase() === 'active');
+    const lat = Number(pick?.latitude);
+    const lng = Number(pick?.longitude);
+    if (!pick || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { ...pick, latitude: lat, longitude: lng };
+  }, [myAlerts]);
+
+  const showNavButton = !!navTarget;
+
+  const openNavigation = useCallback(() => {
+    if (!navTarget) return;
+    // Persistimos el objetivo para que se mantenga al navegar por pantallas
+    try {
+      localStorage.setItem('waitme:navTarget', JSON.stringify({ alert: navTarget }));
+    } catch {}
+    window.dispatchEvent(new CustomEvent('waitme:navigationSetTarget', { detail: { alert: navTarget } }));
+    window.dispatchEvent(new Event('waitme:navigationOpen'));
+  }, [navTarget]);
+
 
   // La app solo permite 1 alerta activa.
   // Badge binario y SOLO cuando tenemos datos frescos (sin "2" fugaz).
@@ -84,7 +110,8 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] pb-2 z-[2147483647] pointer-events-auto relative">
+      <NavPillButton visible={showNavButton} onClick={openNavigation} label="Navegación" />
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
         <NavLink
           to="/history"
