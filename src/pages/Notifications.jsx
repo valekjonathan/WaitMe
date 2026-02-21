@@ -344,104 +344,138 @@ export default function Notifications() {
 
                 const t = normalize(type);
 
-                return (
+                const handleChatClick = (e) => {
+                    e?.stopPropagation();
+                    const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                    if (n?.id) markDemoNotificationRead(n.id);
+                    openChat(convId, n?.alertId);
+                  };
+
+                  const carColors = { blanco: '#FFFFFF', negro: '#1a1a1a', rojo: '#ef4444', azul: '#3b82f6', amarillo: '#facc15', gris: '#6b7280' };
+                  const carFill = carColors[carColor] || '#6b7280';
+                  const formatPlate = (p) => { const c = String(p || '').replace(/\s+/g, '').toUpperCase(); if (!c) return '0000 XXX'; return `${c.slice(0,4)} ${c.slice(4)}`.trim(); };
+                  const photoSrc = otherPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=7c3aed&color=fff&size=128`;
+
+                  return (
                   <div
                     key={n.id}
                     onClick={() => {
-                      // abrir chat al tocar la notificación
-                      const convId =
-                        n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                      const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
                       if (n?.id) markDemoNotificationRead(n.id);
                       if (convId) openChat(convId, n?.alertId);
                     }}
-                    className={`rounded-xl border-2 p-4 transition-all cursor-pointer ${
+                    className={`rounded-xl border-2 p-2 transition-all cursor-pointer ${
                       isUnread
-                        ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-purple-400/70 shadow-lg'
-                        : 'bg-gradient-to-br from-gray-900/50 to-gray-900/50 border-gray-700'
+                        ? 'bg-gray-900 border-purple-500/50 shadow-lg'
+                        : 'bg-gray-900 border-gray-700'
                     }`}
                   >
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className={`p-2 rounded-full ${isUnread ? 'bg-purple-500/20' : 'bg-gray-800'}`}>
-                        {iconMap[type] || iconMap.status_update}
+                    {/* Header row: badge + título + sin leer */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center cursor-default select-none pointer-events-none">
+                        {n?.title || 'NOTIFICACIÓN'}
+                      </Badge>
+                      <div className="flex-1 text-center text-xs text-white truncate">{n?.text || '—'}</div>
+                      {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse flex-shrink-0" />}
+                    </div>
+
+                    <div className="border-t border-gray-700/80 mb-1" />
+
+                    {/* Foto + info usuario */}
+                    <div className="flex gap-2.5">
+                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                        <img src={photoSrc} alt={otherName} className={`w-full h-full object-cover ${!isUnread ? 'opacity-40 grayscale' : ''}`} />
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
-                            {n?.title || 'NOTIFICACIÓN'}
-                          </Badge>
-                          {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />}
+                      <div className="flex-1 h-[85px] flex flex-col">
+                        <p className={`font-bold text-xl leading-none min-h-[22px] ${isUnread ? 'text-white' : 'text-gray-400'}`}>
+                          {(otherName || '').split(' ')[0] || 'Usuario'}
+                        </p>
+                        <p className={`text-sm font-medium leading-none flex-1 flex items-center truncate relative top-[6px] ${isUnread ? 'text-gray-200' : 'text-gray-500'}`}>
+                          {carLabel || 'Sin datos'}
+                        </p>
+
+                        <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                          <div className={`flex-shrink-0 ${!isUnread ? 'opacity-45' : ''}`}>
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                                <span className="text-white text-[8px] font-bold">E</span>
+                              </div>
+                              <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">{formatPlate(plate)}</span>
+                            </div>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <div className={`flex-shrink-0 relative -top-[1px] ${!isUnread ? 'opacity-45' : ''}`}>
+                              <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none" style={{ transform: 'translateY(3px)' }}>
+                                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5" />
+                                <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                                <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle cx="14" cy="18" r="2" fill="#666" />
+                                <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle cx="36" cy="18" r="2" fill="#666" />
+                              </svg>
+                            </div>
+                          </div>
                         </div>
-
-                        <p className="text-sm text-white font-medium break-words">
-                          {n?.text || '—'}
-                        </p>
-
-                        <p className="text-xs text-gray-400 mt-1">
-                          De: <span className="text-purple-300 font-semibold">{otherName}</span>
-                        </p>
                       </div>
                     </div>
 
-                    <MarcoCard
-                      photoUrl={otherPhoto}
-                      name={otherName}
-                      carLabel={carLabel}
-                      plate={plate}
-                      carColor={carColor}
-                      address={address}
-                      timeLine={<span className="text-gray-400">Operación en curso</span>}
-                      onChat={() => {
-                        const convId =
-                          n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
-                        if (n?.id) markDemoNotificationRead(n.id);
-                        openChat(convId, n?.alertId);
-                      }}
-                      statusText={statusText}
-                      phoneEnabled={phoneEnabled}
-                      onCall={() => phoneEnabled && phone && (window.location.href = `tel:${phone}`)}
-                      dimmed={!isUnread}
-                      role="buyer"
-                    />
-
-                    {hasLatLon && (
-                      <div className="mt-2">
-                        <Button
-                          className="w-full border-2 bg-blue-600 hover:bg-blue-700 border-blue-400/70"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (n?.id) markDemoNotificationRead(n.id);
-                            openNavigate(n?.alertId);
-                          }}
-                        >
-                          <Navigation className="w-4 h-4 mr-2" />
-                          IR
-                        </Button>
+                    {/* Dirección y tiempo */}
+                    <div className="pt-1.5 border-t border-gray-700/80 mt-1">
+                      <div className={`space-y-1.5 ${!isUnread ? 'opacity-80' : ''}`}>
+                        {address ? (
+                          <div className="flex items-start gap-1.5 text-xs">
+                            <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                            <span className={`leading-5 line-clamp-1 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>{address}</span>
+                          </div>
+                        ) : null}
+                        <div className="flex items-start gap-1.5 text-xs">
+                          <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                          <span className={`leading-5 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>Operación en curso</span>
+                        </div>
                       </div>
-                    )}
+                    </div>
 
-                    {t === 'incoming_waitme' && (
-                      <div
-                        className="mt-3 grid grid-cols-3 gap-2"
-                        onClick={(e) => {
-                          // evita que el contenedor abra chat si estás pulsando botones
-                          e.stopPropagation();
-                        }}
-                      >
-                        <Button onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
-                        <Button
-                          variant="outline"
-                          className="border-gray-600"
-                          onClick={() => runAction(n, 'thinking')}
-                        >
-                          Me lo pienso
+                    {/* Botones: mismo layout que UserAlertCard */}
+                    <div className="mt-2">
+                      <div className="flex gap-2">
+                        <Button size="icon" className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]" onClick={handleChatClick}>
+                          <MessageCircle className="w-4 h-4" />
                         </Button>
-                        <Button variant="destructive" onClick={() => runAction(n, 'rejected')}>
-                          Rechazar
-                        </Button>
+
+                        {phoneEnabled ? (
+                          <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                            onClick={(e) => { e.stopPropagation(); phone && (window.location.href = `tel:${phone}`); }}>
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+                            <PhoneOff className="w-4 h-4 text-white" />
+                          </Button>
+                        )}
+
+                        {hasLatLon && (
+                          <Button size="icon" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
+                            onClick={(e) => { e.stopPropagation(); if (n?.id) markDemoNotificationRead(n.id); openNavigate(n?.alertId); }}>
+                            <Navigation className="w-4 h-4" />
+                          </Button>
+                        )}
+
+                        {t === 'incoming_waitme' ? (
+                          <div className="flex-1 grid grid-cols-3 gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button className="h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs px-1" onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
+                            <Button variant="outline" className="h-8 rounded-lg border-gray-600 text-white text-xs px-1" onClick={() => runAction(n, 'thinking')}>Pienso</Button>
+                            <Button variant="destructive" className="h-8 rounded-lg text-xs px-1" onClick={() => runAction(n, 'rejected')}>Rechazar</Button>
+                          </div>
+                        ) : (
+                          <div className="flex-1">
+                            <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                              <span className="text-sm font-mono font-extrabold text-purple-300">{statusText}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
