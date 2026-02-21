@@ -237,14 +237,28 @@ export default function Notifications() {
                 const mins = alert?.available_in_minutes;
                 const price = alert?.price;
 
+                // Construir un objeto "alert" compatible con UserAlertCard
+                const fakeAlert = {
+                  user_name: buyer?.name || 'Usuario',
+                  user_photo: buyer?.photo || null,
+                  car_brand: '',
+                  car_model: carLabel,
+                  car_color: carColor,
+                  car_plate: plate,
+                  address: address,
+                  available_in_minutes: typeof mins === 'number' ? mins : null,
+                  price: price,
+                  phone: buyer?.phone || null,
+                  allow_phone_calls: false,
+                  latitude: null,
+                  longitude: null
+                };
+
                 return (
-                  <div
-                    key={r?.id}
-                    className="rounded-xl border-2 border-gray-700 bg-gray-900/60 p-4"
-                  >
-                    {/* Título grande */}
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <div className="text-white text-[16px] font-semibold">
+                  <div key={r?.id} className="rounded-xl border-2 border-purple-500/50 bg-gray-900 p-0 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
+                      <div className="text-white text-[15px] font-semibold">
                         Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
                       </div>
                       <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
@@ -252,42 +266,27 @@ export default function Notifications() {
                       </Badge>
                     </div>
 
-                    {/* Operación incrustada */}
-                    <MarcoCard
-                      photoUrl={buyer?.photo || null}
-                      name={buyer?.name || 'Usuario'}
-                      carLabel={carLabel}
-                      plate={plate}
-                      carColor={carColor}
-                      onChat={() => {}}
-                      address={address}
-                      timeLine={
-                        <span className="text-gray-400">
-                          {typeof mins === 'number' ? `Te vas en ${mins} min` : 'Operación en curso'}
-                          {price != null ? ` · ${Number(price) || price}€` : ''}
-                        </span>
-                      }
-                      statusText={statusText}
-                      dimmed={status !== 'pending'}
-                      role="buyer"
-                    />
-
-                    {status === 'pending' && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <Button
-                          className="bg-purple-600 hover:bg-purple-700"
-                          onClick={() => acceptRequest(r)}
-                        >
-                          Aceptar
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => rejectRequest(r)}
-                        >
-                          Rechazar
-                        </Button>
-                      </div>
-                    )}
+                    {/* Tarjeta completa estilo "Dónde quieres aparcar" */}
+                    <div className="px-2 pb-2">
+                      <UserAlertCard
+                        alert={fakeAlert}
+                        isEmpty={false}
+                        onBuyAlert={status === 'pending' ? () => acceptRequest(r) : undefined}
+                        onChat={() => {}}
+                        onCall={() => buyer?.phone && (window.location.href = `tel:${buyer.phone}`)}
+                        isLoading={false}
+                        userLocation={null}
+                        buyLabel="Aceptar"
+                        hideBuy={status !== 'pending'}
+                      />
+                      {status === 'pending' && (
+                        <div className="mt-2">
+                          <Button variant="destructive" className="w-full" onClick={() => rejectRequest(r)}>
+                            Rechazar
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
