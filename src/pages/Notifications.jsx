@@ -16,7 +16,11 @@ import {
   Timer,
   TrendingUp,
   AlertCircle,
-  Navigation
+  Navigation,
+  Clock,
+  MessageCircle,
+  Phone,
+  PhoneOff
 } from 'lucide-react';
 import MarcoCard from '@/components/cards/MarcoCard';
 
