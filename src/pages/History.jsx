@@ -1044,34 +1044,15 @@ const myFinalizedAlerts = useMemo(() => {
 
                                 {alert.reserved_by_name && (
                                   <div className="mb-1.5">
-                                    <MarcoContent
-                                      bright={true}
-                                      photoUrl={
-                                        alert.reserved_by_photo ||
-                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name)}&background=7c3aed&color=fff&size=128`
-                                      }
-                                      name={alert.reserved_by_name}
-                                      carLabel={alert.reserved_by_car || 'Sin datos'}
-                                      plate={alert.reserved_by_plate}
-                                      carColor={alert.reserved_by_car_color || 'gris'}
-                                      address={formatAddress(alert.address)}
-                                      timeLine={{
-                                        main: `Se va en ${alert.available_in_minutes} min ·`,
-                                        accent: `Te espera hasta las ${waitUntilLabel}`
-                                      }}
-                                      onChat={() =>
-                                        (window.location.href = createPageUrl(
-                                          `Chat?alertId=${alert.id}&userId=${
-                                            alert.reserved_by_email || alert.reserved_by_id
-                                          }`
-                                        ))
-                                      }
-                                      statusText={countdownText}
-                                      statusEnabled={true}
-                                      phoneEnabled={Boolean(alert.phone && alert.allow_phone_calls !== false)}
-                                      onCall={() =>
-                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
-                                      }
+                                    <ReservedByContent
+                                     alert={alert}
+                                     waitUntilLabel={waitUntilLabel}
+                                     countdownText={countdownText}
+                                     formatAddress={formatAddress}
+                                     getCarFill={getCarFill}
+                                     formatPlate={formatPlate}
+                                     avatarFor={avatarFor}
+                                     createPageUrl={createPageUrl}
                                     />
                                   </div>
                                 )}
