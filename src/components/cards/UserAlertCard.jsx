@@ -15,7 +15,9 @@ export default function UserAlertCard({
   onCall,
   isLoading = false,
   isEmpty = false,
-  userLocation
+  userLocation,
+  buyLabel = 'WaitMe!',
+  hideBuy = false,
 }) {
   // Normaliza userLocation para evitar errores cuando llega como array u objeto
   // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
