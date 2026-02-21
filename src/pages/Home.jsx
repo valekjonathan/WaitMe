@@ -469,6 +469,7 @@ export default function Home() {
   return (
     <div className="min-min-h-[100dvh] w-full bg-black text-white flex flex-col">
       <NotificationManager user={user} />
+      <WaitMeRequestScheduler />
 
       <Header
         iconVariant="bottom"
