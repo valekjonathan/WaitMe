@@ -1,3 +1,4 @@
+import * as alertsService from '@/store/alertsService';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -327,37 +328,25 @@ export default function Home() {
   },
 
   onMutate: async (data) => {
-    navigate(createPageUrl('History'), { replace: true });
+  const now = Date.now();
+  const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
 
-    await queryClient.cancelQueries({ queryKey: ['alerts'] });
-    await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
+  const instantAlert = {
+    id: `instant_${Date.now()}`,
+    ...data,
+    wait_until: futureTime.toISOString(),
+    created_from: 'parked_here',
+    status: 'active',
+    created_date: new Date().toISOString()
+  };
 
-    const now = Date.now();
-    const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
+  queryClient.setQueryData(['myAlerts'], (old) => {
+    const list = Array.isArray(old) ? old : (old?.data || []);
+    return [instantAlert, ...list];
+  });
 
-    const optimisticAlert = {
-      id: `temp_${Date.now()}`,
-      ...data,
-      wait_until: futureTime.toISOString(),
-      created_from: 'parked_here',
-      status: 'active',
-      created_date: new Date().toISOString()
-    };
-
-    queryClient.setQueryData(['alerts'], (old) => {
-      const list = Array.isArray(old) ? old : (old?.data || []);
-      return [optimisticAlert, ...list];
-    });
-
-    queryClient.setQueryData(['myAlerts'], (old) => {
-      const list = Array.isArray(old) ? old : (old?.data || []);
-      return [optimisticAlert, ...list];
-    });
-
-    try {
-      window.dispatchEvent(new Event('waitme:badgeRefresh'));
-    } catch {}
-  },
+  window.dispatchEvent(new Event('waitme:badgeRefresh'));
+},
 
   onSuccess: (newAlert) => {
     queryClient.setQueryData(['alerts'], (old) => {
@@ -842,7 +831,7 @@ export default function Home() {
                   return (
                     <>
                       <span className="text-purple-400">Debes esperar hasta las: </span>
-                      <span className="text-white">{hhmm}</span>
+<span className="text-white text-xl font-bold">{hhmm}</span>
                     </>
                   );
                 })()}
