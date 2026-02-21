@@ -569,15 +569,6 @@ const {
   }
 });
 
-// Cuando el usuario se hidrata (AuthContext), forzamos refetch inmediato
-useEffect(() => {
-  if (!user?.id && !user?.email) return;
-  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [user?.id, user?.email]);
-
-
-
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   queryKey: ['myTransactions', user?.email],
   enabled: !!user?.email,
