@@ -361,6 +361,7 @@ export default function Home() {
 
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      window.dispatchEvent(new CustomEvent('waitme:alertPublished', { detail: { alertId: newAlert?.id || null } }));
     } catch {}
     setConfirmPublishOpen(false);
     setPendingPublishPayload(null);
