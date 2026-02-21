@@ -362,6 +362,9 @@ export default function Home() {
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
     } catch {}
+    setConfirmPublishOpen(false);
+    setPendingPublishPayload(null);
+    navigate(createPageUrl('History'));
   },
 
   onError: (error) => {
