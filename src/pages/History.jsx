@@ -940,6 +940,7 @@ const myFinalizedAlerts = useMemo(() => {
       const rem = Math.max(0, waitUntilTs - nowTs);
       if (rem === 0 && !expiredAlertExtend[alert.id]) {
         setExpiredAlertExtend((prev) => ({ ...prev, [alert.id]: true }));
+        setExpiredAlertModalId(alert.id);
       }
     });
   }, [nowTs, visibleActiveAlerts]);
