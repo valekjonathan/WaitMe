@@ -5,6 +5,7 @@ import { ArrowLeft, Settings, User, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
+import { getBalance } from '@/lib/transactionEngine';
 
 export default function Header({
   title = 'WaitMe!',
@@ -16,11 +17,19 @@ export default function Header({
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // base44 puede devolver credits como string -> forzar number para evitar pantallazo negro
-  const creditsNumber = (() => {
-    const n = Number(user?.credits ?? 0);
-    return Number.isFinite(n) ? n : 0;
-  })();
+  const [balance, setBalance] = useState(() => getBalance(user?.id));
+
+  useEffect(() => {
+    setBalance(getBalance(user?.id));
+  }, [user?.id]);
+
+  useEffect(() => {
+    const handler = () => setBalance(getBalance(user?.id));
+    window.addEventListener('balanceUpdated', handler);
+    return () => window.removeEventListener('balanceUpdated', handler);
+  }, [user?.id]);
+
+  const creditsNumber = Number.isFinite(balance) ? balance : 0;
 
   // Banner tipo WhatsApp (petición entrante)
   const [bannerReq, setBannerReq] = useState(null);

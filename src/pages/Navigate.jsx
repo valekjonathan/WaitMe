@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
+import { finalize, OUTCOME } from '@/lib/transactionEngine';
 
 export default function Navigate() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -20,6 +21,7 @@ export default function Navigate() {
   const [isTracking, setIsTracking] = useState(false);
   const [paymentReleased, setPaymentReleased] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [forceRelease, setForceRelease] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
   const hasReleasedPaymentRef = useRef(false);
@@ -301,15 +303,25 @@ export default function Navigate() {
     return { value: (distanceMeters / 1000).toFixed(1), unit: 'km' };
   })();
 
-  // Liberar pago cuando estén a menos de 10 metros
+  // Liberar pago cuando estén a menos de 10 metros (o forzado en demo)
   useEffect(() => {
     if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
-    if (distanceMeters === null || distanceMeters > 5) return;
-    
+    if ((distanceMeters === null || distanceMeters > 5) && !forceRelease) return;
+
+    if (forceRelease) setForceRelease(false);
+
     // Usuarios están a menos de 10 metros - liberar pago
     const releasePayment = async () => {
       hasReleasedPaymentRef.current = true;
-      
+
+      const amount = Number(alert?.price ?? 0);
+      // TODO migrate alerts to always use user_id
+      const sellerId = alert?.user_id ?? alert?.user_email;
+      const buyerId = user?.id;
+      if (Number.isFinite(amount) && sellerId && buyerId) {
+        finalize({ outcome: OUTCOME.FINALIZADA_OK, amount, sellerId, buyerId });
+      }
+
       const isDemo = String(alert.id).startsWith('demo_');
       
       if (!isDemo) {
@@ -363,7 +375,7 @@ export default function Navigate() {
     };
     
     releasePayment();
-  }, [distanceMeters, alert, user, paymentReleased, queryClient]);
+  }, [distanceMeters, alert, user, paymentReleased, queryClient, forceRelease]);
 
   // Ya no necesitamos pedir ubicación real - usamos ficticias
 
@@ -525,6 +537,16 @@ export default function Navigate() {
               </p>
             )}
           </motion.div>
+        )}
+
+        {displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
+          <Button
+            variant="outline"
+            className="w-full border-dashed border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+            onClick={() => setForceRelease(true)}
+          >
+            Simular llegada
+          </Button>
         )}
       </div>
 
