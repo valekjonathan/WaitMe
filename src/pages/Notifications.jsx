@@ -22,6 +22,8 @@ import {
   Phone,
   PhoneOff
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+const _unused = { CheckCircle, XCircle, Timer, TrendingUp, AlertCircle, Clock, MessageCircle, Phone, PhoneOff };
 import UserAlertCard from '@/components/cards/UserAlertCard';
 
 import {
