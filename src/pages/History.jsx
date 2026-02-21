@@ -981,7 +981,7 @@ const myFinalizedAlerts = useMemo(() => {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
                   >
-                    <p className="text-gray-500 font-semibold">No tienes alertas activas ahora mismo.</p>
+                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
                   </motion.div>
                 ) : (
                   <div className="space-y-[20px]">
