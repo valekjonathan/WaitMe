@@ -927,6 +927,7 @@ const myFinalizedAlerts = useMemo(() => {
 
   // ====== Estado de prórroga cuando expira (para tarjetas "reservado por:") ======
   const [expiredAlertExtend, setExpiredAlertExtend] = useState({});
+  const [expiredAlertModalId, setExpiredAlertModalId] = useState(null);
   // expiredAlertExtend[alertId] = true si ha expirado y aún no ha elegido
 
   // Detectar alertas reservadas cuyo countdown llegó a 0
