@@ -64,7 +64,7 @@ const queryClient = useQueryClient();
 
   // ====== Fotos fijas (NO rotan) ======
   const fixedAvatars = {
-    Sofía: 'https://randomuser.me/api/portraits/women/68.jpg',
+    Sofía: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=face',
     Hugo: 'https://randomuser.me/api/portraits/men/32.jpg',
     Nuria: 'https://randomuser.me/api/portraits/women/44.jpg',
     Iván: 'https://randomuser.me/api/portraits/men/75.jpg',
