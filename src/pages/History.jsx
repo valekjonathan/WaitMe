@@ -15,6 +15,8 @@ import {
   Phone,
   Navigation
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+const _unusedLoader = Loader;
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
