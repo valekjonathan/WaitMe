@@ -1,76 +1,64 @@
-// ================================
-// FILE: src/components/WaitMeRequestScheduler.jsx
-// ================================
-import { useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
+import { useEffect, useRef } from 'react';
 import { upsertWaitMeRequest } from '@/lib/waitmeRequests';
 import { MOCK_USERS } from '@/lib/mockNearby';
 
-// A los 30s de abrir la app: crea 1 petición "Usuario quiere tu WaitMe!"
+// Dispara 30s DESPUÉS de que el usuario publica su alerta (evento 'waitme:alertPublished').
+// Solo UNA vez por sesión.
 export default function WaitMeRequestScheduler() {
-  const { user } = useAuth();
+  const timerRef = useRef(null);
+  const firedRef = useRef(false);
 
   useEffect(() => {
-    // Solo 1 vez por apertura de app (session)
-    const KEY = 'waitme_incoming_fired_v1';
+    const KEY = 'waitme_incoming_fired_v2';
     try {
-      if (window?.sessionStorage?.getItem(KEY) === '1') return;
-      window?.sessionStorage?.setItem(KEY, '1');
+      if (window?.sessionStorage?.getItem(KEY) === '1') {
+        firedRef.current = true;
+      }
     } catch {}
 
-    const t = setTimeout(async () => {
-      try {
-        // busca tu alerta activa para “rellenar” al aceptar
-        let activeAlertId = null;
-        const uid = user?.id;
-        const email = user?.email;
+    const onAlertPublished = (e) => {
+      if (firedRef.current) return; // ya disparado en esta sesión
+      const alertId = e?.detail?.alertId || null;
 
-        if (uid || email) {
-          const mine = uid
-            ? await base44.entities.ParkingAlert.filter({ user_id: uid })
-            : await base44.entities.ParkingAlert.filter({ user_email: email });
+      timerRef.current = setTimeout(() => {
+        try {
+          firedRef.current = true;
+          try { window?.sessionStorage?.setItem(KEY, '1'); } catch {}
 
-          const active = (mine || []).find((a) => {
-            const st = String(a?.status || '').toLowerCase();
-            return st === 'active';
-          });
+          const buyer = MOCK_USERS[0];
 
-          activeAlertId = active?.id || null;
-        }
+          const req = {
+            id: `req_${Date.now()}`,
+            type: 'incoming_waitme_request',
+            title: 'Usuario quiere tu WaitMe!',
+            createdAt: Date.now(),
+            status: 'pending',
+            alertId,
+            buyer: {
+              id: buyer.id,
+              name: buyer.name,
+              photo: buyer.photo,
+              vehicle_type: buyer.vehicle_type,
+              car_model: buyer.car_model,
+              car_color: buyer.car_color,
+              plate: buyer.plate,
+              phone: buyer.phone
+            }
+          };
 
-        // eligimos un usuario mock fijo (el primero)
-        const buyer = MOCK_USERS[0];
+          upsertWaitMeRequest(req);
+          try { window.dispatchEvent(new Event('waitme:showIncomingBanner')); } catch {}
+        } catch {}
+      }, 30_000);
+    };
 
-        const req = {
-          id: `req_${Date.now()}`,
-          type: 'incoming_waitme_request',
-          title: 'Usuario quiere tu WaitMe!',
-          createdAt: Date.now(),
-          status: 'pending',
-          alertId: activeAlertId,
-          buyer: {
-            id: buyer.id,
-            name: buyer.name,
-            photo: buyer.photo,
-            vehicle_type: buyer.vehicle_type,
-            car_model: buyer.car_model,
-            car_color: buyer.car_color,
-            plate: buyer.plate,
-            phone: buyer.phone
-          }
-        };
+    window.addEventListener('waitme:alertPublished', onAlertPublished);
 
-        upsertWaitMeRequest(req);
-
-        try { window.dispatchEvent(new Event('waitme:showIncomingBanner')); } catch {}
-      } catch {
-        // si falla, no rompe la app
-      }
-    }, 30_000);
-
-    return () => clearTimeout(t);
-  }, [user?.id, user?.email]);
+    return () => {
+      window.removeEventListener('waitme:alertPublished', onAlertPublished);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return null;
 }

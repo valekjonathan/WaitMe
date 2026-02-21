@@ -15,6 +15,8 @@ import {
   Phone,
   Navigation
 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+const _unusedLoader = Loader;
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -64,7 +66,7 @@ const queryClient = useQueryClient();
 
   // ====== Fotos fijas (NO rotan) ======
   const fixedAvatars = {
-    Sofía: 'https://randomuser.me/api/portraits/women/68.jpg',
+    Sofía: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=face',
     Hugo: 'https://randomuser.me/api/portraits/men/32.jpg',
     Nuria: 'https://randomuser.me/api/portraits/women/44.jpg',
     Iván: 'https://randomuser.me/api/portraits/men/75.jpg',
@@ -923,6 +925,189 @@ const myFinalizedAlerts = useMemo(() => {
   });
 
 
+  // ====== Estado de prórroga cuando expira (para tarjetas "reservado por:") ======
+  const [expiredAlertExtend, setExpiredAlertExtend] = useState({});
+  const [expiredAlertModalId, setExpiredAlertModalId] = useState(null);
+  // expiredAlertExtend[alertId] = true si ha expirado y aún no ha elegido
+
+  // Detectar alertas reservadas cuyo countdown llegó a 0
+  useEffect(() => {
+    if (!visibleActiveAlerts) return;
+    visibleActiveAlerts.forEach((alert) => {
+      if (alert.status !== 'reserved') return;
+      const waitUntilTs = getWaitUntilTs(alert);
+      if (!waitUntilTs) return;
+      const rem = Math.max(0, waitUntilTs - nowTs);
+      if (rem === 0 && !expiredAlertExtend[alert.id]) {
+        setExpiredAlertExtend((prev) => ({ ...prev, [alert.id]: true }));
+        setExpiredAlertModalId(alert.id);
+      }
+    });
+  }, [nowTs, visibleActiveAlerts]);
+
+  // ====== Bloque de expiración (debajo de botones) ======
+  const ExpiredBlock = ({ alert }) => (
+    <>
+      <div className="border-t border-gray-700/60 mt-2 pt-2">
+        <p className="text-white text-sm font-semibold text-center mb-2">
+          Usuario no se ha presentado. Puedes irte o prorrogarle:
+        </p>
+        <div className="flex gap-2 mb-2">
+          {[
+            { mins: '5 min', price: '2 €', addMins: 5 },
+            { mins: '10 min', price: '3 €', addMins: 10 },
+            { mins: '15 min', price: '5 €', addMins: 15 }
+          ].map((opt) => (
+            <button
+              key={opt.addMins}
+              className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 hover:bg-purple-600/40 transition-colors flex flex-col items-center justify-center"
+              onClick={() => {
+                setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+                setExpiredAlertModalId(null);
+                const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
+                base44.entities.ParkingAlert.update(alert.id, { available_in_minutes: newMins }).then(() => {
+                  queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                });
+              }}
+            >
+              <span className="text-white text-[11px] font-bold leading-none">{opt.mins} ·</span>
+              <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">{opt.price}</span>
+            </button>
+          ))}
+        </div>
+        <Button
+          className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
+          onClick={() => {
+            setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+            setExpiredAlertModalId(null);
+            base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+              queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+              try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+            });
+          }}
+        >
+          Me voy
+        </Button>
+      </div>
+    </>
+  );
+
+  // ====== Contenido de tarjeta "reservado por:" ======
+  const ReservedByContent = ({
+    alert,
+    waitUntilLabel,
+    countdownText,
+    formatAddress,
+    getCarFill,
+    formatPlate,
+    avatarFor,
+    createPageUrl
+  }) => {
+    const reservedByPhoto =
+      alert.reserved_by_photo ||
+      avatarFor(alert.reserved_by_name) ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
+
+    const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
+    const isExpired = expiredAlertExtend[alert.id];
+
+    const carLabel = alert.reserved_by_car || 'Sin datos';
+    const carColor = alert.reserved_by_car_color || 'gris';
+    const plate = alert.reserved_by_plate || '';
+
+    const stUpper = String(countdownText || '').trim().toUpperCase();
+    const isCountdownLike = /^\d{2}:\d{2}(?::\d{2})?$/.test(stUpper);
+
+    const statusBoxCls = isCountdownLike
+      ? 'border-purple-400/70 bg-purple-600/25'
+      : 'border-purple-500/30 bg-purple-600/10';
+    const statusTextCls = isCountdownLike ? 'text-purple-100' : 'text-purple-300';
+
+    return (
+      <>
+        {/* Foto + datos usuario */}
+        <div className="flex gap-2.5">
+          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+            <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 h-[85px] flex flex-col">
+            <p className="font-bold text-xl text-white leading-none min-h-[22px]">
+              {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+            </p>
+            <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+            <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+              <div className="flex-shrink-0"><PlateProfile plate={plate} /></div>
+              <div className="flex-1 flex justify-center">
+                <div className="flex-shrink-0 relative -top-[1px]">
+                  <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-1.5 border-t border-gray-700/80 mt-2">
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-1.5 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5 line-clamp-1">{formatAddress(alert.address)}</span>
+            </div>
+            <div className="flex items-start gap-1.5 text-xs">
+              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5">
+                Te vas en {alert.available_in_minutes} min ·{' '}
+                <span className="text-purple-400">Te espera hasta las:</span>{' '}
+                <span className="text-white text-base font-bold">{waitUntilLabel}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Botones de acción */}
+        <div className="mt-2 flex gap-2">
+          {/* Chat */}
+          <Button
+            size="icon"
+            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+            onClick={() => (window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`))}
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+
+          {/* Teléfono */}
+          {phoneEnabled ? (
+            <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]" onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}>
+              <Phone className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+              <PhoneOff className="w-4 h-4 text-white" />
+            </Button>
+          )}
+
+          {/* IR — mismo tamaño que teléfono, azul sólido apagado */}
+          <Button
+            size="icon"
+            className="h-8 w-[42px] rounded-lg bg-blue-600/40 text-blue-300 opacity-50 cursor-not-allowed flex items-center justify-center"
+            disabled
+          >
+            <Navigation className="w-4 h-4" />
+          </Button>
+
+          {/* Contador */}
+          <div className="flex-1">
+            <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}>
+              <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>{countdownText}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bloque expiración — debajo de botones */}
+        {isExpired && <ExpiredBlock alert={alert} />}
+      </>
+    );
+  };
+
   // ====== Badge ancho igual que la foto (95px) ======
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
 
@@ -1008,15 +1193,15 @@ const myFinalizedAlerts = useMemo(() => {
                             className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                           >
                             {alert.status === 'reserved' && alert.reserved_by_name ? (
-                              <>
-                                <CardHeaderRow
-                                  left={
-                                    <Badge
-                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
-                                    >
-                                      Reservado por:
-                                    </Badge>
-                                  }
+                             <>
+                               <CardHeaderRow
+                                 left={
+                                   <div
+                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md flex items-center justify-center text-center ${badgePhotoWidth} h-7 ${labelNoClick}`}
+                                   >
+                                     Te reservó:
+                                   </div>
+                                 }
                                   dateText={dateText}
                                   dateClassName="text-white"
                                   right={
@@ -1043,60 +1228,20 @@ const myFinalizedAlerts = useMemo(() => {
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
-                                  <div className="mb-1.5 h-[220px]">
-                                    <UserCard
-                                      userName={alert.reserved_by_name}
-                                      userPhoto={null}
-                                      carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
-                                      carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
-                                      carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
-                                      carPlate={alert.reserved_by_plate}
-                                      vehicleType={alert.reserved_by_vehicle_type}
-                                      address={formatAddress(alert.address)}
-                                      availableInMinutes={alert.available_in_minutes}
-                                      price={alert.price}
-                                      showLocationInfo={false}
-                                      showContactButtons={true}
-                                      onChat={() =>
-                                        (window.location.href = createPageUrl(
-                                          `Chat?alertId=${alert.id}&userId=${
-                                            alert.reserved_by_email || alert.reserved_by_id
-                                          }`
-                                        ))
-                                      }
-                                      onCall={() =>
-                                        alert.phone && (window.location.href = `tel:${alert.phone}`)
-                                      }
-                                      latitude={alert.latitude}
-                                      longitude={alert.longitude}
-                                      allowPhoneCalls={alert.allow_phone_calls}
-                                      isReserved={true}
+                                  <div className="mb-1.5">
+                                    <ReservedByContent
+                                     alert={alert}
+                                     waitUntilLabel={waitUntilLabel}
+                                     countdownText={countdownText}
+                                     formatAddress={formatAddress}
+                                     getCarFill={getCarFill}
+                                     formatPlate={formatPlate}
+                                     avatarFor={avatarFor}
+                                     createPageUrl={createPageUrl}
                                     />
                                   </div>
                                 )}
 
-                                <div className="flex items-start gap-1.5 text-xs mb-2">
-                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-gray-400 leading-5">
-                                    {formatAddress(alert.address) || 'Ubicación marcada'}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-start justify-between text-xs">
-                                  <div className="flex items-start gap-1.5">
-                                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                    <span className="text-gray-500 leading-5">
-                                      Te vas en {alert.available_in_minutes} min
-                                    </span>
-                                  </div>
-                                  <span className="text-purple-400 leading-5">
-                                    Debes esperar hasta las: {waitUntilLabel}
-                                  </span>
-                                </div>
-
-                                <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={false} />
-                                </div>
                               </>
                             ) : (
                               <>
@@ -1840,6 +1985,121 @@ const myFinalizedAlerts = useMemo(() => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de expiración de reserva */}
+      {expiredAlertModalId && (() => {
+        const alert = visibleActiveAlerts.find(a => a.id === expiredAlertModalId);
+        if (!alert) return null;
+        const waitUntilTs = getWaitUntilTs(alert);
+        const waitUntilLabel = waitUntilTs
+          ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+          : '--:--';
+        const reservedByPhoto =
+          alert.reserved_by_photo ||
+          avatarFor(alert.reserved_by_name) ||
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
+        const carLabel = alert.reserved_by_car || 'Sin datos';
+        const carColor = alert.reserved_by_car_color || 'gris';
+        const plate = alert.reserved_by_plate || '';
+        return (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
+            <div className="bg-gray-900 border-2 border-purple-500/60 rounded-xl w-full max-w-sm p-3 relative">
+              {/* Cerrar */}
+              <button
+                className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 flex items-center justify-center text-white z-10"
+                onClick={() => setExpiredAlertModalId(null)}
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Header */}
+              <div className="flex justify-center mb-3">
+                <div className="px-4 py-1.5 rounded-lg bg-purple-700/60 border border-purple-500/60">
+                  <span className="text-white font-semibold text-sm">Tiempo expirado</span>
+                </div>
+              </div>
+
+              {/* Foto + info */}
+              <div className="flex gap-2.5 mb-2">
+                <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                  <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 h-[85px] flex flex-col">
+                  <p className="font-bold text-xl text-white leading-none min-h-[22px]">
+                    {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+                  </p>
+                  <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+                  <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                    <div className="flex-shrink-0"><PlateProfile plate={plate} /></div>
+                    <div className="flex-1 flex justify-center">
+                      <div className="flex-shrink-0 relative -top-[1px]">
+                        <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-700/80 mb-2 pt-1.5 space-y-1.5">
+                <div className="flex items-start gap-1.5 text-xs">
+                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                  <span className="text-gray-200 leading-5 line-clamp-1">{formatAddress(alert.address)}</span>
+                </div>
+                <div className="flex items-start gap-1.5 text-xs">
+                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                  <span className="text-gray-200 leading-5">
+                    Te vas en {alert.available_in_minutes} min ·{' '}
+                    <span className="text-purple-400">Te espera hasta las:</span>{' '}
+                    <span className="text-white text-base font-bold">{waitUntilLabel}</span>
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-white text-sm font-semibold text-center mb-2">
+                Usuario no se ha presentado. Puedes irte o prorrogarle:
+              </p>
+
+              <div className="flex gap-2 mb-2">
+                {[
+                  { mins: '5 min', price: '2 €', addMins: 5 },
+                  { mins: '10 min', price: '3 €', addMins: 10 },
+                  { mins: '15 min', price: '5 €', addMins: 15 }
+                ].map((opt) => (
+                  <button
+                    key={opt.addMins}
+                    className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 hover:bg-purple-600/40 transition-colors flex flex-col items-center justify-center"
+                    onClick={() => {
+                      setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+                      setExpiredAlertModalId(null);
+                      const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
+                      base44.entities.ParkingAlert.update(alert.id, { available_in_minutes: newMins }).then(() => {
+                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                      });
+                    }}
+                  >
+                    <span className="text-white text-[11px] font-bold leading-none">{opt.mins} ·</span>
+                    <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">{opt.price}</span>
+                  </button>
+                ))}
+              </div>
+
+              <Button
+                className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
+                onClick={() => {
+                  setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+                  setExpiredAlertModalId(null);
+                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                    try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+                  });
+                }}
+              >
+                Me voy
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       <BottomNav />
 

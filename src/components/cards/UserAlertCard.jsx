@@ -15,7 +15,9 @@ export default function UserAlertCard({
   onCall,
   isLoading = false,
   isEmpty = false,
-  userLocation
+  userLocation,
+  buyLabel = 'WaitMe!',
+  hideBuy = false,
 }) {
   // Normaliza userLocation para evitar errores cuando llega como array u objeto
   // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
@@ -303,15 +305,16 @@ export default function UserAlertCard({
             <Navigation className="w-4 h-4" />
           </Button>
 
-          <div className="flex-1">
-            <Button
-              className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
-              onClick={handleBuy}
-              disabled={isLoading}>
-
-              {isLoading ? 'Procesando...' : 'WaitMe!'}
-            </Button>
-          </div>
+          {!hideBuy && (
+            <div className="flex-1">
+              <Button
+                className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
+                onClick={handleBuy}
+                disabled={isLoading}>
+                {isLoading ? 'Procesando...' : buyLabel}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>);
