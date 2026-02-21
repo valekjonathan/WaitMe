@@ -1043,20 +1043,22 @@ const myFinalizedAlerts = useMemo(() => {
                                 <div className="border-t border-gray-700/80 mb-2" />
 
                                 {alert.reserved_by_name && (
-                                  <div className="mb-1.5 h-[220px]">
-                                    <UserCard
-                                      userName={alert.reserved_by_name}
-                                      userPhoto={null}
-                                      carBrand={alert.reserved_by_car?.split(' ')[0] || 'Sin'}
-                                      carModel={alert.reserved_by_car?.split(' ')[1] || 'datos'}
-                                      carColor={alert.reserved_by_car?.split(' ').pop() || 'gris'}
-                                      carPlate={alert.reserved_by_plate}
-                                      vehicleType={alert.reserved_by_vehicle_type}
+                                  <div className="mb-1.5">
+                                    <MarcoContent
+                                      bright={true}
+                                      photoUrl={
+                                        alert.reserved_by_photo ||
+                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name)}&background=7c3aed&color=fff&size=128`
+                                      }
+                                      name={alert.reserved_by_name}
+                                      carLabel={alert.reserved_by_car || 'Sin datos'}
+                                      plate={alert.reserved_by_plate}
+                                      carColor={alert.reserved_by_car_color || 'gris'}
                                       address={formatAddress(alert.address)}
-                                      availableInMinutes={alert.available_in_minutes}
-                                      price={alert.price}
-                                      showLocationInfo={false}
-                                      showContactButtons={true}
+                                      timeLine={{
+                                        main: `Se va en ${alert.available_in_minutes} min ·`,
+                                        accent: `Te espera hasta las ${waitUntilLabel}`
+                                      }}
                                       onChat={() =>
                                         (window.location.href = createPageUrl(
                                           `Chat?alertId=${alert.id}&userId=${
@@ -1064,13 +1066,12 @@ const myFinalizedAlerts = useMemo(() => {
                                           }`
                                         ))
                                       }
+                                      statusText={countdownText}
+                                      statusEnabled={true}
+                                      phoneEnabled={Boolean(alert.phone && alert.allow_phone_calls !== false)}
                                       onCall={() =>
                                         alert.phone && (window.location.href = `tel:${alert.phone}`)
                                       }
-                                      latitude={alert.latitude}
-                                      longitude={alert.longitude}
-                                      allowPhoneCalls={alert.allow_phone_calls}
-                                      isReserved={true}
                                     />
                                   </div>
                                 )}
