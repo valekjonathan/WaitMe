@@ -304,7 +304,7 @@ export default function Navigate() {
   // Liberar pago cuando estén a menos de 10 metros
   useEffect(() => {
     if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
-    if (distanceMeters === null || distanceMeters > 10) return;
+    if (distanceMeters === null || distanceMeters > 5) return;
     
     // Usuarios están a menos de 10 metros - liberar pago
     const releasePayment = async () => {
@@ -348,6 +348,10 @@ export default function Navigate() {
       
       setPaymentReleased(true);
       setShowPaymentSuccess(true);
+      try {
+        window.dispatchEvent(new CustomEvent('waitme:paymentReleased', { detail: { amount: Number(alert?.price ?? 0) } }));
+      } catch (_) {}
+
       
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['navigationAlert'] });
@@ -387,9 +391,9 @@ export default function Navigate() {
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-5xl">✅</span>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">¡Pago liberado!</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">El pago se ha liberado</h2>
             <p className="text-green-100 mb-4">
-              Has llegado al destino
+              Estás a 5 metros
             </p>
             <div className="bg-white/20 rounded-lg p-3">
               <p className="text-white font-bold text-lg">{alert.price.toFixed(2)}€</p>
@@ -515,7 +519,7 @@ export default function Navigate() {
             <p className="text-xs text-blue-400">
               📍 Navegando en tiempo real hacia el parking
             </p>
-            {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 10 && (
+            {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 5 && (
               <p className="text-xs text-yellow-400 mt-1 font-bold">
                 ¡Muy cerca! {Math.round(distanceMeters)}m hasta liberar el pago
               </p>

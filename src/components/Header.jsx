@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Settings, User, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 
@@ -24,6 +25,9 @@ export default function Header({
   // Banner tipo WhatsApp (petición entrante)
   const [bannerReq, setBannerReq] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
+
+  // Animación: dinero subiendo en el botón de créditos
+  const [creditsPulse, setCreditsPulse] = useState(null);
 
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
@@ -87,6 +91,20 @@ export default function Header({
     };
   }, []);
 
+
+  useEffect(() => {
+    const onPayment = (e) => {
+      const amount = Number(e?.detail?.amount ?? 0);
+      if (!Number.isFinite(amount) || amount <= 0) return;
+      setCreditsPulse({ id: Date.now(), amount });
+      // se auto-oculta
+      setTimeout(() => setCreditsPulse(null), 1200);
+    };
+
+    window.addEventListener('waitme:paymentReleased', onPayment);
+    return () => window.removeEventListener('waitme:paymentReleased', onPayment);
+  }, []);
+
   useEffect(() => {
     // si hay pending al entrar, lo mostramos UNA vez
     if (bannerReq && String(bannerReq?.status || '') === 'pending') {
@@ -115,9 +133,23 @@ export default function Header({
             )}
 
             <Link to={createPageUrl('Settings')}>
-              <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer">
-                <span className="text-purple-400 font-bold text-sm">
+                            <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 hover:bg-purple-600/30 transition-colors cursor-pointer relative overflow-visible">
+                <span className="text-purple-400 font-bold text-sm relative">
                   {creditsNumber.toFixed(2)}€
+                  <AnimatePresence>
+                    {creditsPulse && (
+                      <motion.span
+                        key={creditsPulse.id}
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: -18, scale: 1 }}
+                        exit={{ opacity: 0, y: -28, scale: 0.95 }}
+                        transition={{ duration: 0.6 }}
+                        className="absolute -right-1 -top-1 text-green-300 text-xs font-extrabold drop-shadow"
+                      >
+                        +{creditsPulse.amount.toFixed(2)}€
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </span>
               </div>
             </Link>

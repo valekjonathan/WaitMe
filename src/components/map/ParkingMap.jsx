@@ -185,11 +185,6 @@ export default function ParkingMap({
   userLocationOffsetY = 0,
   useCenterPin = false,
   onMapMove,
-  // NUEVO (solo overlay de navegación): muestra distancia + ETA dentro del mapa
-  showRouteInfoOverlay = false,
-  // NUEVO: estilo del marcador de seller cuando showRoute
-  sellerMarkerVariant = 'pin', // 'pin' | 'car'
-  sellerCarColor,
   onMapMoveEnd
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
@@ -202,7 +197,6 @@ export default function ParkingMap({
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
-  const [routeDurationMin, setRouteDurationMin] = useState(null);
 
   // Calcular ruta cuando se selecciona una alerta
   useEffect(() => {
@@ -213,7 +207,6 @@ export default function ParkingMap({
       if (!targetLocation) {
         setRoute(null);
         setRouteDistance(null);
-        setRouteDurationMin(null);
         return;
       }
 
@@ -229,30 +222,16 @@ export default function ParkingMap({
           setRoute(coords);
           setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
         }
-          setRouteDurationMin(Math.round((data.routes[0].duration || 0) / 60)); // min
       }).
       catch((err) => console.log('Error calculando ruta:', err));
     } else {
       setRoute(null);
       setRouteDistance(null);
-        setRouteDurationMin(null);
     }
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
 
   return (
     <div className={`relative w-full h-full ${className}`}>
-      {showRouteInfoOverlay && routeDistance && (
-        <div className="absolute top-3 left-3 z-[1100] pointer-events-none">
-          <div className="px-3 py-2 rounded-xl bg-black/65 border border-purple-500/25 backdrop-blur text-white">
-            <div className="text-xs font-semibold leading-none">
-              Distancia: <span className="text-purple-300">{routeDistance} km</span>
-            </div>
-            <div className="text-xs font-semibold leading-none mt-1">
-              Llegada: <span className="text-purple-300">{routeDurationMin != null ? `${routeDurationMin} min` : '--'}</span>
-            </div>
-          </div>
-        </div>
-      )}
       {useCenterPin && (
         <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
           <div style={{ position: 'relative', width: '40px', height: '60px' }}>
@@ -393,78 +372,41 @@ export default function ParkingMap({
         ))}
 
         {/* Seller location actualizada en tiempo real */}
-        {/* Seller location en tiempo real */}
         {sellerLocation && showRoute && sellerLocation !== normalizedUserLocation && (
-          <Marker
+          <Marker 
             position={sellerLocation}
-            icon={
-              sellerMarkerVariant === 'car'
-                ? L.divIcon({
-                    className: 'nav-seller-car',
-                    html: `
-                      <div style="position: relative; width: 72px; height: 40px;">
-                        <div style="
-                          position:absolute; inset:0;
-                          filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
-                        ">
-                          <svg viewBox="0 0 48 24" width="72" height="40" fill="none">
-                            <path
-                              d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-                              fill="${(sellerCarColor && carColors[sellerCarColor]) ? carColors[sellerCarColor] : '#6b7280'}"
-                              stroke="white"
-                              stroke-width="1.5"
-                            />
-                            <path
-                              d="M16 9 L18 12 L30 12 L32 9 Z"
-                              fill="rgba(255,255,255,0.28)"
-                              stroke="white"
-                              stroke-width="0.5"
-                            />
-                            <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1" />
-                            <circle cx="14" cy="18" r="2" fill="#666" />
-                            <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1" />
-                            <circle cx="36" cy="18" r="2" fill="#666" />
-                          </svg>
-                        </div>
-                      </div>
-                    `,
-                    iconSize: [72, 40],
-                    iconAnchor: [36, 40],
-                    popupAnchor: [0, -40],
-                  })
-                : L.divIcon({
-                    className: 'custom-seller-icon',
-                    html: `
-                      <style>
-                        @keyframes pulse-seller {
-                          0%, 100% {
-                            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-                          }
-                          50% {
-                            box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
-                          }
-                        }
-                      </style>
-                      <div style="
-                        width: 40px;
-                        height: 40px;
-                        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-                        border: 4px solid white;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        animation: pulse-seller 2s infinite;
-                      ">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                        </svg>
-                      </div>
-                    `,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 20],
-                  })
-            }
+            icon={L.divIcon({
+              className: 'custom-seller-icon',
+              html: `
+                <style>
+                  @keyframes pulse-seller {
+                    0%, 100% { 
+                      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+                    }
+                    50% { 
+                      box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+                    }
+                  }
+                </style>
+                <div style="
+                  width: 40px; 
+                  height: 40px; 
+                  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+                  border: 4px solid white;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  animation: pulse-seller 2s infinite;
+                ">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+              `,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20]
+            })}
             zIndexOffset={2000}
           >
             <Popup>Vendedor: {selectedAlert?.user_name}</Popup>
