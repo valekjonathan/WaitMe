@@ -1008,15 +1008,15 @@ const myFinalizedAlerts = useMemo(() => {
                             className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                           >
                             {alert.status === 'reserved' && alert.reserved_by_name ? (
-                              <>
-                                <CardHeaderRow
-                                  left={
-                                    <Badge
-                                      className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 flex items-center justify-center text-center ${labelNoClick}`}
-                                    >
-                                      Reservado por:
-                                    </Badge>
-                                  }
+                             <>
+                               <CardHeaderRow
+                                 left={
+                                   <div
+                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md flex items-center justify-center text-center ${badgePhotoWidth} h-7 ${labelNoClick}`}
+                                   >
+                                     Te reservó:
+                                   </div>
+                                 }
                                   dateText={dateText}
                                   dateClassName="text-white"
                                   right={
