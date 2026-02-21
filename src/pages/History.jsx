@@ -923,6 +923,219 @@ const myFinalizedAlerts = useMemo(() => {
   });
 
 
+  // ====== Estado de prórroga cuando expira (para tarjetas "reservado por:") ======
+  const [expiredAlertExtend, setExpiredAlertExtend] = useState({});
+  // expiredAlertExtend[alertId] = true si ha expirado y aún no ha elegido
+
+  // Detectar alertas reservadas cuyo countdown llegó a 0
+  useEffect(() => {
+    if (!visibleActiveAlerts) return;
+    visibleActiveAlerts.forEach((alert) => {
+      if (alert.status !== 'reserved') return;
+      const waitUntilTs = getWaitUntilTs(alert);
+      if (!waitUntilTs) return;
+      const rem = Math.max(0, waitUntilTs - nowTs);
+      if (rem === 0 && !expiredAlertExtend[alert.id]) {
+        setExpiredAlertExtend((prev) => ({ ...prev, [alert.id]: true }));
+      }
+    });
+  }, [nowTs, visibleActiveAlerts]);
+
+  // ====== Contenido de tarjeta "reservado por:" ======
+  const ReservedByContent = ({
+    alert,
+    waitUntilLabel,
+    countdownText,
+    formatAddress,
+    getCarFill,
+    formatPlate,
+    avatarFor,
+    createPageUrl
+  }) => {
+    const reservedByPhoto =
+      alert.reserved_by_photo ||
+      avatarFor(alert.reserved_by_name) ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
+
+    const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
+    const isExpired = expiredAlertExtend[alert.id];
+
+    const carLabel = alert.reserved_by_car || 'Sin datos';
+    const carColor = alert.reserved_by_car_color || 'gris';
+    const plate = alert.reserved_by_plate || '';
+
+    const stUpper = String(countdownText || '').trim().toUpperCase();
+    const isCountdownLike = /^\d{2}:\d{2}(?::\d{2})?$/.test(stUpper);
+
+    const statusBoxCls = isCountdownLike
+      ? 'border-purple-400/70 bg-purple-600/25'
+      : 'border-purple-500/30 bg-purple-600/10';
+    const statusTextCls = isCountdownLike ? 'text-purple-100' : 'text-purple-300';
+
+    if (isExpired) {
+      return (
+        <>
+          {/* Foto + datos usuario */}
+          <div className="flex gap-2.5">
+            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+              <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 h-[85px] flex flex-col">
+              <p className="font-bold text-xl text-white leading-none min-h-[22px]">
+                {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+              </p>
+              <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+              <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                <div className="flex-shrink-0"><PlateProfile plate={plate} /></div>
+                <div className="flex-1 flex justify-center">
+                  <div className="flex-shrink-0 relative -top-[1px]">
+                    <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-1.5 border-t border-gray-700/80 mt-2 mb-2">
+            <div className="flex items-start gap-1.5 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5 line-clamp-1">{formatAddress(alert.address)}</span>
+            </div>
+          </div>
+
+          {/* Mensaje expirado */}
+          <p className="text-white text-sm font-semibold text-center mb-3">
+            Usuario no se ha presentado. Puedes irte o prorrogarle:
+          </p>
+
+          {/* Botones de prórroga */}
+          <div className="flex gap-2 mb-3">
+            {[
+              { label: '5 min · 2€', mins: 5 },
+              { label: '10 min · 3€', mins: 10 },
+              { label: '15 min · 5€', mins: 15 }
+            ].map((opt) => (
+              <button
+                key={opt.mins}
+                className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 text-purple-200 text-xs font-bold hover:bg-purple-600/40 transition-colors"
+                onClick={() => {
+                  // Extiende el tiempo localmente: resetea el flag y añade minutos
+                  setExpiredAlertExtend((prev) => {
+                    const next = { ...prev };
+                    delete next[alert.id];
+                    return next;
+                  });
+                  // Actualiza la alerta en BD sumando minutos
+                  const newMins = (Number(alert.available_in_minutes) || 0) + opt.mins;
+                  base44.entities.ParkingAlert.update(alert.id, { available_in_minutes: newMins }).then(() => {
+                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                  });
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Botón Me voy */}
+          <Button
+            className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
+            onClick={() => {
+              setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+              base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+                queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+              });
+            }}
+          >
+            Me voy
+          </Button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {/* Foto + datos usuario */}
+        <div className="flex gap-2.5">
+          <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+            <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
+          </div>
+          <div className="flex-1 h-[85px] flex flex-col">
+            <p className="font-bold text-xl text-white leading-none min-h-[22px]">
+              {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+            </p>
+            <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+            <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+              <div className="flex-shrink-0"><PlateProfile plate={plate} /></div>
+              <div className="flex-1 flex justify-center">
+                <div className="flex-shrink-0 relative -top-[1px]">
+                  <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-1.5 border-t border-gray-700/80 mt-2">
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-1.5 text-xs">
+              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5 line-clamp-1">{formatAddress(alert.address)}</span>
+            </div>
+            <div className="flex items-start gap-1.5 text-xs">
+              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+              <span className="text-gray-200 leading-5">
+                Te vas en {alert.available_in_minutes} min · Te espera hasta las:{' '}
+                <span className="text-white text-base font-bold">{waitUntilLabel}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Botones de acción */}
+        <div className="mt-2 flex gap-2">
+          {/* Chat */}
+          <Button
+            size="icon"
+            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+            onClick={() => (window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`))}
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+
+          {/* Teléfono */}
+          {phoneEnabled ? (
+            <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]" onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}>
+              <Phone className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+              <PhoneOff className="w-4 h-4 text-white" />
+            </Button>
+          )}
+
+          {/* IR — desactivado para el vendedor */}
+          <Button
+            size="icon"
+            className="h-8 px-3 rounded-lg border-2 border-blue-500/40 bg-blue-500/10 text-blue-400 opacity-40 cursor-not-allowed flex items-center gap-1"
+            disabled
+          >
+            <Navigation className="w-4 h-4" />
+            <span className="text-xs font-bold">IR</span>
+          </Button>
+
+          {/* Contador */}
+          <div className="flex-1">
+            <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center px-3 ${statusBoxCls}`}>
+              <span className={`text-sm font-mono font-extrabold ${statusTextCls}`}>{countdownText}</span>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   // ====== Badge ancho igual que la foto (95px) ======
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
 
