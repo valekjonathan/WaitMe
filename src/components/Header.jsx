@@ -174,7 +174,7 @@ export default function Header({
                 e.stopPropagation();
                 setShowBanner(false);
               }}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-400"
+              className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
