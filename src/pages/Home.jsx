@@ -328,13 +328,11 @@ export default function Home() {
   },
 
   onMutate: async (data) => {
-  await queryClient.cancelQueries({ queryKey: ['myAlerts'] });
-
   const now = Date.now();
   const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
 
-  const optimisticAlert = {
-    id: `temp_${Date.now()}`,
+  const instantAlert = {
+    id: `instant_${Date.now()}`,
     ...data,
     wait_until: futureTime.toISOString(),
     created_from: 'parked_here',
@@ -343,8 +341,8 @@ export default function Home() {
   };
 
   queryClient.setQueryData(['myAlerts'], (old) => {
-    const list = Array.isArray(old) ? old : [];
-    return [optimisticAlert, ...list];
+    const list = Array.isArray(old) ? old : (old?.data || []);
+    return [instantAlert, ...list];
   });
 
   window.dispatchEvent(new Event('waitme:badgeRefresh'));
