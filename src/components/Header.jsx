@@ -60,6 +60,7 @@ export default function Header({
   useEffect(() => {
     const load = () => {
       const list = getWaitMeRequests();
+      // Solo mostrar si está pendiente (no aceptada ni rechazada)
       const pending = (list || []).find((r) => String(r?.status || '') === 'pending');
       setBannerReq(pending || null);
     };
@@ -68,9 +69,12 @@ export default function Header({
 
     const onChange = () => load();
     const onShow = () => {
-      load();
+      // Solo mostrar si sigue pendiente
+      const list = getWaitMeRequests();
+      const pending = (list || []).find((r) => String(r?.status || '') === 'pending');
+      if (!pending) return; // ya fue aceptada/rechazada, no mostrar
+      setBannerReq(pending);
       setShowBanner(true);
-      // auto-hide estilo WhatsApp
       setTimeout(() => setShowBanner(false), 5000);
     };
 
@@ -84,10 +88,12 @@ export default function Header({
   }, []);
 
   useEffect(() => {
-    // si hay pending al entrar, lo mostramos una vez
-    if (bannerReq) {
+    // si hay pending al entrar, lo mostramos UNA vez
+    if (bannerReq && String(bannerReq?.status || '') === 'pending') {
       setShowBanner(true);
       setTimeout(() => setShowBanner(false), 5000);
+    } else {
+      setShowBanner(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bannerReq?.id]);
