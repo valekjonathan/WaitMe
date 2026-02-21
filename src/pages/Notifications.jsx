@@ -143,6 +143,7 @@ export default function Notifications() {
       await queryClient.invalidateQueries({ queryKey: ['alerts'] });
       await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      navigate(createPageUrl('History'));
     } catch {
       // noop
     }
