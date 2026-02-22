@@ -1244,7 +1244,7 @@ const myFinalizedAlerts = useMemo(() => {
                                      formatPlate={formatPlate}
                                      avatarFor={avatarFor}
                                      createPageUrl={createPageUrl}
-                                     onNavigateClick={() => (window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`))}
+                                     onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
                                     />
                                   </div>
                                 )}
