@@ -383,6 +383,40 @@ export function ensureConversationForAlertId(alertId) {
   return conv?.id || null;
 }
 
+/** Añade una alerta al estado demo (para que Chats y otros la vean). */
+export function addDemoAlert(alert) {
+  if (!alert?.id) return;
+  const list = demoFlow.alerts || [];
+  if (list.some((a) => a.id === alert.id)) return;
+  demoFlow.alerts = [{ ...alert }, ...list];
+  notify();
+}
+
+/**
+ * Crea conversación para una alerta con el comprador indicado y añade el mensaje inicial del comprador.
+ * Usado cuando se simula "Usuario quiere un WaitMe!" a los 30s de publicar.
+ */
+export function addIncomingWaitMeConversation(alertId, buyer) {
+  if (!alertId) return null;
+  const conv = ensureConversationForAlert(alertId, {
+    fromName: buyer?.name || 'Usuario',
+    otherPhoto: buyer?.photo || null
+  });
+  if (!conv?.id) return null;
+  const arr = ensureMessagesArray(conv.id);
+  const already = arr.some((m) => String(m?.text || '').toLowerCase().includes('te he enviado un waitme'));
+  if (!already) {
+    pushMessage(conv.id, {
+      mine: false,
+      senderName: buyer?.name || 'Usuario',
+      senderPhoto: buyer?.photo || null,
+      text: '¡Ey! Te he enviado un WaitMe!'
+    });
+  }
+  notify();
+  return conv.id;
+}
+
 export function ensureInitialWaitMeMessage(conversationId) {
   const conv = getConversation(conversationId);
   if (!conv) return null;

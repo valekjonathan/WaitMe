@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { upsertWaitMeRequest } from '@/lib/waitmeRequests';
 import { MOCK_USERS } from '@/lib/mockNearby';
+import { addDemoAlert, addIncomingWaitMeConversation } from '@/components/DemoFlowManager';
+import { base44 } from '@/api/base44Client';
 
 // Dispara 30s DESPUÉS de que el usuario publica su alerta (evento 'waitme:alertPublished').
-// Solo UNA vez por sesión.
+// Solo UNA vez por sesión. Crea entrada en Notifications, tarjeta en Chats y abre el modal.
 export default function WaitMeRequestScheduler() {
   const timerRef = useRef(null);
   const firedRef = useRef(false);
@@ -17,10 +19,10 @@ export default function WaitMeRequestScheduler() {
     } catch {}
 
     const onAlertPublished = (e) => {
-      if (firedRef.current) return; // ya disparado en esta sesión
+      if (firedRef.current) return;
       const alertId = e?.detail?.alertId || null;
 
-      timerRef.current = setTimeout(() => {
+      timerRef.current = setTimeout(async () => {
         try {
           firedRef.current = true;
           try { window?.sessionStorage?.setItem(KEY, '1'); } catch {}
@@ -47,7 +49,20 @@ export default function WaitMeRequestScheduler() {
           };
 
           upsertWaitMeRequest(req);
-          try { window.dispatchEvent(new Event('waitme:showIncomingBanner')); } catch {}
+
+          try {
+            const alert = await base44.entities.ParkingAlert.get(alertId);
+            if (alert) addDemoAlert(alert);
+          } catch {}
+
+          addIncomingWaitMeConversation(alertId, req.buyer);
+
+          try {
+            window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req } }));
+          } catch {}
+          try {
+            window.dispatchEvent(new Event('waitme:showIncomingBanner'));
+          } catch {}
         } catch {}
       }, 30_000);
     };

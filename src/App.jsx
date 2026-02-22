@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Layout from './Layout';
 import DemoFlowManager from '@/components/DemoFlowManager';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
+import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 
 function AuthGate() {
@@ -25,6 +26,7 @@ export default function App() {
     <div className="min-h-[100dvh] bg-black flex flex-col">
       <DemoFlowManager />
       <WaitMeRequestScheduler />
+      <IncomingRequestModal />
       <AuthGate />
       <Layout />
     </div>
