@@ -1001,7 +1001,8 @@ const myFinalizedAlerts = useMemo(() => {
     getCarFill,
     formatPlate,
     avatarFor,
-    createPageUrl
+    createPageUrl,
+    onNavigateClick
   }) => {
     const reservedByPhoto =
       alert.reserved_by_photo ||
@@ -1085,11 +1086,16 @@ const myFinalizedAlerts = useMemo(() => {
             </Button>
           )}
 
-          {/* IR — mismo tamaño que teléfono, azul sólido apagado */}
+          {/* IR — encendido y parpadeando cuando reservada; lleva a Navegación (vendedor) */}
           <Button
             size="icon"
-            className="h-8 w-[42px] rounded-lg bg-blue-600/40 text-blue-300 opacity-50 cursor-not-allowed flex items-center justify-center"
-            disabled
+            className={`h-8 w-[42px] rounded-lg flex items-center justify-center ${
+              onNavigateClick
+                ? 'bg-blue-600 hover:bg-blue-500 text-white animate-pulse shadow-lg shadow-blue-500/50'
+                : 'bg-blue-600/40 text-blue-300 opacity-50 cursor-not-allowed'
+            }`}
+            disabled={!onNavigateClick}
+            onClick={onNavigateClick || undefined}
           >
             <Navigation className="w-4 h-4" />
           </Button>
@@ -1238,6 +1244,7 @@ const myFinalizedAlerts = useMemo(() => {
                                      formatPlate={formatPlate}
                                      avatarFor={avatarFor}
                                      createPageUrl={createPageUrl}
+                                     onNavigateClick={() => (window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`))}
                                     />
                                   </div>
                                 )}
@@ -1626,13 +1633,16 @@ const myFinalizedAlerts = useMemo(() => {
                             onCall={() => phoneEnabled && (window.location.href = `tel:${alert.phone}`)}
                           />
 
-                          {/* Línea horizontal y botón de navegación */}
+                          {/* Comprador: botón "Ir" abre Google Maps con la dirección del parking */}
                           <div className="border-t border-gray-700/80 mt-2 pt-2">
                             <Button
                               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 rounded-lg flex items-center justify-center gap-2"
-                              onClick={() => window.location.href = createPageUrl(`Navigate?alertId=${alert.id}`)}
+                              onClick={() => {
+                                const dest = encodeURIComponent(formatAddress(alert.address) || 'Calle Campoamor, n15, Oviedo');
+                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
+                              }}
                             >
-                              IR
+                              Ir
                               <Navigation className="w-5 h-5" />
                             </Button>
                           </div>

@@ -232,8 +232,8 @@ export default function Navigate() {
         // Si está muy cerca, ya no mover más
         if (distM < 5) return prevLoc;
         
-        // Mover 20 metros por segundo hacia el destino
-        const stepSize = 20 / R;
+        // Mover ~15m por tick hacia el destino (simulación fluida)
+        const stepSize = 15 / R;
         const fraction = Math.min(stepSize / (distM / R), 1);
         
         const newLat = lat1 + (lat2 - lat1) * fraction;
@@ -243,8 +243,8 @@ export default function Navigate() {
       });
     };
     
-    // Mover cada segundo
-    animationRef.current = setInterval(moveTowardsDestination, 1000);
+    // Actualizar posición cada 400ms para que el coche se vea moverse de forma fluida
+    animationRef.current = setInterval(moveTowardsDestination, 400);
   };
 
   // Detener seguimiento
@@ -303,9 +303,11 @@ export default function Navigate() {
     return { value: (distanceMeters / 1000).toFixed(1), unit: 'km' };
   })();
 
-  // Liberar pago cuando estén a menos de 10 metros (o forzado en demo)
+  // Liberar pago cuando estén a menos de 5m (solo para el comprador; el vendedor no libera)
   useEffect(() => {
     if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
+    const isSellerHere = String(alert.user_id) === String(user?.id) || String(alert.user_email) === String(user?.email);
+    if (isSellerHere) return;
     if ((distanceMeters === null || distanceMeters > 5) && !forceRelease) return;
 
     if (forceRelease) setForceRelease(false);
@@ -380,6 +382,10 @@ export default function Navigate() {
   // Ya no necesitamos pedir ubicación real - usamos ficticias
 
   const displayAlert = alert;
+
+  const isSeller = displayAlert && user && (
+    String(displayAlert.user_id) === String(user?.id) || String(displayAlert.user_email) === String(user?.email)
+  );
   
   // Ubicación por defecto si no hay alert
   const defaultLat = 43.3620;
@@ -448,30 +454,32 @@ export default function Navigate() {
           <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <p className="font-semibold text-white">{displayAlert.user_name}</p>
+                <p className="font-semibold text-white">{isSeller ? 'Tu parking' : displayAlert.user_name}</p>
                 <p className="text-sm text-gray-400">{displayAlert.car_brand} {displayAlert.car_model}</p>
                 <p className="text-xs text-gray-500 mt-1">{displayAlert.car_plate}</p>
               </div>
-              <div className="text-right">
-                {distance && (
-                  <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
-                    <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
-                  </div>
-                )}
-                {distanceMeters !== null && distanceMeters <= 50 && (
-                  <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
-                  </div>
-                )}
-              </div>
+              {!isSeller && (
+                <div className="text-right">
+                  {distance && (
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
+                      <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
+                    </div>
+                  )}
+                  {distanceMeters !== null && distanceMeters <= 50 && (
+                    <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="text-xs text-gray-500">
               {displayAlert.address}
             </div>
 
-            {/* Indicador de pago retenido */}
-            {!paymentReleased && (
+            {/* Indicador de pago retenido (solo comprador) */}
+            {!isSeller && !paymentReleased && (
               <div className="mt-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
                 <p className="text-xs text-yellow-400 text-center">
                   💰 Pago retenido: {displayAlert.price.toFixed(2)}€ · Se liberará a menos de 10m
@@ -481,9 +489,16 @@ export default function Navigate() {
           </div>
         )}
 
-        {/* Botones */}
+        {/* Botones: vendedor ve "He llegado"; comprador ve Iniciar/Detener navegación */}
         <div className="flex gap-2">
-          {!isTracking ? (
+          {isSeller ? (
+            <Button
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold h-14 text-lg rounded-xl"
+              onClick={() => (window.location.href = createPageUrl('History'))}
+            >
+              He llegado
+            </Button>
+          ) : !isTracking ? (
             <Button
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-base"
               onClick={startTracking}
@@ -522,7 +537,7 @@ export default function Navigate() {
           </Button>
         </div>
 
-        {isTracking && !paymentReleased && (
+        {!isSeller && isTracking && !paymentReleased && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -539,7 +554,7 @@ export default function Navigate() {
           </motion.div>
         )}
 
-        {displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
+        {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
           <Button
             variant="outline"
             className="w-full border-dashed border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
