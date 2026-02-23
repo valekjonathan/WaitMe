@@ -1011,17 +1011,19 @@ const myFinalizedAlerts = useMemo(() => {
     createPageUrl,
     onNavigateClick
   }) => {
+    const reservedByName = alert.reserved_by_name || alert.user_name || 'Usuario';
     const reservedByPhoto =
       alert.reserved_by_photo ||
-      avatarFor(alert.reserved_by_name) ||
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
+      alert.user_photo ||
+      avatarFor(reservedByName) ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(reservedByName)}&background=7c3aed&color=fff&size=128`;
 
     const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
     const isExpired = expiredAlertExtend[alert.id];
 
-    const carLabel = alert.reserved_by_car || 'Sin datos';
-    const carColor = alert.reserved_by_car_color || 'gris';
-    const plate = alert.reserved_by_plate || '';
+    const carLabel = alert.reserved_by_car || alert.car_model || alert.car_brand || 'Sin datos';
+    const carColor = alert.reserved_by_car_color || alert.car_color || 'gris';
+    const plate = alert.reserved_by_plate || alert.plate || alert.car_plate || '';
 
     const stUpper = String(countdownText || '').trim().toUpperCase();
     const isCountdownLike = /^\d{2}:\d{2}(?::\d{2})?$/.test(stUpper);
@@ -1036,11 +1038,11 @@ const myFinalizedAlerts = useMemo(() => {
         {/* Foto + datos usuario */}
         <div className="flex gap-2.5">
           <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-            <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
+            <img src={reservedByPhoto} alt={reservedByName} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1 h-[85px] flex flex-col">
             <p className="font-bold text-xl text-white leading-none min-h-[22px]">
-              {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+              {String(reservedByName).split(' ')[0]}
             </p>
             <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
             <div className="flex items-end gap-2 mt-1 min-h-[28px]">
@@ -1205,7 +1207,7 @@ const myFinalizedAlerts = useMemo(() => {
                             transition={{ delay: index * 0.05 }}
                             className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
                           >
-                            {alert.status === 'reserved' && alert.reserved_by_name ? (
+                            {alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name) ? (
                              <>
                                <CardHeaderRow
                                  left={
@@ -1240,7 +1242,7 @@ const myFinalizedAlerts = useMemo(() => {
 
                                 <div className="border-t border-gray-700/80 mb-2" />
 
-                                {alert.reserved_by_name && (
+                                {(alert.reserved_by_name || alert.user_name) && (
                                   <div className="mb-1.5">
                                     <ReservedByContent
                                      alert={alert}
