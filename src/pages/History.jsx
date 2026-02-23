@@ -638,13 +638,15 @@ const visibleActiveAlerts = useMemo(() => {
   return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }, [myActiveAlerts, hiddenKeys]);
 
-  // ====== Auto-expirar alertas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  // ====== Auto-expirar alertas activas cuando el contador llega a 0. Tarjetas CANCELADA/EXPIRADA no se tocan. ======
   useEffect(() => {
     if (!visibleActiveAlerts || visibleActiveAlerts.length === 0) return;
 
     const toExpire = visibleActiveAlerts.filter((a) => {
       if (!a) return false;
-      if (String(a.status || '').toLowerCase() !== 'active') return false;
+      const st = String(a.status || '').toLowerCase();
+      if (st === 'cancelled' || st === 'expired') return false;
+      if (st !== 'active') return false;
       if (autoFinalizedRef.current.has(a.id)) return false;
 
       const createdTs = getCreatedTs(a);
@@ -668,7 +670,6 @@ const visibleActiveAlerts = useMemo(() => {
       return isMine;
     });
 
-    // Si es tu alerta, mostramos el aviso dentro de la app (no la expiramos hasta que elijas)
     if (mine && !expirePromptOpen) {
       setExpirePromptAlert(mine);
       setExpirePromptOpen(true);
@@ -681,9 +682,11 @@ const visibleActiveAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.setQueryData(['myAlerts'], (prev = []) =>
+        prev.map((a) => (others.some((o) => o.id === a.id) ? { ...a, status: 'expired' } : a))
+      );
     });
-  }, [nowTs, visibleActiveAlerts, queryClient]);
+  }, [nowTs, visibleActiveAlerts, queryClient, user?.id, user?.email]);
 
 const myFinalizedAlerts = useMemo(() => {
   return myAlerts.filter((a) => {
@@ -712,13 +715,15 @@ const myFinalizedAlerts = useMemo(() => {
   }, [myAlerts, user?.id]);
   const reservationsActiveAll = myReservationsReal;
 
-  // ====== Auto-expirar reservas activas cuando el contador llega a 0 (sin side-effects en render) ======
+  // ====== Auto-expirar reservas activas cuando el contador llega a 0. CANCELADA/EXPIRADA estáticas. ======
   useEffect(() => {
     if (!reservationsActiveAll || reservationsActiveAll.length === 0) return;
 
     const toExpire = reservationsActiveAll.filter((a) => {
       if (!a) return false;
-      if (String(a.status || '').toLowerCase() !== 'reserved') return false;
+      const st = String(a.status || '').toLowerCase();
+      if (st === 'cancelled' || st === 'expired') return false;
+      if (st !== 'reserved') return false;
       if (String(a.id || '').startsWith('mock-')) return false;
       if (autoFinalizedReservationsRef.current.has(a.id)) return false;
 
@@ -739,7 +744,9 @@ const myFinalizedAlerts = useMemo(() => {
         base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
       )
     ).finally(() => {
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      queryClient.setQueryData(['myAlerts'], (prev = []) =>
+        prev.map((a) => (toExpire.some((o) => o.id === a.id) ? { ...a, status: 'expired' } : a))
+      );
     });
   }, [nowTs, reservationsActiveAll, queryClient]);
 
