@@ -37,7 +37,7 @@
     @apply border-border;
   }
   body {
-    background-color: #1a3a6b !important;
+    background-color: #0000FF !important;
     @apply text-white;
     margin: 0;
     padding: 0;
