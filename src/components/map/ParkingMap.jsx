@@ -169,6 +169,20 @@ function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
   return null;
 }
 
+/** Fuerza a Leaflet a recalcular tamaño tras montar; evita mapa negro */
+function MapInvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        map.invalidateSize();
+      } catch {}
+    }, 100);
+    return () => clearTimeout(t);
+  }, [map]);
+  return null;
+}
+
 /** Centrado inmediato al pulsar el botón azul: fuerza vista sobre destino y origen */
 function ForceFitOnRouteStart({ userLocation, sellerLocation, active }) {
   const map = useMap();
@@ -288,7 +302,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   return (
-    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 999 }}>
+    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
       {useCenterPin && (
         <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
           <div style={{ position: 'relative', width: '40px', height: '60px' }}>
@@ -363,7 +377,7 @@ export default function ParkingMap({
       <MapContainer
         center={defaultCenter}
         zoom={16}
-        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 999 }}
+        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}
         className="rounded-2xl"
         zoomControl={zoomControl}
         key={`map-${zoomControl}`}>
@@ -372,6 +386,7 @@ export default function ParkingMap({
           attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
           url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
 
+        <MapInvalidateSize />
         
         {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         

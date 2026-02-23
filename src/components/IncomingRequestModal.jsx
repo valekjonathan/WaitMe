@@ -48,25 +48,26 @@ export default function IncomingRequestModal() {
   const acceptRequest = async () => {
     if (!request?.alertId) return;
     setLoading(true);
+    const buyer = request?.buyer || {};
+    const payload = {
+      status: 'reserved',
+      reserved_by_id: buyer?.id || 'buyer',
+      reserved_by_email: null,
+      reserved_by_name: buyer?.name || 'Usuario',
+      reserved_by_photo: buyer?.photo || null,
+      reserved_by_car: String(buyer?.car_model || '').trim(),
+      reserved_by_car_color: buyer?.car_color || 'gris',
+      reserved_by_plate: buyer?.plate || '',
+      reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
+    };
+    setWaitMeRequestStatus(request?.id, 'accepted');
+    try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+    handleClose();
+    navigate(createPageUrl('History'));
     try {
-      const buyer = request?.buyer || {};
-      await base44.entities.ParkingAlert.update(request.alertId, {
-        status: 'reserved',
-        reserved_by_id: buyer?.id || 'buyer',
-        reserved_by_email: null,
-        reserved_by_name: buyer?.name || 'Usuario',
-        reserved_by_photo: buyer?.photo || null,
-        reserved_by_car: String(buyer?.car_model || '').trim(),
-        reserved_by_car_color: buyer?.car_color || 'gris',
-        reserved_by_plate: buyer?.plate || '',
-        reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
-      });
-      setWaitMeRequestStatus(request?.id, 'accepted');
-      await queryClient.invalidateQueries({ queryKey: ['alerts'] });
-      await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-      handleClose();
-      navigate(createPageUrl('History'));
+      await base44.entities.ParkingAlert.update(request.alertId, payload);
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
     } catch {
       setLoading(false);
     }

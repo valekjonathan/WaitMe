@@ -32,7 +32,7 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
       return locs;
     },
     enabled: !!alertId,
-    refetchInterval: 3000 // Actualizar cada 3 segundos
+    refetchInterval: 1000 // Sincronización cada 1 s para reacción al instante
   });
 
   // Calcular distancia del comprador más cercano
