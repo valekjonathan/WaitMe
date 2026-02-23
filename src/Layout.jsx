@@ -12,20 +12,8 @@ import NotificationSettings from './pages/NotificationSettings';
 
 export default function Layout() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0000FF' }}>
-      <div
-        style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          padding: '10px 0',
-          background: 'rgba(0,0,0,0.5)'
-        }}
-      >
-        <span style={{ color: '#FFFFFF', fontSize: '28px', fontWeight: 'bold', letterSpacing: '2px' }}>
-          TEST DE CONEXIÓN
-        </span>
-      </div>
-      <div className="flex-1" style={{ paddingTop: '52px' }}>
+    <div className="min-h-screen bg-black flex flex-col">
+      <div className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
