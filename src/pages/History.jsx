@@ -1340,11 +1340,18 @@ const myFinalizedAlerts = useMemo(() => {
 
                       if (item.type === 'alert') {
   const a = item.data;
-  // 🔴 NO pintar alertas COMPLETADAS aquí (van como transacción)
   if (String(a?.status || '').toLowerCase() === 'completed') return null;
 
-  const ts = item.created_date;
+  const ts = toMs(item.created_date) || toMs(a.created_date);
   const dateText = ts ? formatCardDate(ts) : '--';
+  const waitUntilTs = getWaitUntilTs(a);
+  const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > ts;
+  const waitUntilLabel = hasExpiry
+    ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
+    : '--:--';
+  const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+  const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+  const mode = reservationMoneyModeFromStatus(a.status);
 
                         return (
                           <motion.div
@@ -1366,10 +1373,11 @@ const myFinalizedAlerts = useMemo(() => {
                               dateClassName="text-gray-600"
                               right={
                                 <div className="flex items-center gap-1">
-                                  <MoneyChip
-                                    mode="neutral"
-                                    amountText={formatPriceInt(a.price)}
-                                  />
+                                  {mode === 'paid' ? (
+                                    <MoneyChip mode="red" showDownIcon amountText={formatPriceInt(a.price)} />
+                                  ) : (
+                                    <MoneyChip mode="neutral" amountText={formatPriceInt(a.price)} />
+                                  )}
                                   <button
                                     onClick={async () => {
                                       hideKey(key);
@@ -1386,19 +1394,25 @@ const myFinalizedAlerts = useMemo(() => {
 
                             <div className="border-t border-gray-700/80 mb-2" />
 
-                            <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
-                              <span className="text-gray-400 leading-5">
-                                {formatAddress(a.address) || 'Ubicación marcada'}
-                              </span>
-                            </div>
-
-                            <div className="mt-2">
-                              <CountdownButton
-                                text={statusLabelFrom(a.status)}
-                                dimmed={statusLabelFrom(a.status) !== 'COMPLETADA'}
-                              />
-                            </div>
+                            <MarcoContent
+                              photoUrl={a.user_photo}
+                              name={a.user_name}
+                              carLabel={carLabel || 'Sin datos'}
+                              plate={a.car_plate}
+                              carColor={a.car_color}
+                              address={a.address}
+                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Hasta las ${waitUntilLabel}`}
+                              onChat={() =>
+                                (window.location.href = createPageUrl(
+                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
+                                ))
+                              }
+                              statusText={statusLabelFrom(a.status)}
+                              phoneEnabled={phoneEnabled}
+                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
+                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
+                              dimIcons={true}
+                            />
                           </motion.div>
                         );
                       }

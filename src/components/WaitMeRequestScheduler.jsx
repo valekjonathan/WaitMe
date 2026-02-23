@@ -50,15 +50,16 @@ export default function WaitMeRequestScheduler() {
 
           upsertWaitMeRequest(req);
 
+          let alert = null;
           try {
-            const alert = await base44.entities.ParkingAlert.get(alertId);
+            alert = await base44.entities.ParkingAlert.get(alertId);
             if (alert) addDemoAlert(alert);
           } catch {}
 
           addIncomingWaitMeConversation(alertId, req.buyer);
 
           try {
-            window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req } }));
+            window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req, alert } }));
           } catch {}
           try {
             window.dispatchEvent(new Event('waitme:showIncomingBanner'));

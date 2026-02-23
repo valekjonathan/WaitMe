@@ -10,9 +10,16 @@ import BottomNav from '@/components/BottomNav';
 import { motion } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
 
+function getAlertIdFromLocation() {
+  const hash = window.location.hash || '';
+  const queryString = hash.indexOf('?') >= 0 ? hash.substring(hash.indexOf('?')) : '';
+  const fromHash = new URLSearchParams(queryString).get('alertId');
+  if (fromHash) return fromHash;
+  return new URLSearchParams(window.location.search).get('alertId');
+}
+
 export default function Navigate() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const alertId = urlParams.get('alertId');
+  const alertId = getAlertIdFromLocation();
   
   const [user, setUser] = useState(null);
   // UBICACIONES FICTICIAS PARA DEMO - Usuario está a 500m del vendedor
@@ -22,10 +29,12 @@ export default function Navigate() {
   const [paymentReleased, setPaymentReleased] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [forceRelease, setForceRelease] = useState(false);
+  const [showAbandonWarning, setShowAbandonWarning] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
   const hasReleasedPaymentRef = useRef(false);
   const animationRef = useRef(null);
+  const wasWithin5mRef = useRef(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -294,6 +303,19 @@ export default function Navigate() {
 
   const distanceMeters = calculateDistanceBetweenUsers();
 
+  // Geofencing: si el usuario se aleja más de 5 m de la alerta activa, mostrar advertencia
+  useEffect(() => {
+    const sellerHere = alert && user && (String(alert.user_id) === String(user?.id) || String(alert.user_email) === String(user?.email));
+    if (!alert || sellerHere || paymentReleased) return;
+    if (distanceMeters === null) return;
+    if (distanceMeters <= 5) {
+      wasWithin5mRef.current = true;
+      setShowAbandonWarning(false);
+    } else if (wasWithin5mRef.current) {
+      setShowAbandonWarning(true);
+    }
+  }, [distanceMeters, alert, user, paymentReleased]);
+
   // Calcular distancia para mostrar
   const distance = (() => {
     if (distanceMeters === null) return null;
@@ -421,6 +443,30 @@ export default function Navigate() {
         </motion.div>
       )}
 
+      {/* Pantalla de advertencia: abandonando el lugar (>5 m) */}
+      {showAbandonWarning && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-amber-500/20 border-2 border-amber-500 rounded-2xl p-6 max-w-sm text-center"
+          >
+            <p className="text-amber-400 font-bold text-lg">Estás abandonando el lugar...</p>
+            <p className="text-gray-300 text-sm mt-2">Vuelve a menos de 5 m del parking para completar la entrega.</p>
+            <Button
+              className="mt-4 bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => setShowAbandonWarning(false)}
+            >
+              Entendido
+            </Button>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
         <div className="flex items-center justify-between px-4 py-3">
@@ -434,60 +480,77 @@ export default function Navigate() {
         </div>
       </header>
 
-      {/* Mapa - SIEMPRE VISIBLE */}
-      <div className="flex-1 pt-[60px] pb-[420px]">
+      {/* Mapa a pantalla completa */}
+      <div className="absolute inset-0 top-[52px] bottom-0 z-0">
         <ParkingMap
-          alerts={displayAlert ? [displayAlert] : []}
+          alerts={displayAlert && isSeller ? [displayAlert] : []}
           userLocation={userLocation}
           selectedAlert={displayAlert}
-          showRoute={isTracking}
+          showRoute={!!isTracking && !!displayAlert}
           sellerLocation={sellerLocation}
           zoomControl={true}
-          className="h-full"
+          className="h-full w-full"
+          userAsCar={!isSeller && !!displayAlert}
+          userCarColor={displayAlert?.car_color || 'gris'}
+          userCarPrice={displayAlert?.price ?? 0}
+          showSellerMarker={!!displayAlert && !isSeller}
         />
       </div>
 
-      {/* Panel inferior */}
-      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
-        {/* Info de destino */}
-        {displayAlert && (
-          <div className="bg-gray-900 rounded-xl p-3 border-2 border-purple-500">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="font-semibold text-white">{isSeller ? 'Tu parking' : displayAlert.user_name}</p>
-                <p className="text-sm text-gray-400">{displayAlert.car_brand} {displayAlert.car_model}</p>
-                <p className="text-xs text-gray-500 mt-1">{displayAlert.car_plate}</p>
+      {/* Tarjeta del usuario que reservó / destino - justo encima del menú inferior */}
+      {displayAlert && (
+        <div className="fixed left-0 right-0 z-30 px-4" style={{ bottom: '5.5rem' }}>
+          <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl border-2 border-purple-500 shadow-xl overflow-hidden">
+            <div className="flex items-center gap-3 p-3">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-700">
+                {displayAlert.user_photo ? (
+                  <img src={displayAlert.user_photo} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-lg font-bold text-purple-400">
+                    {(displayAlert.user_name || 'U').charAt(0)}
+                  </div>
+                )}
               </div>
-              {!isSeller && (
-                <div className="text-right">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-white truncate">{isSeller ? 'Tu parking' : displayAlert.user_name}</p>
+                <p className="text-sm text-gray-400 truncate">{displayAlert.car_brand} {displayAlert.car_model} · {displayAlert.car_plate}</p>
+                <p className="text-xs text-gray-500 truncate mt-0.5">{displayAlert.address}</p>
+              </div>
+              {!isSeller && (distance != null || distanceMeters != null) && (
+                <div className="flex-shrink-0 text-right">
                   {distance && (
-                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-1">
-                      <span className="text-purple-400 font-bold">{distance.value}{distance.unit}</span>
+                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
+                      <span className="text-purple-300 font-bold text-sm">{distance.value}{distance.unit}</span>
                     </div>
                   )}
+                  {distanceMeters !== null && distanceMeters < 1000 && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Llegada ~{Math.max(1, Math.round(distanceMeters / 80))} min
+                    </p>
+                  )}
                   {distanceMeters !== null && distanceMeters <= 50 && (
-                    <div className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
+                    <p className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
                       {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
-                    </div>
+                    </p>
                   )}
                 </div>
               )}
             </div>
-            
-            <div className="text-xs text-gray-500">
-              {displayAlert.address}
-            </div>
-
-            {/* Indicador de pago retenido (solo comprador) */}
             {!isSeller && !paymentReleased && (
-              <div className="mt-2 bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
-                <p className="text-xs text-yellow-400 text-center">
-                  💰 Pago retenido: {displayAlert.price.toFixed(2)}€ · Se liberará a menos de 10m
-                </p>
+              <div className="px-3 pb-2">
+                <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
+                  <p className="text-xs text-yellow-400 text-center">
+                    💰 Pago retenido: {displayAlert.price != null ? Number(displayAlert.price).toFixed(2) : '0.00'}€ · Se libera a &lt;5 m
+                  </p>
+                </div>
               </div>
             )}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Panel inferior: botones */}
+      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
 
         {/* Botones: vendedor ve "He llegado"; comprador ve Iniciar/Detener navegación */}
         <div className="flex gap-2">

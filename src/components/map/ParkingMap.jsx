@@ -185,7 +185,11 @@ export default function ParkingMap({
   userLocationOffsetY = 0,
   useCenterPin = false,
   onMapMove,
-  onMapMoveEnd
+  onMapMoveEnd,
+  userAsCar = false,
+  userCarColor = 'gris',
+  userCarPrice = 0,
+  showSellerMarker = false
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -322,14 +326,22 @@ export default function ParkingMap({
         
         {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
-        {/* Marcador de ubicación del usuario estilo Uber */}
-        {normalizedUserLocation && !useCenterPin &&
-        <Marker 
-          position={normalizedUserLocation}
-          icon={createUserLocationIcon()}
-          draggable={isSelecting}>
-          </Marker>
-        }
+        {/* Marcador de ubicación del usuario: coche (estilo Uber) o pin */}
+        {normalizedUserLocation && !useCenterPin && (
+          userAsCar ? (
+            <Marker
+              position={normalizedUserLocation}
+              icon={createCarIcon(userCarColor, userCarPrice, 'car')}
+              zIndexOffset={1800}
+            />
+          ) : (
+            <Marker
+              position={normalizedUserLocation}
+              icon={createUserLocationIcon()}
+              draggable={isSelecting}
+            />
+          )
+        )}
 
         {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
         {buyerLocations.map((loc) => (
@@ -371,8 +383,8 @@ export default function ParkingMap({
           </Marker>
         ))}
 
-        {/* Seller location actualizada en tiempo real */}
-        {sellerLocation && showRoute && sellerLocation !== normalizedUserLocation && (
+        {/* Seller / destino: con ruta activa o cuando se debe mostrar destino (navegación) */}
+        {sellerLocation && (showRoute || showSellerMarker) && sellerLocation !== normalizedUserLocation && (
           <Marker 
             position={sellerLocation}
             icon={L.divIcon({
