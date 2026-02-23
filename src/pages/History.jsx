@@ -1042,7 +1042,7 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
           <div className="flex-1 h-[85px] flex flex-col">
             <p className="font-bold text-xl text-white leading-none min-h-[22px]">
-              CONEXIÓN ÉLITE
+              CONEXIÓN TOTAL ACTIVA
             </p>
             <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
             <div className="flex items-end gap-2 mt-1 min-h-[28px]">
