@@ -1308,7 +1308,7 @@ const myFinalizedAlerts = useMemo(() => {
                                   <span className="text-white leading-5">
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
-                                  <span className="text-purple-400 leading-5">
+                                  <span style={{ color: '#FFFFFF', fontSize: '18px' }}>
                                     Debes esperar hasta las {waitUntilLabel}
                                   </span>
                                 </div>
@@ -1978,8 +1978,8 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span className="text-purple-400 leading-5">Debes esperar hasta las </span>
-                  <span className="text-white text-base font-semibold leading-5">{waitUntilLabel}</span>
+                  <span style={{ color: '#FFFFFF', fontSize: '18px' }}>Debes esperar hasta las </span>
+                  <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">

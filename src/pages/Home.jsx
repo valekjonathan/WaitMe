@@ -836,8 +836,8 @@ export default function Home() {
                   });
                   return (
                     <>
-                      <span className="text-purple-400">Debes esperar hasta las: </span>
-<span className="text-white text-xl font-bold">{hhmm}</span>
+                      <span style={{ color: '#FFFFFF', fontSize: '18px' }}>Debes esperar hasta las: </span>
+<span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
                     </>
                   );
                 })()}
