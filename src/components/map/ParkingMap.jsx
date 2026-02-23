@@ -173,12 +173,20 @@ function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
 function MapInvalidateSize() {
   const map = useMap();
   useEffect(() => {
-    const t = setTimeout(() => {
+    const run = () => {
       try {
         map.invalidateSize();
       } catch {}
-    }, 100);
-    return () => clearTimeout(t);
+    };
+    const t1 = setTimeout(run, 100);
+    const t2 = setTimeout(run, 500);
+    const onResize = () => run();
+    window.addEventListener('resize', onResize);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      window.removeEventListener('resize', onResize);
+    };
   }, [map]);
   return null;
 }
