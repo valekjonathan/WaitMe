@@ -82,13 +82,13 @@ export default function Header({
 
     const onChange = () => load();
     const onShow = () => {
-      // Solo mostrar si sigue pendiente
       const list = getWaitMeRequests();
       const pending = (list || []).find((r) => String(r?.status || '') === 'pending');
-      if (!pending) return; // ya fue aceptada/rechazada, no mostrar
-      setBannerReq(pending);
-      setShowBanner(true);
-      setTimeout(() => setShowBanner(false), 5000);
+      setBannerReq(pending || null);
+      if (pending) {
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);
+      }
     };
 
     window.addEventListener('waitme:requestsChanged', onChange);
