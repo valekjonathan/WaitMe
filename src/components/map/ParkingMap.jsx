@@ -169,6 +169,28 @@ function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
   return null;
 }
 
+/** Auto-zoom para que se vean ambos puntos (origen y destino) cuando hay ruta activa */
+function FitBoundsToRoute({ userLocation, sellerLocation, route, active }) {
+  const map = useMap();
+  const lastFitRef = React.useRef(0);
+  useEffect(() => {
+    if (!active || !map) return;
+    const points = [];
+    if (userLocation && userLocation.length >= 2) points.push(userLocation);
+    if (sellerLocation && sellerLocation.length >= 2) points.push(sellerLocation);
+    if (route && route.length > 0) {
+      route.forEach((p) => { if (p && p.length >= 2) points.push(p); });
+    }
+    if (points.length < 2) return;
+    const now = Date.now();
+    if (now - lastFitRef.current < 2000) return;
+    lastFitRef.current = now;
+    const bounds = L.latLngBounds(points);
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+  }, [active, map, userLocation, sellerLocation, route]);
+  return null;
+}
+
 export default function ParkingMap({
   alerts = [],
   onAlertClick,
@@ -189,7 +211,8 @@ export default function ParkingMap({
   userAsCar = false,
   userCarColor = 'gris',
   userCarPrice = 0,
-  showSellerMarker = false
+  showSellerMarker = false,
+  onRouteLoaded = null
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
@@ -201,38 +224,48 @@ export default function ParkingMap({
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
+  const [routeDuration, setRouteDuration] = useState(null);
+  const lastRouteFetchRef = React.useRef(0);
+  const ROUTE_REFETCH_MS = 8000;
 
-  // Calcular ruta cuando se selecciona una alerta
+  // Calcular ruta (OSRM) cuando hay navegación activa; throttled para no saturar
   useEffect(() => {
-    if (showRoute && normalizedUserLocation) {
-      // Usar sellerLocation si está disponible, sino usar selectedAlert
-      const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
-      
-      if (!targetLocation) {
-        setRoute(null);
-        setRouteDistance(null);
-        return;
-      }
-
-      const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
-      const end = { lat: targetLocation[0], lng: targetLocation[1] };
-
-      // Usar OSRM para calcular la ruta
-      fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`).
-      then((res) => res.json()).
-      then((data) => {
-        if (data.routes && data.routes[0]) {
-          const coords = data.routes[0].geometry.coordinates.map((coord) => [coord[1], coord[0]]);
-          setRoute(coords);
-          setRouteDistance((data.routes[0].distance / 1000).toFixed(2)); // km
-        }
-      }).
-      catch((err) => console.log('Error calculando ruta:', err));
-    } else {
+    if (!showRoute || !normalizedUserLocation) {
       setRoute(null);
       setRouteDistance(null);
+      setRouteDuration(null);
+      return;
     }
-  }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
+    const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
+    if (!targetLocation) {
+      setRoute(null);
+      setRouteDistance(null);
+      setRouteDuration(null);
+      return;
+    }
+    const now = Date.now();
+    if (lastRouteFetchRef.current > 0 && now - lastRouteFetchRef.current < ROUTE_REFETCH_MS) return;
+    lastRouteFetchRef.current = now;
+
+    const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
+    const end = { lat: targetLocation[0], lng: targetLocation[1] };
+
+    fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.routes && data.routes[0]) {
+          const r = data.routes[0];
+          const coords = r.geometry.coordinates.map((coord) => [coord[1], coord[0]]);
+          const distanceKm = r.distance / 1000;
+          const durationSec = r.duration || 0;
+          setRoute(coords);
+          setRouteDistance(distanceKm.toFixed(2));
+          setRouteDuration(durationSec);
+          if (onRouteLoaded) onRouteLoaded({ distanceKm, durationSec });
+        }
+      })
+      .catch((err) => console.log('Error calculando ruta:', err));
+  }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   return (
     <div className={`relative ${className}`} style={{ height: '500px', width: '100vw', zIndex: 999 }}>
@@ -433,16 +466,26 @@ export default function ParkingMap({
         }
         
         {/* Ruta */}
-        {route &&
-        <Polyline
-          positions={route}
-          color="#a855f7"
-          weight={4}
-          opacity={0.8}
-          dashArray="10, 10" />
+        {route && (
+          <Polyline
+            positions={route}
+            color="#a855f7"
+            weight={4}
+            opacity={0.8}
+            dashArray="10, 10"
+          />
+        )}
 
-        }
-        
+        {/* Auto-zoom: encuadrar origen, destino y ruta */}
+        {showRoute && (route || (normalizedUserLocation && sellerLocation)) && (
+          <FitBoundsToRoute
+            userLocation={normalizedUserLocation}
+            sellerLocation={sellerLocation}
+            route={route}
+            active={!!route || !!(normalizedUserLocation && sellerLocation)}
+          />
+        )}
+
         {/* Alertas */}
         {alerts.map((alert) =>
         <Marker

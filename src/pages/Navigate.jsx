@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
@@ -35,6 +35,12 @@ export default function Navigate() {
   const hasReleasedPaymentRef = useRef(false);
   const animationRef = useRef(null);
   const wasWithin5mRef = useRef(false);
+  const [routeDistanceKm, setRouteDistanceKm] = useState(null);
+  const [routeDurationSec, setRouteDurationSec] = useState(null);
+  const onRouteLoaded = useCallback(({ distanceKm, durationSec }) => {
+    setRouteDistanceKm(distanceKm);
+    setRouteDurationSec(durationSec);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -325,6 +331,15 @@ export default function Navigate() {
     return { value: (distanceMeters / 1000).toFixed(1), unit: 'km' };
   })();
 
+  // ETA (min) a partir de distancia restante y duración inicial de la ruta
+  const etaMinutes = (() => {
+    if (distanceMeters == null || distanceMeters <= 0 || !routeDistanceKm || routeDistanceKm <= 0 || !routeDurationSec) return null;
+    const remainingKm = distanceMeters / 1000;
+    const speedKmPerSec = routeDistanceKm / routeDurationSec;
+    if (!speedKmPerSec) return null;
+    return Math.max(1, Math.round((remainingKm / speedKmPerSec) / 60));
+  })();
+
   // Liberar pago cuando estén a menos de 5m (solo para el comprador; el vendedor no libera)
   useEffect(() => {
     if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
@@ -494,8 +509,38 @@ export default function Navigate() {
           userCarColor={displayAlert?.car_color || 'gris'}
           userCarPrice={displayAlert?.price ?? 0}
           showSellerMarker={!!displayAlert && !isSeller}
+          onRouteLoaded={onRouteLoaded}
         />
       </div>
+
+      {/* Panel flotante: distancia restante y ETA (solo comprador, con navegación activa) */}
+      {!isSeller && isTracking && displayAlert && (
+        <div className="fixed left-4 right-4 z-20 mt-2" style={{ top: '60px' }}>
+          <div className="bg-gray-900/95 backdrop-blur-md rounded-xl border-2 border-purple-500/60 shadow-xl px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-600/30 flex items-center justify-center">
+                <Navigation className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Distancia restante</p>
+                <p className="text-white font-bold text-lg">
+                  {distanceMeters != null
+                    ? distanceMeters < 1000
+                      ? `${Math.round(distanceMeters)} m`
+                      : `${(distanceMeters / 1000).toFixed(1)} km`
+                    : '--'}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-400 uppercase tracking-wide">ETA</p>
+              <p className="text-white font-bold text-lg">
+                {etaMinutes != null ? `~${etaMinutes} min` : '--'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tarjeta del usuario que reservó / destino - justo encima del menú inferior */}
       {displayAlert && (
