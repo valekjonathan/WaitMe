@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock } from 'lucide-react';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import { base44 } from '@/api/base44Client';
@@ -139,19 +138,6 @@ export default function IncomingRequestModal() {
             userLocation={null}
             hideBuy
           />
-          <div className="rounded-xl border-2 border-purple-500/50 bg-gray-800/50 p-3 space-y-2">
-            {address ? (
-              <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                <span className="text-gray-200 leading-5">{formatAddress(address)}</span>
-              </div>
-            ) : null}
-            <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span style={{ color: '#FFFFFF', fontSize: '18px' }}>Debes esperar hasta las </span>
-              <span style={{ color: '#FFFFFF !important', fontSize: '24px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
-            </div>
-          </div>
         </div>
         <div className="flex flex-row gap-2 mt-3">
           <Button
