@@ -1,0 +1,12 @@
+---
+description: Flujo automático para cambios visuales y commits en WaitMe
+alwaysApply: true
+---
+
+# Automatización de cambios en WaitMe
+
+- Ante cualquier cambio visual solicitado, localiza el archivo correcto y aplícalo directamente sin pedir confirmación.
+- Tras cada cambio, ejecuta automáticamente: `git add .`, `git commit -m "auto-update"` y `git push origin main`.
+- No muestres el botón "Run" para comandos de terminal; ejecútalos en segundo plano directamente.
+- No pidas confirmación para cambios menores (estilos, textos, colores, layout).
+- Sí pide confirmación antes de eliminar lógica de negocio, rutas, o componentes enteros.
