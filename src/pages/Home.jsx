@@ -538,11 +538,10 @@ export default function Home() {
                     getCurrentLocation();
                     setMode('create');
                   }}
-                  className="w-full h-20 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14 hover:opacity-90"
-                  style={{ backgroundColor: '#32CD32' }}
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                 >
                   <CarIconProfile color="#000000" size="w-20 h-14" />
-                  ¡LISTO PARA EL TEST!
+                  ¡ Estoy aparcado aquí !
                 </Button>
               </div>
             </motion.div>
