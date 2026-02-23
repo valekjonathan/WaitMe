@@ -1064,8 +1064,8 @@ const myFinalizedAlerts = useMemo(() => {
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
               <span className="text-gray-200 leading-5">
                 Te vas en {alert.available_in_minutes} min ·{' '}
-                <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las:</span>{' '}
-                <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                <span className="text-white font-bold text-lg">Te espera hasta las:</span>{' '}
+                <span className="text-white font-bold text-lg">{waitUntilLabel}</span>
               </span>
             </div>
           </div>
@@ -1308,7 +1308,7 @@ const myFinalizedAlerts = useMemo(() => {
                                   <span className="text-white leading-5">
                                     Te vas en {alert.available_in_minutes} min ·{' '}
                                   </span>
-                                  <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>
+                                  <span className="text-white font-bold text-lg">
                                     Debes esperar hasta las {waitUntilLabel}
                                   </span>
                                 </div>
@@ -1978,8 +1978,8 @@ const myFinalizedAlerts = useMemo(() => {
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>Debes esperar hasta las </span>
-                  <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                  <span className="text-white font-bold text-lg">Debes esperar hasta las </span>
+                  <span className="text-white font-bold text-lg">{waitUntilLabel}</span>
                 </div>
 
                 <div className="mt-2">
@@ -2080,8 +2080,8 @@ const myFinalizedAlerts = useMemo(() => {
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                   <span className="text-gray-200 leading-5">
                     Te vas en {alert.available_in_minutes} min ·{' '}
-                    <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las:</span>{' '}
-                    <span style={{ color: '#FFFFFF !important', fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                    <span className="text-white font-bold text-lg">Te espera hasta las:</span>{' '}
+                    <span className="text-white font-bold text-lg">{waitUntilLabel}</span>
                   </span>
                 </div>
               </div>

@@ -223,6 +223,7 @@ export default function Navigate() {
   const startTracking = () => {
     setIsTracking(true);
     try {
+      window.localStorage.setItem('showBanner', 'true');
       window.dispatchEvent(new Event('waitme:requestsChanged'));
       window.dispatchEvent(new Event('waitme:showIncomingBanner'));
     } catch {}

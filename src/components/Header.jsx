@@ -100,6 +100,22 @@ export default function Header({
     };
   }, []);
 
+  // Lectura cada segundo de showBanner en localStorage (botón azul en Navigate)
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        if (window.localStorage.getItem('showBanner') === 'true') {
+          window.localStorage.setItem('showBanner', 'false');
+          const list = getWaitMeRequests();
+          const pending = (list || []).find((r) => String(r?.status || '') === 'pending');
+          setBannerReq(pending || null);
+          setShowBanner(true);
+          setTimeout(() => setShowBanner(false), 5000);
+        }
+      } catch {}
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const onPayment = (e) => {
