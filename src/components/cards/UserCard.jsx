@@ -209,11 +209,11 @@ export default function UserCard({
           )}
           
           {availableInMinutes !== undefined && (
-            <div className="flex items-center gap-1 text-gray-500 text-[10px]">
+            <div className="flex items-center gap-1 text-white text-[10px]">
               <Clock className="w-3.5 h-3.5" />
               <span>Se va en {availableInMinutes} min</span>
-              <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>
-                • Te espera hasta las {format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}
+              <span>
+                • Te espera hasta las <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}</span>
               </span>
             </div>
           )}

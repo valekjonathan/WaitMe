@@ -674,14 +674,14 @@ const badgeCls = isCompletedOrCanceled
                         address={alert.address}
                         timeLine={
                           isSeller ? (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Te vas en {remainingMinutes} min ·{' '}
-                              <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>Debes esperar hasta las {waitUntilText}</span>
+                            <span className="text-white leading-5">
+                              Te vas en {remainingMinutes} min · Debes esperar hasta las{' '}
+                              <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilText}</span>
                             </span>
                           ) : isBuyer ? (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
-                              Se va en {remainingMinutes} min ·{' '}
-                              <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las {waitUntilText}</span>
+                            <span className="text-white leading-5">
+                              Se va en {remainingMinutes} min · Te espera hasta las{' '}
+                              <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>

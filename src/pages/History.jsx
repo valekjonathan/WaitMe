@@ -1064,10 +1064,9 @@ const myFinalizedAlerts = useMemo(() => {
             </div>
             <div className="flex items-start gap-1.5 text-xs">
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5">
-                Te vas en {alert.available_in_minutes} min ·{' '}
-                <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las:</font>{' '}
-                <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</font>
+              <span className="text-white leading-5">
+                Te vas en {alert.available_in_minutes} min · Te espera hasta las:{' '}
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
               </span>
             </div>
           </div>
@@ -1308,11 +1307,9 @@ const myFinalizedAlerts = useMemo(() => {
                                 <div className="flex items-start gap-1.5 text-xs">
                                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                                   <span className="text-white leading-5">
-                                    Te vas en {alert.available_in_minutes} min ·{' '}
+                                    Te vas en {alert.available_in_minutes} min · Debes esperar hasta las{' '}
+                                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
                                   </span>
-                                  <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                                    Debes esperar hasta las {waitUntilLabel}
-                                  </font>
                                 </div>
 
                                 <div className="mt-2">
@@ -1410,7 +1407,12 @@ const myFinalizedAlerts = useMemo(() => {
                               plate={a.car_plate}
                               carColor={a.car_color}
                               address={a.address}
-                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Hasta las ${waitUntilLabel}`}
+                              timeLine={
+                                <span className="text-white leading-5">
+                                  Se iba en {a.available_in_minutes ?? '--'} min · Hasta las{' '}
+                                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                                </span>
+                              }
                               onChat={() =>
                                 (window.location.href = createPageUrl(
                                   `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
@@ -1642,10 +1644,12 @@ const myFinalizedAlerts = useMemo(() => {
                             plate={alert.car_plate}
                             carColor={alert.car_color}
                             address={alert.address}
-                            timeLine={{
-                              main: `Se va en ${alert.available_in_minutes} min ·`,
-                              accent: `Te espera hasta las ${waitUntilLabel}`
-                            }}
+                            timeLine={
+                              <span className="text-white leading-5">
+                                Se va en {alert.available_in_minutes} min · Te espera hasta las{' '}
+                                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                              </span>
+                            }
                             onChat={() =>
                               (window.location.href = createPageUrl(
                                 `Chat?alertId=${alert.id}&userId=${alert.user_email || alert.user_id}`
@@ -1769,7 +1773,12 @@ const myFinalizedAlerts = useMemo(() => {
                               plate={a.car_plate}
                               carColor={a.car_color}
                               address={a.address}
-                              timeLine={`Se iba en ${a.available_in_minutes ?? '--'} min · Te esperaba hasta las ${waitUntilLabel}`}
+                              timeLine={
+                                <span className="text-white leading-5">
+                                  Se iba en {a.available_in_minutes ?? '--'} min · Te esperaba hasta las{' '}
+                                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                                </span>
+                              }
                               onChat={() =>
                                 (window.location.href = createPageUrl(
                                   `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
@@ -1980,9 +1989,10 @@ const myFinalizedAlerts = useMemo(() => {
 
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-white leading-5">Te vas en {a.available_in_minutes} min · </span>
-                  <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>Debes esperar hasta las </font>
-                  <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</font>
+                  <span className="text-white leading-5">
+                    Te vas en {a.available_in_minutes} min · Debes esperar hasta las{' '}
+                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                  </span>
                 </div>
 
                 <div className="mt-2">
@@ -2081,11 +2091,10 @@ const myFinalizedAlerts = useMemo(() => {
                 </div>
                 <div className="flex items-start gap-1.5 text-xs">
                   <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-gray-200 leading-5">
-                    Te vas en {alert.available_in_minutes} min ·{' '}
-                    <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las:</font>{' '}
-                    <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</font>
-                  </span>
+                    <span className="text-white leading-5">
+                      Te vas en {alert.available_in_minutes} min · Te espera hasta las:{' '}
+                      <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                    </span>
                 </div>
               </div>
 

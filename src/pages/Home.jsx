@@ -807,7 +807,7 @@ export default function Home() {
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-purple-400" />
                 <span className="text-white">Te vas en:</span>
-                <span className="text-purple-400 font-semibold text-base">
+                <span className="text-white font-semibold text-base">
                   {pendingPublishPayload?.available_in_minutes ?? ''} minutos
                 </span>
               </div>
@@ -835,8 +835,10 @@ export default function Home() {
                   });
                   return (
                     <>
-                      <span style={{ color: '#FFFFFF', fontSize: '18px' }}>Debes esperar hasta las: </span>
-<span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
+                      <span className="text-white text-base font-normal">
+                        Debes esperar hasta las:{' '}
+                        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
+                      </span>
                     </>
                   );
                 })()}

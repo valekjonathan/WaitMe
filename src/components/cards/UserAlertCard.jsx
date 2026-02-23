@@ -255,9 +255,9 @@ export default function UserAlertCard({
           {alert?.available_in_minutes != null ? (
             <div className="flex items-start gap-1.5 text-xs">
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-gray-200 leading-5">
-                Se va en {alert.available_in_minutes} min ·{' '}
-                <font color="white" style={{ fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las {waitUntilLabel}</font>
+              <span className="text-white leading-5">
+                Se va en {alert.available_in_minutes} min · Te espera hasta las{' '}
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
               </span>
             </div>
           ) : null}
