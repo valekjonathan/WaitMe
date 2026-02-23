@@ -235,7 +235,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation]);
 
   return (
-    <div className={`relative w-full h-full min-h-[500px] z-[1] ${className}`} style={{ zIndex: 1 }}>
+    <div className={`relative ${className}`} style={{ height: '500px', width: '100vw', zIndex: 999 }}>
       {useCenterPin && (
         <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
           <div style={{ position: 'relative', width: '40px', height: '60px' }}>
@@ -310,7 +310,7 @@ export default function ParkingMap({
       <MapContainer
         center={defaultCenter}
         zoom={16}
-        style={{ height: '500px', width: '100%', zIndex: 1 }}
+        style={{ height: '500px', width: '100vw', zIndex: 999 }}
         className="rounded-2xl"
         zoomControl={zoomControl}
         key={`map-${zoomControl}`}>

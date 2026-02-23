@@ -148,7 +148,7 @@ export default function IncomingRequestModal() {
             <div className="flex items-start gap-1.5 text-xs">
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
               <span className="text-gray-400 leading-5">Debes esperar hasta las </span>
-              <span className="text-white font-bold text-xl">{waitUntilLabel}</span>
+              <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
             </div>
           </div>
         </div>

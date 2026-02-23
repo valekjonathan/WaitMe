@@ -11,7 +11,7 @@ export default function WaitMeRequestScheduler() {
   const firedRef = useRef(false);
 
   useEffect(() => {
-    const KEY = 'waitme_incoming_fired_v2';
+    const KEY = 'waitme_incoming_fired_v3';
     try {
       if (window?.sessionStorage?.getItem(KEY) === '1') {
         firedRef.current = true;
@@ -20,8 +20,9 @@ export default function WaitMeRequestScheduler() {
 
     const onAlertPublished = (e) => {
       if (firedRef.current) return;
-      const alertId = e?.detail?.alertId || null;
+      const alertId = e?.detail?.alertId || 'demo_1';
 
+      if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(async () => {
         try {
           firedRef.current = true;
@@ -55,6 +56,18 @@ export default function WaitMeRequestScheduler() {
             alert = await base44.entities.ParkingAlert.get(alertId);
             if (alert) addDemoAlert(alert);
           } catch {}
+          if (!alert && String(alertId).startsWith('demo_')) {
+            alert = {
+              id: alertId,
+              address: 'Calle Uría, Oviedo',
+              available_in_minutes: 6,
+              price: 3,
+              latitude: 43.3629,
+              longitude: -5.8488,
+              created_date: new Date().toISOString()
+            };
+            addDemoAlert(alert);
+          }
 
           addIncomingWaitMeConversation(alertId, req.buyer);
 
