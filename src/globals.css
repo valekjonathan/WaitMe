@@ -37,7 +37,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-black text-white;
+    background-color: #1a3a6b !important;
+    @apply text-white;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
