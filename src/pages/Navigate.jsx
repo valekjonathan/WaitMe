@@ -222,6 +222,10 @@ export default function Navigate() {
   // Simulación de movimiento tipo Uber - el usuario se mueve gradualmente hacia el vendedor
   const startTracking = () => {
     setIsTracking(true);
+    try {
+      window.dispatchEvent(new Event('waitme:requestsChanged'));
+      window.dispatchEvent(new Event('waitme:showIncomingBanner'));
+    } catch {}
     
     // Simular movimiento hacia el vendedor (mover usuario poco a poco)
     const moveTowardsDestination = () => {

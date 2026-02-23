@@ -681,7 +681,7 @@ const badgeCls = isCompletedOrCanceled
                           ) : isBuyer ? (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
                               Se va en {remainingMinutes} min ·{' '}
-                              <span className="text-purple-300 font-bold">Te espera hasta las {waitUntilText}</span>
+                              <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las {waitUntilText}</span>
                             </span>
                           ) : (
                             <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>

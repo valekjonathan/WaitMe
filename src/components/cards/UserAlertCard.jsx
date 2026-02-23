@@ -257,7 +257,7 @@ export default function UserAlertCard({
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
               <span className="text-gray-200 leading-5">
                 Se va en {alert.available_in_minutes} min ·{' '}
-                <span style={{ color: '#FFFFFF', fontSize: '18px' }}>Te espera hasta las {waitUntilLabel}</span>
+                <span style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}>Te espera hasta las {waitUntilLabel}</span>
               </span>
             </div>
           ) : null}
