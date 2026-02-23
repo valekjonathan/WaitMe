@@ -285,10 +285,12 @@ export default function Navigate() {
     };
   }, []);
 
-  // Ubicación del vendedor desde la alerta (sin query)
+  // Ubicación del vendedor desde la alerta (sin query); si viene vacía, coordenadas de prueba
   useEffect(() => {
-    if (alert?.latitude && alert?.longitude) {
-      setSellerLocation([alert.latitude, alert.longitude]);
+    if (alert?.latitude != null && alert?.longitude != null) {
+      setSellerLocation([Number(alert.latitude), Number(alert.longitude)]);
+    } else if (alert && (sellerLocation == null || sellerLocation.length < 2)) {
+      setSellerLocation([43.362, -5.849]);
     }
   }, [alert]);
 
@@ -500,14 +502,14 @@ export default function Navigate() {
         </div>
       </header>
 
-      {/* Mapa a pantalla completa */}
-      <div className="absolute inset-0 top-[52px] bottom-0 z-0">
+      {/* Mapa a pantalla completa - altura explícita para que Leaflet renderice */}
+      <div className="absolute left-0 right-0 z-0" style={{ top: '52px', bottom: '0', height: 'calc(100vh - 52px)' }}>
         <ParkingMap
           alerts={displayAlert && isSeller ? [displayAlert] : []}
           userLocation={userLocation}
           selectedAlert={displayAlert}
           showRoute={!!isTracking && !!displayAlert}
-          sellerLocation={sellerLocation}
+          sellerLocation={sellerLocation && sellerLocation.length >= 2 ? sellerLocation : (displayAlert?.latitude != null && displayAlert?.longitude != null ? [displayAlert.latitude, displayAlert.longitude] : [43.362, -5.849])}
           zoomControl={true}
           className="h-full w-full"
           userAsCar={!isSeller && !!displayAlert}

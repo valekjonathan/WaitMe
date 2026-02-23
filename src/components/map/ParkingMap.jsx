@@ -169,6 +169,26 @@ function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
   return null;
 }
 
+/** Centrado inmediato al pulsar el botón azul: fuerza vista sobre destino y origen */
+function ForceFitOnRouteStart({ userLocation, sellerLocation, active }) {
+  const map = useMap();
+  const doneRef = React.useRef(false);
+  useEffect(() => {
+    if (!active) {
+      doneRef.current = false;
+      return;
+    }
+    if (!map) return;
+    const a = userLocation && userLocation.length >= 2 ? userLocation : null;
+    const b = sellerLocation && sellerLocation.length >= 2 ? sellerLocation : null;
+    if (!a || !b || doneRef.current) return;
+    doneRef.current = true;
+    const bounds = L.latLngBounds([a, b]);
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
+  }, [active, map, userLocation, sellerLocation]);
+  return null;
+}
+
 /** Auto-zoom para que se vean ambos puntos (origen y destino) cuando hay ruta activa */
 function FitBoundsToRoute({ userLocation, sellerLocation, route, active }) {
   const map = useMap();
@@ -268,7 +288,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   return (
-    <div className={`relative ${className}`} style={{ height: '500px', width: '100vw', zIndex: 999 }}>
+    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 999 }}>
       {useCenterPin && (
         <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
           <div style={{ position: 'relative', width: '40px', height: '60px' }}>
@@ -343,7 +363,7 @@ export default function ParkingMap({
       <MapContainer
         center={defaultCenter}
         zoom={16}
-        style={{ height: '500px', width: '100vw', zIndex: 999 }}
+        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 999 }}
         className="rounded-2xl"
         zoomControl={zoomControl}
         key={`map-${zoomControl}`}>
@@ -476,6 +496,14 @@ export default function ParkingMap({
           />
         )}
 
+        {/* Centrado inmediato al iniciar navegación */}
+        {showRoute && normalizedUserLocation && sellerLocation && (
+          <ForceFitOnRouteStart
+            userLocation={normalizedUserLocation}
+            sellerLocation={sellerLocation}
+            active={true}
+          />
+        )}
         {/* Auto-zoom: encuadrar origen, destino y ruta */}
         {showRoute && (route || (normalizedUserLocation && sellerLocation)) && (
           <FitBoundsToRoute
