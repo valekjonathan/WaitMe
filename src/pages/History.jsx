@@ -419,7 +419,7 @@ const getCreatedTs = (alert) => {
             }`}
           >
             {photoUrl ? (
-              <img src={photoUrl} alt={name} className={photoCls} />
+              <img src={photoUrl} alt={name} className={photoCls} loading="eager" decoding="sync" />
             ) : (
               <div
                 className={`w-full h-full flex items-center justify-center text-3xl ${
