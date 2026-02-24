@@ -36,15 +36,21 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-black text-white;
+  html, body {
+    @apply text-white;
+    background-color: #0b0b0b;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    height: 100%;
   }
   #root {
     min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #0b0b0b;
   }
 }
 
