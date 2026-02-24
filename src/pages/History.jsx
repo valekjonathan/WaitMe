@@ -1144,13 +1144,13 @@ const myFinalizedAlerts = useMemo(() => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
       <Header title="Alertas" showBackButton={true} backTo="Home" />
 
       <main className="pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="fixed top-[56px] left-0 right-0 z-40 bg-black/90 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800">
-            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0">
+          <div className="fixed top-[56px] left-0 right-0 z-40 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800" style={{ backgroundColor: 'rgba(11,11,11,0.93)' }}>
+            <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0 flex justify-between">
               <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
                 Tus alertas
               </TabsTrigger>
