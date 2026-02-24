@@ -199,8 +199,8 @@ export default function Header({
         </div>
       </div>
 
-      {/* banner tipo WhatsApp: SIEMPRE debajo del menú superior */}
-      {showBanner && bannerReq && (
+      {/* banner tipo WhatsApp: DESACTIVADO */}
+      {false && showBanner && bannerReq && (
         <div className="absolute top-full left-0 right-0 px-4 pt-2">
           <div
             role="button"
