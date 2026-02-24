@@ -475,10 +475,10 @@ const getCreatedTs = (alert) => {
         </div>
 
         <div className="mt-2">
-          <div className="flex gap-2">
+          <div className="flex justify-between gap-2">
             <Button
               size="icon"
-              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg h-8"
               onClick={onChat}
             >
               <MessageCircle className="w-4 h-4" />
@@ -487,7 +487,7 @@ const getCreatedTs = (alert) => {
             {phoneEnabled ? (
               <Button
                 size="icon"
-                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                className="flex-1 bg-white hover:bg-gray-200 text-black rounded-lg h-8"
                 onClick={onCall}
               >
                 <Phone className="w-4 h-4" />
@@ -496,7 +496,7 @@ const getCreatedTs = (alert) => {
               <Button
                 variant="outline"
                 size="icon"
-                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+                className="flex-1 border-white/30 bg-white/10 text-white rounded-lg h-8 opacity-70 cursor-not-allowed"
                 disabled
               >
                 <PhoneOff className="w-4 h-4 text-white" />
