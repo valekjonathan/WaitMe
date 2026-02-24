@@ -548,10 +548,10 @@ const {
   isLoading: loadingAlerts
 } = useQuery({
   queryKey: ['myAlerts'],
-  enabled: true,
+  enabled: !!(user?.id || user?.email),
   staleTime: 30 * 1000,
   gcTime: 5 * 60 * 1000,
-  refetchOnMount: false,
+  refetchOnMount: true,
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchInterval: false,
@@ -581,9 +581,7 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   refetchOnMount: false,
-  placeholderData: (prev) => prev,
   queryFn: async () => {
-    // Si no existe esta entidad en tu backend, simplemente devuelve []
     try {
       const allTx = await base44.entities.Transaction.list('-created_date', 5000);
       const email = user?.email;
