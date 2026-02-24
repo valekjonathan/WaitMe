@@ -180,18 +180,17 @@ export default function UserAlertCard({
                 <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
               </div>
             ) : null}
-            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-0.5 h-7">
-              <span className="text-green-400 font-bold text-xs">
-                {priceText.replace('.00', '')}
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+              <span className="text-green-400 font-bold text-sm flex items-center gap-0.5">
+                {priceText.replace('.00', '')} <span className="text-[10px]">↑</span>
               </span>
-              <span className="text-green-300 text-[11px] font-bold">↑</span>
             </div>
             {onReject ? (
               <button
                 onClick={onReject}
-                className="h-7 w-7 flex items-center justify-center rounded-full bg-red-600/20 border border-red-500/40 hover:bg-red-600/40 transition-colors"
+                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
               >
-                <X className="w-3.5 h-3.5 text-red-400" />
+                <X className="w-5 h-5" />
               </button>
             ) : null}
           </div>
@@ -265,69 +264,100 @@ export default function UserAlertCard({
           ) : null}
 
           {alert?.available_in_minutes != null ? (
-            <div className="flex items-start gap-1.5 text-xs">
-              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-              <span className="text-white leading-5">
-                <span className="text-purple-400">{alert.isIncomingRequest ? 'Te vas en' : 'Se va en'}</span> {alert.available_in_minutes} min <span className="text-purple-400">· {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}</span>{' '}
-                <span style={{ fontSize: '18px', fontWeight: 'bold' }} className="text-white">{waitUntilLabel}</span>
+            <div className="flex items-center gap-1.5 text-xs flex-wrap">
+              <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
+              <span className="text-purple-400 whitespace-nowrap">
+                {alert.isIncomingRequest ? 'Te vas en' : 'Se va en'} {alert.available_in_minutes} min · {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}
               </span>
+              <span className="text-white font-bold" style={{ fontSize: '17px', lineHeight: 1 }}>{waitUntilLabel}</span>
             </div>
           ) : null}
         </div>
       </div>
 
       <div className="mt-2">
-        <div className="flex gap-2">
-          {/* Chat */}
-          <Button
-            size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-            onClick={handleChat}>
-            <MessageCircle className="w-4 h-4" />
-          </Button>
-
-          {/* Llamada */}
-          {phoneEnabled ? (
+        {hideBuy ? (
+          /* Fila de 4 columnas iguales cuando hideBuy está activo */
+          <div className="grid grid-cols-4 gap-2">
+            {/* 1. Chat */}
             <Button
-              size="icon"
-              className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-              onClick={handleCall}>
-              <Phone className="w-4 h-4" />
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-full flex items-center justify-center"
+              onClick={handleChat}>
+              <MessageCircle className="w-4 h-4" />
             </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="icon"
-              className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-              disabled>
-              <PhoneOff className="w-4 h-4 text-white" />
-            </Button>
-          )}
 
-          {/* Ir – gris */}
-          <Button
-            size="icon"
-            className="bg-gray-600 hover:bg-gray-500 text-white rounded-lg h-8 px-3 flex items-center justify-center gap-1"
-            onClick={() => {
-              if (alert?.latitude && alert?.longitude) {
+            {/* 2. Llamada */}
+            {phoneEnabled ? (
+              <Button
+                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-full flex items-center justify-center"
+                onClick={handleCall}>
+                <Phone className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-full flex items-center justify-center opacity-70 cursor-not-allowed"
+                disabled>
+                <PhoneOff className="w-4 h-4 text-white" />
+              </Button>
+            )}
+
+            {/* 3. Ir – azul, deshabilitado si no hay coords */}
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-full flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={!alert?.latitude || !alert?.longitude}
+              onClick={() => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
-              }
-            }}>
-            <Navigation className="w-4 h-4" />
-            <span className="font-semibold text-sm">Ir</span>
-          </Button>
+              }}>
+              <Navigation className="w-4 h-4" />
+              <span className="font-semibold text-sm">Ir</span>
+            </Button>
 
-          {/* Contador de tiempo */}
-          {alert?.available_in_minutes != null ? (
-            <div className="flex-1 h-8 rounded-lg bg-purple-700/30 border border-purple-500/40 flex items-center justify-center gap-1 px-2">
-              <Clock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-              <span className="font-bold text-sm text-white">{alert.available_in_minutes}<span className="text-xs font-normal text-purple-300 ml-0.5">min</span></span>
+            {/* 4. Contador – estilo ActiveAlertCard */}
+            <div className="h-8 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center justify-center gap-1 px-1">
+              <Clock className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+              <span className="text-sm text-gray-300 font-semibold whitespace-nowrap">
+                {alert?.available_in_minutes != null ? `${alert.available_in_minutes} min` : '--'}
+              </span>
             </div>
-          ) : (
-            <div className="flex-1" />
-          )}
-
-          {!hideBuy && (
+          </div>
+        ) : (
+          /* Fila estándar cuando hay botón WaitMe! */
+          <div className="flex gap-2">
+            <Button
+              size="icon"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+              onClick={handleChat}>
+              <MessageCircle className="w-4 h-4" />
+            </Button>
+            {phoneEnabled ? (
+              <Button
+                size="icon"
+                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                onClick={handleCall}>
+                <Phone className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+                disabled>
+                <PhoneOff className="w-4 h-4 text-white" />
+              </Button>
+            )}
+            <Button
+              size="icon"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-3 flex items-center justify-center gap-1 disabled:opacity-40"
+              disabled={!alert?.latitude || !alert?.longitude}
+              onClick={() => {
+                if (alert?.latitude && alert?.longitude) {
+                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
+                }
+              }}>
+              <Navigation className="w-4 h-4" />
+              <span className="font-semibold text-sm">Ir</span>
+            </Button>
             <div className="flex-1">
               <Button
                 className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
@@ -336,8 +366,8 @@ export default function UserAlertCard({
                 {isLoading ? 'Procesando...' : buyLabel}
               </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>);
 
