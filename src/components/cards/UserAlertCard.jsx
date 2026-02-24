@@ -264,12 +264,17 @@ export default function UserAlertCard({
           ) : null}
 
           {alert?.available_in_minutes != null ? (
-            <div className="flex items-center gap-1.5 text-xs flex-wrap">
-              <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
-              <span className="text-purple-400 whitespace-nowrap">
-                {alert.isIncomingRequest ? 'Te vas en' : 'Se va en'} {alert.available_in_minutes} min · {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}
+            <div className="flex items-center gap-1 text-xs overflow-hidden">
+              <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
+              <span className="truncate">
+                <span className="text-purple-400">
+                  {alert.isIncomingRequest ? 'Te vas en' : 'Se va en'}{' '}
+                  <span className="text-white">{alert.available_in_minutes}</span>{' '}
+                  min · {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}
+                </span>
+                {' '}
+                <span className="text-white font-bold text-sm">{waitUntilLabel}</span>
               </span>
-              <span className="text-white font-bold" style={{ fontSize: '17px', lineHeight: 1 }}>{waitUntilLabel}</span>
             </div>
           ) : null}
         </div>

@@ -13,7 +13,7 @@ import NotificationSettings from './pages/NotificationSettings';
 export default function Layout() {
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <div className="flex-1">
+      <div className="flex-1 page-bottom-pad">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
