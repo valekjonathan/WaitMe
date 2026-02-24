@@ -1071,11 +1071,11 @@ const myFinalizedAlerts = useMemo(() => {
         </div>
 
         {/* Botones de acción */}
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex justify-between gap-2">
           {/* Chat */}
           <Button
             size="icon"
-            className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-lg h-8"
             onClick={() => (window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`))}
           >
             <MessageCircle className="w-4 h-4" />
@@ -1083,11 +1083,11 @@ const myFinalizedAlerts = useMemo(() => {
 
           {/* Teléfono */}
           {phoneEnabled ? (
-            <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]" onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}>
+            <Button size="icon" className="flex-1 bg-white hover:bg-gray-200 text-black rounded-lg h-8" onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}>
               <Phone className="w-4 h-4" />
             </Button>
           ) : (
-            <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+            <Button variant="outline" size="icon" className="flex-1 border-white/30 bg-white/10 text-white rounded-lg h-8 opacity-70 cursor-not-allowed" disabled>
               <PhoneOff className="w-4 h-4 text-white" />
             </Button>
           )}
@@ -1095,7 +1095,7 @@ const myFinalizedAlerts = useMemo(() => {
           {/* IR — encendido y parpadeando cuando reservada; lleva a Navegación (vendedor) */}
           <Button
             size="icon"
-            className={`h-8 w-[42px] rounded-lg flex items-center justify-center ${
+            className={`flex-1 h-8 rounded-lg flex items-center justify-center ${
               onNavigateClick
                 ? 'bg-blue-600 hover:bg-blue-500 text-white animate-pulse shadow-lg shadow-blue-500/50'
                 : 'bg-blue-600/40 text-blue-300 opacity-50 cursor-not-allowed'
