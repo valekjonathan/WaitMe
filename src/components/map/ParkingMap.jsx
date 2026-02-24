@@ -312,29 +312,12 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
       {useCenterPin && (
-        <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }}>
-          <div style={{ position: 'relative', width: '40px', height: '60px' }}>
-            <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '2px',
-              height: '35px',
-              background: '#a855f7'
-            }}></div>
-            <div style={{
-              position: 'absolute',
-              bottom: '30px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '18px',
-              height: '18px',
-              background: '#a855f7',
-              borderRadius: '50%',
-              boxShadow: '0 0 15px rgba(168, 85, 247, 0.8)'
-            }}></div>
-          </div>
+        <div className="absolute top-1/2 left-1/2 z-[1000] pointer-events-none" style={{ transform: 'translate(-50%, -100%)' }}>
+          <svg width="36" height="48" viewBox="0 0 36 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))' }}>
+            <path d="M18 0C8.059 0 0 8.059 0 18c0 13.5 18 30 18 30S36 31.5 36 18C36 8.059 27.941 0 18 0z" fill="#1d4ed8"/>
+            <circle cx="18" cy="18" r="7" fill="white"/>
+            <circle cx="18" cy="18" r="3.5" fill="#1d4ed8"/>
+          </svg>
         </div>
       )}
       <style>{`
