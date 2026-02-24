@@ -195,17 +195,18 @@ export default function Home() {
   const getCurrentLocation = () => {
     if (!navigator.geolocation) return;
 
+    // Primero pedimos baja precisión (rápido) para no dejar el mapa en blanco
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
 
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
           .then((res) => res.json())
           .then((data) => {
             if (data?.address) {
-              const road = data.address.road || data.address.street || '';
+              const road = data.address.road || data.address.street || data.address.pedestrian || '';
               const number = data.address.house_number || '';
               setAddress(number ? `${road}, ${number}` : road);
             }
@@ -213,12 +214,33 @@ export default function Home() {
           .catch(() => {});
       },
       () => {
-        // iOS PWA a veces deniega/retarda la geo: ponemos fallback para que SIEMPRE haya mapa + tarjetas.
         setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
         setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
         if (!address) setAddress('Oviedo');
       },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
+      { enableHighAccuracy: false, timeout: 4000, maximumAge: 30 * 1000 }
+    );
+
+    // Luego pedimos alta precisión (GPS real) para actualizar con el punto exacto
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation([latitude, longitude]);
+        setSelectedPosition({ lat: latitude, lng: longitude });
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.address) {
+              const road = data.address.road || data.address.street || data.address.pedestrian || '';
+              const number = data.address.house_number || '';
+              setAddress(number ? `${road}, ${number}` : road);
+            }
+          })
+          .catch(() => {});
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
