@@ -467,7 +467,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-min-h-[100dvh] w-full bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] w-full text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
       <NotificationManager user={user} />
       <WaitMeRequestScheduler />
 
