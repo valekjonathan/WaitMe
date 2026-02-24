@@ -27,10 +27,14 @@ export default function SearchAlertCard({ alert, onOpen }) {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <p className="font-semibold text-white truncate">{alert.user_name || 'Usuario'}</p>
-            <span className="text-purple-400 font-bold text-lg ml-2">{(alert.price ?? 0).toFixed(2)}€</span>
-          </div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-semibold text-white truncate">{alert.user_name || 'Usuario'}</p>
+              <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1">
+                <span className="text-green-400 font-bold text-sm flex items-center gap-0.5">
+                  {(alert.price ?? 0)}€ <span className="text-[10px]">↑</span>
+                </span>
+              </div>
+            </div>
 
           <p className="text-sm text-gray-300 truncate mb-1">{carLabel}</p>
 

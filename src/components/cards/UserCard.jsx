@@ -113,8 +113,10 @@ export default function UserCard({
                 <span className="text-white font-bold text-xs">{distance}</span>
               </div>
             )}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1">
-              <span className="text-purple-400 font-bold text-xs">{Math.round(price)}€</span>
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1">
+              <span className="text-green-400 font-bold text-xs flex items-center gap-0.5">
+                {Math.round(price)}€ <span className="text-[10px]">↑</span>
+              </span>
             </div>
           </div>
         </div>
@@ -155,16 +157,28 @@ export default function UserCard({
             </div>
           )}
           {showContactButtons && latitude && longitude && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-full h-8 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700"
-              onClick={() => {
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
-              }}
-            >
-              <Navigation className="w-4 h-4" />
-            </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-full h-8 bg-gray-800 hover:bg-blue-600 text-blue-400 hover:text-white rounded-lg border-2 border-gray-700 flex items-center justify-center gap-1 px-2"
+            onClick={() => {
+              window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+            }}
+          >
+            <Navigation className="w-4 h-4" />
+            <span className="font-semibold text-sm">Ir</span>
+            {distance && (
+              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded">
+                {distance}
+              </span>
+            )}
+            {availableInMinutes !== undefined && (
+              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded text-white flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {availableInMinutes}m
+              </span>
+            )}
+          </Button>
           )}
         </div>
 
@@ -210,10 +224,10 @@ export default function UserCard({
           
           {availableInMinutes !== undefined && (
             <div className="flex items-center gap-1 text-white text-[10px]">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Se va en {availableInMinutes} min</span>
-              <span>
-                • Te espera hasta las <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}</span>
+              <Clock className="w-3.5 h-3.5 text-purple-400" />
+              <span className="text-purple-400">Se va en</span> <span>{availableInMinutes} min</span>
+              <span className="text-purple-400">
+                · Te espera hasta las <span style={{ fontSize: '18px', fontWeight: 'bold' }} className="text-white">{format(new Date(new Date().getTime() + availableInMinutes * 60000), 'HH:mm', { locale: es })}</span>
               </span>
             </div>
           )}

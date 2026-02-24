@@ -94,7 +94,7 @@ export default function UserAlertCard({
   const priceText = useMemo(() => {
     const n = Number(alert?.price);
     if (!Number.isFinite(n)) return '--';
-    return `${n.toFixed(2)}€`;
+    return `${n}€`;
   }, [alert?.price]);
 
   const phoneEnabled = Boolean(alert?.phone && alert?.allow_phone_calls !== false);
@@ -173,14 +173,10 @@ export default function UserAlertCard({
         dateText={dateText}
         right={
           <div className="flex items-center gap-1">
-            {distanceLabel ? (
-              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                <Navigation className="w-3 h-3 text-purple-400" />
-                <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
-              </div>
-            ) : null}
-            <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-              <span className="text-purple-300 font-bold text-xs">{priceText}</span>
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
+              <span className="text-green-400 font-bold text-xs flex items-center gap-0.5">
+                {priceText.replace('.00', '')} <span className="text-[10px]">↑</span>
+              </span>
             </div>
           </div>
         }
@@ -256,8 +252,8 @@ export default function UserAlertCard({
             <div className="flex items-start gap-1.5 text-xs">
               <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
               <span className="text-white leading-5">
-                Se va en {alert.available_in_minutes} min · Te espera hasta las{' '}
-                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                <span className="text-purple-400">{alert.isIncomingRequest ? 'Te vas en' : 'Se va en'}</span> {alert.available_in_minutes} min <span className="text-purple-400">· {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}</span>{' '}
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }} className="text-white">{waitUntilLabel}</span>
               </span>
             </div>
           ) : null}
@@ -295,7 +291,7 @@ export default function UserAlertCard({
 
           <Button
             size="icon"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-2 flex items-center justify-center gap-1"
             onClick={() => {
               if (alert?.latitude && alert?.longitude) {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
@@ -303,6 +299,18 @@ export default function UserAlertCard({
             }}>
 
             <Navigation className="w-4 h-4" />
+            <span className="font-semibold text-sm">Ir</span>
+            {distanceLabel && (
+              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded">
+                {distanceLabel.value}{distanceLabel.unit}
+              </span>
+            )}
+            {alert?.available_in_minutes != null && (
+              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded text-white flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {alert.available_in_minutes}m
+              </span>
+            )}
           </Button>
 
           {!hideBuy && (

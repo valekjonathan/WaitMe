@@ -127,9 +127,9 @@ export default function IncomingRequestModal() {
             {userName} quiere un Wait<span className="text-purple-500">Me!</span>
           </p>
         </div>
-        <div className="px-0 pb-2 space-y-2">
+          <div className="px-0 pb-2 space-y-2">
           <UserAlertCard
-            alert={fakeAlert}
+            alert={{...fakeAlert, isIncomingRequest: true}}
             isEmpty={false}
             onBuyAlert={undefined}
             onChat={() => {}}

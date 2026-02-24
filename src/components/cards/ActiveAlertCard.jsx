@@ -43,7 +43,11 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-green-400 font-bold text-lg">{(alert.price ?? 0).toFixed(2)}€</span>
+                <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1">
+                  <span className="text-green-400 font-bold text-sm flex items-center gap-0.5">
+                    {(alert.price ?? 0)}€ <span className="text-[10px]">↑</span>
+                  </span>
+                </div>
                 <span className="text-xs text-gray-400">·</span>
                 <span className="text-sm text-gray-300">{alert.available_in_minutes} min</span>
               </div>
@@ -60,9 +64,16 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
                     window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
                   }
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-8"
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-2 flex items-center justify-center gap-1"
               >
                 <Navigation className="w-4 h-4" />
+                <span className="font-semibold text-sm">Ir</span>
+                {alert.available_in_minutes != null && (
+                  <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded text-white flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {alert.available_in_minutes}m
+                  </span>
+                )}
               </Button>
               <Button
                 size="icon"
