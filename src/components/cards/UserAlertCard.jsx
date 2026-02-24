@@ -2,7 +2,7 @@
 // FILE: src/components/cards/UserAlertCard.jsx
 // ================================
 import React, { useMemo } from 'react';
-import { MapPin, Clock, Navigation, MessageCircle, Phone, PhoneOff } from 'lucide-react';
+import { MapPin, Clock, Navigation, MessageCircle, Phone, PhoneOff, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ export default function UserAlertCard({
   onBuyAlert,
   onChat,
   onCall,
+  onReject,
   isLoading = false,
   isEmpty = false,
   userLocation,
@@ -173,11 +174,26 @@ export default function UserAlertCard({
         dateText={dateText}
         right={
           <div className="flex items-center gap-1">
-            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-3 py-0.5 flex items-center gap-1 h-7">
-              <span className="text-green-400 font-bold text-xs flex items-center gap-0.5">
-                {priceText.replace('.00', '')} <span className="text-[10px]">↑</span>
+            {distanceLabel ? (
+              <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                <Navigation className="w-3 h-3 text-purple-400" />
+                <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
+              </div>
+            ) : null}
+            <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-0.5 h-7">
+              <span className="text-green-400 font-bold text-xs">
+                {priceText.replace('.00', '')}
               </span>
+              <span className="text-green-300 text-[11px] font-bold">↑</span>
             </div>
+            {onReject ? (
+              <button
+                onClick={onReject}
+                className="h-7 w-7 flex items-center justify-center rounded-full bg-red-600/20 border border-red-500/40 hover:bg-red-600/40 transition-colors"
+              >
+                <X className="w-3.5 h-3.5 text-red-400" />
+              </button>
+            ) : null}
           </div>
         }
       />
@@ -262,56 +278,54 @@ export default function UserAlertCard({
 
       <div className="mt-2">
         <div className="flex gap-2">
+          {/* Chat */}
           <Button
             size="icon"
             className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
             onClick={handleChat}>
-
             <MessageCircle className="w-4 h-4" />
           </Button>
 
-          {phoneEnabled ?
-          <Button
-            size="icon"
-            className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-            onClick={handleCall}>
-
+          {/* Llamada */}
+          {phoneEnabled ? (
+            <Button
+              size="icon"
+              className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+              onClick={handleCall}>
               <Phone className="w-4 h-4" />
-            </Button> :
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-            disabled>
-
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+              disabled>
               <PhoneOff className="w-4 h-4 text-white" />
             </Button>
-          }
+          )}
 
+          {/* Ir – gris */}
           <Button
             size="icon"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-2 flex items-center justify-center gap-1"
+            className="bg-gray-600 hover:bg-gray-500 text-white rounded-lg h-8 px-3 flex items-center justify-center gap-1"
             onClick={() => {
               if (alert?.latitude && alert?.longitude) {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
               }
             }}>
-
             <Navigation className="w-4 h-4" />
             <span className="font-semibold text-sm">Ir</span>
-            {distanceLabel && (
-              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded">
-                {distanceLabel.value}{distanceLabel.unit}
-              </span>
-            )}
-            {alert?.available_in_minutes != null && (
-              <span className="font-bold text-xs ml-1 bg-black/20 px-1.5 py-0.5 rounded text-white flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {alert.available_in_minutes}m
-              </span>
-            )}
           </Button>
+
+          {/* Contador de tiempo */}
+          {alert?.available_in_minutes != null ? (
+            <div className="flex-1 h-8 rounded-lg bg-purple-700/30 border border-purple-500/40 flex items-center justify-center gap-1 px-2">
+              <Clock className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+              <span className="font-bold text-sm text-white">{alert.available_in_minutes}<span className="text-xs font-normal text-purple-300 ml-0.5">min</span></span>
+            </div>
+          ) : (
+            <div className="flex-1" />
+          )}
 
           {!hideBuy && (
             <div className="flex-1">

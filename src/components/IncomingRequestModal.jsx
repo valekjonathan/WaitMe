@@ -109,11 +109,13 @@ export default function IncomingRequestModal() {
     car_plate: plate,
     address: address || '',
     available_in_minutes: mins || null,
+    wait_until: waitUntilTs,
     price: alert?.price ?? null,
     phone: buyer?.phone || null,
     allow_phone_calls: !!buyer?.phone,
     latitude: alert?.latitude ?? null,
-    longitude: alert?.longitude ?? null
+    longitude: alert?.longitude ?? null,
+    isIncomingRequest: true
   };
 
   return (
@@ -127,13 +129,14 @@ export default function IncomingRequestModal() {
             {userName} quiere un Wait<span className="text-purple-500">Me!</span>
           </p>
         </div>
-          <div className="px-0 pb-2 space-y-2">
+        <div className="px-0 pb-2 space-y-2">
           <UserAlertCard
-            alert={{...fakeAlert, isIncomingRequest: true}}
+            alert={fakeAlert}
             isEmpty={false}
             onBuyAlert={undefined}
             onChat={() => {}}
             onCall={() => buyer?.phone && (window.location.href = `tel:${buyer.phone}`)}
+            onReject={handleRechazar}
             isLoading={false}
             userLocation={null}
             hideBuy
@@ -154,9 +157,6 @@ export default function IncomingRequestModal() {
             disabled={loading}
           >
             Me lo pienso
-          </Button>
-          <Button variant="destructive" className="flex-1" onClick={handleRechazar} disabled={loading}>
-            Rechazar
           </Button>
         </div>
       </DialogContent>
