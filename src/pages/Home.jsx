@@ -857,9 +857,9 @@ export default function Home() {
                   });
                   return (
                     <>
-                      <span className="text-white text-base font-normal">
+                      <span className="text-purple-400 text-base font-normal">
                         Debes esperar hasta las:{' '}
-                        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
+                        <span className="text-white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
                       </span>
                     </>
                   );
