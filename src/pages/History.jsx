@@ -1698,6 +1698,8 @@ const myFinalizedAlerts = useMemo(() => {
     const rCarColor = a.reserved_by_car_color || 'gris';
     const rPlate = a.reserved_by_plate || '';
     const rCarFill = getCarFill(rCarColor);
+    const rPhoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
+    const rChatUrl = createPageUrl(`Chat?alertId=${a.id}&userId=${a.reserved_by_email || a.reserved_by_id}`);
     return (
       <motion.div key={key} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
         <div className="bg-gray-800/60 rounded-xl p-2 border border-gray-600/60 relative">
@@ -1709,7 +1711,7 @@ const myFinalizedAlerts = useMemo(() => {
 
           {/* Header */}
           <div className="flex items-center justify-between mb-2 pr-9">
-            <div className="bg-red-500/20 text-red-300 border border-red-500/30 font-bold text-xs rounded-md px-3 py-1">ME FUI</div>
+            <div className="bg-red-500/20 text-red-300 border border-red-500/30 font-bold text-xs rounded-md px-3 py-1">Finalizada</div>
             <div className="flex items-center gap-1">
               <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                 <Navigation className="w-3 h-3 text-purple-400"/>
@@ -1764,10 +1766,20 @@ const myFinalizedAlerts = useMemo(() => {
             </div>
           </div>
 
-          {/* Botones desactivados */}
+          {/* Botones: chat y llamada encendidos, navegar desactivado */}
           <div className="mt-2 flex items-center gap-2">
-            <Button size="icon" className="h-8 bg-green-500/30 text-green-300 rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled><MessageCircle className="w-4 h-4"/></Button>
-            <Button size="icon" className="h-8 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled><PhoneOff className="w-4 h-4"/></Button>
+            <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}
+              onClick={() => { window.location.href = rChatUrl; }}>
+              <MessageCircle className="w-4 h-4"/>
+            </Button>
+            {rPhoneEnabled ? (
+              <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
+                onClick={() => { window.location.href = `tel:${a.phone}`; }}>
+                <Phone className="w-4 h-4"/>
+              </Button>
+            ) : (
+              <Button size="icon" className="h-8 border-2 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled><PhoneOff className="w-4 h-4"/></Button>
+            )}
             <Button size="icon" className="h-8 rounded-lg bg-blue-600/40 text-blue-300 opacity-40 border-2 border-blue-400/30 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled><Navigation className="w-4 h-4"/></Button>
             <div className="flex-1">
               <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center">
