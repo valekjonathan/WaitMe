@@ -492,8 +492,8 @@ export default function Navigate() {
       {/* ── HEADER — idéntico al de todas las pantallas ── */}
       <Header title="Navegación" showBackButton backTo="History" />
 
-      {/* ── MAPA — desde bajo el header hasta el bottom panel ── */}
-      <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: 'calc(var(--bottom-nav-h) + 220px)' }}>
+      {/* ── MAPA — desde bajo el header hasta el bottom del nav ── */}
+      <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: '0' }}>
         <ParkingMap
           alerts={[]}
           userLocation={userLocation}
