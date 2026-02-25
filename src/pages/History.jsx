@@ -2227,38 +2227,58 @@ const myFinalizedAlerts = useMemo(() => {
                     </main>
 
       {/* Dialog: cancelar alerta RESERVADA (penalización) */}
-      <Dialog open={cancelReservedOpen} onOpenChange={(open) => {
-        setCancelReservedOpen(open);
-        if (!open) setCancelReservedAlert(null);
-      }}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-red-400">⚠️ Atención</DialogTitle>
-            <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+      {cancelReservedOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-gray-900 border border-gray-800 text-white max-w-sm w-full rounded-xl p-5 relative">
+            {/* Botón X estilo filtros */}
+            <button
+              onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            <h3 className="text-lg font-bold text-red-400 mb-3 pr-8">⚠️ Atención</h3>
+            <p className="text-gray-300 text-sm leading-relaxed mb-5">
               Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.
               Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }} className="flex-1 border-gray-700">
-              Volver
-            </Button>
-            <Button
-              onClick={() => {
-                if (!cancelReservedAlert?.id) return;
-                const cardKey = `active-${cancelReservedAlert.id}`;
-                hideKey(cardKey);
-                cancelAlertMutation.mutate(cancelReservedAlert.id);
-                setCancelReservedOpen(false);
-                setCancelReservedAlert(null);
-              }}
-              className="flex-1 bg-red-600 hover:bg-red-700"
-            >
-              Cancelar alerta
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+                className="flex-1 border-gray-700 text-white h-10"
+              >
+                Volver
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!cancelReservedAlert?.id) return;
+                  const alert = cancelReservedAlert;
+                  const cardKey = `active-${alert.id}`;
+                  hideKey(cardKey);
+                  // Mover a finalizadas como CANCELADA con todos los datos
+                  queryClient.setQueryData(['myAlerts'], (old = []) =>
+                    Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', updated_date: new Date().toISOString() } : a) : old
+                  );
+                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                    try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+                  });
+                  setCancelReservedOpen(false);
+                  setCancelReservedAlert(null);
+                }}
+                className="flex-1 bg-red-600 hover:bg-red-700 h-10"
+              >
+                Cancelar alerta
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Dialog open={cancelConfirmOpen} onOpenChange={(open) => {
         setCancelConfirmOpen(open);
