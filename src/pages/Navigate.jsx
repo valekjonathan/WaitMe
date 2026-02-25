@@ -432,8 +432,9 @@ export default function Navigate() {
                 {alertForCard && (
                   <UserAlertCard
                     alert={alertForCard}
-                    hideBuy={false}
+                    hideBuy={true}
                     userLocation={userLocation}
+                    showDistanceInMeters={true}
                     buyLabel={isSeller ? 'He desaparcado ✓' : (!isTracking ? '▶ IR' : 'Detener')}
                     onBuyAlert={() => {
                       if (isSeller) {
