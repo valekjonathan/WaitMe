@@ -1048,9 +1048,9 @@ const myFinalizedAlerts = useMemo(() => {
     const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
     const isExpired = expiredAlertExtend[alert.id];
 
-    const carLabel = alert.reserved_by_car || alert.car_model || alert.car_brand || 'Sin datos';
-    const carColor = alert.reserved_by_car_color || alert.car_color || 'gris';
-    const plate = alert.reserved_by_plate || alert.plate || alert.car_plate || '';
+    const carLabel = alert.reserved_by_car || 'Sin datos';
+    const carColor = alert.reserved_by_car_color || 'gris';
+    const plate = alert.reserved_by_plate || '';
 
     const stUpper = String(countdownText || '').trim().toUpperCase();
     const isCountdownLike = /^\d{2}:\d{2}(?::\d{2})?$/.test(stUpper);
