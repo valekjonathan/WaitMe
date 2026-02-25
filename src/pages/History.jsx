@@ -788,17 +788,17 @@ const myFinalizedAlerts = useMemo(() => {
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-    created_date: toMs(a.finalized_date) || toMs(a.updated_date) || Date.now(),
+      created_date: toMs(a.updated_date) || toMs(a.finalized_date) || toMs(a.created_date) || Date.now(),
       data: a
     })),
    
     ...myFinalizedAsSellerTx.map((t) => ({
       type: 'transaction',
       id: `final-tx-${t.id}`,
-      created_date: t.created_date,
+      created_date: toMs(t.updated_date) || toMs(t.created_date) || Date.now(),
       data: t
     }))
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0));
 
 
   const renderableFinalized = useMemo(() => {
