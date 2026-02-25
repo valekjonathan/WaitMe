@@ -552,6 +552,7 @@ export default function Home() {
           className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
           style={{ display: mode ? 'none' : 'flex' }}
         >
+              {/* TEST LCP — background temporarily replaced
               <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                 <div className="w-full h-full">
                   <ParkingMap
@@ -562,8 +563,9 @@ export default function Home() {
                   />
                 </div>
               </div>
-
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
+              */}
+              <div className="absolute inset-0 bg-black" />
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
