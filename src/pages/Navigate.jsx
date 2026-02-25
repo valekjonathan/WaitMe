@@ -345,6 +345,64 @@ export default function Navigate() {
         </motion.div>
       )}
 
+      {/* Cancel warning (reserved alert) */}
+      {showCancelWarning && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[150] bg-black/70">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[150] flex items-end">
+            <div className="w-full bg-gray-950 rounded-t-3xl shadow-2xl border-t border-gray-800 border-b-2 border-b-purple-500">
+              {/* Close button */}
+              <button
+                onClick={() => setShowCancelWarning(false)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors z-10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="p-6 pt-8 flex flex-col gap-4">
+                {/* Header */}
+                <div className="flex justify-center">
+                  <div className="px-4 py-2 rounded-lg bg-red-700/40 border border-red-500/60">
+                    <span className="text-white font-semibold text-sm">⚠️ ATENCIÓN</span>
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div className="text-center">
+                  <p className="text-white font-bold text-base">
+                    La alerta está reservada.
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {sellerName} está en camino. Si la cancelas, perderás la reserva.
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <Button
+                    onClick={() => setShowCancelWarning(false)}
+                    className="bg-gray-700 hover:bg-gray-600 text-white rounded-lg h-9"
+                  >
+                    Volver
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await base44.entities.ParkingAlert.update(displayAlert.id, { status: 'cancelled', cancel_reason: 'user_cancelled' });
+                      setShowCancelWarning(false);
+                      setTimeout(() => { window.location.href = createPageUrl('Home'); }, 500);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-9"
+                  >
+                    Me voy
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       <Header title="Navegación" showBackButton backTo="History" />
 
       {/* MAPA */}
