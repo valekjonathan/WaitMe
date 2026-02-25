@@ -122,6 +122,22 @@ export default function Navigate() {
         const fraction = Math.min(stepSize / (distM / R), 1);
         return [lat1 + (lat2-lat1)*fraction, lon1 + (lon2-lon1)*fraction];
       });
+
+      // Mover al vendedor también hacia el usuario
+      setSellerLocation(prevLoc => {
+        if (!prevLoc || !userLocation) return prevLoc;
+        const lat1 = prevLoc[0], lon1 = prevLoc[1];
+        const lat2 = userLocation[0], lon2 = userLocation[1];
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        const distM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        if (distM < 5) return prevLoc;
+        const stepSize = 12 / R;
+        const fraction = Math.min(stepSize / (distM / R), 1);
+        return [lat1 + (lat2-lat1)*fraction, lon1 + (lon2-lon1)*fraction];
+      });
     };
     animationRef.current = setInterval(moveTowardsDestination, 400);
   };
