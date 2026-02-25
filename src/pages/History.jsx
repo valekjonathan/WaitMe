@@ -1182,10 +1182,13 @@ const myFinalizedAlerts = useMemo(() => {
   const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
 
   // ====== Map status a texto ======
-  const statusLabelFrom = (s) => {
+  const statusLabelFrom = (s, alert) => {
     const st = String(s || '').toLowerCase();
     if (st === 'completed') return 'COMPLETADA';
-    if (st === 'cancelled') return 'CANCELADA';
+    if (st === 'cancelled') {
+      if (alert?.cancel_reason === 'me_fui') return 'ME FUI';
+      return 'CANCELADA';
+    }
     if (st === 'expired') return 'EXPIRADA';
     if (st === 'reserved') return 'EN CURSO';
     return 'COMPLETADA';
