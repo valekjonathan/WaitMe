@@ -1715,14 +1715,14 @@ const myFinalizedAlerts = useMemo(() => {
                             <div className="border-t border-gray-700/80 mb-2" />
 
                             {/* Tarjeta finalizada: misma estructura que activa */}
-                            <div className="flex items-start gap-1.5 text-xs mb-2">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
-                              <span className="text-gray-300 leading-5 line-clamp-1">{formatAddress(a.address) || 'Ubicación marcada'}</span>
+                            <div className="flex items-center gap-1.5 text-xs mb-2 min-h-[20px]">
+                              <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                              <span className="text-gray-300 leading-none line-clamp-1">{formatAddress(a.address) || 'Ubicación marcada'}</span>
                             </div>
 
-                            <div className="flex items-center gap-1 text-xs overflow-hidden mb-2">
-                              <Clock className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
-                              <span className="truncate text-gray-400">
+                            <div className="flex items-center gap-1.5 text-xs overflow-hidden mb-2 min-h-[20px]">
+                              <Clock className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                              <span className="leading-none text-gray-400">
                                 Se iba en {a.available_in_minutes ?? '--'} min · Hasta las{' '}
                                 <span className="font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
                               </span>
