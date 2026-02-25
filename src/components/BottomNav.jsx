@@ -75,7 +75,7 @@ export default function BottomNav() {
 
   const baseBtn =
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
-    'h-[60px] rounded-lg';
+    'h-[60px] rounded-lg mx-1';
 
   const activeStyle = 'bg-purple-700/30 border border-purple-500/50';
 
