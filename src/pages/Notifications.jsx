@@ -122,8 +122,7 @@ export default function Notifications() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestsTick]);
+  }, [requestsTick, requests, alertsById]);
 
   const acceptRequest = async (req) => {
     try {

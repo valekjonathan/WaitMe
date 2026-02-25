@@ -36,6 +36,36 @@ const getCarFillThinking = (color) => {
   return map[String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')] || '#9ca3af';
 };
 
+const toMs = (v) => {
+  if (v == null) return null;
+
+  // Date
+  if (v instanceof Date) return v.getTime();
+
+  // Number (ms o seconds)
+  if (typeof v === 'number') {
+    return v > 1e12 ? v : v * 1000;
+  }
+
+  // String
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (!s) return null;
+
+    // Si tiene zona horaria (Z o +hh:mm) → Date normal
+    if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
+      const t = new Date(s).getTime();
+      return Number.isNaN(t) ? null : t;
+    }
+
+    // 🔴 CLAVE: string SIN zona → tratar como hora local (Madrid)
+    const t = new Date(s + ':00').getTime();
+    return Number.isNaN(t) ? null : t;
+  }
+
+  return null;
+};
+
 export default function Alertas() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
@@ -210,36 +240,6 @@ const queryClient = useQueryClient();
   );
 
   // ====== Timestamps robustos ======
-  const toMs = (v) => {
-  if (v == null) return null;
-
-  // Date
-  if (v instanceof Date) return v.getTime();
-
-  // Number (ms o seconds)
-  if (typeof v === 'number') {
-    return v > 1e12 ? v : v * 1000;
-  }
-
-  // String
-  if (typeof v === 'string') {
-    const s = v.trim();
-    if (!s) return null;
-
-    // Si tiene zona horaria (Z o +hh:mm) → Date normal
-    if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
-      const t = new Date(s).getTime();
-      return Number.isNaN(t) ? null : t;
-    }
-
-    // 🔴 CLAVE: string SIN zona → tratar como hora local (Madrid)
-    const t = new Date(s + ':00').getTime();
-    return Number.isNaN(t) ? null : t;
-  }
-
-  return null;
-};
-
   const createdFallbackRef = useRef(new Map());
 const getCreatedTs = (alert) => {
   if (!alert?.id) return Date.now();
@@ -792,10 +792,11 @@ const myFinalizedAlerts = useMemo(() => {
   }, [nowTs, reservationsActiveAll, queryClient]);
 
 
-  const myFinalizedAsSellerTx = [
+  const myFinalizedAsSellerTx = useMemo(() => [
     ...transactions.filter((t) => t.seller_id === user?.id),
     ...mockTransactions
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
+  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)),
+  [transactions, user?.id, mockTransactions]);
 
   const myFinalizedAll = useMemo(() => [
     ...myFinalizedAlerts.map((a) => ({
@@ -811,7 +812,6 @@ const myFinalizedAlerts = useMemo(() => {
       data: t
     }))
   ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   [myFinalizedAlerts, myFinalizedAsSellerTx]);
 
 

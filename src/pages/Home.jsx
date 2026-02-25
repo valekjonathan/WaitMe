@@ -204,10 +204,9 @@ export default function Home() {
   useEffect(() => {
     if (!user?.id && !user?.email) return;
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.email]);
+  }, [user?.id, user?.email, queryClient]);
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) return;
 
     // Primero pedimos baja precisión (rápido) para no dejar el mapa en blanco
@@ -251,12 +250,11 @@ export default function Home() {
       () => {},
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
-  };
+  }, []);
 
   useEffect(() => {
     getCurrentLocation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getCurrentLocation]);
 
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
 
