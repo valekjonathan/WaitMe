@@ -276,7 +276,10 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
-      return [];
+      const data = await base44.entities.Conversation.list({
+        filter: { or: [{ participant1_id: user?.id }, { participant2_id: user?.id }] }
+      });
+      return data || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
@@ -292,7 +295,10 @@ placeholderData: (prev) => prev,
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
-      return [];
+      const data = await base44.entities.Alert.list({
+        filter: { or: [{ user_id: user?.id }, { reserved_by_id: user?.id }] }
+      });
+      return data || [];
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
