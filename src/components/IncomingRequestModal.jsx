@@ -188,9 +188,27 @@ export default function IncomingRequestModal(){
                     <p className="font-bold text-xl text-white leading-none">{firstName}</p>
                     <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
 
-                    <div className="mt-2 flex items-center gap-2">
-                      <PlateProfile plate={plate}/>
-                      <CarIconProfile color={carFill} size="w-14 h-9"/>
+                    <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                      <div className="flex-shrink-0">
+                        <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                          <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                            <span className="text-white text-[8px] font-bold">E</span>
+                          </div>
+                          <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{plate}</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 flex justify-center">
+                        <div className="flex-shrink-0 relative top-[2px]">
+                          <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
+                            <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5"/>
+                            <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
+                            <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                            <circle cx="14" cy="18" r="2" fill="#666"/>
+                            <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                            <circle cx="36" cy="18" r="2" fill="#666"/>
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -201,33 +219,34 @@ export default function IncomingRequestModal(){
                     <span className="text-gray-200 line-clamp-1">{formatAddress(alert?.address)}</span>
                   </div>
 
-                  <div className="flex items-start gap-1.5 text-xs">
-                    <Clock className="w-4 h-4 mt-0.5 text-purple-400"/>
-                    <span className="text-white">
-                      Te vas en {mins} min · Te espera hasta las <span className="text-lg font-bold">{waitUntilLabel}</span>
+                  <div className="flex items-center gap-1 text-xs overflow-hidden">
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400"/>
+                    <span className="truncate">
+                      <span className="text-purple-400">Te vas en {mins} min · Debes esperar hasta las:</span>
+                      {' '}<span className="text-white font-bold text-sm">{waitUntilLabel}</span>
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  <Button size="icon" className="w-14 h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg">
+                  <Button size="icon" className="w-[95px] h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg">
                     <MessageCircle className="w-4 h-4"/>
                   </Button>
 
                   {phoneEnabled?(
-                    <Button size="icon" className="w-14 h-8 bg-white hover:bg-gray-200 text-black rounded-lg"
+                    <Button size="icon" className="w-[95px] h-8 bg-white hover:bg-gray-200 text-black rounded-lg"
                       onClick={()=>window.location.href=`tel:${buyer.phone}`}>
                       <Phone className="w-4 h-4"/>
                     </Button>
                   ):(
-                    <Button size="icon" className="w-14 h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" disabled>
+                    <Button size="icon" className="w-[95px] h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" disabled>
                       <PhoneOff className="w-4 h-4"/>
                     </Button>
                   )}
 
-                  <Button size="icon" className="w-14 h-8 rounded-lg bg-blue-600 text-white opacity-40" disabled>
+                  <Button size="icon" className="h-8 px-3 flex-1 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1" disabled>
                     <Navigation className="w-4 h-4"/>
-                    <span className="ml-1 text-xs font-semibold">Ir</span>
+                    <span className="text-xs font-semibold">Ir</span>
                   </Button>
 
                   <div className="flex-1">
