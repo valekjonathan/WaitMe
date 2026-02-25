@@ -32,7 +32,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
-import { toMs, getActiveSellerAlerts } from '@/lib/alertSelectors';
+import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
 
 const getCarFillThinking = (color) => {
   const map = { blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',naranja:'#f97316',morado:'#7c3aed',rosa:'#ec4899',beige:'#d4b483' };
@@ -695,8 +695,8 @@ const myFinalizedAlerts = useMemo(() => {
     );
   });
   
-  // Ordenar: primero las finalizadas (más recientes)
-  return finalized.sort((a, b) => (toMs(b.updated_date) || toMs(b.created_date) || 0) - (toMs(a.updated_date) || toMs(a.created_date) || 0));
+  // Ordenar: primero las finalizadas (más recientes). Usa updated_at/completed_at/cancelled_at/created_at
+  return finalized.sort((a, b) => getBestFinalizedTs(b) - getBestFinalizedTs(a));
 }, [myAlerts, user?.id, user?.email]);
     
   // Reservas (tuyas como comprador)
@@ -756,13 +756,13 @@ const myFinalizedAlerts = useMemo(() => {
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-      created_date: toMs(a.updated_date) || toMs(a.created_date) || 0,
+      created_date: getBestFinalizedTs(a),
       data: a
     })),
     ...myFinalizedAsSellerTx.map((t) => ({
       type: 'transaction',
       id: `final-tx-${t.id}`,
-      created_date: toMs(t.updated_date) || toMs(t.created_date) || 0,
+      created_date: getBestFinalizedTs(t),
       data: t
     }))
   ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),

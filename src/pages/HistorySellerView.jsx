@@ -602,6 +602,11 @@ export default function HistorySellerView({
               <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500"/>
               <span className="text-gray-300 leading-none line-clamp-1">{formatAddress(a.address)}</span>
             </div>
+            {dateText && dateText !== '--' && (
+              <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
+                <span className="leading-none text-gray-500">{dateText}</span>
+              </div>
+            )}
             <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
               <Clock className="w-4 h-4 flex-shrink-0 text-gray-500"/>
               <span className="leading-none text-gray-400">Te ibas en {a.available_in_minutes} min · Debías esperar hasta las: <span className="font-bold" style={{fontSize:'14px'}}>{waitUntilLabel}</span></span>

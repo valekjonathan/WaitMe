@@ -70,6 +70,25 @@ export function getVisibleActiveSellerAlerts(myAlerts, userId, userEmail, hidden
   return active.filter((a) => !hiddenKeys.has(`active-${a.id}`));
 }
 
+/**
+ * Returns the most reliable finalization timestamp for a ParkingAlert.
+ * Priority: updated_at > completed_at > cancelled_at > created_at
+ * then legacy fields: updated_date > created_date.
+ * Returns 0 when no date is available (safe for sort comparisons).
+ */
+export function getBestFinalizedTs(a) {
+  if (!a) return 0;
+  return (
+    toMs(a.updated_at) ||
+    toMs(a.completed_at) ||
+    toMs(a.cancelled_at) ||
+    toMs(a.created_at) ||
+    toMs(a.updated_date) ||
+    toMs(a.created_date) ||
+    0
+  );
+}
+
 /** Read the persisted hiddenKeys Set from localStorage (safe fallback to empty Set). */
 export function readHiddenKeys() {
   try {
