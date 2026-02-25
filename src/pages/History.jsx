@@ -1694,7 +1694,6 @@ const myFinalizedAlerts = useMemo(() => {
 
                       if (item.type === 'alert') {
   const a = item.data;
-  if (String(a?.status || '').toLowerCase() === 'completed') return null;
 
   const ts = toMs(item.created_date) || toMs(a.created_date);
   const dateText = ts ? formatCardDate(ts) : '--';
