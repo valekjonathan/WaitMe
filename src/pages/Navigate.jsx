@@ -403,7 +403,7 @@ export default function Navigate() {
         </motion.div>
       )}
 
-      <Header title="Navegación" showBackButton backTo="History" />
+      <Header title="Navegación" showBackButton backTo="History" titleClassName="text-[13px] leading-[13px] font-semibold select-none text-center max-w-xs" />
 
       {/* MAPA */}
       <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: '0' }}>
