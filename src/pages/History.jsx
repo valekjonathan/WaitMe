@@ -1095,7 +1095,7 @@ const myFinalizedAlerts = useMemo(() => {
           {/* Foto + nombre + matrícula + coche */}
           <div className="flex gap-2.5">
             <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-              <img src={reservedByPhoto} alt={reservedByName} className="w-full h-full object-cover" loading="eager" decoding="sync"/>
+              <img src={reservedByPhoto} alt={reservedByName} className="w-full h-full object-cover"/>
             </div>
             <div className="flex-1 h-[85px] flex flex-col">
               <p className="font-bold text-xl text-white leading-none">{String(reservedByName).split(' ')[0]}</p>
