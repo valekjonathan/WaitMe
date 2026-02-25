@@ -493,9 +493,9 @@ export default function Navigate() {
       <Header title="Navegación" showBackButton backTo="History" />
 
       {/* ── MAPA — desde bajo el header hasta el bottom panel ── */}
-      <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: 'calc(var(--bottom-nav-h) + 168px)' }}>
+      <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: 'calc(var(--bottom-nav-h) + 220px)' }}>
         <ParkingMap
-          alerts={displayAlert && !isSeller ? [{ ...displayAlert, latitude: sellerLocation?.[0] ?? displayAlert.latitude, longitude: sellerLocation?.[1] ?? displayAlert.longitude }] : []}
+          alerts={[]}
           userLocation={userLocation}
           selectedAlert={displayAlert}
           showRoute={!!isTracking && !!displayAlert}
@@ -503,7 +503,7 @@ export default function Navigate() {
           zoomControl={false}
           className="h-full w-full"
           userAsCar={false}
-          showSellerMarker={false}
+          showSellerMarker={true}
           onRouteLoaded={onRouteLoaded}
           userPhotoHtml={userPhotoIcon}
         />
