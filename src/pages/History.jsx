@@ -33,6 +33,7 @@ import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/c
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
 import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
+import { stampFinalizedAt, getFinalizedAtMap } from '@/lib/finalizedAtStore';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 const getCarFillThinking = (color) => {
@@ -730,27 +731,33 @@ const myFinalizedAlerts = useMemo(() => {
     ...mockTransactions
   ], [transactions, user?.id, mockTransactions]);
 
-  // Único array ordenado para Finalizadas: alertas propias + transacciones + solicitudes rechazadas.
-  // UN solo sort aquí — opera siempre sobre raw data (item.data) vía getBestFinalizedTs.
-  // Los wrappers NO tienen created_date propio para evitar dependencias intermedias.
-  const myFinalizedAll = useMemo(() => [
-    ...myFinalizedAlerts.map((a) => ({
-      type: 'alert',
-      id: `final-alert-${a.id}`,
-      data: a
-    })),
-    ...myFinalizedAsSellerTx.map((t) => ({
-      type: 'transaction',
-      id: `final-tx-${t.id}`,
-      data: t
-    })),
-    ...rejectedRequests.map((i) => ({
-      type: 'rejected',
-      id: `rejected-${i.id}`,
-      data: i
-    }))
-  ].sort((a, b) => getBestFinalizedTs(b.data) - getBestFinalizedTs(a.data)),
-  [myFinalizedAlerts, myFinalizedAsSellerTx, rejectedRequests]);
+  // Único array ordenado para Finalizadas.
+  // Cada wrapper lleva finalized_at: timestamp cliente (stampFinalizedAt) o
+  // fallback a getBestFinalizedTs para items ya finalizados antes del stamp.
+  // El sort opera SIEMPRE sobre wrapper.finalized_at — nunca sobre campos del server.
+  const myFinalizedAll = useMemo(() => {
+    const fatMap = getFinalizedAtMap();
+    return [
+      ...myFinalizedAlerts.map((a) => ({
+        type: 'alert',
+        id: `final-alert-${a.id}`,
+        finalized_at: a.finalized_at || fatMap[a.id] || getBestFinalizedTs(a),
+        data: a
+      })),
+      ...myFinalizedAsSellerTx.map((t) => ({
+        type: 'transaction',
+        id: `final-tx-${t.id}`,
+        finalized_at: fatMap[t.id] || getBestFinalizedTs(t),
+        data: t
+      })),
+      ...rejectedRequests.map((i) => ({
+        type: 'rejected',
+        id: `rejected-${i.id}`,
+        finalized_at: i.finalized_at || i.savedAt || 0,
+        data: i
+      }))
+    ].sort((a, b) => b.finalized_at - a.finalized_at);
+  }, [myFinalizedAlerts, myFinalizedAsSellerTx, rejectedRequests]);
 
   // Filtro de tarjetas ocultas (X botón). Pasa el array ya limpio al componente.
   const finalItems = useMemo(
@@ -831,7 +838,12 @@ const myFinalizedAlerts = useMemo(() => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
       queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled', updated_date: new Date().toISOString() } : a));
+        const now = Date.now();
+        return list.map((a) => {
+          if (a?.id !== alertId) return a;
+          stampFinalizedAt(alertId);
+          return { ...a, status: 'cancelled', finalized_at: now, updated_date: new Date(now).toISOString() };
+        });
       });
 
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
@@ -960,6 +972,7 @@ const myFinalizedAlerts = useMemo(() => {
           onClick={() => {
             setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
             setExpiredAlertModalId(null);
+            stampFinalizedAt(alert.id);
             base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
               queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
               try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
@@ -1282,9 +1295,14 @@ const myFinalizedAlerts = useMemo(() => {
                     const alert = cancelReservedAlert;
                     const cardKey = `active-${alert.id}`;
                     hideKey(cardKey);
-                    queryClient.setQueryData(['myAlerts'], (old = []) =>
-                      Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', cancel_reason: 'me_fui', updated_date: new Date().toISOString() } : a) : old
-                    );
+                    queryClient.setQueryData(['myAlerts'], (old = []) => {
+                      const now = Date.now();
+                      return Array.isArray(old) ? old.map(a => {
+                        if (a.id !== alert.id) return a;
+                        stampFinalizedAt(alert.id);
+                        return { ...a, status: 'cancelled', cancel_reason: 'me_fui', finalized_at: now, updated_date: new Date(now).toISOString() };
+                      }) : old;
+                    });
                     base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}

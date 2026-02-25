@@ -213,7 +213,7 @@ export default function IncomingRequestModal(){
       // Save to localStorage so Alertas page shows it as Finalizada
       try{
         const rejected=JSON.parse(localStorage.getItem('waitme:rejected_requests')||'[]');
-        rejected.push({id:request.id,request,alert,savedAt:Date.now()});
+        rejected.push({id:request.id,request,alert,savedAt:Date.now(),finalized_at:Date.now()});
         localStorage.setItem('waitme:rejected_requests',JSON.stringify(rejected));
         window.dispatchEvent(new Event('waitme:rejectedUpdated'));
       }catch{}

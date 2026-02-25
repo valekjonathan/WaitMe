@@ -135,7 +135,7 @@ export default function HistorySellerView({
                           setThinkingRequests(updated);
                           localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
                           const rejected = JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
-                          rejected.push(item);
+                          rejected.push({ ...item, finalized_at: Date.now() });
                           localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
                         } catch {}
                       };

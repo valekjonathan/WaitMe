@@ -81,6 +81,7 @@ export function getVisibleActiveSellerAlerts(myAlerts, userId, userEmail, hidden
 export function getBestFinalizedTs(a) {
   if (!a) return 0;
   const t =
+    toMs(a.finalized_at) ||   // client-stamped at cancellation/rejection
     toMs(a.updated_at) ||
     toMs(a.completed_at) ||
     toMs(a.cancelled_at) ||
