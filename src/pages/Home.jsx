@@ -17,6 +17,7 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
 
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
+import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -195,11 +196,18 @@ export default function Home() {
   });
 
   const myActiveAlerts = useMemo(() => {
-    return (myAlerts || []).filter((a) => {
-      const st = String(a?.status || '').toLowerCase();
-      return st === 'active' || st === 'reserved';
-    });
-  }, [myAlerts]);
+    const hiddenKeys = readHiddenKeys();
+    const visible = getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys);
+    if (import.meta.env.DEV) {
+      const total = (myAlerts || []).length;
+      const activeReserved = (myAlerts || []).filter((a) =>
+        ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
+      ).length;
+      const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
+      console.debug('[alert-check] cache', { total, activeReserved, hidden, visible: visible.length });
+    }
+    return visible;
+  }, [myAlerts, user?.id, user?.email]);
 
   useEffect(() => {
     if (!user?.id && !user?.email) return;
@@ -310,6 +318,7 @@ export default function Home() {
 
   const createAlertMutation = useMutation({
   mutationFn: async (data) => {
+    // Fast check from cache — same selector as HistorySellerView visibleActiveAlerts
     if (myActiveAlerts && myActiveAlerts.length > 0) {
       throw new Error('ALREADY_HAS_ALERT');
     }
@@ -322,12 +331,19 @@ export default function Home() {
         ? await base44.entities.ParkingAlert.filter({ user_id: uid })
         : await base44.entities.ParkingAlert.filter({ user_email: email });
 
-      const hasActive = (mine || []).some((a) => {
-        const st = String(a?.status || '').toLowerCase();
-        return st === 'active' || st === 'reserved';
-      });
+      const hiddenKeys = readHiddenKeys();
+      const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
 
-      if (hasActive) {
+      if (import.meta.env.DEV) {
+        const total = (mine || []).length;
+        const activeReserved = (mine || []).filter((a) =>
+          ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
+        ).length;
+        const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
+        console.debug('[alert-check] mutation fresh-DB', { total, activeReserved, hidden, visible: visibleFresh.length });
+      }
+
+      if (visibleFresh.length > 0) {
         throw new Error('ALREADY_HAS_ALERT');
       }
     }
@@ -745,7 +761,7 @@ export default function Home() {
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
 
-                      // Mensaje SIEMPRE: no depende de que la query haya terminado
+                      // Fast check from cache — same selector as HistorySellerView visibleActiveAlerts
                       if (myActiveAlerts && myActiveAlerts.length > 0) {
                         setOneActiveAlertOpen(true);
                         return;
@@ -757,11 +773,17 @@ export default function Home() {
                           const mine = uid
                             ? await base44.entities.ParkingAlert.filter({ user_id: uid })
                             : await base44.entities.ParkingAlert.filter({ user_email: email });
-                          const hasActive = (mine || []).some((a) => {
-                            const st = String(a?.status || '').toLowerCase();
-                            return st === 'active' || st === 'reserved';
-                          });
-                          if (hasActive) {
+                          const hiddenKeys = readHiddenKeys();
+                          const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
+                          if (import.meta.env.DEV) {
+                            const total = (mine || []).length;
+                            const activeReserved = (mine || []).filter((a) =>
+                              ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
+                            ).length;
+                            const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
+                            console.debug('[alert-check] button fresh-DB', { total, activeReserved, hidden, visible: visibleFresh.length });
+                          }
+                          if (visibleFresh.length > 0) {
                             setOneActiveAlertOpen(true);
                             return;
                           }
