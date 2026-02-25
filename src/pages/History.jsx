@@ -1458,13 +1458,13 @@ const myFinalizedAlerts = useMemo(() => {
                               <>
                                 <CardHeaderRow
                                   left={
-                    <div
-                      className={`bg-green-500/20 text-green-300 border border-green-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
-                    >
-                      Activa
-                    </div>
-                  }
-                                  dateText={dateText}
+                                <div
+                                className={`bg-green-500/20 text-green-300 border border-green-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
+                                >
+                                Activa
+                                </div>
+                                }
+                                  dateText={formatCardDate(createdTs)}
                                   dateClassName="text-white"
                                   right={
                                     <div className="flex items-center gap-1">
