@@ -248,6 +248,7 @@ export default function ParkingMap({
   buyerLocations = [],
   userLocationOffsetY = 0,
   useCenterPin = false,
+  sellerPhotoHtml = null,
   onMapMove,
   onMapMoveEnd,
   userAsCar = false,
