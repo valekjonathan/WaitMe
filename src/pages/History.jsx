@@ -1622,18 +1622,27 @@ const myFinalizedAlerts = useMemo(() => {
                             </div>
                           </div>
                           <div className="mt-2 flex items-center gap-2">
-                            <Button size="icon" className="h-8 bg-green-500/40 text-white rounded-lg border-2 border-green-400/40 cursor-not-allowed opacity-50" style={{width:'46px',flexShrink:0}} disabled>
+                            {/* Chat: activo siempre */}
+                            <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}>
                               <MessageCircle className="w-4 h-4"/>
                             </Button>
-                            <Button size="icon" className="h-8 border-2 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
-                              <PhoneOff className="w-4 h-4"/>
-                            </Button>
+                            {/* Teléfono: activo si allow_phone_calls */}
+                            {Boolean(buyer?.phone && req?.allow_phone_calls !== false) ? (
+                              <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
+                                onClick={()=>window.location.href=`tel:${buyer.phone}`}>
+                                <Phone className="w-4 h-4"/>
+                              </Button>
+                            ) : (
+                              <Button size="icon" className="h-8 border-2 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
+                                <PhoneOff className="w-4 h-4"/>
+                              </Button>
+                            )}
                             <Button size="icon" className="h-8 rounded-lg bg-blue-600/40 text-white opacity-40 border-2 border-blue-400/30 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
                               <Navigation className="w-4 h-4"/>
                             </Button>
                             <div className="flex-1">
-                              <div className="w-full h-8 rounded-lg border-2 border-red-500/30 bg-red-600/10 flex items-center justify-center">
-                                <span className="font-mono font-extrabold text-sm text-red-400/70">RECHAZADA</span>
+                              <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center">
+                                <span className="font-mono font-extrabold text-sm text-gray-400/70">RECHAZADA</span>
                               </div>
                             </div>
                           </div>
