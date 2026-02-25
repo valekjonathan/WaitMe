@@ -2207,15 +2207,21 @@ const myFinalizedAlerts = useMemo(() => {
             {/* Botón X estilo filtros */}
             <button
               onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="12" y1="2" x2="2" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </button>
 
-            <h3 className="text-lg font-bold text-red-400 mb-3 pr-8">⚠️ Atención</h3>
+            {/* "Atención" centrado */}
+            <div className="flex justify-center mb-4 pr-0">
+              <div className="px-4 py-2 rounded-lg bg-red-900/50 border border-red-500/60">
+                <span className="text-red-400 font-bold text-base">⚠️ Atención</span>
+              </div>
+            </div>
+
             <p className="text-gray-300 text-sm leading-relaxed mb-5">
               Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.
               Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
@@ -2234,11 +2240,11 @@ const myFinalizedAlerts = useMemo(() => {
                   const alert = cancelReservedAlert;
                   const cardKey = `active-${alert.id}`;
                   hideKey(cardKey);
-                  // Mover a finalizadas como CANCELADA con todos los datos
+                  // Mover a finalizadas como CANCELADA con todos los datos (status = 'cancelled', label = 'ME FUI')
                   queryClient.setQueryData(['myAlerts'], (old = []) =>
-                    Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', updated_date: new Date().toISOString() } : a) : old
+                    Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', cancel_reason: 'me_fui', updated_date: new Date().toISOString() } : a) : old
                   );
-                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
                     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                     try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
                   });
@@ -2247,7 +2253,7 @@ const myFinalizedAlerts = useMemo(() => {
                 }}
                 className="flex-1 bg-red-600 hover:bg-red-700 h-10"
               >
-                Cancelar alerta
+                Me voy
               </Button>
             </div>
           </div>
