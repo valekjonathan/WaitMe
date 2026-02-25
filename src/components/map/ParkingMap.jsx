@@ -254,7 +254,8 @@ export default function ParkingMap({
   userCarColor = 'gris',
   userCarPrice = 0,
   showSellerMarker = false,
-  onRouteLoaded = null
+  onRouteLoaded = null,
+  userPhotoHtml = null
 }) {
   // Convertir userLocation a formato [lat, lng] si es objeto
   const normalizedUserLocation = userLocation 
