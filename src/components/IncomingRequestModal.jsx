@@ -154,8 +154,8 @@ export default function IncomingRequestModal(){
               </p>
 
               <button onClick={handleMeLoPienso}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg">
-                ✕
+                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
+                <X className="w-5 h-5"/>
               </button>
             </div>
 
