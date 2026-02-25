@@ -1,6 +1,6 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
@@ -9,24 +9,13 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: myActiveAlerts = [] } = useQuery({
-    queryKey: ['myActiveAlerts', user?.id],
-    queryFn: async () => {
-      const alerts = await base44.entities.ParkingAlert.filter({
-        user_id: user?.id,
-        status: 'active'
-      });
-      return alerts;
-    },
-    enabled: !!user?.id,
-    refetchInterval: 10000
-  });
+  const myAlerts = queryClient.getQueryData(['myAlerts']) ?? [];
+  const myActiveAlerts = myAlerts.filter(a => a.status === 'active');
 
   const handleCancel = async (alertId) => {
     try {
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
-      queryClient.invalidateQueries({ queryKey: ['myActiveAlerts', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['myAlerts', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       if (onRefresh) onRefresh();
     } catch (e) {
       console.error('Error cancelando alerta:', e);
