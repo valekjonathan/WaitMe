@@ -557,6 +557,7 @@ const getCreatedTs = (alert) => {
   const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
   const isHidden = (key) => hiddenKeys.has(key);
   const hideKey = (key) => {
+    hiddenKeysRef.current.add(key);
     setHiddenKeys((prev) => {
       const next = new Set(prev);
       next.add(key);
