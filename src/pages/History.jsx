@@ -788,21 +788,22 @@ const myFinalizedAlerts = useMemo(() => {
     ...mockTransactions
   ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0));
 
-  const myFinalizedAll = [
+  const myFinalizedAll = useMemo(() => [
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-      created_date: toMs(a.updated_date) || toMs(a.finalized_date) || toMs(a.created_date) || Date.now(),
+      created_date: toMs(a.updated_date) || toMs(a.created_date) || 0,
       data: a
     })),
-   
     ...myFinalizedAsSellerTx.map((t) => ({
       type: 'transaction',
       id: `final-tx-${t.id}`,
-      created_date: toMs(t.updated_date) || toMs(t.created_date) || Date.now(),
+      created_date: toMs(t.updated_date) || toMs(t.created_date) || 0,
       data: t
     }))
-  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0));
+  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [myFinalizedAlerts, myFinalizedAsSellerTx]);
 
 
   const renderableFinalized = useMemo(() => {
