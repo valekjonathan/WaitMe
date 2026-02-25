@@ -77,7 +77,7 @@ export default function BottomNav() {
     'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
     'h-[60px] rounded-lg';
 
-  const activeStyle = 'bg-purple-700/40 border border-purple-500/50';
+  const activeStyle = 'bg-purple-700/30 border border-purple-500/50';
 
   const labelClass =
     'text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap';

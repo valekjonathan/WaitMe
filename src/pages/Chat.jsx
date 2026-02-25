@@ -138,9 +138,11 @@ export default function Chat() {
     if (!demoFirstMsgParam) return [];
     const firstMsg = decodeURIComponent(demoFirstMsgParam);
     if (!firstMsg) return [];
+
+    const isMineMsg = firstMsg.includes('he enviado') || firstMsg.includes('he reservado');
     return [{
       id: 'demo_initial_1',
-      mine: false,
+      mine: !isMineMsg,
       sender_name: otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario',
       sender_photo: otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null,
       message: firstMsg,
@@ -376,6 +378,7 @@ export default function Chat() {
   });
 
   const handleSend = () => {
+    if (!message.trim()) return;
     sendMutation.mutate(message);
   };
 
