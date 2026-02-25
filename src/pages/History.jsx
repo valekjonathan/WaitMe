@@ -1255,73 +1255,71 @@ const myFinalizedAlerts = useMemo(() => {
                   return merged.map(entry => {
                     if (entry.__type === 'thinking') {
                       const item = entry.item;
-                  const req = item.request;
-                  const alt = item.alert;
-                  const buyer = req?.buyer || {};
-                  const firstName = (buyer?.name || 'Usuario').split(' ')[0];
-                  const carLabel = String(buyer?.car_model || 'Sin datos').trim();
-                  const plate = buyer?.plate || '';
-                  const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
-                  const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
-                  const mins = Number(alt?.available_in_minutes) || 0;
-                  const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
-                  const waitUntilTsT = altCreatedTs + mins * 60 * 1000;
-                  const waitUntilLabelT = new Date(waitUntilTsT).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-                  const remainingMsT = Math.max(0, waitUntilTsT - nowTs);
-                  const remSecT = Math.floor(remainingMsT / 1000);
-                  const mmT = String(Math.floor(remSecT / 60)).padStart(2, '0');
-                  const ssT = String(remSecT % 60).padStart(2, '0');
-                  const countdownT = `${mmT}:${ssT}`;
-                  const isCountdownT = remainingMsT > 0;
-                  const phoneEnabled = Boolean(buyer?.phone);
-                  const tKey = `thinking-${item.id}`;
+                      const req = item.request;
+                      const alt = item.alert;
+                      const buyer = req?.buyer || {};
+                      const firstName = (buyer?.name || 'Usuario').split(' ')[0];
+                      const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                      const plate = buyer?.plate || '';
+                      const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
+                      const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
+                      const mins = Number(alt?.available_in_minutes) || 0;
+                      const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
+                      const waitUntilTsT = altCreatedTs + mins * 60 * 1000;
+                      const waitUntilLabelT = new Date(waitUntilTsT).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                      const remainingMsT = Math.max(0, waitUntilTsT - nowTs);
+                      const remSecT = Math.floor(remainingMsT / 1000);
+                      const mmT = String(Math.floor(remSecT / 60)).padStart(2, '0');
+                      const ssT = String(remSecT % 60).padStart(2, '0');
+                      const countdownT = `${mmT}:${ssT}`;
+                      const isCountdownT = remainingMsT > 0;
+                      const phoneEnabled = Boolean(buyer?.phone);
+                      const tKey = `thinking-${item.id}`;
 
-                  const acceptThinking = () => {
-                    const payload = {
-                      status: 'reserved',
-                      reserved_by_id: buyer?.id || 'buyer',
-                      reserved_by_name: buyer?.name || 'Usuario',
-                      reserved_by_photo: buyer?.photo || null,
-                      reserved_by_car: String(buyer?.car_model || '').trim(),
-                      reserved_by_car_color: buyer?.car_color || 'gris',
-                      reserved_by_plate: buyer?.plate || '',
-                    };
-                    // Clear ALL thinking requests (accepted one wins)
-                    try {
-                      setThinkingRequests([]);
-                      localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
-                      window.dispatchEvent(new Event('waitme:thinkingUpdated'));
-                    } catch {}
-                    // Optimistically update the cache so the card appears immediately in Activas
-                    queryClient.setQueryData(['myAlerts'], (old = []) =>
-                      old.map(a => a.id === req.alertId ? { ...a, ...payload } : a)
-                    );
-                    base44.entities.ParkingAlert.update(req.alertId, payload).then(() => {
-                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                    });
-                  };
+                      const acceptThinking = () => {
+                        const payload = {
+                          status: 'reserved',
+                          reserved_by_id: buyer?.id || 'buyer',
+                          reserved_by_name: buyer?.name || 'Usuario',
+                          reserved_by_photo: buyer?.photo || null,
+                          reserved_by_car: String(buyer?.car_model || '').trim(),
+                          reserved_by_car_color: buyer?.car_color || 'gris',
+                          reserved_by_plate: buyer?.plate || '',
+                        };
+                        try {
+                          setThinkingRequests([]);
+                          localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
+                          window.dispatchEvent(new Event('waitme:thinkingUpdated'));
+                        } catch {}
+                        queryClient.setQueryData(['myAlerts'], (old = []) =>
+                          old.map(a => a.id === req.alertId ? { ...a, ...payload } : a)
+                        );
+                        base44.entities.ParkingAlert.update(req.alertId, payload).then(() => {
+                          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                        });
+                      };
 
-                  const rejectThinking = () => {
-                    try {
-                      const updated = thinkingRequests.filter(r => r.id !== item.id);
-                      setThinkingRequests(updated);
-                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
-                      const rejected = JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
-                      rejected.push(item);
-                      localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
-                      setRejectedRequests(rejected);
-                    } catch {}
-                  };
+                      const rejectThinking = () => {
+                        try {
+                          const updated = thinkingRequests.filter(r => r.id !== item.id);
+                          setThinkingRequests(updated);
+                          localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                          const rejected = JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
+                          rejected.push(item);
+                          localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
+                          setRejectedRequests(rejected);
+                        } catch {}
+                      };
 
-                  const dismissThinking = () => {
-                    try {
-                      const updated = thinkingRequests.filter(r => r.id !== item.id);
-                      setThinkingRequests(updated);
-                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
-                    } catch {}
-                  };
+                      const dismissThinking = () => {
+                        try {
+                          const updated = thinkingRequests.filter(r => r.id !== item.id);
+                          setThinkingRequests(updated);
+                          localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                        } catch {}
+                      };
 
-                  return (
+                      return (
                     <motion.div key={tKey} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                       className="w-full bg-gray-900 rounded-2xl border-2 border-purple-500 overflow-hidden">
                       <div className="flex items-center justify-between px-4 pt-4 pb-2">
