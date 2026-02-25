@@ -313,41 +313,49 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
       {useCenterPin && (
-        /* Pin: bola arriba + palito abajo, la BASE del palito toca el centro exacto del mapa */
+        /* Pin: bolita ARRIBA + palito ABAJO con la punta del palito en el centro exacto del mapa */
         <>
           <style>{`
             @keyframes pin-pulse {
-              0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0.7); }
-              50% { opacity: 0.85; transform: translateX(-50%) scale(1.15); box-shadow: 0 0 0 8px rgba(168,85,247,0); }
+              0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0.7); }
+              50% { opacity: 0.85; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(168,85,247,0); }
             }
           `}</style>
-          {/* Palito: arranca en el centro (base) y sube 35px */}
+          {/*
+            Contenedor: centrado horizontalmente, con la PUNTA INFERIOR exactamente en el centro del mapa.
+            Altura total = bola (18px) + palito (35px) = 53px → top: calc(50% - 53px), left: 50% - 9px
+          */}
           <div
-            className="absolute z-[2000] pointer-events-none"
+            className="absolute z-[2000] pointer-events-none flex flex-col items-center"
             style={{
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -100%)',
-              width: 2,
-              height: 35,
-              background: '#a855f7',
-            }}
-          />
-          {/* Bola: encima del palito — desplazada hacia arriba 35px + su propio radio (9px) */}
-          <div
-            className="absolute z-[2000] pointer-events-none"
-            style={{
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, calc(-100% - 35px - 9px))',
               width: 18,
-              height: 18,
-              borderRadius: '50%',
-              background: '#a855f7',
-              boxShadow: '0 0 15px rgba(168,85,247,0.8)',
-              animation: 'pin-pulse 1.5s ease-in-out infinite',
             }}
-          />
+          >
+            {/* Bola arriba */}
+            <div
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#a855f7',
+                boxShadow: '0 0 15px rgba(168,85,247,0.8)',
+                animation: 'pin-pulse 1.5s ease-in-out infinite',
+                flexShrink: 0,
+              }}
+            />
+            {/* Palito abajo */}
+            <div
+              style={{
+                width: 2,
+                height: 35,
+                background: '#a855f7',
+                flexShrink: 0,
+              }}
+            />
+          </div>
         </>
       )}
       <style>{`
