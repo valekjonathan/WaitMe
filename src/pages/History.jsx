@@ -1422,55 +1422,20 @@ const myFinalizedAlerts = useMemo(() => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"
+                            className={alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name)
+                              ? "" /* sin wrapper cuando está reservada — la tarjeta ReservedByContent ya tiene su propio bg */
+                              : "bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"}
                           >
                             {alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name) ? (
                              <>
-                               <CardHeaderRow
-                                 left={
-                                   <div
-                                     className={`bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md flex items-center justify-center text-center ${badgePhotoWidth} h-7 ${labelNoClick}`}
-                                   >
-                                     Te reservó:
-                                   </div>
-                                 }
-                                  dateText={dateText}
-                                  dateClassName="text-white"
-                                  right={
-                                    <div className="flex items-center gap-1">
-                                      <MoneyChip
-                                        mode="green"
-                                        showUpIcon
-                                        amountText={formatPriceInt(alert.price)}
-                                      />
-                                      <button
-                                        onClick={() => {
-                                          // Alerta reservada: mostrar advertencia de penalización
-                                          setCancelReservedAlert(alert);
-                                          setCancelReservedOpen(true);
-                                        }}
-                                        disabled={cancelAlertMutation.isPending}
-                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  }
+                                {/* Solo la tarjeta interna, sin header exterior */}
+                                <ReservedByContent
+                                 alert={alert}
+                                 waitUntilLabel={waitUntilLabel}
+                                 countdownText={countdownText}
+                                 onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
+                                 onCancelClick={() => { setCancelReservedAlert(alert); setCancelReservedOpen(true); }}
                                 />
-
-                                <div className="border-t border-gray-700/80 mb-2" />
-
-                                {(alert.reserved_by_name || alert.user_name) && (
-                                  <div className="mb-1.5">
-                                    <ReservedByContent
-                                     alert={alert}
-                                     waitUntilLabel={waitUntilLabel}
-                                     countdownText={countdownText}
-                                     onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
-                                    />
-                                  </div>
-                                )}
-
                               </>
                             ) : (
                               <>
