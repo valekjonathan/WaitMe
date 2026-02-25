@@ -886,7 +886,7 @@ const myFinalizedAlerts = useMemo(() => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
       queryClient.setQueryData(['myAlerts'], (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
-        return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled' } : a));
+        return list.map((a) => (a?.id === alertId ? { ...a, status: 'cancelled', updated_date: new Date().toISOString() } : a));
       });
 
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
