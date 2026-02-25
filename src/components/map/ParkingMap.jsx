@@ -416,9 +416,20 @@ export default function ParkingMap({
         
         {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
         
-        {/* Marcador de ubicación del usuario: coche (estilo Uber) o pin */}
+        {/* Marcador de ubicación del usuario: foto circular / coche / pin */}
         {normalizedUserLocation && !useCenterPin && (
-          userAsCar ? (
+          userPhotoHtml ? (
+            <Marker
+              position={normalizedUserLocation}
+              icon={L.divIcon({
+                className: 'user-photo-marker',
+                html: `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);">${userPhotoHtml}</div>`,
+                iconSize: [44, 44],
+                iconAnchor: [22, 22]
+              })}
+              zIndexOffset={1800}
+            />
+          ) : userAsCar ? (
             <Marker
               position={normalizedUserLocation}
               icon={createCarIcon(userCarColor, userCarPrice, 'car')}
