@@ -489,29 +489,39 @@ export default function Navigate() {
                 className="px-3 pb-3"
               >
                 {alertForCard && (
-                  <UserAlertCard
-                    alert={alertForCard}
-                    hideBuy={true}
-                    userLocation={userLocation}
-                    showDistanceInMeters={true}
-                    buyLabel={isSeller ? 'He desaparcado ✓' : (!isTracking ? '▶ IR' : 'Detener')}
-                    onBuyAlert={() => {
-                      if (isSeller) {
-                        window.location.href = createPageUrl('History');
-                      } else if (!isTracking) {
-                        startTracking();
-                      } else {
-                        stopTracking();
-                      }
-                    }}
-                    onChat={() => {
-                      window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert?.user_email || displayAlert?.user_id}`);
-                    }}
-                    onCall={() => {
-                      const phone = isBuyer ? displayAlert?.phone : null;
-                      if (phone) window.location.href = `tel:${phone}`;
-                    }}
-                  />
+                  <div className="relative">
+                    {isSeller && displayAlert?.status === 'reserved' && (
+                      <button
+                        onClick={() => setShowCancelWarning(true)}
+                        className="absolute top-3 right-3 w-6 h-6 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors z-10"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                    <UserAlertCard
+                      alert={alertForCard}
+                      hideBuy={true}
+                      userLocation={userLocation}
+                      showDistanceInMeters={true}
+                      buyLabel={isSeller ? 'He desaparcado ✓' : (!isTracking ? '▶ IR' : 'Detener')}
+                      onBuyAlert={() => {
+                        if (isSeller) {
+                          window.location.href = createPageUrl('History');
+                        } else if (!isTracking) {
+                          startTracking();
+                        } else {
+                          stopTracking();
+                        }
+                      }}
+                      onChat={() => {
+                        window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert?.user_email || displayAlert?.user_id}`);
+                      }}
+                      onCall={() => {
+                        const phone = isBuyer ? displayAlert?.phone : null;
+                        if (phone) window.location.href = `tel:${phone}`;
+                      }}
+                    />
+                  </div>
                 )}
                 {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
                   <button
