@@ -71,22 +71,25 @@ export function getVisibleActiveSellerAlerts(myAlerts, userId, userEmail, hidden
 }
 
 /**
- * Returns the most reliable finalization timestamp for a ParkingAlert.
- * Priority: updated_at > completed_at > cancelled_at > created_at
- * then legacy fields: updated_date > created_date.
- * Returns 0 when no date is available (safe for sort comparisons).
+ * Returns the most reliable finalization timestamp for any item (ParkingAlert,
+ * Transaction, or RejectedRequest).
+ * Priority: updated_at > completed_at > cancelled_at > created_at >
+ *           updated_date > created_date > savedAt (for rejected requests).
+ * Always returns a NUMBER in milliseconds. Never returns null/undefined/string.
+ * Returns 0 when no valid date field is found (safe for sort comparisons).
  */
 export function getBestFinalizedTs(a) {
   if (!a) return 0;
-  return (
+  const t =
     toMs(a.updated_at) ||
     toMs(a.completed_at) ||
     toMs(a.cancelled_at) ||
     toMs(a.created_at) ||
     toMs(a.updated_date) ||
     toMs(a.created_date) ||
-    0
-  );
+    toMs(a.savedAt) ||
+    null;
+  return typeof t === 'number' ? t : 0;
 }
 
 /** Read the persisted hiddenKeys Set from localStorage (safe fallback to empty Set). */

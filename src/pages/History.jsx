@@ -731,27 +731,25 @@ const myFinalizedAlerts = useMemo(() => {
   ], [transactions, user?.id, mockTransactions]);
 
   // Único array ordenado para Finalizadas: alertas propias + transacciones + solicitudes rechazadas.
-  // UN solo sort aquí; HistorySellerView recibe finalItems ya ordenado y sólo hace .map().
+  // UN solo sort aquí — opera siempre sobre raw data (item.data) vía getBestFinalizedTs.
+  // Los wrappers NO tienen created_date propio para evitar dependencias intermedias.
   const myFinalizedAll = useMemo(() => [
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
       id: `final-alert-${a.id}`,
-      created_date: getBestFinalizedTs(a),
       data: a
     })),
     ...myFinalizedAsSellerTx.map((t) => ({
       type: 'transaction',
       id: `final-tx-${t.id}`,
-      created_date: getBestFinalizedTs(t),
       data: t
     })),
     ...rejectedRequests.map((i) => ({
       type: 'rejected',
       id: `rejected-${i.id}`,
-      created_date: i.savedAt || 0,
       data: i
     }))
-  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),
+  ].sort((a, b) => getBestFinalizedTs(b.data) - getBestFinalizedTs(a.data)),
   [myFinalizedAlerts, myFinalizedAsSellerTx, rejectedRequests]);
 
   // Filtro de tarjetas ocultas (X botón). Pasa el array ya limpio al componente.
