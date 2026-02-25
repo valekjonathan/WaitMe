@@ -133,12 +133,28 @@ export default function Chat() {
     return () => unsubscribe?.();
   }, [conversationId, isDemo, queryClient]);
 
+  // Mensajes demo desde localStorage (para chats de WaitMe aceptados que vienen de Chats page)
+  const [localDemoMessages, setLocalDemoMessages] = useState(() => {
+    if (!demoFirstMsgParam) return [];
+    const firstMsg = decodeURIComponent(demoFirstMsgParam);
+    if (!firstMsg) return [];
+    return [{
+      id: 'demo_initial_1',
+      mine: false,
+      sender_name: otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario',
+      sender_photo: otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null,
+      message: firstMsg,
+      created_date: new Date().toISOString(),
+      kind: 'text'
+    }];
+  });
+
   // ======================
   // UNIFICAR MENSAJES PARA RENDER
   // ======================
   const displayMessages = useMemo(() => {
     if (isDemo) {
-      return (demoMsgs || []).map((m) => ({
+      const demoMapped = (demoMsgs || []).map((m) => ({
         id: m.id,
         mine: !!m.mine,
         sender_name: m.senderName,
@@ -147,6 +163,11 @@ export default function Chat() {
         created_date: new Date(m.ts).toISOString(),
         kind: m.kind || 'text'
       }));
+      // Combinar con mensajes locales del demo (para WaitMe aceptados)
+      const combined = [...localDemoMessages, ...demoMapped];
+      // Deduplicar por id
+      const seen = new Set();
+      return combined.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
     }
 
     return (messages || []).map((m) => ({
