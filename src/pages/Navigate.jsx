@@ -524,95 +524,132 @@ export default function Navigate() {
         </div>
       )}
 
-      {/* ── BOTTOM PANEL (Uber-style card) — encima del BottomNav ── */}
-      <div className="fixed left-0 right-0 z-50" style={{ bottom: 'var(--bottom-nav-h)' }}>
-        <div className="bg-gray-950 rounded-t-3xl shadow-2xl px-4 pt-3 pb-4 border-t border-gray-800">
-
+      {/* ── BOTTOM PANEL — tarjeta de Sofía incrustada ── */}
+      <div className="fixed left-0 right-0 z-50 px-3" style={{ bottom: 'var(--bottom-nav-h)' }}>
+        <div className="bg-gray-950 rounded-t-3xl shadow-2xl pt-2 pb-3 border-t border-gray-800">
           {/* Drag handle */}
-          <div className="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-3" />
+          <div className="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-2" />
 
-          {/* Person info row */}
           {displayAlert && (
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-500/60 flex-shrink-0 bg-gray-800">
-                {sellerPhoto
-                  ? <img src={sellerPhoto} alt={sellerName} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-purple-400">{sellerName.charAt(0)}</div>
-                }
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-base leading-tight">{sellerName}</p>
-                <p className="text-gray-400 text-sm truncate">{displayAlert.car_brand} {displayAlert.car_model}</p>
-                <p className="text-gray-500 text-xs truncate mt-0.5">{displayAlert.address?.split(',').slice(0,2).join(',')}</p>
-              </div>
-              <div className="flex-shrink-0 flex flex-col items-end gap-1">
-                <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg px-3 py-1">
-                  <span className="text-purple-300 font-bold text-sm">{distLabel}</span>
+            <div className="px-1">
+              {/* Tarjeta Sofia idéntica al modal / Activas */}
+              <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
+                    {isSeller ? 'Te esperan:' : 'Tu destino:'}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                      <Navigation className="w-3 h-3 text-purple-400"/>
+                      <span className="text-white font-bold text-xs">{distLabel}</span>
+                    </div>
+                    <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+                      <span className="text-green-400 font-bold text-sm">{displayAlert.price != null ? Number(displayAlert.price).toFixed(0) : '0'}€</span>
+                    </div>
+                  </div>
                 </div>
-                {!isSeller && !paymentReleased && (
-                  <span className="text-yellow-400 text-xs font-semibold">{displayAlert.price != null ? Number(displayAlert.price).toFixed(2) : '0.00'}€ retenido</span>
+
+                <div className="border-t border-gray-700/80 mb-2"/>
+
+                {/* Foto + nombre + matrícula + coche */}
+                <div className="flex gap-2.5">
+                  <div className="w-[80px] h-[72px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                    {sellerPhoto
+                      ? <img src={sellerPhoto} alt={sellerName} className="w-full h-full object-cover"/>
+                      : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-purple-400">{sellerName.charAt(0)}</div>
+                    }
+                  </div>
+                  <div className="flex-1 h-[72px] flex flex-col">
+                    <p className="font-bold text-base text-white leading-none">{sellerName}</p>
+                    <p className="text-xs font-medium text-gray-200 flex-1 flex items-center truncate relative top-[4px]">{displayAlert.car_brand} {displayAlert.car_model}</p>
+                    <div className="flex items-end gap-2 mt-1 min-h-[26px]">
+                      <div className="flex-shrink-0">
+                        <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-6">
+                          <div className="bg-blue-600 h-full w-4 flex items-center justify-center">
+                            <span className="text-white text-[7px] font-bold">E</span>
+                          </div>
+                          <span className="px-1 text-black font-mono font-bold text-xs tracking-wider">{displayAlert.car_plate || '----'}</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 flex justify-center">
+                        <svg viewBox="0 0 48 24" className="w-14 h-8" fill="none">
+                          <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                            fill={({'blanco':'#fff','negro':'#1a1a1a','gris':'#9ca3af','rojo':'#ef4444','azul':'#3b82f6','verde':'#22c55e','amarillo':'#eab308'})[displayAlert.car_color?.toLowerCase()] || '#9ca3af'}
+                            stroke="white" strokeWidth="1.5"/>
+                          <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
+                          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                          <circle cx="14" cy="18" r="2" fill="#666"/>
+                          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                          <circle cx="36" cy="18" r="2" fill="#666"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dirección */}
+                <div className="pt-1.5 border-t border-gray-700/80 mt-1.5 mb-1.5">
+                  <div className="flex items-center gap-1.5 text-xs min-h-[18px]">
+                    <Navigation className="w-3 h-3 flex-shrink-0 text-purple-400"/>
+                    <span className="text-gray-200 line-clamp-1 leading-none">{displayAlert.address || 'Ubicación marcada'}</span>
+                  </div>
+                </div>
+
+                {/* Botones */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`)}
+                    className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400 flex items-center justify-center"
+                    style={{width:'46px',flexShrink:0}}>
+                    <MessageCircle className="w-4 h-4"/>
+                  </button>
+
+                  <button
+                    onClick={() => phoneEnabled && (window.location.href = `tel:${displayAlert.phone}`)}
+                    disabled={!phoneEnabled}
+                    className={`h-8 rounded-lg border-2 flex items-center justify-center ${phoneEnabled ? 'bg-white hover:bg-gray-200 text-black border-gray-300' : 'bg-white/10 text-white border-white/30 opacity-70'}`}
+                    style={{width:'46px',flexShrink:0}}>
+                    <Phone className="w-4 h-4"/>
+                  </button>
+
+                  {/* Botón principal: iniciar / detener / desaparcar */}
+                  {isSeller ? (
+                    <button
+                      onClick={() => (window.location.href = createPageUrl('History'))}
+                      className="flex-1 h-8 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm flex items-center justify-center gap-1"
+                    >
+                      He desaparcado ✓
+                    </button>
+                  ) : !isTracking ? (
+                    <button
+                      onClick={startTracking}
+                      className="flex-1 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-1 animate-pulse shadow-lg shadow-blue-500/50"
+                    >
+                      <Navigation className="w-4 h-4"/>
+                      IR
+                    </button>
+                  ) : (
+                    <button
+                      onClick={stopTracking}
+                      className="flex-1 h-8 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold text-xs flex items-center justify-center gap-1 border border-gray-600"
+                    >
+                      <AlertCircle className="w-3 h-3"/>
+                      Detener
+                    </button>
+                  )}
+                </div>
+
+                {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
+                  <button
+                    onClick={() => setForceRelease(true)}
+                    className="w-full mt-2 h-7 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-xs hover:bg-amber-500/10 transition-colors"
+                  >
+                    Simular llegada (demo)
+                  </button>
                 )}
               </div>
             </div>
-          )}
-
-          {/* Action buttons row */}
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
-              className="flex-1 h-10 rounded-xl bg-green-600 hover:bg-green-500 flex items-center justify-center gap-2 transition-colors"
-            >
-              <MessageCircle className="w-4 h-4 text-white" />
-              <span className="text-white font-semibold text-sm">Chat</span>
-            </button>
-            <button
-              onClick={() => phoneEnabled && (window.location.href = `tel:${displayAlert.phone}`)}
-              disabled={!phoneEnabled}
-              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 transition-colors ${phoneEnabled ? 'bg-white hover:bg-gray-100' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
-            >
-              <Phone className={`w-4 h-4 ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`} />
-              <span className={`font-semibold text-sm ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`}>Llamar</span>
-            </button>
-          </div>
-
-          {/* Main CTA */}
-          {isSeller ? (
-            <button
-              onClick={() => (window.location.href = createPageUrl('History'))}
-              className="w-full h-12 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base transition-colors"
-            >
-              He desaparcado ✓
-            </button>
-          ) : !isTracking ? (
-            <button
-              onClick={startTracking}
-              className="w-full h-12 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors"
-            >
-              <Navigation className="w-5 h-5" />
-              Iniciar navegación
-            </button>
-          ) : (
-            <div className="space-y-2">
-              {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 5 && (
-                <p className="text-center text-yellow-400 text-sm font-bold">¡Muy cerca! {Math.round(distanceMeters)} m</p>
-              )}
-              <button
-                onClick={stopTracking}
-                className="w-full h-10 rounded-2xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-sm flex items-center justify-center gap-2 border border-gray-700 transition-colors"
-              >
-                <AlertCircle className="w-4 h-4" />
-                Detener navegación
-              </button>
-            </div>
-          )}
-
-          {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
-            <button
-              onClick={() => setForceRelease(true)}
-              className="w-full mt-2 h-8 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-sm hover:bg-amber-500/10 transition-colors"
-            >
-              Simular llegada (demo)
-            </button>
           )}
         </div>
       </div>
