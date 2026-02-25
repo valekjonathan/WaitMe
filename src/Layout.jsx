@@ -6,7 +6,7 @@ import Chat from './pages/Chat';
 import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import History from './pages/History';
+import Alertas from './pages/History';
 import NavigatePage from './pages/Navigate';
 import NotificationSettings from './pages/NotificationSettings';
 
@@ -25,7 +25,8 @@ export default function Layout() {
           <Route path="/notification-settings" element={<NotificationSettings />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/history" element={<History />} />
+          <Route path="/history" element={<Alertas />} />
+          <Route path="/alertas" element={<Alertas />} />
           <Route path="/navigate" element={<NavigatePage />} />
         </Routes>
       </div>
