@@ -1741,10 +1741,10 @@ const myFinalizedAlerts = useMemo(() => {
                               <span className="text-gray-300 leading-none line-clamp-1">{formatAddress(a.address) || 'Ubicación marcada'}</span>
                             </div>
 
-                            <div className="flex items-center gap-1.5 text-xs overflow-hidden mb-2 min-h-[20px]">
+                            <div className="flex items-center gap-1.5 text-xs overflow-hidden mb-2 min-h-[20px]" style={{ marginTop: '-1px' }}>
                               <Clock className="w-4 h-4 flex-shrink-0 text-gray-500" />
                               <span className="leading-none text-gray-400">
-                                Se iba en {a.available_in_minutes ?? '--'} min · Hasta las{' '}
+                                Te ibas en {a.available_in_minutes ?? '--'} min · Debías esperar hasta las:{' '}
                                 <span className="font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
                               </span>
                             </div>
