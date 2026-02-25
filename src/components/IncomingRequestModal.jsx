@@ -98,11 +98,9 @@ export default function IncomingRequestModal(){
     };
 
     setWaitMeRequestStatus(request?.id,'accepted');
-    // Remove from thinking list if was there
+    // Clear ALL thinking requests (accepted one wins, rest are dismissed)
     try{
-      const thinking=JSON.parse(localStorage.getItem('waitme:thinking_requests')||'[]');
-      const filtered=thinking.filter(r=>r.id!==request.id);
-      localStorage.setItem('waitme:thinking_requests',JSON.stringify(filtered));
+      localStorage.setItem('waitme:thinking_requests',JSON.stringify([]));
       window.dispatchEvent(new Event('waitme:thinkingUpdated'));
     }catch{}
     try{window.dispatchEvent(new Event('waitme:badgeRefresh'));}catch{}
