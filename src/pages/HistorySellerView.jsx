@@ -384,7 +384,7 @@ export default function HistorySellerView({
                       const plate = buyer?.plate || '';
                       const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
                       const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
-                      const ts = getBestFinalizedTs(item.data) || Date.now();
+                      const ts = item.finalized_at || getBestFinalizedTs(item.data) || Date.now();
                       const dateText = formatCardDate(ts);
                       const mins = Number(alt?.available_in_minutes) || 0;
                       const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
@@ -503,7 +503,7 @@ export default function HistorySellerView({
                       if (item.type === 'alert') {
   const a = item.data;
 
-  const ts = getBestFinalizedTs(item.data);
+  const ts = item.finalized_at || getBestFinalizedTs(item.data);
   const dateText = ts ? formatCardDate(ts) : '--';
   const waitUntilTs = getWaitUntilTs(a);
   const hasExpiry = typeof waitUntilTs === 'number' && waitUntilTs > (ts || 0);
@@ -714,7 +714,7 @@ export default function HistorySellerView({
                       const buyerColor =
                         tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
 
-                      const ts = getBestFinalizedTs(tx);
+                      const ts = item.finalized_at || getBestFinalizedTs(tx);
                       const dateText = ts ? formatCardDate(ts) : '--';
 
                       return (
