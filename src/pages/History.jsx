@@ -1039,10 +1039,9 @@ const myFinalizedAlerts = useMemo(() => {
     createPageUrl,
     onNavigateClick
   }) => {
-    const reservedByName = alert.reserved_by_name || alert.user_name || 'Usuario';
+    const reservedByName = alert.reserved_by_name || 'Usuario';
     const reservedByPhoto =
       alert.reserved_by_photo ||
-      alert.user_photo ||
       avatarFor(reservedByName) ||
       `https://ui-avatars.com/api/?name=${encodeURIComponent(reservedByName)}&background=7c3aed&color=fff&size=128`;
 
