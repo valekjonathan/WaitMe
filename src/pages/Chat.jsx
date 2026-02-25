@@ -38,6 +38,7 @@ export default function Chat() {
   const carLabelParam = urlParams.get('carLabel');
   const plateParam = urlParams.get('plate');
   const priceParam = urlParams.get('price');
+  const demoFirstMsgParam = urlParams.get('demoFirstMsg'); // mensaje inicial de la conv demo
 
   const cardInfo = useMemo(() => {
     const car = carLabelParam ? decodeURIComponent(carLabelParam) : null;
