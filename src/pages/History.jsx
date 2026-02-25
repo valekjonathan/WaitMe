@@ -42,6 +42,31 @@ export default function Alertas() {
   const [expirePromptOpen, setExpirePromptOpen] = useState(false);
   const [expirePromptAlert, setExpirePromptAlert] = useState(null);
 
+  // "Me lo pienso" requests shown in Activas
+  const [thinkingRequests, setThinkingRequests] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]'); } catch { return []; }
+  });
+  // Rejected requests shown in Finalizadas
+  const [rejectedRequests, setRejectedRequests] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]'); } catch { return []; }
+  });
+
+  useEffect(() => {
+    const reload = () => {
+      try { setThinkingRequests(JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]')); } catch {}
+    };
+    window.addEventListener('waitme:thinkingUpdated', reload);
+    return () => window.removeEventListener('waitme:thinkingUpdated', reload);
+  }, []);
+
+  useEffect(() => {
+    const reload = () => {
+      try { setRejectedRequests(JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]')); } catch {}
+    };
+    window.addEventListener('waitme:rejectedUpdated', reload);
+    return () => window.removeEventListener('waitme:rejectedUpdated', reload);
+  }, []);
+
 useEffect(() => {
   const id = setInterval(() => {
     setNowTs(Date.now());
