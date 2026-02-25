@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
-import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function formatAddress(addr){
@@ -166,9 +166,14 @@ export default function IncomingRequestModal(){
                   <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
                     Te reservó:
                   </div>
-                  <div className="flex gap-1 text-xs">
-                    <div className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white">0.3 km</div>
-                    <div className="bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white">3€</div>
+                  <div className="flex items-center gap-1">
+                    <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                      <Navigation className="w-3 h-3 text-purple-400"/>
+                      <span className="text-white font-bold text-xs">0.3km</span>
+                    </div>
+                    <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+                      <span className="text-green-400 font-bold text-sm">3€ <span className="text-[10px]">↑</span></span>
+                    </div>
                   </div>
                 </div>
 
