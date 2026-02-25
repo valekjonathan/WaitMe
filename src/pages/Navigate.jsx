@@ -19,6 +19,25 @@ function getAlertIdFromLocation() {
   return new URLSearchParams(window.location.search).get('alertId');
 }
 
+const getCarColor = (color) => {
+  const colorMap = {
+    blanco: '#f5f5f5', blanca: '#f5f5f5',
+    negro: '#1a1a1a', negra: '#1a1a1a',
+    rojo: '#dc2626', roja: '#dc2626',
+    azul: '#2563eb',
+    verde: '#16a34a',
+    gris: '#6b7280', grisáceo: '#6b7280',
+    amarillo: '#eab308',
+    naranja: '#f97316',
+    rosa: '#ec4899',
+    morado: '#9333ea',
+    plateado: '#c0c0c0',
+    dorado: '#d97706',
+    marrón: '#8b4513', marron: '#8b4513',
+  };
+  return colorMap[String(color || '').toLowerCase()] || '#808080';
+};
+
 const DEMO_ALERTS = {
   'demo_1': {
     id: 'demo_1',
