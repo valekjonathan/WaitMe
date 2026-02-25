@@ -158,8 +158,19 @@ export default function BottomNav() {
         <NavLink
           to="/chats"
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
+          onClick={() => {
+            // Limpiar unread al entrar a chats
+            try { localStorage.setItem('waitme:chat_unread', '0'); setChatUnread(0); } catch {}
+          }}
         >
-          <MessageCircle className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+          <div className="relative">
+            {chatUnread > 0 && (
+              <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-[9px] font-extrabold text-white z-10">
+                {chatUnread > 9 ? '9+' : chatUnread}
+              </span>
+            )}
+            <MessageCircle className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
+          </div>
           <span className={labelClass}>Chats</span>
         </NavLink>
       </div>
