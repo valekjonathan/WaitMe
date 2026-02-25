@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -19,8 +19,8 @@ import {
 } from '@/components/DemoFlowManager';
 
 export default function Chat() {
-  console.log("CHAT MOUNTED");
   const navigate = useNavigate();
+  const { search: locationSearch } = useLocation();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -31,7 +31,7 @@ export default function Chat() {
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const attachMenuRef = useRef(null);
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(locationSearch);
   const conversationId = urlParams.get('conversationId');
   const alertId = urlParams.get('alertId');
   const otherNameParam = urlParams.get('otherName');

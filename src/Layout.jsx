@@ -18,6 +18,7 @@ export default function Layout() {
           <Route path="/home" element={<Home />} />
           <Route path="/Home" element={<Home />} />
           <Route path="/chats" element={<Chats />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/chat/:id" element={<Chat />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/notification-settings" element={<NotificationSettings />} />

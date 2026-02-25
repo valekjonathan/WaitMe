@@ -585,7 +585,7 @@ const badgeCls = isCompletedOrCanceled
                       localStorage.setItem('waitme:chat_unread', String(total));
                       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
                     } catch {}
-                    navigate(createPageUrl(`Chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`));
+                    navigate(`/chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`);
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -727,7 +727,7 @@ const badgeCls = isCompletedOrCanceled
               const photo = encodeURIComponent(otherUserPhoto || '');
               const demo = demoMode ? 'demo=true&' : '';
               const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
-              navigate(createPageUrl(`Chat?demo=true&conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
+              navigate(`/chat?conversationId=${conv.id}&alertId=${conv.alert_id}&otherName=${name}&otherPhoto=${photo}`);
             };
 
             return (
