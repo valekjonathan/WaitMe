@@ -19,6 +19,7 @@ import {
 } from '@/components/DemoFlowManager';
 
 export default function Chat() {
+  console.log("CHAT MOUNTED");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
