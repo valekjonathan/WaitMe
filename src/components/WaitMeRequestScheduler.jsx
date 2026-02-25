@@ -4,68 +4,80 @@ import { MOCK_USERS } from '@/lib/mockNearby';
 import { addDemoAlert, addIncomingWaitMeConversation } from '@/components/DemoFlowManager';
 import { base44 } from '@/api/base44Client';
 
-// Dispara la alerta demo a los 30s exactos de montar la app (usuario en Home).
-// Sin sessionStorage: timer único al entrar.
+// Dispara la petición demo SOLO 30 segundos después de que el usuario publique una alerta.
 export default function WaitMeRequestScheduler() {
   const timerRef = useRef(null);
+  const firedRef = useRef(false);
 
   useEffect(() => {
-    timerRef.current = setTimeout(async () => {
-      try {
-        const alertId = 'demo_1';
-        const buyer = MOCK_USERS[0];
+    const handleAlertPublished = (e) => {
+      // Solo disparar una vez por sesión
+      if (firedRef.current) return;
+      if (timerRef.current) clearTimeout(timerRef.current);
 
-        const req = {
-          id: `req_${Date.now()}`,
-          type: 'incoming_waitme_request',
-          title: 'Usuario quiere tu WaitMe!',
-          createdAt: Date.now(),
-          status: 'pending',
-          alertId,
-          buyer: {
-            id: buyer.id,
-            name: buyer.name,
-            photo: buyer.photo,
-            vehicle_type: buyer.vehicle_type,
-            car_model: buyer.car_model,
-            car_color: buyer.car_color,
-            plate: buyer.plate,
-            phone: buyer.phone
+      const publishedAlertId = e?.detail?.alertId || null;
+
+      timerRef.current = setTimeout(async () => {
+        if (firedRef.current) return;
+        firedRef.current = true;
+
+        try {
+          const buyer = MOCK_USERS[0];
+
+          // Intentar usar la alerta real recién publicada
+          let alertData = null;
+          if (publishedAlertId) {
+            try {
+              alertData = await base44.entities.ParkingAlert.get(publishedAlertId);
+            } catch {}
           }
-        };
 
-        upsertWaitMeRequest(req);
+          if (!alertData) {
+            alertData = {
+              id: publishedAlertId || 'demo_1',
+              address: 'Calle Uría, Oviedo',
+              available_in_minutes: 6,
+              price: 3,
+              latitude: 43.3629,
+              longitude: -5.8488,
+              created_date: new Date().toISOString()
+            };
+          }
 
-        let alert = null;
-        try {
-          alert = await base44.entities.ParkingAlert.get(alertId);
-          if (alert) addDemoAlert(alert);
-        } catch {}
-        if (!alert) {
-          alert = {
-            id: alertId,
-            address: 'Calle Uría, Oviedo',
-            available_in_minutes: 6,
-            price: 3,
-            latitude: 43.3629,
-            longitude: -5.8488,
-            created_date: new Date().toISOString()
+          addDemoAlert(alertData);
+
+          const req = {
+            id: `req_${Date.now()}`,
+            type: 'incoming_waitme_request',
+            title: 'Usuario quiere tu WaitMe!',
+            createdAt: Date.now(),
+            status: 'pending',
+            alertId: alertData.id,
+            buyer: {
+              id: buyer.id,
+              name: buyer.name,
+              photo: buyer.photo,
+              vehicle_type: buyer.vehicle_type,
+              car_model: buyer.car_model,
+              car_color: buyer.car_color,
+              plate: buyer.plate,
+              phone: buyer.phone
+            }
           };
-          addDemoAlert(alert);
-        }
 
-        addIncomingWaitMeConversation(alertId, req.buyer);
+          upsertWaitMeRequest(req);
+          addIncomingWaitMeConversation(alertData.id, req.buyer);
 
-        try {
-          window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req, alert } }));
-        } catch {}
-        try {
+          window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req, alert: alertData } }));
           window.dispatchEvent(new Event('waitme:showIncomingBanner'));
         } catch {}
-      } catch {}
-    }, 30_000);
+      }, 30_000);
+    };
+
+    window.addEventListener('waitme:alertPublished', handleAlertPublished);
 
     return () => {
+      window.removeEventListener('waitme:alertPublished', handleAlertPublished);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
