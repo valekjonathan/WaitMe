@@ -32,41 +32,14 @@ import { useAuth } from '@/lib/AuthContext';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
+import { toMs, getActiveSellerAlerts } from '@/lib/alertSelectors';
 
 const getCarFillThinking = (color) => {
   const map = { blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',naranja:'#f97316',morado:'#7c3aed',rosa:'#ec4899',beige:'#d4b483' };
   return map[String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')] || '#9ca3af';
 };
 
-const toMs = (v) => {
-  if (v == null) return null;
-
-  // Date
-  if (v instanceof Date) return v.getTime();
-
-  // Number (ms o seconds)
-  if (typeof v === 'number') {
-    return v > 1e12 ? v : v * 1000;
-  }
-
-  // String
-  if (typeof v === 'string') {
-    const s = v.trim();
-    if (!s) return null;
-
-    // Si tiene zona horaria (Z o +hh:mm) → Date normal
-    if (/Z$|[+-]\d{2}:\d{2}$/.test(s)) {
-      const t = new Date(s).getTime();
-      return Number.isNaN(t) ? null : t;
-    }
-
-    // 🔴 CLAVE: string SIN zona → tratar como hora local (Madrid)
-    const t = new Date(s + ':00').getTime();
-    return Number.isNaN(t) ? null : t;
-  }
-
-  return null;
-};
+// toMs is imported from @/lib/alertSelectors
 
 export default function Alertas() {
   const { user } = useAuth();
@@ -646,31 +619,10 @@ const mockReservationsFinal = useMemo(() => {
 
 
 
-const myActiveAlerts = useMemo(() => {
-  const filtered = myAlerts.filter((a) => {
-    if (!a) return false;
-
-    const isMine =
-      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
-      (user?.email && a.user_email === user.email);
-
-    if (!isMine) return false;
-
-    const status = String(a.status || '').toLowerCase();
-
-    // Solo mostrar activas o reservadas
-    return status === 'active' || status === 'reserved';
-  });
-
-  if (filtered.length === 0) return [];
-
-  const sorted = [...filtered].sort(
-    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
-  );
-
-  // Solo la más reciente
-  return [sorted[0]];
-}, [myAlerts, user?.id, user?.email]);
+const myActiveAlerts = useMemo(
+  () => getActiveSellerAlerts(myAlerts, user?.id, user?.email),
+  [myAlerts, user?.id, user?.email]
+);
 
 
 

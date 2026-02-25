@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -54,15 +55,14 @@ export default function BottomNav() {
     }
   });
 
-  // La app solo permite 1 alerta activa.
-  // Badge binario y SOLO cuando tenemos datos frescos (sin "2" fugaz).
-  const hasActiveAlert = (myAlerts || []).some((a) => {
-    const st = String(a?.status || '').toLowerCase();
-    return st === 'active' || st === 'reserved';
-  });
-  const showActiveBadge = isFetched ? hasActiveAlert : false;
-  // Mantener el badge estable incluso mientras refresca (sin parpadeos)
-  // Usamos placeholderData para conservar myAlerts durante fetch.
+  // Badge: same logic as HistorySellerView visibleActiveAlerts.
+  // Uses the shared selector (ownership + most-recent + hiddenKeys) so they
+  // never mismatch. Falls back to 0 until data is fetched (no ghost badge).
+  const showActiveBadge = useMemo(() => {
+    if (!isFetched) return false;
+    const hiddenKeys = readHiddenKeys();
+    return getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys).length > 0;
+  }, [isFetched, myAlerts, user?.id, user?.email]);
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
   useEffect(() => {
