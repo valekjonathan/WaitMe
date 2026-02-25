@@ -267,23 +267,22 @@ export default function IncomingRequestModal(){
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  {/* chat + llamada: ancho de la foto (95px) dividido entre 2 */}
-                  <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg" style={{width:'46px',flexShrink:0}}>
+                  <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}>
                     <MessageCircle className="w-4 h-4"/>
                   </Button>
 
                   {phoneEnabled?(
-                    <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg" style={{width:'46px',flexShrink:0}}
+                    <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
                       onClick={()=>window.location.href=`tel:${buyer.phone}`}>
                       <Phone className="w-4 h-4"/>
                     </Button>
                   ):(
-                    <Button size="icon" className="h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" style={{width:'46px',flexShrink:0}} disabled>
+                    <Button size="icon" className="h-8 border-2 border-white/30 bg-white/10 text-white rounded-lg opacity-70" style={{width:'46px',flexShrink:0}} disabled>
                       <PhoneOff className="w-4 h-4"/>
                     </Button>
                   )}
 
-                  <Button size="icon" className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1" style={{width:'46px',flexShrink:0}} disabled>
+                  <Button size="icon" className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1 border-2 border-blue-400" style={{width:'46px',flexShrink:0}} disabled>
                     <Navigation className="w-4 h-4"/>
                   </Button>
 
