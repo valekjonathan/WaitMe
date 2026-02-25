@@ -1528,145 +1528,153 @@ const myFinalizedAlerts = useMemo(() => {
                       <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {/* Rejected requests: newest first — interleaved with finalized alerts by timestamp */}
-                {[...rejectedRequests].sort((a,b) => (b.savedAt||0) - (a.savedAt||0)).map((item) => {
-                  const rKey = `rejected-${item.id}`;
-                  if (hiddenKeys.has(rKey)) return null;
-                  const req = item.request;
-                  const alt = item.alert;
-                  const buyer = req?.buyer || {};
-                  const firstName = (buyer?.name || 'Usuario').split(' ')[0];
-                  const carLabel = String(buyer?.car_model || 'Sin datos').trim();
-                  const plate = buyer?.plate || '';
-                  const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
-                  const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
-                  const ts = item.savedAt || Date.now();
-                  const dateText = formatCardDate(ts);
-                  const mins = Number(alt?.available_in_minutes) || 0;
-                  const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
-                  const waitUntilTsR = altCreatedTs + mins * 60 * 1000;
-                  const waitUntilLabelR = new Date(waitUntilTsR).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                {/* ── Unified sorted finalized list (alerts + rejected requests) ── */}
+                {(() => {
+                  const rejectedItems = rejectedRequests
+                    .filter(i => !hiddenKeys.has(`rejected-${i.id}`))
+                    .map(i => ({ __type: 'rejected', __ts: i.savedAt || 0, item: i }));
 
-                  return (
-                    <motion.div key={rKey} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                      className="w-full bg-gray-900 rounded-2xl border-2 border-gray-700/80 overflow-hidden">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                        <p className="text-white font-semibold text-lg">
-                          {firstName} quiere un <span className="text-2xl font-bold">Wait</span>
-                          <span className="text-purple-400 text-2xl font-bold">Me!</span>
-                        </p>
-                        <button onClick={() => hideKey(rKey)}
-                          className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
-                          <X className="w-5 h-5"/>
-                        </button>
-                      </div>
-                      {/* Card body */}
-                      <div className="px-3 pb-3">
-                        <div className="bg-gray-800/60 rounded-xl p-2 border border-gray-600/60">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="bg-red-500/20 text-red-300 border border-red-500/30 font-bold text-xs rounded-md px-3 py-1">
-                              Rechazada
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                                <Navigation className="w-3 h-3 text-purple-400"/>
-                                <span className="text-white font-bold text-xs">300m</span>
-                              </div>
-                              <div className="bg-gray-500/20 border border-gray-600/40 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
-                                <TrendingUp className="w-4 h-4 text-gray-400"/>
-                                <span className="text-gray-400 font-bold text-sm">{formatPriceInt(alt?.price)}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="border-t border-gray-700/80 mb-2"/>
-                          <div className="flex gap-2.5">
-                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/40 bg-gray-900 flex-shrink-0">
-                              <img src={photo} alt={firstName} className="w-full h-full object-cover opacity-40 grayscale"/>
-                            </div>
-                            <div className="flex-1 h-[85px] flex flex-col">
-                              <p className="font-bold text-xl text-gray-300 leading-none opacity-70">{firstName}</p>
-                              <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
-                              <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-                                <div className="opacity-45 flex-shrink-0">
-                                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-                                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-                                      <span className="text-white text-[8px] font-bold">E</span>
-                                    </div>
-                                    <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{plate}</span>
-                                  </div>
-                                </div>
-                                <div className="flex-1 flex justify-center">
-                                  <div className="opacity-45 flex-shrink-0 relative top-[2px]">
-                                    <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
-                                      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFillColor} stroke="white" strokeWidth="1.5"/>
-                                      <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
-                                      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                                      <circle cx="14" cy="18" r="2" fill="#666"/>
-                                      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                                      <circle cx="36" cy="18" r="2" fill="#666"/>
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5 opacity-80">
-                            <div className="flex items-center gap-1.5 text-xs min-h-[20px]">
-                              <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500"/>
-                              <span className="text-gray-300 leading-none line-clamp-1">{alt?.address || 'Ubicación marcada'}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
-                              <Clock className="w-4 h-4 flex-shrink-0 text-gray-500"/>
-                              <span className="leading-none text-gray-400">
-                                <span>Te ibas en {mins} min · </span>
-                                <span>Debías esperar hasta las:</span>
-                                {' '}<span className="font-bold" style={{fontSize:'14px'}}>{waitUntilLabelR}</span>
-                              </span>
-                            </div>
-                          </div>
-                          <div className="mt-2 flex items-center gap-2">
-                            {/* Chat: activo siempre */}
-                            <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}>
-                              <MessageCircle className="w-4 h-4"/>
-                            </Button>
-                            {/* Teléfono: activo si allow_phone_calls */}
-                            {Boolean(buyer?.phone && req?.allow_phone_calls !== false) ? (
-                              <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
-                                onClick={()=>window.location.href=`tel:${buyer.phone}`}>
-                                <Phone className="w-4 h-4"/>
-                              </Button>
-                            ) : (
-                              <Button size="icon" className="h-8 border-2 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
-                                <PhoneOff className="w-4 h-4"/>
-                              </Button>
-                            )}
-                            <Button size="icon" className="h-8 rounded-lg bg-blue-600/40 text-white opacity-40 border-2 border-blue-400/30 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
-                              <Navigation className="w-4 h-4"/>
-                            </Button>
-                            <div className="flex-1">
-                              <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center">
-                                <span className="font-mono font-extrabold text-sm text-gray-400/70">RECHAZADA</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  const finalizedItems = renderableFinalized
+                    .map(item => ({ __type: 'finalized', __ts: item.created_date || 0, item }));
+
+                  const merged = [...rejectedItems, ...finalizedItems]
+                    .sort((a, b) => b.__ts - a.__ts);
+
+                  if (merged.length === 0) return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                    >
+                      <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
                     </motion.div>
                   );
-                })}
 
-                {renderableFinalized.length === 0 && rejectedRequests.filter(i => !hiddenKeys.has(`rejected-${i.id}`)).length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
-                  >
-                    <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
-                  </motion.div>
-                ) : (
-                  <div className="space-y-[20px]">
-                    {renderableFinalized.map((item, index) => {
+                  return <div className="space-y-[20px]">{merged.map((entry, index) => {
+                    if (entry.__type === 'rejected') {
+                      const item = entry.item;
+                      const rKey = `rejected-${item.id}`;
+                      const req = item.request;
+                      const alt = item.alert;
+                      const buyer = req?.buyer || {};
+                      const firstName = (buyer?.name || 'Usuario').split(' ')[0];
+                      const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                      const plate = buyer?.plate || '';
+                      const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
+                      const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
+                      const ts = item.savedAt || Date.now();
+                      const dateText = formatCardDate(ts);
+                      const mins = Number(alt?.available_in_minutes) || 0;
+                      const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
+                      const waitUntilTsR = altCreatedTs + mins * 60 * 1000;
+                      const waitUntilLabelR = new Date(waitUntilTsR).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                      return (
+                        <motion.div key={rKey} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                          className="w-full bg-gray-900 rounded-2xl border-2 border-gray-700/80 overflow-hidden">
+                          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                            <p className="text-white font-semibold text-lg">
+                              {firstName} quiere un <span className="text-2xl font-bold">Wait</span>
+                              <span className="text-purple-400 text-2xl font-bold">Me!</span>
+                            </p>
+                            <button onClick={() => hideKey(rKey)}
+                              className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
+                              <X className="w-5 h-5"/>
+                            </button>
+                          </div>
+                          <div className="px-3 pb-3">
+                            <div className="bg-gray-800/60 rounded-xl p-2 border border-gray-600/60">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="bg-red-500/20 text-red-300 border border-red-500/30 font-bold text-xs rounded-md px-3 py-1">
+                                  Rechazada
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                                    <Navigation className="w-3 h-3 text-purple-400"/>
+                                    <span className="text-white font-bold text-xs">300m</span>
+                                  </div>
+                                  <div className="bg-gray-500/20 border border-gray-600/40 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+                                    <TrendingUp className="w-4 h-4 text-gray-400"/>
+                                    <span className="text-gray-400 font-bold text-sm">{formatPriceInt(alt?.price)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="border-t border-gray-700/80 mb-2"/>
+                              <div className="flex gap-2.5">
+                                <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-gray-600/40 bg-gray-900 flex-shrink-0">
+                                  <img src={photo} alt={firstName} className="w-full h-full object-cover opacity-40 grayscale"/>
+                                </div>
+                                <div className="flex-1 h-[85px] flex flex-col">
+                                  <p className="font-bold text-xl text-gray-300 leading-none opacity-70">{firstName}</p>
+                                  <p className="text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+                                  <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                                    <div className="opacity-45 flex-shrink-0">
+                                      <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                                        <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                                          <span className="text-white text-[8px] font-bold">E</span>
+                                        </div>
+                                        <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{plate}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 flex justify-center">
+                                      <div className="opacity-45 flex-shrink-0 relative top-[2px]">
+                                        <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
+                                          <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFillColor} stroke="white" strokeWidth="1.5"/>
+                                          <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
+                                          <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                                          <circle cx="14" cy="18" r="2" fill="#666"/>
+                                          <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
+                                          <circle cx="36" cy="18" r="2" fill="#666"/>
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5 opacity-80">
+                                <div className="flex items-center gap-1.5 text-xs min-h-[20px]">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500"/>
+                                  <span className="text-gray-300 leading-none line-clamp-1">{alt?.address || 'Ubicación marcada'}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
+                                  <Clock className="w-4 h-4 flex-shrink-0 text-gray-500"/>
+                                  <span className="leading-none text-gray-400">
+                                    <span>Te ibas en {mins} min · </span>
+                                    <span>Debías esperar hasta las:</span>
+                                    {' '}<span className="font-bold" style={{fontSize:'14px'}}>{waitUntilLabelR}</span>
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="mt-2 flex items-center gap-2">
+                                <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}>
+                                  <MessageCircle className="w-4 h-4"/>
+                                </Button>
+                                {Boolean(buyer?.phone && req?.allow_phone_calls !== false) ? (
+                                  <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
+                                    onClick={()=>window.location.href=`tel:${buyer.phone}`}>
+                                    <Phone className="w-4 h-4"/>
+                                  </Button>
+                                ) : (
+                                  <Button size="icon" className="h-8 border-2 border-white/20 bg-white/10 text-white rounded-lg opacity-50 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
+                                    <PhoneOff className="w-4 h-4"/>
+                                  </Button>
+                                )}
+                                <Button size="icon" className="h-8 rounded-lg bg-blue-600/40 text-white opacity-40 border-2 border-blue-400/30 cursor-not-allowed" style={{width:'46px',flexShrink:0}} disabled>
+                                  <Navigation className="w-4 h-4"/>
+                                </Button>
+                                <div className="flex-1">
+                                  <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center">
+                                    <span className="font-mono font-extrabold text-sm text-gray-400/70">RECHAZADA</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    }
+
+                    // finalized alert/transaction
+                    const item = entry.item;
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
                       const key = item.id;
