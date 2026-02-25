@@ -294,7 +294,7 @@ export default function UserAlertCard({
           <div className="grid grid-cols-4 gap-2">
             {/* 1. Chat */}
             <Button
-              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-full flex items-center justify-center"
+              className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-full flex items-center justify-center border border-green-400/50"
               onClick={handleChat}>
               <MessageCircle className="w-4 h-4" />
             </Button>
@@ -302,22 +302,29 @@ export default function UserAlertCard({
             {/* 2. Llamada */}
             {phoneEnabled ? (
               <Button
-                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-full flex items-center justify-center"
+                className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-full flex items-center justify-center border border-gray-300/50"
                 onClick={handleCall}>
                 <Phone className="w-4 h-4" />
               </Button>
             ) : (
               <Button
                 variant="outline"
-                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-full flex items-center justify-center opacity-70 cursor-not-allowed"
+                className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-full flex items-center justify-center opacity-70 cursor-not-allowed border border-white/30"
                 disabled>
                 <PhoneOff className="w-4 h-4 text-white" />
               </Button>
             )}
 
-            {/* 3. Ir – azul, deshabilitado si no hay coords */}
+            {/* 3. Ir – azul parpadeante con animación */}
+            <style>{`
+              @keyframes pulse-navigate {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.8); }
+                50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2); }
+              }
+              .btn-navigate { animation: pulse-navigate 2s infinite; }
+            `}</style>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-full flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-full flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-400/50 btn-navigate"
               disabled={!alert?.latitude || !alert?.longitude}
               onClick={() => {
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
