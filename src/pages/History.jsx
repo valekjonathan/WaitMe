@@ -1188,7 +1188,172 @@ const myFinalizedAlerts = useMemo(() => {
           <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
 
-                {visibleActiveAlerts.length === 0 ? (
+                {/* "Me lo pienso" pending requests */}
+                {thinkingRequests.map((item) => {
+                  const req = item.request;
+                  const alt = item.alert;
+                  const buyer = req?.buyer || {};
+                  const firstName = (buyer?.name || 'Usuario').split(' ')[0];
+                  const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                  const plate = buyer?.plate || '';
+                  const carFillColor = getCarFill(buyer?.car_color || 'gris');
+                  const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
+                  const mins = Number(alt?.available_in_minutes) || 0;
+                  const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
+                  const waitUntilTsT = altCreatedTs + mins * 60 * 1000;
+                  const waitUntilLabelT = new Date(waitUntilTsT).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+                  const remainingMsT = Math.max(0, waitUntilTsT - nowTs);
+                  const remSecT = Math.floor(remainingMsT / 1000);
+                  const mmT = String(Math.floor(remSecT / 60)).padStart(2, '0');
+                  const ssT = String(remSecT % 60).padStart(2, '0');
+                  const countdownT = `${mmT}:${ssT}`;
+                  const isCountdownT = remainingMsT > 0;
+                  const phoneEnabled = Boolean(buyer?.phone);
+                  const tKey = `thinking-${item.id}`;
+
+                  const acceptThinking = () => {
+                    const payload = {
+                      status: 'reserved',
+                      reserved_by_id: buyer?.id || 'buyer',
+                      reserved_by_name: buyer?.name || 'Usuario',
+                      reserved_by_photo: buyer?.photo || null,
+                      reserved_by_car: String(buyer?.car_model || '').trim(),
+                      reserved_by_car_color: buyer?.car_color || 'gris',
+                      reserved_by_plate: buyer?.plate || '',
+                    };
+                    try {
+                      const updated = thinkingRequests.filter(r => r.id !== item.id);
+                      setThinkingRequests(updated);
+                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                    } catch {}
+                    base44.entities.ParkingAlert.update(req.alertId, payload).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                    });
+                  };
+
+                  const rejectThinking = () => {
+                    try {
+                      const updated = thinkingRequests.filter(r => r.id !== item.id);
+                      setThinkingRequests(updated);
+                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                      const rejected = JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
+                      rejected.push(item);
+                      localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
+                      setRejectedRequests(rejected);
+                    } catch {}
+                  };
+
+                  const dismissThinking = () => {
+                    try {
+                      const updated = thinkingRequests.filter(r => r.id !== item.id);
+                      setThinkingRequests(updated);
+                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                    } catch {}
+                  };
+
+                  return (
+                    <motion.div key={tKey} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      className="w-full bg-gray-900 rounded-2xl border-2 border-purple-500 overflow-hidden">
+                      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                        <p className="text-white font-semibold text-lg">
+                          {firstName} quiere un <span className="text-2xl font-bold">Wait</span>
+                          <span className="text-purple-400 text-2xl font-bold">Me!</span>
+                        </p>
+                        <button onClick={dismissThinking}
+                          className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
+                          <X className="w-5 h-5"/>
+                        </button>
+                      </div>
+                      <div className="px-3 pb-3">
+                        <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
+                              Te reservó:
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                                <Navigation className="w-3 h-3 text-purple-400"/>
+                                <span className="text-white font-bold text-xs">300m</span>
+                              </div>
+                              <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+                                <TrendingUp className="w-4 h-4 text-green-400"/>
+                                <span className="text-green-400 font-bold text-sm">{formatPriceInt(alt?.price)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="border-t border-gray-700/80 mb-2"/>
+                          <div className="flex gap-2.5">
+                            <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                              <img src={photo} alt={firstName} className="w-full h-full object-cover"/>
+                            </div>
+                            <div className="flex-1 h-[85px] flex flex-col">
+                              <p className="font-bold text-xl text-white leading-none">{firstName}</p>
+                              <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+                              <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                                <div className="flex-shrink-0">
+                                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                                      <span className="text-white text-[8px] font-bold">E</span>
+                                    </div>
+                                    <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{plate}</span>
+                                  </div>
+                                </div>
+                                <div className="flex-1 flex justify-center">
+                                  <div className="flex-shrink-0 relative top-[2px]">
+                                    <CarIconProfile color={carFillColor} size="w-16 h-10"/>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5">
+                            <div className="flex items-start gap-1.5 text-xs">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400"/>
+                              <span className="text-gray-200 line-clamp-1">{alt?.address || 'Ubicación marcada'}</span>
+                            </div>
+                            <div className="flex items-start gap-1 text-[11px] overflow-hidden">
+                              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400"/>
+                              <span className="truncate whitespace-nowrap">
+                                <span className="text-white">Te vas en {mins} min · </span>
+                                <span className="text-purple-400">Debes esperar hasta las:</span>
+                                {' '}<span className="text-white font-bold" style={{fontSize:'14px'}}>{waitUntilLabelT}</span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg" style={{width:'46px',flexShrink:0}}>
+                              <MessageCircle className="w-4 h-4"/>
+                            </Button>
+                            {phoneEnabled ? (
+                              <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg" style={{width:'46px',flexShrink:0}}>
+                                <Phone className="w-4 h-4"/>
+                              </Button>
+                            ) : (
+                              <Button size="icon" className="h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" style={{width:'46px',flexShrink:0}} disabled>
+                                <PhoneOff className="w-4 h-4"/>
+                              </Button>
+                            )}
+                            <Button size="icon" className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center" style={{width:'46px',flexShrink:0}} disabled>
+                              <Navigation className="w-4 h-4"/>
+                            </Button>
+                            <div className="flex-1">
+                              <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center ${isCountdownT ? 'border-purple-400/70 bg-purple-600/25' : 'border-purple-500/30 bg-purple-600/10'}`}>
+                                <span className={`font-mono font-extrabold text-sm ${isCountdownT ? 'text-purple-100' : 'text-purple-300'}`}>{countdownT}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-3 pb-4 grid grid-cols-3 gap-2">
+                        <Button className="bg-purple-600 hover:bg-purple-700 font-semibold" onClick={acceptThinking}>Aceptar</Button>
+                        <Button variant="outline" className="border-gray-600 text-white font-semibold" onClick={dismissThinking}>Me lo pienso</Button>
+                        <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={rejectThinking}>Rechazar</Button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+
+                {visibleActiveAlerts.length === 0 && thinkingRequests.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1196,7 +1361,7 @@ const myFinalizedAlerts = useMemo(() => {
                   >
                     <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
                   </motion.div>
-                ) : (
+                ) : visibleActiveAlerts.length > 0 ? (
                   <div className="space-y-[20px]">
                     {visibleActiveAlerts
                        .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
