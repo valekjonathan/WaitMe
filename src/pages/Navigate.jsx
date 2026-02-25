@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigation, Phone, MessageCircle, AlertCircle, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { Navigation, Phone, MessageCircle, AlertCircle, ChevronDown, ChevronUp, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import BottomNav from '@/components/BottomNav';
