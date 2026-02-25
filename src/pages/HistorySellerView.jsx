@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { getBestFinalizedTs } from '@/lib/alertSelectors';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -369,7 +370,7 @@ export default function HistorySellerView({
                     .map(i => ({ __type: 'rejected', __ts: i.savedAt || 0, item: i }));
 
                   const finalizedItems = renderableFinalized
-                    .map(item => ({ __type: 'finalized', __ts: item.created_date || 0, item }));
+                    .map(item => ({ __type: 'finalized', __ts: getBestFinalizedTs(item.data), item }));
 
                   const merged = [...rejectedItems, ...finalizedItems]
                     .sort((a, b) => b.__ts - a.__ts);
