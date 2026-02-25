@@ -1533,18 +1533,18 @@ const myFinalizedAlerts = useMemo(() => {
                         })()}
 
                         {visibleActiveAlerts.length === 0 && thinkingRequests.length === 0 && (
-                      <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
-                      >
-                      <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
-                      </motion.div>
-                      )}
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
+                          >
+                            <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
+                          </motion.div>
+                        )}
 
-                      <div className="pt-2">
-                      <SectionTag variant="red" text="Finalizadas" />
-                </div>
+                        <div className="pt-2">
+                          <SectionTag variant="red" text="Finalizadas" />
+                        </div>
 
                 {/* ── Unified sorted finalized list (alerts + rejected requests) ── */}
                 {(() => {
