@@ -1182,49 +1182,49 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
           <div className="h-[59px]" />
 
-          <HistorySellerView
-            noScrollBar={noScrollBar}
-            SectionTag={SectionTag}
-            thinkingRequests={thinkingRequests}
-            setThinkingRequests={setThinkingRequests}
-            visibleActiveAlerts={visibleActiveAlerts}
-            nowTs={nowTs}
-            formatRemaining={formatRemaining}
-            getCreatedTs={getCreatedTs}
-            getWaitUntilTs={getWaitUntilTs}
-            hiddenKeys={hiddenKeys}
-            hideKey={hideKey}
-            formatCardDate={formatCardDate}
-            formatPriceInt={formatPriceInt}
-            formatAddress={formatAddress}
-            getCarFill={getCarFill}
-            getCarFillThinking={getCarFillThinking}
-            CarIconProfile={CarIconProfile}
-            PlateProfile={PlateProfile}
-            badgePhotoWidth={badgePhotoWidth}
-            labelNoClick={labelNoClick}
-            cancelAlertMutation={cancelAlertMutation}
-            queryClient={queryClient}
-            ReservedByContent={ReservedByContent}
-            CardHeaderRow={CardHeaderRow}
-            MoneyChip={MoneyChip}
-            CountdownButton={CountdownButton}
-            finalItems={finalItems}
-            statusLabelFrom={statusLabelFrom}
-            MarcoContent={MarcoContent}
-            deleteAlertSafe={deleteAlertSafe}
-            user={user}
-            setCancelReservedAlert={setCancelReservedAlert}
-            setCancelReservedOpen={setCancelReservedOpen}
-            expiredAlertExtend={expiredAlertExtend}
-            setExpiredAlertExtend={setExpiredAlertExtend}
-            setExpiredAlertModalId={setExpiredAlertModalId}
-            ExpiredBlock={ExpiredBlock}
-            toMs={toMs}
-            avatarFor={avatarFor}
-            formatPlate={formatPlate}
-            reservationMoneyModeFromStatus={reservationMoneyModeFromStatus}
-          />
+          <HistorySellerView sellerContext={{
+            finalItems,
+            noScrollBar,
+            SectionTag,
+            thinkingRequests,
+            setThinkingRequests,
+            visibleActiveAlerts,
+            nowTs,
+            formatRemaining,
+            getCreatedTs,
+            getWaitUntilTs,
+            hiddenKeys,
+            hideKey,
+            formatCardDate,
+            formatPriceInt,
+            formatAddress,
+            getCarFill,
+            getCarFillThinking,
+            CarIconProfile,
+            PlateProfile,
+            badgePhotoWidth,
+            labelNoClick,
+            cancelAlertMutation,
+            queryClient,
+            ReservedByContent,
+            CardHeaderRow,
+            MoneyChip,
+            CountdownButton,
+            statusLabelFrom,
+            MarcoContent,
+            deleteAlertSafe,
+            user,
+            setCancelReservedAlert,
+            setCancelReservedOpen,
+            expiredAlertExtend,
+            setExpiredAlertExtend,
+            setExpiredAlertModalId,
+            ExpiredBlock,
+            toMs,
+            avatarFor,
+            formatPlate,
+            reservationMoneyModeFromStatus,
+          }} />
 
 
           <HistoryBuyerView
