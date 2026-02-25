@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
+import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -31,29 +31,7 @@ export default function BottomNav() {
   }, []);
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
-  const { data: myAlerts = [], isFetched, isFetching } = useQuery({
-    queryKey: ['myAlerts'],
-    enabled: true,
-    // Evita flashes con datos antiguos al navegar entre pantallas.
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchInterval: false,
-    placeholderData: (prev) => prev,
-    queryFn: async () => {
-      const uid = user?.id;
-      const email = user?.email;
-      if (!uid && !email) return [];
-
-      let mine = [];
-      if (uid) mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
-      else mine = await base44.entities.ParkingAlert.filter({ user_email: email });
-
-      return (mine || []).slice();
-    }
-  });
+  const { data: myAlerts = [], isFetched } = useMyAlerts();
 
   // activeCount = exact number of visible seller alerts in "Tus alertas → Activas".
   // Same selector as HistorySellerView so badge and list are always in sync.

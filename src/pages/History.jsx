@@ -33,6 +33,7 @@ import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/c
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
 import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
+import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 const getCarFillThinking = (color) => {
   const map = { blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',naranja:'#f97316',morado:'#7c3aed',rosa:'#ec4899',beige:'#d4b483' };
@@ -561,30 +562,7 @@ const getCreatedTs = (alert) => {
 const {
   data: myAlerts = [],
   isLoading: loadingAlerts
-} = useQuery({
-  queryKey: ['myAlerts'],
-  enabled: !!(user?.id || user?.email),
-  staleTime: 30 * 1000,
-  gcTime: 5 * 60 * 1000,
-  refetchOnMount: true,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-  refetchInterval: false,
-  placeholderData: (prev) => prev,
-  queryFn: async () => {
-    const uid = user?.id;
-    const email = user?.email;
-    if (!uid && !email) return [];
-
-    let mine = [];
-    if (uid) mine = await base44.entities.ParkingAlert.filter({ user_id: uid });
-    else mine = await base44.entities.ParkingAlert.filter({ user_email: email });
-
-    return (mine || [])
-      .slice()
-      .sort((a, b) => (toMs(b?.created_date) || 0) - (toMs(a?.created_date) || 0));
-  }
-});
+} = useMyAlerts();
 
 const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   queryKey: ['myTransactions', user?.email],

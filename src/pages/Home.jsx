@@ -18,6 +18,7 @@ import NotificationManager from '@/components/NotificationManager';
 
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
+import { useMyAlerts } from '@/hooks/useMyAlerts';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -176,24 +177,7 @@ export default function Home() {
   });
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
-  const { data: myAlerts = [] } = useQuery({
-    queryKey: ['myAlerts'],
-    enabled: true,
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    placeholderData: (prev) => prev,
-    queryFn: async () => {
-      const uid = user?.id;
-      const email = user?.email;
-      if (!uid && !email) return [];
-
-      if (uid) return (await base44.entities.ParkingAlert.filter({ user_id: uid })) || [];
-      return (await base44.entities.ParkingAlert.filter({ user_email: email })) || [];
-    }
-  });
+  const { data: myAlerts = [] } = useMyAlerts();
 
   const myActiveAlerts = useMemo(() => {
     const hiddenKeys = readHiddenKeys();
@@ -395,15 +379,22 @@ export default function Home() {
 },
 
   onSuccess: (newAlert) => {
-    queryClient.setQueryData(['alerts'], (old) => {
+    // Actualiza la key activa exacta ['alerts', mode, locationKey]
+    queryClient.setQueryData(['alerts', mode, locationKey], (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
+    // Invalida todas las variantes por seguridad (prefix match)
+    queryClient.invalidateQueries({ queryKey: ['alerts'] });
 
     queryClient.setQueryData(['myAlerts'], (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
+
+    if (import.meta.env.DEV) {
+      console.debug('[P1] createAlertMutation.onSuccess → updated [alerts,', mode, locationKey, ']');
+    }
 
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
@@ -475,24 +466,32 @@ export default function Home() {
       setConfirmDialog({ open: false, alert: null });
       navigate(createPageUrl('History'));
 
-      await queryClient.cancelQueries({ queryKey: ['alerts'] });
+      // Usa la key activa exacta para cancelar + snapshot + update optimista
+      const activeKey = ['alerts', mode, locationKey];
+      await queryClient.cancelQueries({ queryKey: activeKey });
 
-      const previousAlerts = queryClient.getQueryData(['alerts']);
+      const previousAlerts = queryClient.getQueryData(activeKey);
 
-      queryClient.setQueryData(['alerts'], (old) => {
+      queryClient.setQueryData(activeKey, (old) => {
         const list = Array.isArray(old) ? old : (old?.data || []);
         return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
       });
 
-      return { previousAlerts };
+      if (import.meta.env.DEV) {
+        console.debug('[P1] buyAlertMutation.onMutate → optimistic update on', activeKey);
+      }
+
+      return { previousAlerts, activeKey };
     },
     onError: (err, alert, context) => {
-      if (context?.previousAlerts) {
-        queryClient.setQueryData(['alerts'], context.previousAlerts);
+      // Restaura el snapshot usando la key guardada en el contexto
+      if (context?.previousAlerts !== undefined) {
+        queryClient.setQueryData(context.activeKey ?? ['alerts', mode, locationKey], context.previousAlerts);
       }
       setSelectedAlert(null);
     },
     onSettled: () => {
+      // invalidateQueries con prefix match invalida todas las variantes ['alerts', ...]
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
