@@ -2226,6 +2226,40 @@ const myFinalizedAlerts = useMemo(() => {
                     </Tabs>
                     </main>
 
+      {/* Dialog: cancelar alerta RESERVADA (penalización) */}
+      <Dialog open={cancelReservedOpen} onOpenChange={(open) => {
+        setCancelReservedOpen(open);
+        if (!open) setCancelReservedAlert(null);
+      }}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-red-400">⚠️ Atención</DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm leading-relaxed">
+              Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.
+              Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-3">
+            <Button variant="outline" onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }} className="flex-1 border-gray-700">
+              Volver
+            </Button>
+            <Button
+              onClick={() => {
+                if (!cancelReservedAlert?.id) return;
+                const cardKey = `active-${cancelReservedAlert.id}`;
+                hideKey(cardKey);
+                cancelAlertMutation.mutate(cancelReservedAlert.id);
+                setCancelReservedOpen(false);
+                setCancelReservedAlert(null);
+              }}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              Cancelar alerta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={cancelConfirmOpen} onOpenChange={(open) => {
         setCancelConfirmOpen(open);
         if (!open) setCancelConfirmAlert(null);
