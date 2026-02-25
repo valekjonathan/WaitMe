@@ -31,6 +31,11 @@ import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
+const getCarFillThinking = (color) => {
+  const map = { blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',naranja:'#f97316',morado:'#7c3aed',rosa:'#ec4899',beige:'#d4b483' };
+  return map[String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')] || '#9ca3af';
+};
+
 export default function Alertas() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
