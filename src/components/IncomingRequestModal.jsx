@@ -160,7 +160,7 @@ export default function IncomingRequestModal(){
             </div>
 
             <div className="px-3 pb-3">
-              <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500/30">
+              <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500">
 
                 <div className="flex items-center justify-between mb-2">
                   <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
@@ -169,7 +169,7 @@ export default function IncomingRequestModal(){
                   <div className="flex items-center gap-1">
                     <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                       <Navigation className="w-3 h-3 text-purple-400"/>
-                      <span className="text-white font-bold text-xs">0.3km</span>
+                      <span className="text-white font-bold text-xs">300m</span>
                     </div>
                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
                       <TrendingUp className="w-4 h-4 text-green-400"/>
@@ -216,12 +216,12 @@ export default function IncomingRequestModal(){
 
                 <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5">
                   <div className="flex items-start gap-1.5 text-xs">
-                    <MapPin className="w-4 h-4 mt-0.5 text-purple-400"/>
+                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-purple-400"/>
                     <span className="text-gray-200 line-clamp-1">{formatAddress(alert?.address)}</span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-[11px] overflow-hidden">
-                    <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400"/>
+                  <div className="flex items-start gap-1 text-[11px] overflow-hidden">
+                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400"/>
                     <span className="truncate whitespace-nowrap">
                       <span className="text-white">Te vas en {mins} min · </span>
                       <span className="text-purple-400">Debes esperar hasta las:</span>
@@ -247,9 +247,8 @@ export default function IncomingRequestModal(){
                     </Button>
                   )}
 
-                  <Button size="icon" className="h-8 px-3 flex-1 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1" disabled>
+                  <Button size="icon" className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1" style={{width:'46px',flexShrink:0}} disabled>
                     <Navigation className="w-4 h-4"/>
-                    <span className="text-xs font-semibold">Ir</span>
                   </Button>
 
                   <div className="flex-1">
