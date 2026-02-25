@@ -6,10 +6,10 @@
  * three read from the exact same cache entry with the exact same policy.
  *
  * Policy rationale:
- *   - staleTime: 15 s  → data is fresh for 15 s; no redundant network requests
- *                         while the user quickly navigates between pages.
- *   - refetchOnMount: false → navigating back to a page does NOT fire a request
- *                             if data is still fresh; prevents badge flashes.
+ *   - staleTime: 0  → data is always considered stale; explicit invalidation
+ *                      controls when to refetch (no silent staleness window).
+ *   - refetchOnMount: false → navigating back to a page does NOT auto-refetch;
+ *                             prevents badge flashes on navigation.
  *   - refetchOnWindowFocus: true → when the user returns to the browser tab the
  *                                  badge and lists stay up-to-date.
  *   - refetchOnReconnect: true → recover from lost connectivity.
@@ -24,7 +24,7 @@ import { useAuth } from '@/lib/AuthContext';
 export const MY_ALERTS_QUERY_KEY = ['myAlerts'];
 
 export const MY_ALERTS_OPTIONS = {
-  staleTime: 15_000,
+  staleTime: 0,
   gcTime: 5 * 60 * 1000,
   refetchInterval: false,
   refetchOnMount: false,

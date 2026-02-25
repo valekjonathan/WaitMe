@@ -169,11 +169,11 @@ export default function Home() {
       // 10 usuarios cerca (demo local)
       return getMockNearbyAlerts(userLocation);
     },
-    staleTime: 60 * 1000,
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    refetchOnMount: true
+    refetchOnMount: false
   });
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
