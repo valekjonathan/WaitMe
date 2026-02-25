@@ -1544,8 +1544,8 @@ const myFinalizedAlerts = useMemo(() => {
                           <SectionTag variant="red" text="Finalizadas" />
                         </div>
 
-                {/* ── Unified sorted finalized list (alerts + rejected requests) ── */}
-                {(() => {
+                        {/* ── Unified sorted finalized list (alerts + rejected requests) ── */}
+                        {(() => {
                   const rejectedItems = rejectedRequests
                     .filter(i => !hiddenKeys.has(`rejected-${i.id}`))
                     .map(i => ({ __type: 'rejected', __ts: i.savedAt || 0, item: i }));
