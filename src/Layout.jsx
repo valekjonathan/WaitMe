@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-
 import Home from './pages/Home';
 import Chats from './pages/Chats';
 import Chat from './pages/Chat';
@@ -18,7 +17,6 @@ export default function Layout() {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/Home" element={<Home />} />
-
           <Route path="/chats" element={<Chats />} />
           <Route path="/chat/:id" element={<Chat />} />
           <Route path="/notifications" element={<Notifications />} />
