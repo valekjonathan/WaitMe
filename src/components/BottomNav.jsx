@@ -165,7 +165,7 @@ export default function BottomNav() {
         >
           <div className="relative">
             {chatUnread > 0 && (
-              <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-[9px] font-extrabold text-white z-10">
+              <span className="absolute -top-1.5 -right-2.5 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[10px] font-black text-white z-10 border border-red-400 shadow-lg shadow-red-500/40">
                 {chatUnread > 9 ? '9+' : chatUnread}
               </span>
             )}
