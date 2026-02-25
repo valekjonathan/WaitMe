@@ -1,4 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+
+// Preload the logo image so it's always instant
+let _logoPreloaded = false;
+function preloadLogo() {
+  if (_logoPreloaded || typeof window === 'undefined') return;
+  _logoPreloaded = true;
+  try {
+    const img = new window.Image();
+    img.src = '/assets/d2ae993d3_WaitMe.png';
+  } catch {}
+}
+preloadLogo();
 
 export default function Logo({ size = 'md', className = '', iconOnly = false }) {
   const iconSizes = {
