@@ -261,14 +261,14 @@ export default function IncomingRequestModal(){
               </div>
             </div>
 
-            <div className="px-3 pb-4 flex gap-2">
-              <Button className="flex-1 bg-purple-600 hover:bg-purple-700 font-semibold" onClick={acceptRequest} disabled={loading}>
+            <div className="px-3 pb-4 grid grid-cols-3 gap-2">
+              <Button className="bg-purple-600 hover:bg-purple-700 font-semibold" onClick={acceptRequest} disabled={loading}>
                 Aceptar
               </Button>
-              <Button variant="outline" className="flex-1 border-gray-600 text-white font-semibold" onClick={handleMeLoPienso} disabled={loading}>
+              <Button variant="outline" className="border-gray-600 text-white font-semibold" onClick={handleMeLoPienso} disabled={loading}>
                 Me lo pienso
               </Button>
-              <Button className="flex-1 bg-red-600/80 hover:bg-red-700 font-semibold" onClick={handleRechazar} disabled={loading}>
+              <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={handleRechazar} disabled={loading}>
                 Rechazar
               </Button>
             </div>
