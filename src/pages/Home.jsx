@@ -384,8 +384,7 @@ export default function Home() {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
-    // Invalida todas las variantes por seguridad (prefix match)
-    queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
 
     queryClient.setQueryData(['myAlerts'], (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
@@ -416,7 +415,7 @@ export default function Home() {
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }
 });
@@ -491,8 +490,7 @@ export default function Home() {
       setSelectedAlert(null);
     },
     onSettled: () => {
-      // invalidateQueries con prefix match invalida todas las variantes ['alerts', ...]
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
