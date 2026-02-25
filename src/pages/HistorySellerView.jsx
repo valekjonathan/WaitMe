@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -18,7 +19,7 @@ import { getBestFinalizedTs } from '@/lib/alertSelectors';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export default function HistorySellerView({ sellerContext = {} }) {
+function HistorySellerView({ sellerContext = {} }) {
   const {
     finalItems = [],
     noScrollBar,
@@ -779,3 +780,5 @@ export default function HistorySellerView({ sellerContext = {} }) {
                   </TabsContent>
   );
 }
+
+export default React.memo(HistorySellerView);

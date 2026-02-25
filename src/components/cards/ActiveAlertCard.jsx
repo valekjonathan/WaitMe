@@ -5,7 +5,7 @@ import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 
-export default function ActiveAlertCard({ userLocation, onRefresh }) {
+function ActiveAlertCard({ userLocation, onRefresh }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -81,3 +81,5 @@ export default function ActiveAlertCard({ userLocation, onRefresh }) {
     </div>
   );
 }
+
+export default React.memo(ActiveAlertCard);

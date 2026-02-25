@@ -511,6 +511,28 @@ export default function Home() {
     navigate(createPageUrl('History'));
   };
 
+  const handleBack = useCallback(() => {
+    resetToLogo({ invalidate: false });
+  }, [resetToLogo]);
+
+  const handleMapMove = useCallback((center) => {
+    setSelectedPosition({ lat: center[0], lng: center[1] });
+  }, []);
+
+  const handleMapMoveEnd = useCallback((center) => {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=19&addressdetails=1`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.address) {
+          const a = data.address;
+          const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
+          const number = a.house_number || '';
+          setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-[100dvh] w-full text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
       <NotificationManager user={user} />
@@ -521,9 +543,7 @@ export default function Home() {
         title="WaitMe!"
         unreadCount={unreadCount}
         showBackButton={!!mode}
-        onBack={() => {
-          resetToLogo({ invalidate: false });
-        }}
+        onBack={handleBack}
       />
 
       <main className="fixed inset-0 top-0 bottom-0">
@@ -702,23 +722,8 @@ export default function Home() {
                     userLocation={userLocation}
                     zoomControl={true}
                     className="h-full"
-                    onMapMove={(center) => {
-                      setSelectedPosition({ lat: center[0], lng: center[1] });
-                    }}
-                    onMapMoveEnd={(center) => {
-                      // zoom=19 → máxima precisión Nominatim (nivel número de portal)
-                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=19&addressdetails=1`)
-                        .then((res) => res.json())
-                        .then((data) => {
-                          if (data?.address) {
-                            const a = data.address;
-                            const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
-                            const number = a.house_number || '';
-                            setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
-                          }
-                        })
-                        .catch(() => {});
-                    }}
+                    onMapMove={handleMapMove}
+                    onMapMoveEnd={handleMapMoveEnd}
                   />
                 </div>
               </div>

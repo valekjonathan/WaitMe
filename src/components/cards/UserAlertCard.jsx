@@ -8,7 +8,7 @@ import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-export default function UserAlertCard({
+function UserAlertCard({
   alert,
   onBuyAlert,
   onChat,
@@ -412,3 +412,4 @@ const CarIconProfile = ({ color, size = 'w-8 h-5' }) => (
     <rect x="40" y="18" width="6" height="2" fill="white" />
   </svg>
 );
+export default React.memo(UserAlertCard);

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, MessageCircle, Phone, PhoneOff } from 'lucide-react';
 
-export default function MarcoCard({
+function MarcoCard({
   photoUrl,
   name,
   carLabel,
@@ -231,3 +231,4 @@ export default function MarcoCard({
     </>
   );
 }
+export default React.memo(MarcoCard);
