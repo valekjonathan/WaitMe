@@ -98,6 +98,13 @@ export default function IncomingRequestModal(){
     };
 
     setWaitMeRequestStatus(request?.id,'accepted');
+    // Remove from thinking list if was there
+    try{
+      const thinking=JSON.parse(localStorage.getItem('waitme:thinking_requests')||'[]');
+      const filtered=thinking.filter(r=>r.id!==request.id);
+      localStorage.setItem('waitme:thinking_requests',JSON.stringify(filtered));
+      window.dispatchEvent(new Event('waitme:thinkingUpdated'));
+    }catch{}
     try{window.dispatchEvent(new Event('waitme:badgeRefresh'));}catch{}
     handleClose();
     navigate(createPageUrl('History'));
@@ -109,8 +116,37 @@ export default function IncomingRequestModal(){
     }catch{setLoading(false);}
   };
 
-  const handleMeLoPienso=()=>{if(request?.id)setWaitMeRequestStatus(request.id,'thinking');handleClose();};
-  const handleRechazar=()=>{if(request?.id)setWaitMeRequestStatus(request.id,'rejected');handleClose();};
+  const handleMeLoPienso=()=>{
+    if(request?.id){
+      setWaitMeRequestStatus(request.id,'thinking');
+      // Save to localStorage so Alertas page can show it
+      try{
+        const thinking=JSON.parse(localStorage.getItem('waitme:thinking_requests')||'[]');
+        const exists=thinking.find(r=>r.id===request.id);
+        if(!exists){
+          thinking.push({id:request.id,request,alert,savedAt:Date.now()});
+          localStorage.setItem('waitme:thinking_requests',JSON.stringify(thinking));
+          window.dispatchEvent(new Event('waitme:thinkingUpdated'));
+        }
+      }catch{}
+    }
+    handleClose();
+    navigate(createPageUrl('History'));
+  };
+
+  const handleRechazar=()=>{
+    if(request?.id){
+      setWaitMeRequestStatus(request.id,'rejected');
+      // Save to localStorage so Alertas page shows it as Finalizada
+      try{
+        const rejected=JSON.parse(localStorage.getItem('waitme:rejected_requests')||'[]');
+        rejected.push({id:request.id,request,alert,savedAt:Date.now()});
+        localStorage.setItem('waitme:rejected_requests',JSON.stringify(rejected));
+        window.dispatchEvent(new Event('waitme:rejectedUpdated'));
+      }catch{}
+    }
+    handleClose();
+  };
 
   if(!request)return null;
 
