@@ -1425,107 +1425,97 @@ const myFinalizedAlerts = useMemo(() => {
                       const index = entry.index;
                       const createdTs = getCreatedTs(alert);
                       const waitUntilTs = getWaitUntilTs(alert);
+                      const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
+                      const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
+                        timeZone: 'Europe/Madrid', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: false 
+                      }) : '--:--';
+                      const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
+                      const cardKey = `active-${alert.id}`;
+                      if (hiddenKeys.has(cardKey)) return null;
 
-
-
-                         const remainingMs = waitUntilTs && createdTs ? Math.max(0, waitUntilTs - nowTs) : 0;
-                         const waitUntilLabel = waitUntilTs ? new Date(waitUntilTs).toLocaleString('es-ES', { 
-                           timeZone: 'Europe/Madrid', 
-                           hour: '2-digit', 
-                           minute: '2-digit', 
-                           hour12: false 
-                         }) : '--:--';
-                         const countdownText = remainingMs > 0 ? formatRemaining(remainingMs) : formatRemaining(0);
-
-
-                        const cardKey = `active-${alert.id}`;
-                        if (hiddenKeys.has(cardKey)) return null;
-
-                        const dateText = formatCardDate(createdTs);
-
-                        return (
-                          <motion.div
-                            key={cardKey}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className={alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name)
-                              ? "" /* sin wrapper cuando está reservada — la tarjeta ReservedByContent ya tiene su propio bg */
-                              : "bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"}
-                          >
-                            {alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name) ? (
-                             <>
-                                {/* Solo la tarjeta interna, sin header exterior */}
-                                <ReservedByContent
-                                 alert={alert}
-                                 waitUntilLabel={waitUntilLabel}
-                                 countdownText={countdownText}
-                                 onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
-                                 onCancelClick={() => { setCancelReservedAlert(alert); setCancelReservedOpen(true); }}
-                                />
-                              </>
-                            ) : (
-                              <>
-                                <CardHeaderRow
-                                  left={
-                                <div
-                                className={`bg-green-500/20 text-green-300 border border-green-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}
-                                >
-                                Activa
-                                </div>
+                      return (
+                        <motion.div
+                          key={cardKey}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name)
+                            ? ""
+                            : "bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 relative"}
+                        >
+                          {alert.status === 'reserved' && (alert.reserved_by_name || alert.user_name) ? (
+                            <>
+                              <ReservedByContent
+                                alert={alert}
+                                waitUntilLabel={waitUntilLabel}
+                                countdownText={countdownText}
+                                onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
+                                onCancelClick={() => { setCancelReservedAlert(alert); setCancelReservedOpen(true); }}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <CardHeaderRow
+                                left={
+                                  <div className={`bg-green-500/20 text-green-300 border border-green-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center rounded-md ${badgePhotoWidth} ${labelNoClick}`}>
+                                    Activa
+                                  </div>
                                 }
-                                  dateText={formatCardDate(createdTs)}
-                                  dateClassName="text-white"
-                                  right={
-                                    <div className="flex items-center gap-1">
-                                      <MoneyChip
-                                        mode="green"
-                                        showUpIcon
-                                        amountText={formatPriceInt(alert.price)}
-                                      />
-                                      <button
-                                        onClick={() => {
-  hideKey(cardKey);              // 1. Quita la tarjeta al instante (UI)
-  cancelAlertMutation.mutate(alert.id, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['myAlerts']); // 2. Refresca datos sin recargar
-    }
-  });
-}}
-                                        disabled={cancelAlertMutation.isPending}
-                                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                      >
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  }
-                                />
+                                dateText={formatCardDate(createdTs)}
+                                dateClassName="text-white"
+                                right={
+                                  <div className="flex items-center gap-1">
+                                    <MoneyChip
+                                      mode="green"
+                                      showUpIcon
+                                      amountText={formatPriceInt(alert.price)}
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        hideKey(cardKey);
+                                        cancelAlertMutation.mutate(alert.id, {
+                                          onSuccess: () => {
+                                            queryClient.invalidateQueries(['myAlerts']);
+                                          }
+                                        });
+                                      }}
+                                      disabled={cancelAlertMutation.isPending}
+                                      className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                }
+                              />
 
-                                <div className="border-t border-gray-700/80 mb-2" />
+                              <div className="border-t border-gray-700/80 mb-2" />
 
-                                <div className="flex items-center gap-1.5 text-xs mb-2 min-h-[20px]">
-                                  <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400" />
-                                  <span className="text-white leading-none">
-                                    {formatAddress(alert.address) || 'Ubicación marcada'}
-                                  </span>
-                                </div>
+                              <div className="flex items-center gap-1.5 text-xs mb-2 min-h-[20px]">
+                                <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400" />
+                                <span className="text-white leading-none">
+                                  {formatAddress(alert.address) || 'Ubicación marcada'}
+                                </span>
+                              </div>
 
-                                <div className="flex items-center gap-1.5 text-xs overflow-hidden min-h-[20px]">
-                                  <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
-                                  <span className="leading-none">
-                                    <span className="text-white">Te vas en {alert.available_in_minutes} min · </span>
-                                    <span className="text-purple-400">Debes esperar hasta las:</span>
-                                    {' '}<span className="text-white font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
-                                  </span>
-                                </div>
+                              <div className="flex items-center gap-1.5 text-xs overflow-hidden min-h-[20px]">
+                                <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
+                                <span className="leading-none">
+                                  <span className="text-white">Te vas en {alert.available_in_minutes} min · </span>
+                                  <span className="text-purple-400">Debes esperar hasta las:</span>
+                                  {' '}<span className="text-white font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
+                                </span>
+                              </div>
 
-                                <div className="mt-2">
-                                  <CountdownButton text={countdownText} dimmed={false} />
-                                </div>
-                              </>
-                            )}
-                          </motion.div>
-                        );
+                              <div className="mt-2">
+                                <CountdownButton text={countdownText} dimmed={false} />
+                              </div>
+                            </>
+                          )}
+                        </motion.div>
+                      );
                         }
                         });
                         })()}
