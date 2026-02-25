@@ -204,22 +204,26 @@ export default function Home() {
     if (!navigator.geolocation) return;
 
     // Primero pedimos baja precisión (rápido) para no dejar el mapa en blanco
+    const reverseGeocode = (lat, lng) => {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=19&addressdetails=1`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.address) {
+            const a = data.address;
+            const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
+            const number = a.house_number || '';
+            setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
+          }
+        })
+        .catch(() => {});
+    };
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.address) {
-              const road = data.address.road || data.address.street || data.address.pedestrian || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          })
-          .catch(() => {});
+        reverseGeocode(latitude, longitude);
       },
       () => {
         setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
@@ -229,23 +233,13 @@ export default function Home() {
       { enableHighAccuracy: false, timeout: 4000, maximumAge: 30 * 1000 }
     );
 
-    // Luego pedimos alta precisión (GPS real) para actualizar con el punto exacto
+    // Alta precisión GPS real
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.address) {
-              const road = data.address.road || data.address.street || data.address.pedestrian || '';
-              const number = data.address.house_number || '';
-              setAddress(number ? `${road}, ${number}` : road);
-            }
-          })
-          .catch(() => {});
+        reverseGeocode(latitude, longitude);
       },
       () => {},
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
