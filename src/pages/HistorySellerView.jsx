@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function HistorySellerView({
+  finalItems = [],
   noScrollBar,
   SectionTag,
   thinkingRequests,
@@ -44,7 +45,6 @@ export default function HistorySellerView({
   CardHeaderRow,
   MoneyChip,
   CountdownButton,
-  finalItems,
   statusLabelFrom,
   MarcoContent,
   deleteAlertSafe,
