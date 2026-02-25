@@ -303,6 +303,36 @@ export default function Chat() {
       if (!clean && attachments.length === 0) return;
 
       if (isDemo) {
+        // Si venimos de un chat directo con demoFirstMsg (WaitMe aceptado desde Chats)
+        if (demoFirstMsgParam) {
+          const myMsg = {
+            id: `local_${Date.now()}`,
+            mine: true,
+            sender_name: 'Tú',
+            sender_photo: null,
+            message: clean,
+            created_date: new Date().toISOString(),
+            kind: 'text'
+          };
+          setLocalDemoMessages(prev => [...prev, myMsg]);
+          // Auto-respuesta simple del otro usuario
+          const otherName = otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario';
+          const otherPhoto = otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null;
+          setTimeout(() => {
+            const responses = ['Vale, ya voy de camino 🚗', '¿A qué distancia estás?', 'Perfecto, te espero', 'Ok!', 'Bien, salgo en un momento 👍'];
+            const reply = responses[Math.floor(Math.random() * responses.length)];
+            setLocalDemoMessages(prev => [...prev, {
+              id: `local_reply_${Date.now()}`,
+              mine: false,
+              sender_name: otherName,
+              sender_photo: otherPhoto,
+              message: reply,
+              created_date: new Date().toISOString(),
+              kind: 'text'
+            }]);
+          }, 1500 + Math.random() * 2000);
+          return;
+        }
         if (demoConversationId) {
           sendDemoMessage(demoConversationId, clean, attachments);
           autoRespond(demoConversationId, clean);
