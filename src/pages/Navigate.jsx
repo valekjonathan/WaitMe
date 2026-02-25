@@ -627,7 +627,7 @@ export default function Navigate() {
                   </button>
 
                   <button
-                    onClick={() => phoneEnabled && (window.location.href = `tel:${displayAlert.phone}`)}
+                    onClick={() => phoneEnabled && cardPhone && (window.location.href = `tel:${cardPhone}`)}
                     disabled={!phoneEnabled}
                     className={`h-8 rounded-lg border-2 flex items-center justify-center ${phoneEnabled ? 'bg-white hover:bg-gray-200 text-black border-gray-300' : 'bg-white/10 text-white border-white/30 opacity-70'}`}
                     style={{width:'46px',flexShrink:0}}>
