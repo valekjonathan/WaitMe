@@ -312,53 +312,40 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
       {useCenterPin && (
-        /* Pin estilo Uber: palito vertical + círculo con punto interior, anclado exactamente al centro del mapa */
+        /* Pin idéntico al de la pantalla home: palito morado + bola parpadeante */
         <div
           className="absolute z-[2000] pointer-events-none"
           style={{
             left: '50%',
             top: '50%',
+            // anchor: base del palito apunta exactamente al centro del mapa
             transform: 'translate(-50%, -100%)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
-          {/* Cabeza del pin */}
+          <style>{`
+            @keyframes pin-pulse {
+              0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0.7); }
+              50% { opacity: 0.85; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(168,85,247,0); }
+            }
+          `}</style>
+          {/* Bola parpadeante */}
           <div style={{
-            width: 36,
-            height: 36,
+            width: 18,
+            height: 18,
             borderRadius: '50%',
-            background: '#7c3aed',
-            border: '3px solid white',
-            boxShadow: '0 4px 16px rgba(124,58,237,0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <div style={{
-              width: 10,
-              height: 10,
-              borderRadius: '50%',
-              background: 'white',
-            }} />
-          </div>
-          {/* Palito */}
-          <div style={{
-            width: 3,
-            height: 28,
-            background: 'linear-gradient(to bottom, #7c3aed, rgba(124,58,237,0.2))',
-            borderRadius: 2,
+            background: '#a855f7',
+            boxShadow: '0 0 15px rgba(168,85,247,0.8)',
+            animation: 'pin-pulse 1.5s ease-in-out infinite',
             flexShrink: 0,
           }} />
-          {/* Sombra puntual en el suelo */}
+          {/* Palito */}
           <div style={{
-            width: 10,
-            height: 4,
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.35)',
-            marginTop: 0,
+            width: 2,
+            height: 35,
+            background: '#a855f7',
             flexShrink: 0,
           }} />
         </div>
