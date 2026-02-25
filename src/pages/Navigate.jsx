@@ -436,81 +436,62 @@ export default function Navigate() {
   const defaultLon = -5.8490;
   const mapCenter = displayAlert ? [displayAlert.latitude, displayAlert.longitude] : [defaultLat, defaultLon];
 
+  const sellerName = displayAlert ? (displayAlert.user_name || 'Vendedor').split(' ')[0] : '';
+  const sellerPhoto = displayAlert?.user_photo || null;
+  const phoneEnabled = Boolean(displayAlert?.phone && displayAlert?.allow_phone_calls !== false);
+
+  const distLabel = distanceMeters != null
+    ? distanceMeters < 1000
+      ? `${Math.round(distanceMeters)} m`
+      : `${(distanceMeters / 1000).toFixed(1)} km`
+    : '--';
+
   return (
-    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
-      {/* Modal de éxito de pago */}
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col" style={{background:'#1a1a2e'}}>
+
+      {/* ── Payment success overlay ── */}
       {showPaymentSuccess && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 mx-4 text-center shadow-2xl border-2 border-green-400"
-          >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm">
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 mx-6 text-center shadow-2xl">
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-5xl">✅</span>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">El pago se ha liberado</h2>
-            <p className="text-green-100 mb-4">
-              Estás a 5 metros
-            </p>
-            <div className="bg-white/20 rounded-lg p-3">
-              <p className="text-white font-bold text-lg">{alert.price.toFixed(2)}€</p>
+            <h2 className="text-2xl font-bold text-white mb-2">¡Pago liberado!</h2>
+            <p className="text-green-100 mb-4">Estás a menos de 5 metros</p>
+            <div className="bg-white/20 rounded-xl p-3">
+              <p className="text-white font-bold text-2xl">{alert?.price != null ? Number(alert.price).toFixed(2) : '0.00'}€</p>
               <p className="text-green-100 text-sm">Transacción completada</p>
             </div>
           </motion.div>
         </motion.div>
       )}
 
-      {/* Pantalla de advertencia: abandonando el lugar (>5 m) */}
+      {/* ── Abandon warning ── */}
       {showAbandonWarning && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-amber-500/20 border-2 border-amber-500 rounded-2xl p-6 max-w-sm text-center"
-          >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4">
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+            className="bg-amber-500/20 border-2 border-amber-500 rounded-2xl p-6 max-w-sm text-center">
             <p className="text-amber-400 font-bold text-lg">Estás abandonando el lugar...</p>
-            <p className="text-gray-300 text-sm mt-2">Vuelve a menos de 5 m del parking para completar la entrega.</p>
-            <Button
-              className="mt-4 bg-amber-600 hover:bg-amber-700 text-white"
-              onClick={() => setShowAbandonWarning(false)}
-            >
+            <p className="text-gray-300 text-sm mt-2">Vuelve a menos de 5 m para completar la entrega.</p>
+            <Button className="mt-4 bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setShowAbandonWarning(false)}>
               Entendido
             </Button>
           </motion.div>
         </motion.div>
       )}
 
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-700">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link to={createPageUrl('History')}>
-            <Button variant="ghost" size="icon" className="text-white">
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-          </Link>
-          <h1 className="text-lg font-semibold">Navegación a parking</h1>
-          <div className="w-10"></div>
-        </div>
-      </header>
-
-      {/* Mapa a pantalla completa - altura explícita para que Leaflet renderice */}
-      <div className="absolute left-0 right-0 z-0" style={{ top: '52px', bottom: '0', height: 'calc(100vh - 52px)' }}>
+      {/* ── MAPA (full screen, detrás de todo) ── */}
+      <div className="fixed inset-0 z-0">
         <ParkingMap
           alerts={displayAlert && isSeller ? [displayAlert] : []}
           userLocation={userLocation}
           selectedAlert={displayAlert}
           showRoute={!!isTracking && !!displayAlert}
-          sellerLocation={sellerLocation && sellerLocation.length >= 2 ? sellerLocation : (displayAlert?.latitude != null && displayAlert?.longitude != null ? [displayAlert.latitude, displayAlert.longitude] : [43.362, -5.849])}
-          zoomControl={true}
+          sellerLocation={sellerLocation?.length >= 2 ? sellerLocation : [43.362, -5.849]}
+          zoomControl={false}
           className="h-full w-full"
           userAsCar={!isSeller && !!displayAlert}
           userCarColor={displayAlert?.car_color || 'gris'}
@@ -520,167 +501,125 @@ export default function Navigate() {
         />
       </div>
 
-      {/* Panel flotante: distancia restante y ETA (solo comprador, con navegación activa) */}
-      {!isSeller && isTracking && displayAlert && (
-        <div className="fixed left-4 right-4 z-20 mt-2" style={{ top: '60px' }}>
-          <div className="bg-gray-900/95 backdrop-blur-md rounded-xl border-2 border-purple-500/60 shadow-xl px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-600/30 flex items-center justify-center">
-                <Navigation className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 uppercase tracking-wide">Distancia restante</p>
-                <p className="text-white font-bold text-lg">
-                  {distanceMeters != null
-                    ? distanceMeters < 1000
-                      ? `${Math.round(distanceMeters)} m`
-                      : `${(distanceMeters / 1000).toFixed(1)} km`
-                    : '--'}
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">ETA</p>
-              <p className="text-white font-bold text-lg">
-                {etaMinutes != null ? `~${etaMinutes} min` : '--'}
+      {/* ── TOP BAR (Uber-style) ── */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 pt-safe" style={{paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)'}}>
+        <Link to={createPageUrl('History')}>
+          <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg">
+            <ArrowLeft className="w-5 h-5 text-gray-900" />
+          </button>
+        </Link>
+
+        {/* ETA pill */}
+        {isTracking && (
+          <div className="flex-1 bg-gray-900/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-3 shadow-xl">
+            <div>
+              <p className="text-white font-black text-xl leading-none">
+                {etaMinutes != null ? `${etaMinutes} min` : distLabel}
               </p>
+              <p className="text-gray-400 text-xs mt-0.5">{distLabel} · {displayAlert?.address?.split(',')[0] || 'Destino'}</p>
             </div>
+            <div className="ml-auto w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
           </div>
-        </div>
-      )}
-
-      {/* Tarjeta del usuario que reservó / destino - justo encima del menú inferior */}
-      {displayAlert && (
-        <div className="fixed left-0 right-0 z-30 px-4" style={{ bottom: '5.5rem' }}>
-          <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl border-2 border-purple-500 shadow-xl overflow-hidden">
-            <div className="flex items-center gap-3 p-3">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-700">
-                {displayAlert.user_photo ? (
-                  <img src={displayAlert.user_photo} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-lg font-bold text-purple-400">
-                    {(displayAlert.user_name || 'U').charAt(0)}
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white truncate">{isSeller ? 'Tu parking' : displayAlert.user_name}</p>
-                <p className="text-sm text-gray-400 truncate">{displayAlert.car_brand} {displayAlert.car_model} · {displayAlert.car_plate}</p>
-                <p className="text-xs text-gray-500 truncate mt-0.5">{displayAlert.address}</p>
-              </div>
-              {!isSeller && (distance != null || distanceMeters != null) && (
-                <div className="flex-shrink-0 text-right">
-                  {distance && (
-                    <div className="bg-purple-600/20 border border-purple-500/30 rounded-lg px-2 py-1">
-                      <span className="text-purple-300 font-bold text-sm">{distance.value}{distance.unit}</span>
-                    </div>
-                  )}
-                  {distanceMeters !== null && distanceMeters < 1000 && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      Llegada ~{Math.max(1, Math.round(distanceMeters / 80))} min
-                    </p>
-                  )}
-                  {distanceMeters !== null && distanceMeters <= 50 && (
-                    <p className={`text-xs font-bold ${distanceMeters <= 10 ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {distanceMeters <= 10 ? '¡Llegaste!' : '¡Muy cerca!'}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            {!isSeller && !paymentReleased && (
-              <div className="px-3 pb-2">
-                <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-2">
-                  <p className="text-xs text-yellow-400 text-center">
-                    💰 Pago retenido: {displayAlert.price != null ? Number(displayAlert.price).toFixed(2) : '0.00'}€ · Se libera a &lt;5 m
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Panel inferior: botones */}
-      <div className="fixed bottom-20 left-0 right-0 bg-black/95 backdrop-blur-sm border-t-2 border-gray-700 p-4 space-y-3 z-40">
-
-        {/* Botones: vendedor ve "He llegado"; comprador ve Iniciar/Detener navegación */}
-        <div className="flex gap-2">
-          {isSeller ? (
-            <Button
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold h-14 text-lg rounded-xl"
-              onClick={() => (window.location.href = createPageUrl('History'))}
-            >
-              He llegado
-            </Button>
-          ) : !isTracking ? (
-            <Button
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-base"
-              onClick={startTracking}
-            >
-              <Navigation className="w-5 h-5 mr-2" />
-              Iniciar navegación
-            </Button>
-          ) : (
-            <Button
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold h-12 text-base"
-              onClick={stopTracking}
-            >
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Detener navegación
-            </Button>
-          )}
-        </div>
-
-        {/* Botones de contacto */}
-        <div className="flex gap-2">
-          <Button
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
-            onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
-            disabled={!displayAlert}
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Chat
-          </Button>
-          <Button
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white h-10"
-            onClick={() => displayAlert?.phone && (window.location.href = `tel:${displayAlert.phone}`)}
-            disabled={!displayAlert?.allow_phone_calls || !displayAlert?.phone}
-          >
-            <Phone className="w-5 h-5 mr-2" />
-            Llamar
-          </Button>
-        </div>
-
-        {!isSeller && isTracking && !paymentReleased && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-2 text-center"
-          >
-            <p className="text-xs text-blue-400">
-              📍 Navegando en tiempo real hacia el parking
-            </p>
-            {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 5 && (
-              <p className="text-xs text-yellow-400 mt-1 font-bold">
-                ¡Muy cerca! {Math.round(distanceMeters)}m hasta liberar el pago
-              </p>
-            )}
-          </motion.div>
-        )}
-
-        {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
-          <Button
-            variant="outline"
-            className="w-full border-dashed border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
-            onClick={() => setForceRelease(true)}
-          >
-            Simular llegada
-          </Button>
         )}
       </div>
 
-      <BottomNav />
+      {/* ── BOTTOM PANEL (Uber-style card) ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-50" style={{paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
+        <div className="bg-gray-950 rounded-t-3xl shadow-2xl px-4 pt-3 pb-4 border-t border-gray-800">
+
+          {/* Drag handle */}
+          <div className="w-10 h-1 bg-gray-700 rounded-full mx-auto mb-3" />
+
+          {/* Person info row */}
+          {displayAlert && (
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-purple-500/60 flex-shrink-0 bg-gray-800">
+                {sellerPhoto
+                  ? <img src={sellerPhoto} alt={sellerName} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-purple-400">{sellerName.charAt(0)}</div>
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-base leading-tight">{sellerName}</p>
+                <p className="text-gray-400 text-sm truncate">{displayAlert.car_brand} {displayAlert.car_model}</p>
+                <p className="text-gray-500 text-xs truncate mt-0.5">{displayAlert.address?.split(',').slice(0,2).join(',')}</p>
+              </div>
+              <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                <div className="bg-purple-600/20 border border-purple-500/40 rounded-lg px-3 py-1">
+                  <span className="text-purple-300 font-bold text-sm">{distLabel}</span>
+                </div>
+                {!isSeller && !paymentReleased && (
+                  <span className="text-yellow-400 text-xs font-semibold">{displayAlert.price != null ? Number(displayAlert.price).toFixed(2) : '0.00'}€ retenido</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons row */}
+          <div className="flex gap-2 mb-3">
+            {/* Chat */}
+            <button
+              onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
+              className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-500 flex items-center justify-center gap-2 transition-colors"
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+              <span className="text-white font-semibold text-sm">Chat</span>
+            </button>
+
+            {/* Llamar */}
+            <button
+              onClick={() => phoneEnabled && (window.location.href = `tel:${displayAlert.phone}`)}
+              disabled={!phoneEnabled}
+              className={`flex-1 h-12 rounded-xl flex items-center justify-center gap-2 transition-colors ${phoneEnabled ? 'bg-white hover:bg-gray-100' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
+            >
+              <Phone className={`w-5 h-5 ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`} />
+              <span className={`font-semibold text-sm ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`}>Llamar</span>
+            </button>
+          </div>
+
+          {/* Main CTA */}
+          {isSeller ? (
+            <button
+              onClick={() => (window.location.href = createPageUrl('History'))}
+              className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base transition-colors"
+            >
+              He desaparcado ✓
+            </button>
+          ) : !isTracking ? (
+            <button
+              onClick={startTracking}
+              className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors"
+            >
+              <Navigation className="w-5 h-5" />
+              Iniciar navegación
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {distanceMeters !== null && distanceMeters <= 50 && distanceMeters > 5 && (
+                <p className="text-center text-yellow-400 text-sm font-bold">¡Muy cerca! {Math.round(distanceMeters)} m</p>
+              )}
+              <button
+                onClick={stopTracking}
+                className="w-full h-12 rounded-2xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-sm flex items-center justify-center gap-2 border border-gray-700 transition-colors"
+              >
+                <AlertCircle className="w-4 h-4" />
+                Detener navegación
+              </button>
+            </div>
+          )}
+
+          {/* Simular llegada (demo only) */}
+          {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
+            <button
+              onClick={() => setForceRelease(true)}
+              className="w-full mt-2 h-10 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-sm hover:bg-amber-500/10 transition-colors"
+            >
+              Simular llegada (demo)
+            </button>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
