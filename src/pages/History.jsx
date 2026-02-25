@@ -765,7 +765,7 @@ const myFinalizedAlerts = useMemo(() => {
       created_date: getBestFinalizedTs(t),
       data: t
     }))
-  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),
+  ].sort((a, b) => getBestFinalizedTs(b) - getBestFinalizedTs(a)),
   [myFinalizedAlerts, myFinalizedAsSellerTx]);
 
 

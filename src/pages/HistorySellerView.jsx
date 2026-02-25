@@ -685,6 +685,11 @@ export default function HistorySellerView({
                               <MapPin className="w-4 h-4 flex-shrink-0 text-gray-500" />
                               <span className="text-gray-300 leading-none line-clamp-1">{formatAddress(a.address) || 'Ubicación marcada'}</span>
                             </div>
+                            {dateText !== '--' && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {dateText}
+                              </div>
+                            )}
 
                             <div className="flex items-center gap-1.5 text-xs overflow-hidden mb-2 min-h-[20px]" style={{ marginTop: '-1px' }}>
                               <Clock className="w-4 h-4 flex-shrink-0 text-gray-500" />
