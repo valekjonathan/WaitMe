@@ -138,16 +138,6 @@ export default function BottomNav() {
         {divider}
 
         <NavLink
-          to="/notifications"
-          className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
-        >
-          <Bell className="w-10 h-10 drop-shadow-[0_0_1px_rgba(255,255,255,0.85)]" />
-          <span className={labelClassLong}>Notificaciones</span>
-        </NavLink>
-
-        {divider}
-
-        <NavLink
           to="/chats"
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >

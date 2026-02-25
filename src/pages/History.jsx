@@ -31,7 +31,7 @@ import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 
-export default function History() {
+export default function Alertas() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
@@ -1302,11 +1302,12 @@ const myFinalizedAlerts = useMemo(() => {
                                   </span>
                                 </div>
 
-                                <div className="flex items-start gap-1.5 text-xs">
-                                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-white leading-5">
-                                    Te vas en {alert.available_in_minutes} min · Debes esperar hasta las{' '}
-                                    <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
+                                <div className="flex items-center gap-1 text-xs overflow-hidden">
+                                  <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
+                                  <span className="truncate">
+                                    <span className="text-white">Te vas en {alert.available_in_minutes} min · </span>
+                                    <span className="text-purple-400">Debes esperar hasta las:</span>
+                                    {' '}<span className="text-white font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
                                   </span>
                                 </div>
 
@@ -1398,30 +1399,21 @@ const myFinalizedAlerts = useMemo(() => {
 
                             <div className="border-t border-gray-700/80 mb-2" />
 
-                            <MarcoContent
-                              photoUrl={a.user_photo}
-                              name={a.user_name}
-                              carLabel={carLabel || 'Sin datos'}
-                              plate={a.car_plate}
-                              carColor={a.car_color}
-                              address={a.address}
-                              timeLine={
-                                <span className="text-white leading-5">
-                                  Se iba en {a.available_in_minutes ?? '--'} min · Hasta las{' '}
-                                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
-                                </span>
-                              }
-                              onChat={() =>
-                                (window.location.href = createPageUrl(
-                                  `Chat?alertId=${a.id}&userId=${a.user_email || a.user_id}`
-                                ))
-                              }
-                              statusText={statusLabelFrom(a.status)}
-                              phoneEnabled={phoneEnabled}
-                              onCall={() => phoneEnabled && (window.location.href = `tel:${a.phone}`)}
-                              statusEnabled={String(a.status || '').toLowerCase() === 'completed'}
-                              dimIcons={true}
-                            />
+                            {/* Tarjeta finalizada: misma estructura que activa */}
+                            <div className="flex items-start gap-1.5 text-xs mb-2">
+                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" />
+                              <span className="text-gray-300 leading-5 line-clamp-1">{formatAddress(a.address) || 'Ubicación marcada'}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1 text-xs overflow-hidden mb-2">
+                              <Clock className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
+                              <span className="truncate text-gray-400">
+                                Se iba en {a.available_in_minutes ?? '--'} min · Hasta las{' '}
+                                <span className="font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
+                              </span>
+                            </div>
+
+                            <CountdownButton text={statusLabelFrom(a.status)} dimmed={true} />
                           </motion.div>
                         );
                       }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
-import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation, X } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation, X, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function formatAddress(addr){
@@ -145,7 +145,7 @@ export default function IncomingRequestModal(){
 
           <motion.div initial={{scale:0.9,y:30,opacity:0}} animate={{scale:1,y:0,opacity:1}}
             exit={{scale:0.9,y:30,opacity:0}} transition={{type:'spring',damping:22,stiffness:300}}
-            className="w-full max-w-sm bg-gray-900 rounded-2xl border-2 border-purple-500/50 overflow-hidden">
+            className="w-full max-w-sm bg-gray-900 rounded-2xl border-2 border-purple-500 overflow-hidden">
 
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
               <p className="text-white font-semibold text-lg">
@@ -171,8 +171,9 @@ export default function IncomingRequestModal(){
                       <Navigation className="w-3 h-3 text-purple-400"/>
                       <span className="text-white font-bold text-xs">0.3km</span>
                     </div>
-                    <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
-                      <span className="text-green-400 font-bold text-sm">3€ <span className="text-[10px]">↑</span></span>
+                    <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
+                      <TrendingUp className="w-4 h-4 text-green-400"/>
+                      <span className="text-green-400 font-bold text-sm">3€</span>
                     </div>
                   </div>
                 </div>
@@ -219,27 +220,29 @@ export default function IncomingRequestModal(){
                     <span className="text-gray-200 line-clamp-1">{formatAddress(alert?.address)}</span>
                   </div>
 
-                  <div className="flex items-center gap-1 text-xs overflow-hidden">
+                  <div className="flex items-center gap-1 text-[11px] overflow-hidden">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400"/>
-                    <span className="truncate">
-                      <span className="text-purple-400">Te vas en {mins} min · Debes esperar hasta las:</span>
-                      {' '}<span className="text-white font-bold text-sm">{waitUntilLabel}</span>
+                    <span className="truncate whitespace-nowrap">
+                      <span className="text-white">Te vas en {mins} min · </span>
+                      <span className="text-purple-400">Debes esperar hasta las:</span>
+                      {' '}<span className="text-white font-bold" style={{fontSize:'14px'}}>{waitUntilLabel}</span>
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  <Button size="icon" className="w-[95px] h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg">
+                  {/* chat + llamada: ancho de la foto (95px) dividido entre 2 */}
+                  <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg" style={{width:'46px',flexShrink:0}}>
                     <MessageCircle className="w-4 h-4"/>
                   </Button>
 
                   {phoneEnabled?(
-                    <Button size="icon" className="w-[95px] h-8 bg-white hover:bg-gray-200 text-black rounded-lg"
+                    <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg" style={{width:'46px',flexShrink:0}}
                       onClick={()=>window.location.href=`tel:${buyer.phone}`}>
                       <Phone className="w-4 h-4"/>
                     </Button>
                   ):(
-                    <Button size="icon" className="w-[95px] h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" disabled>
+                    <Button size="icon" className="h-8 border-white/30 bg-white/10 text-white rounded-lg opacity-70" style={{width:'46px',flexShrink:0}} disabled>
                       <PhoneOff className="w-4 h-4"/>
                     </Button>
                   )}
