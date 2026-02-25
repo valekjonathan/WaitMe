@@ -2297,63 +2297,71 @@ const myFinalizedAlerts = useMemo(() => {
                     </Tabs>
                     </main>
 
-      {/* Dialog: cancelar alerta RESERVADA (penalización) */}
+      {/* Dialog: cancelar alerta RESERVADA (penalización) — pantalla completa estilo IncomingRequestModal */}
       {cancelReservedOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-gray-900 border border-gray-800 text-white max-w-sm w-full rounded-xl p-5 relative">
-            {/* Botón X estilo filtros */}
-            <button
-              onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="12" y1="2" x2="2" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
+        <div className="fixed inset-0 z-[9999] flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
+          {/* Borde morado superior */}
+          <div className="h-1.5 w-full bg-purple-500 flex-shrink-0" />
 
-            {/* "Atención" centrado */}
-            <div className="flex justify-center mb-4 pr-0">
-              <div className="px-4 py-2 rounded-lg bg-red-900/50 border border-red-500/60">
-                <span className="text-red-400 font-bold text-base">⚠️ Atención</span>
+          <div className="flex-1 flex flex-col items-center justify-center px-5">
+            {/* Header con X cuadrado estilo filtros */}
+            <div className="w-full max-w-sm relative mb-6">
+              <button
+                onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+                className="absolute top-0 right-0 w-8 h-8 rounded-lg bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="12" y1="2" x2="2" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+
+              {/* "Atención" centrado */}
+              <div className="flex justify-center mb-6 pt-1">
+                <div className="px-6 py-2.5 rounded-xl bg-red-900/60 border-2 border-red-500/70">
+                  <span className="text-red-300 font-bold text-lg">⚠️ Atención</span>
+                </div>
+              </div>
+
+              <p className="text-gray-200 text-sm leading-relaxed mb-8 text-center">
+                Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.<br/><br/>
+                Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
+              </p>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    if (!cancelReservedAlert?.id) return;
+                    const alert = cancelReservedAlert;
+                    const cardKey = `active-${alert.id}`;
+                    hideKey(cardKey);
+                    queryClient.setQueryData(['myAlerts'], (old = []) =>
+                      Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', cancel_reason: 'me_fui', updated_date: new Date().toISOString() } : a) : old
+                    );
+                    base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+                    });
+                    setCancelReservedOpen(false);
+                    setCancelReservedAlert(null);
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700 h-12 text-base font-semibold"
+                >
+                  Me voy
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+                  className="flex-1 border-gray-600 text-white h-12 text-base font-semibold bg-gray-800 hover:bg-gray-700"
+                >
+                  Volver
+                </Button>
               </div>
             </div>
-
-            <p className="text-gray-300 text-sm leading-relaxed mb-5">
-              Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.
-              Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
-                className="flex-1 border-gray-700 text-white h-10"
-              >
-                Volver
-              </Button>
-              <Button
-                onClick={() => {
-                  if (!cancelReservedAlert?.id) return;
-                  const alert = cancelReservedAlert;
-                  const cardKey = `active-${alert.id}`;
-                  hideKey(cardKey);
-                  // Mover a finalizadas como CANCELADA con todos los datos (status = 'cancelled', label = 'ME FUI')
-                  queryClient.setQueryData(['myAlerts'], (old = []) =>
-                    Array.isArray(old) ? old.map(a => a.id === alert.id ? { ...a, status: 'cancelled', cancel_reason: 'me_fui', updated_date: new Date().toISOString() } : a) : old
-                  );
-                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                    try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-                  });
-                  setCancelReservedOpen(false);
-                  setCancelReservedAlert(null);
-                }}
-                className="flex-1 bg-red-600 hover:bg-red-700 h-10"
-              >
-                Me voy
-              </Button>
-            </div>
           </div>
+
+          {/* Borde morado inferior */}
+          <div className="h-1.5 w-full bg-purple-500 flex-shrink-0" />
         </div>
       )}
 
