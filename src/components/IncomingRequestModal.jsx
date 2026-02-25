@@ -198,16 +198,23 @@ export default function IncomingRequestModal(){
   const phoneEnabled=Boolean(buyer?.phone);
 
   const mins=Number(alert?.available_in_minutes)||0;
-  const createdTs=alert?.created_date?new Date(alert.created_date).getTime():Date.now();
+  // Usar el timestamp guardado en localStorage para consistencia (igual que History.js)
+  const alertCreatedKey = alert?.id ? `alert-created-${alert.id}` : null;
+  const storedCreated = alertCreatedKey ? Number(localStorage.getItem(alertCreatedKey)||'0') : 0;
+  const createdTs = storedCreated > 0 ? storedCreated : (alert?.created_date ? new Date(alert.created_date).getTime() : Date.now());
   const waitUntilTs=createdTs+mins*60*1000;
 
   const waitUntilLabel=new Date(waitUntilTs).toLocaleTimeString('es-ES',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hour12:false});
 
   const remainingMs=Math.max(0,waitUntilTs-nowTs);
   const remSec=Math.floor(remainingMs/1000);
-  const mm=String(Math.floor(remSec/60)).padStart(2,'0');
-  const ss=String(remSec%60).padStart(2,'0');
-  const countdownText=`${mm}:${ss}`;
+  const remHrs=Math.floor(remSec/3600);
+  const remMin=Math.floor((remSec%3600)/60);
+  const remSecRem=remSec%60;
+  const mm=String(remHrs>0?remHrs:remMin).padStart(2,'0');
+  const ss=String(remHrs>0?remMin:remSecRem).padStart(2,'0');
+  const ss2=remHrs>0?`:${String(remSecRem).padStart(2,'0')}`:'';
+  const countdownText=remainingMs>0?`${mm}:${ss}${ss2}`:'00:00';
   const isCountdown=remainingMs>0;
 
   return(
