@@ -280,11 +280,12 @@ export default function Chats() {
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 30,
+placeholderData: (prev) => prev,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    keepPreviousData: true,
+    
     refetchInterval: false
   });
 
@@ -295,11 +296,12 @@ export default function Chats() {
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 30,
+placeholderData: (prev) => prev,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    keepPreviousData: true,
+    
     refetchInterval: false
   });
 
