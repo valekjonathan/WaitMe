@@ -498,7 +498,7 @@ export default function Navigate() {
           alerts={[]}
           userLocation={userLocation}
           selectedAlert={displayAlert}
-          showRoute={!!isTracking && !!displayAlert}
+          showRoute={true}
           sellerLocation={sellerLocation?.length >= 2 ? sellerLocation : [43.362, -5.849]}
           zoomControl={false}
           className="h-full w-full"
