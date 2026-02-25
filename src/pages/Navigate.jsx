@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Navigation, Phone, MessageCircle, AlertCircle } from 'lucide-react';
+import { Navigation, Phone, MessageCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
 import BottomNav from '@/components/BottomNav';
+import Header from '@/components/Header';
 import { motion } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
 
