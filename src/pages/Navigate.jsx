@@ -583,20 +583,20 @@ export default function Navigate() {
                   </div>
                   <div className="flex-1 h-[72px] flex flex-col">
                     <p className="font-bold text-base text-white leading-none">{sellerName}</p>
-                    <p className="text-xs font-medium text-gray-200 flex-1 flex items-center truncate relative top-[4px]">{displayAlert.car_brand} {displayAlert.car_model}</p>
+                    <p className="text-xs font-medium text-gray-200 flex-1 flex items-center truncate relative top-[4px]">{cardCarBrand} {cardCarModel}</p>
                     <div className="flex items-end gap-2 mt-1 min-h-[26px]">
                       <div className="flex-shrink-0">
                         <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-6">
                           <div className="bg-blue-600 h-full w-4 flex items-center justify-center">
                             <span className="text-white text-[7px] font-bold">E</span>
                           </div>
-                          <span className="px-1 text-black font-mono font-bold text-xs tracking-wider">{displayAlert.car_plate || '----'}</span>
+                          <span className="px-1 text-black font-mono font-bold text-xs tracking-wider">{cardCarPlate || '----'}</span>
                         </div>
                       </div>
                       <div className="flex-1 flex justify-center">
                         <svg viewBox="0 0 48 24" className="w-14 h-8" fill="none">
                           <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-                            fill={({'blanco':'#fff','negro':'#1a1a1a','gris':'#9ca3af','rojo':'#ef4444','azul':'#3b82f6','verde':'#22c55e','amarillo':'#eab308'})[displayAlert.car_color?.toLowerCase()] || '#9ca3af'}
+                            fill={({'blanco':'#fff','negro':'#1a1a1a','gris':'#9ca3af','rojo':'#ef4444','azul':'#3b82f6','verde':'#22c55e','amarillo':'#eab308'})[cardCarColor?.toLowerCase()] || '#9ca3af'}
                             stroke="white" strokeWidth="1.5"/>
                           <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
                           <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
