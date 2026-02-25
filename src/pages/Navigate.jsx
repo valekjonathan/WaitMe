@@ -76,6 +76,7 @@ export default function Navigate() {
   const [forceRelease, setForceRelease] = useState(false);
   const [showAbandonWarning, setShowAbandonWarning] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [showCancelWarning, setShowCancelWarning] = useState(false);
   const watchIdRef = useRef(null);
   const queryClient = useQueryClient();
   const hasReleasedPaymentRef = useRef(false);
