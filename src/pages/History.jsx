@@ -1226,10 +1226,11 @@ const myFinalizedAlerts = useMemo(() => {
                       reserved_by_car_color: buyer?.car_color || 'gris',
                       reserved_by_plate: buyer?.plate || '',
                     };
+                    // Clear ALL thinking requests (accepted one wins)
                     try {
-                      const updated = thinkingRequests.filter(r => r.id !== item.id);
-                      setThinkingRequests(updated);
-                      localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
+                      setThinkingRequests([]);
+                      localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
+                      window.dispatchEvent(new Event('waitme:thinkingUpdated'));
                     } catch {}
                     base44.entities.ParkingAlert.update(req.alertId, payload).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
