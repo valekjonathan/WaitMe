@@ -111,6 +111,42 @@ export default function IncomingRequestModal(){
     handleClose();
     navigate(createPageUrl('History'));
 
+    // Disparar bolita en botón Chats del menú inferior
+    try {
+      const current = parseInt(localStorage.getItem('waitme:chat_unread') || '0', 10);
+      localStorage.setItem('waitme:chat_unread', String(current + 1));
+      window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
+    } catch {}
+
+    // Guardar conversación demo en localStorage para que Chats la muestre
+    try {
+      const convKey = 'waitme:demo_conversations';
+      const existing = JSON.parse(localStorage.getItem(convKey) || '[]');
+      const buyerName = buyer?.name || 'Usuario';
+      const convId = `demo_conv_${request.alertId}_${Date.now()}`;
+      const newConv = {
+        id: convId,
+        alert_id: request.alertId,
+        buyer_name: buyerName,
+        buyer_photo: buyer?.photo || null,
+        buyer_id: buyer?.id || 'buyer',
+        car_model: buyer?.car_model || '',
+        car_brand: buyer?.car_brand || '',
+        car_color: buyer?.car_color || 'gris',
+        car_plate: buyer?.plate || '',
+        address: request?.address || '',
+        price: request?.price || 3,
+        allow_phone_calls: Boolean(buyer?.phone),
+        phone: buyer?.phone || null,
+        first_message: `ey ! te he enviado un waitme`,
+        created_at: Date.now(),
+        unread: 1,
+      };
+      existing.unshift(newConv);
+      localStorage.setItem(convKey, JSON.stringify(existing));
+      window.dispatchEvent(new CustomEvent('waitme:newDemoConversation', { detail: newConv }));
+    } catch {}
+
     try{
       await base44.entities.ParkingAlert.update(request.alertId,payload);
       queryClient.invalidateQueries({queryKey:['alerts']});
@@ -119,7 +155,6 @@ export default function IncomingRequestModal(){
       // Crear conversación y mensaje inicial de Sofia automáticamente
       const currentUser = await base44.auth.me().catch(()=>null);
       if(currentUser){
-        const convId = `${buyer?.id||'buyer'}_${currentUser.id||currentUser.email}_${request.alertId}`;
         // Buscar si ya existe la conversación
         const existingConvs = await base44.entities.Conversation.filter({alert_id: request.alertId}).catch(()=>[]);
         let conv = existingConvs?.[0];
