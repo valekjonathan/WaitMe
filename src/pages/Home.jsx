@@ -868,8 +868,13 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Aviso legal */}
+          <p className="text-white/60 text-xs text-center mt-3 px-1 leading-snug">
+            Si te vas antes de que finalice el tiempo, se suspenderá 24 horas tu servicio de publicación de alertas y tendrás una penalización adicional de un 33% en tu próximo ingreso.
+          </p>
+
           {/* Botones: ancho solo del texto, Aceptar izquierda / Rechazar derecha */}
-          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-4 w-full">
+          <DialogFooter className="flex flex-row items-center justify-center gap-3 mt-3 w-full">
             <Button
               onClick={() => {
                 if (!pendingPublishPayload) return;
