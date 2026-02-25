@@ -1028,7 +1028,8 @@ const myFinalizedAlerts = useMemo(() => {
     alert,
     waitUntilLabel,
     countdownText,
-    onNavigateClick
+    onNavigateClick,
+    onCancelClick
   }) => {
     const reservedByName = alert.reserved_by_name || 'Usuario';
     const reservedByPhoto =
