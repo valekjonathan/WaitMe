@@ -1,10 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
+
+const userLocationIcon = L.divIcon({
+  className: 'user-location-marker',
+  html: `
+    <style>
+      @keyframes pulse-purple {
+        0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+      }
+    </style>
+    <div style="position: relative; width: 40px; height: 60px;">
+      <div style="
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 35px;
+        background: #a855f7;
+      "></div>
+      <div style="
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 18px;
+        background: #a855f7;
+        border-radius: 50%;
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+        animation: pulse-purple 1.5s ease-in-out infinite;
+      "></div>
+    </div>
+  `,
+  iconSize: [40, 60],
+  iconAnchor: [20, 60]
+});
 
 export default function SellerLocationTracker({ alertId, userLocation }) {
   const [alert, setAlert] = useState(null);
@@ -32,11 +69,11 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
       return locs;
     },
     enabled: !!alertId,
-    refetchInterval: 1000 // Sincronización cada 1 s para reacción al instante
+    refetchInterval: 5000
   });
 
   // Calcular distancia del comprador más cercano
-  const calculateDistance = (buyerLoc) => {
+  const calculateDistance = useCallback((buyerLoc) => {
     if (!userLocation) return null;
     
     const R = 6371;
@@ -53,7 +90,7 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
       return { value: Math.round(distanceKm * 1000), unit: 'm' };
     }
     return { value: distanceKm.toFixed(1), unit: 'km' };
-  };
+  }, [userLocation]);
 
   const closestBuyer = buyerLocations.length > 0 ? buyerLocations[0] : null;
   const distance = closestBuyer ? calculateDistance(closestBuyer) : null;
@@ -61,46 +98,6 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
   if (!alert || buyerLocations.length === 0) {
     return null;
   }
-
-  // Crear icono de ubicación del usuario estilo Uber
-  const createUserLocationIcon = () => {
-    return L.divIcon({
-      className: 'user-location-marker',
-      html: `
-        <style>
-          @keyframes pulse-purple {
-            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-            50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
-          }
-        </style>
-        <div style="position: relative; width: 40px; height: 60px;">
-          <div style="
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 35px;
-            background: #a855f7;
-          "></div>
-          <div style="
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 18px;
-            height: 18px;
-            background: #a855f7;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-            animation: pulse-purple 1.5s ease-in-out infinite;
-          "></div>
-        </div>
-      `,
-      iconSize: [40, 60],
-      iconAnchor: [20, 60]
-    });
-  };
 
   return (
     <motion.div
@@ -134,7 +131,7 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
           {userLocation && (
             <Marker 
               position={userLocation}
-              icon={createUserLocationIcon()}
+              icon={userLocationIcon}
             >
               <Popup>Tu ubicación</Popup>
             </Marker>
