@@ -1517,7 +1517,7 @@ const myFinalizedAlerts = useMemo(() => {
                       })
                       .slice(0, 1)}
                       </div>
-                      ) : null}
+                      )}
 
                       <div className="pt-2">
                       <SectionTag variant="red" text="Finalizadas" />
