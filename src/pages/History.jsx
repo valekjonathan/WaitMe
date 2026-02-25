@@ -1417,14 +1417,14 @@ const myFinalizedAlerts = useMemo(() => {
                         <Button variant="outline" className="border-gray-600 text-white font-semibold" onClick={dismissThinking}>Me lo pienso</Button>
                         <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={rejectThinking}>Rechazar</Button>
                       </div>
-                    </motion.div>
+                      </motion.div>
                       );
-                    }
-                    // Entry type is 'active'
-                    const alert = entry.item;
-                    const index = entry.index;
-                    const createdTs = getCreatedTs(alert);
-                    const waitUntilTs = getWaitUntilTs(alert);
+                      }
+
+                      const alert = entry.item;
+                      const index = entry.index;
+                      const createdTs = getCreatedTs(alert);
+                      const waitUntilTs = getWaitUntilTs(alert);
 
 
 
