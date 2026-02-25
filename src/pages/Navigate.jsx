@@ -437,9 +437,30 @@ export default function Navigate() {
   const defaultLon = -5.8490;
   const mapCenter = displayAlert ? [displayAlert.latitude, displayAlert.longitude] : [defaultLat, defaultLon];
 
-  const sellerName = displayAlert ? (displayAlert.user_name || 'Vendedor').split(' ')[0] : '';
-  const sellerPhoto = displayAlert?.user_photo || null;
-  const phoneEnabled = Boolean(displayAlert?.phone && displayAlert?.allow_phone_calls !== false);
+  // Si soy el vendedor (la alerta es mía), quien navega hacia mí es el comprador (reserved_by_*)
+  // Si soy el comprador, el destino es el vendedor (user_*)
+  const isBuyer = displayAlert && user && (
+    String(displayAlert.reserved_by_id) === String(user?.id) ||
+    String(displayAlert.reserved_by_email) === String(user?.email)
+  );
+  // La tarjeta siempre muestra a la otra persona
+  const cardName = isBuyer
+    ? (displayAlert?.user_name || 'Vendedor').split(' ')[0]
+    : (displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario').split(' ')[0];
+  const cardPhoto = isBuyer
+    ? (displayAlert?.user_photo || null)
+    : (displayAlert?.reserved_by_photo ||
+        (displayAlert?.reserved_by_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128` : null));
+  const cardCarBrand = isBuyer ? (displayAlert?.car_brand || '') : (displayAlert?.reserved_by_car?.split(' ')[0] || '');
+  const cardCarModel = isBuyer ? (displayAlert?.car_model || '') : (displayAlert?.reserved_by_car?.split(' ').slice(1).join(' ') || '');
+  const cardCarPlate = isBuyer ? (displayAlert?.car_plate || '') : (displayAlert?.reserved_by_plate || '');
+  const cardCarColor = isBuyer ? (displayAlert?.car_color || 'gris') : (displayAlert?.reserved_by_car_color || 'gris');
+  const cardPhone = isBuyer ? (displayAlert?.phone || null) : null;
+  const phoneEnabled = isBuyer ? Boolean(displayAlert?.phone && displayAlert?.allow_phone_calls !== false) : false;
+  
+  // Fallback para demo (Sofía es la que reservó)
+  const sellerName = cardName || (displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario').split(' ')[0];
+  const sellerPhoto = cardPhoto;
 
   const distLabel = distanceMeters != null
     ? distanceMeters < 1000
