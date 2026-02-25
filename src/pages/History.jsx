@@ -1054,7 +1054,7 @@ const myFinalizedAlerts = useMemo(() => {
       <>
         {/* Contenido interior idéntico al modal — empieza dentro del bg-gray-800/60 */}
         <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500">
-          {/* Header badge + distancia + precio */}
+          {/* Header badge + distancia + precio + X cancelar */}
           <div className="flex items-center justify-between mb-2">
             <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
               Te reservó:
@@ -1068,6 +1068,14 @@ const myFinalizedAlerts = useMemo(() => {
                 <TrendingUp className="w-4 h-4 text-green-400"/>
                 <span className="text-green-400 font-bold text-sm">{formatPriceInt(alert.price)}</span>
               </div>
+              {onCancelClick && (
+                <button
+                  onClick={onCancelClick}
+                  className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
