@@ -59,16 +59,24 @@ export default function Header({
   }, [title]);
 
   const titleNode = useMemo(() => {
+    // Solo navega a Home si no hay botón back (estamos en la pantalla raíz)
+    if (!showBackButton) {
+      return (
+        <button
+          type="button"
+          onClick={() => navigate(createPageUrl('Home'))}
+          className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
+        >
+          {innerTitle}
+        </button>
+      );
+    }
     return (
-      <button
-        type="button"
-        onClick={() => navigate(createPageUrl('Home'))}
-        className={`${titleClassName} font-semibold select-none w-full truncate text-center`}
-      >
+      <span className={`${titleClassName} font-semibold select-none w-full truncate text-center`}>
         {innerTitle}
-      </button>
+      </span>
     );
-  }, [navigate, titleClassName, innerTitle]);
+  }, [navigate, titleClassName, innerTitle, showBackButton]);
 
   useEffect(() => {
     const load = () => {
