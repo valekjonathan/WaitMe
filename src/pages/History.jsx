@@ -1469,11 +1469,6 @@ const myFinalizedAlerts = useMemo(() => {
                                      alert={alert}
                                      waitUntilLabel={waitUntilLabel}
                                      countdownText={countdownText}
-                                     formatAddress={formatAddress}
-                                     getCarFill={getCarFill}
-                                     formatPlate={formatPlate}
-                                     avatarFor={avatarFor}
-                                     createPageUrl={createPageUrl}
                                      onNavigateClick={() => { window.location.hash = createPageUrl('Navigate') + '?alertId=' + encodeURIComponent(alert.id); }}
                                     />
                                   </div>
