@@ -1313,13 +1313,13 @@ const myFinalizedAlerts = useMemo(() => {
                             </div>
                           </div>
                           <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5">
-                            <div className="flex items-start gap-1.5 text-xs">
-                              <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400"/>
-                              <span className="text-gray-200 line-clamp-1">{alt?.address || 'Ubicación marcada'}</span>
+                            <div className="flex items-center gap-1.5 text-xs min-h-[20px]">
+                              <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400"/>
+                              <span className="text-gray-200 line-clamp-1 leading-none">{alt?.address || 'Ubicación marcada'}</span>
                             </div>
-                            <div className="flex items-start gap-1 text-[11px] overflow-hidden">
-                              <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400"/>
-                              <span className="truncate whitespace-nowrap">
+                            <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
+                              <Clock className="w-4 h-4 flex-shrink-0 text-purple-400"/>
+                              <span className="leading-none">
                                 <span className="text-white">Te vas en {mins} min · </span>
                                 <span className="text-purple-400">Debes esperar hasta las:</span>
                                 {' '}<span className="text-white font-bold" style={{fontSize:'14px'}}>{waitUntilLabelT}</span>
