@@ -55,13 +55,13 @@ export default function BottomNav() {
     }
   });
 
-  // Badge: same logic as HistorySellerView visibleActiveAlerts.
-  // Uses the shared selector (ownership + most-recent + hiddenKeys) so they
-  // never mismatch. Falls back to 0 until data is fetched (no ghost badge).
-  const showActiveBadge = useMemo(() => {
-    if (!isFetched) return false;
+  // activeCount = exact number of visible seller alerts in "Tus alertas → Activas".
+  // Same selector as HistorySellerView so badge and list are always in sync.
+  // Falls back to 0 until data is fetched (no ghost badge).
+  const activeCount = useMemo(() => {
+    if (!isFetched) return 0;
     const hiddenKeys = readHiddenKeys();
-    return getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys).length > 0;
+    return getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys).length;
   }, [isFetched, myAlerts, user?.id, user?.email]);
 
   // Refresco inmediato (cuando se crea/cancela/expira una alerta)
@@ -109,12 +109,12 @@ export default function BottomNav() {
           className={({ isActive }) => `${baseBtn} ${isActive ? activeStyle : ''}`}
         >
           <div className="relative">
-            {showActiveBadge && (
+            {activeCount > 0 && (
               <span
                 // Ajuste fino: +4px derecha (número más centrado)
                 className="absolute left-[-16px] top-[4px] w-5 h-5 rounded-full bg-green-500/25 border border-green-500/40 flex items-center justify-center text-[11px] font-extrabold text-green-200 shadow-md"
               >
-                1
+                {activeCount > 9 ? '9+' : activeCount}
               </span>
             )}
             <svg

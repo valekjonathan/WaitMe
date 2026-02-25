@@ -35,17 +35,16 @@ export function toMs(v) {
 }
 
 /**
- * Mirrors History.jsx myActiveAlerts logic exactly:
- * - Only alerts owned by the user (user_id OR created_by OR user_email)
- * - Only status 'active' or 'reserved'
- * - Limited to the single most-recent one
+ * Returns ALL alerts owned by the user with status 'active' or 'reserved'.
+ * Ownership: user_id OR created_by OR user_email.
+ * No limit on count — all visible seller alerts in "Tus alertas → Activas".
  *
  * Returns [] when no data or no qualifying alert.
  */
 export function getActiveSellerAlerts(myAlerts, userId, userEmail) {
   if (!Array.isArray(myAlerts) || myAlerts.length === 0) return [];
 
-  const filtered = myAlerts.filter((a) => {
+  return myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -57,21 +56,13 @@ export function getActiveSellerAlerts(myAlerts, userId, userEmail) {
     const status = String(a.status || '').toLowerCase();
     return status === 'active' || status === 'reserved';
   });
-
-  if (filtered.length === 0) return [];
-
-  const sorted = [...filtered].sort(
-    (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
-  );
-
-  // Only the most recent one (app enforces 1 active alert at a time)
-  return [sorted[0]];
 }
 
 /**
- * Returns the subset of getActiveSellerAlerts() that is not hidden.
+ * Returns ALL active seller alerts that are not hidden in the UI.
  * hiddenKeys is the Set persisted in localStorage under 'waitme:hidden_keys'.
- * Cards use the key format  `active-${alert.id}`.
+ * Cards use the key format `active-${alert.id}`.
+ * Count matches exactly what HistorySellerView renders in "Tus alertas → Activas".
  */
 export function getVisibleActiveSellerAlerts(myAlerts, userId, userEmail, hiddenKeys) {
   const active = getActiveSellerAlerts(myAlerts, userId, userEmail);
