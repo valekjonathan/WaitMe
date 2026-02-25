@@ -817,7 +817,7 @@ const myFinalizedAlerts = useMemo(() => {
 
   const renderableFinalized = useMemo(() => {
     return myFinalizedAll
-      .filter((item) => !hiddenKeysRef.current.has(item.id) && !hiddenKeys.has(item.id));
+      .filter((item) => !hiddenKeys.has(item.id));
   }, [myFinalizedAll, hiddenKeys]);
 
  
