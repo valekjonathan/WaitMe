@@ -1517,7 +1517,49 @@ const myFinalizedAlerts = useMemo(() => {
                   <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {renderableFinalized.length === 0 ? (
+                {rejectedRequests.map((item) => {
+                  const rKey = `rejected-${item.id}`;
+                  if (hiddenKeys.has(rKey)) return null;
+                  const req = item.request;
+                  const alt = item.alert;
+                  const buyer = req?.buyer || {};
+                  const firstName = (buyer?.name || 'Usuario').split(' ')[0];
+                  const ts = item.savedAt || Date.now();
+                  const dateText = formatCardDate(ts);
+                  return (
+                    <motion.div key={rKey} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative">
+                      <CardHeaderRow
+                        left={<Badge className={`bg-red-500/20 text-red-400 border border-red-500/30 ${badgePhotoWidth} ${labelNoClick}`}>Finalizada</Badge>}
+                        dateText={dateText}
+                        dateClassName="text-gray-600"
+                        right={
+                          <div className="flex items-center gap-1">
+                            <MoneyChip mode="neutral" amountText={formatPriceInt(alt?.price)} />
+                            <button onClick={() => hideKey(rKey)}
+                              className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
+                              <X className="w-4 h-4"/>
+                            </button>
+                          </div>
+                        }
+                      />
+                      <div className="border-t border-gray-700/80 mb-2"/>
+                      <div className="flex items-start gap-1.5 text-xs mb-2">
+                        <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500"/>
+                        <span className="text-gray-300 leading-5 line-clamp-1">{alt?.address || 'Ubicación marcada'}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs overflow-hidden mb-2">
+                        <Clock className="w-3.5 h-3.5 flex-shrink-0 text-gray-500"/>
+                        <span className="truncate text-gray-400">
+                          {Number(alt?.available_in_minutes) || 0} min · Rechazada
+                        </span>
+                      </div>
+                      <CountdownButton text="RECHAZADA" dimmed={true}/>
+                    </motion.div>
+                  );
+                })}
+
+                {renderableFinalized.length === 0 && rejectedRequests.filter(i => !hiddenKeys.has(`rejected-${i.id}`)).length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
