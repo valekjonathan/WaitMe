@@ -153,11 +153,11 @@ export default function Home() {
       });
       return notifications?.length || 0;
     },
-    staleTime: 0,
+    staleTime: 10_000,
     gcTime: 5 * 60 * 1000,
-    refetchInterval: 3000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   });
 
   const { data: rawAlerts } = useQuery({
