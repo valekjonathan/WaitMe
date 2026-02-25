@@ -104,6 +104,7 @@ export default function Home() {
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showBackgroundMap, setShowBackgroundMap] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
   const [filters, setFilters] = useState({
@@ -511,6 +512,13 @@ export default function Home() {
     navigate(createPageUrl('History'));
   };
 
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      setShowBackgroundMap(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const handleBack = useCallback(() => {
     resetToLogo({ invalidate: false });
   }, [resetToLogo]);
@@ -552,20 +560,20 @@ export default function Home() {
           className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
           style={{ display: mode ? 'none' : 'flex' }}
         >
-              {/* TEST LCP — background temporarily replaced
-              <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
-                <div className="w-full h-full">
-                  <ParkingMap
-                    alerts={homeMapAlerts}
-                    userLocation={userLocation}
-                    userLocationOffsetY={120}
-                    zoomControl={false}
-                  />
+              {showBackgroundMap && (
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+                  <div className="w-full h-full">
+                    <ParkingMap
+                      alerts={homeMapAlerts}
+                      userLocation={userLocation}
+                      userLocationOffsetY={120}
+                      zoomControl={false}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
+
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
-              */}
-              <div className="absolute inset-0 bg-black" />
 
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
