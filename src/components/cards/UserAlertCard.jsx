@@ -73,6 +73,12 @@ export default function UserAlertCard({
     const distanceKm = meters / 1000;
 
     if (!Number.isFinite(distanceKm)) return null;
+    
+    // Si showDistanceInMeters es true, mostrar en metros
+    if (showDistanceInMeters && meters < 1000) {
+      return { value: Math.round(meters), unit: ' m' };
+    }
+    
     return { value: distanceKm.toFixed(1), unit: 'km' };
   };
 
