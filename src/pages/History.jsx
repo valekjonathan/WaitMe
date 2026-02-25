@@ -1524,7 +1524,8 @@ const myFinalizedAlerts = useMemo(() => {
                       <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
-                {rejectedRequests.map((item) => {
+                {/* Rejected requests: newest first */}
+                {[...rejectedRequests].sort((a,b) => (b.savedAt||0) - (a.savedAt||0)).map((item) => {
                   const rKey = `rejected-${item.id}`;
                   if (hiddenKeys.has(rKey)) return null;
                   const req = item.request;
