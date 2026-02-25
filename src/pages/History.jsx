@@ -1426,7 +1426,7 @@ const myFinalizedAlerts = useMemo(() => {
                     const alert = entry.item;
                     const index = entry.index;
                     const createdTs = getCreatedTs(alert);
-                         const waitUntilTs = getWaitUntilTs(alert);
+                    const waitUntilTs = getWaitUntilTs(alert);
 
 
 
