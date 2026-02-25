@@ -1420,23 +1420,11 @@ const myFinalizedAlerts = useMemo(() => {
                         <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={rejectThinking}>Rechazar</Button>
                       </div>
                     </motion.div>
-                  );
-                })}
-
-                {visibleActiveAlerts.length === 0 && thinkingRequests.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-900 rounded-xl p-2 border-2 border-purple-500/50 h-[160px] flex items-center justify-center"
-                  >
-                    <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
-                  </motion.div>
-                )}
-                {visibleActiveAlerts.length > 0 && (
-                  <div className="space-y-[20px]">
-                    {visibleActiveAlerts
-                       .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
-                       .map((alert, index) => {
+                  return null;
+                  }
+                  // Entry type is 'active'
+                  const alert = entry.item;
+                  const index = entry.index;
                          const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
