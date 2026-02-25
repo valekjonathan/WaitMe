@@ -234,18 +234,44 @@ export default function Navigate() {
     ? (displayAlert?.user_photo || null)
     : (displayAlert?.reserved_by_photo || (displayAlert?.reserved_by_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128` : null));
 
-  // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde)
+  // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde) + icono coche
+  const userCarIcon = displayAlert?.car_color
+    ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.car_color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="14" cy="18" r="2" fill="#666"/>
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="36" cy="18" r="2" fill="#666"/>
+       </svg>`
+    : '';
+
   const userMapIcon = user?.photo_url
-    ? `<div style="width:44px;height:44px;border-radius:10px;overflow:hidden;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);animation:pulse-green 1.2s ease-in-out infinite;">
+    ? `<div style="position:relative;width:44px;height:44px;border-radius:10px;overflow:visible;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);animation:pulse-green 1.2s ease-in-out infinite;">
         <img src="${user.photo_url}" style="width:100%;height:100%;object-fit:cover;" />
+        ${userCarIcon}
        </div>
        <style>@keyframes pulse-green{0%,100%{box-shadow:0 0 10px rgba(34,197,94,0.9);}50%{box-shadow:0 0 22px rgba(34,197,94,1);}}</style>`
-    : `<div style="width:44px;height:44px;border-radius:10px;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#22c55e;">Yo</div>`;
+    : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#22c55e;">Yo${userCarIcon}</div>`;
 
-  // Icono del vendedor: foto circular
+  // Icono del vendedor: foto cuadrada con bordes redondeados + icono coche
+  const sellerCarIcon = displayAlert?.car_color
+    ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.car_color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="14" cy="18" r="2" fill="#666"/>
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+        <circle cx="36" cy="18" r="2" fill="#666"/>
+       </svg>`
+    : '';
+
   const sellerMapIcon = sellerPhoto
-    ? `<img src="${sellerPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
-    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#a855f7;">${sellerName.charAt(0)}</div>`;
+    ? `<div style="position:relative;width:44px;height:44px;border-radius:10px;overflow:visible;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);">
+        <img src="${sellerPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+        ${sellerCarIcon}
+       </div>`
+    : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#a855f7;">${sellerName.charAt(0)}${sellerCarIcon}</div>`;
 
   // Construir alert en formato compatible con UserAlertCard
   const alertForCard = displayAlert ? {
