@@ -261,6 +261,18 @@ export default function Chats() {
     }
   }, []);
 
+  const [demoConvs, setDemoConvs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]'); } catch { return []; }
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      try { setDemoConvs(JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]')); } catch {}
+    };
+    window.addEventListener('waitme:newDemoConversation', handler);
+    return () => window.removeEventListener('waitme:newDemoConversation', handler);
+  }, []);
+
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
