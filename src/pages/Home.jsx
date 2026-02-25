@@ -691,13 +691,15 @@ export default function Home() {
                       setSelectedPosition({ lat: center[0], lng: center[1] });
                     }}
                     onMapMoveEnd={(center) => {
-                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}`)
+                      // zoom=19 → máxima precisión Nominatim (nivel número de portal)
+                      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=19&addressdetails=1`)
                         .then((res) => res.json())
                         .then((data) => {
                           if (data?.address) {
-                            const road = data.address.road || data.address.street || '';
-                            const number = data.address.house_number || '';
-                            setAddress(number ? `${road}, ${number}` : road);
+                            const a = data.address;
+                            const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
+                            const number = a.house_number || '';
+                            setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
                           }
                         })
                         .catch(() => {});
