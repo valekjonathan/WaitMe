@@ -803,14 +803,8 @@ const myFinalizedAlerts = useMemo(() => {
 
   const renderableFinalized = useMemo(() => {
     return myFinalizedAll
-      .filter((item) => !hiddenKeys.has(item.id))
-      .filter((item) => {
-        if (item.type === 'alert') {
-          const st = String(item.data?.status || '').toLowerCase();
-          if (st === 'completed') return false; // las completadas van como transacción
-        }
-        return true;
-      });
+      .filter((item) => !hiddenKeys.has(item.id));
+    // NOTA: no filtramos nada — todas las alertas y transacciones se muestran siempre
   }, [myFinalizedAll, hiddenKeys]);
 
  
