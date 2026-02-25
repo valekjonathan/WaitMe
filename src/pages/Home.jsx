@@ -846,30 +846,30 @@ export default function Home() {
                   {pendingPublishPayload?.price ?? ''} €
                 </span>
               </div>
-
-              {/* Debes esperar... centrado */}
-              <div className="mt-3 text-center text-purple-400 font-bold text-base">
-                {(() => {
-                  const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
-                  if (!mins) return null;
-                  const waitUntil = new Date(Date.now() + mins * 60 * 1000);
-                  const hhmm = waitUntil.toLocaleTimeString('es-ES', {
-                    timeZone: 'Europe/Madrid',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  });
-                  return (
-                    <>
-                      <span className="text-purple-400 text-base font-normal">
-                        Debes esperar hasta las:{' '}
-                        <span className="text-white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
-                      </span>
-                    </>
-                  );
-                })()}
-              </div>
             </div>
+          </div>
+
+          {/* Debes esperar... fuera de la tarjeta */}
+          <div className="mt-3 text-center text-purple-400 font-bold text-base">
+            {(() => {
+              const mins = Number(pendingPublishPayload?.available_in_minutes ?? 0);
+              if (!mins) return null;
+              const waitUntil = new Date(Date.now() + mins * 60 * 1000);
+              const hhmm = waitUntil.toLocaleTimeString('es-ES', {
+                timeZone: 'Europe/Madrid',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              });
+              return (
+                <>
+                  <span className="text-purple-400 text-base font-normal">
+                    Debes esperar hasta las:{' '}
+                    <span className="text-white" style={{ fontSize: '18px', fontWeight: 'bold' }}>{hhmm}</span>
+                  </span>
+                </>
+              );
+            })()}
           </div>
 
           {/* Aviso legal */}
