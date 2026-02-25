@@ -19,6 +19,14 @@ import NotificationManager from '@/components/NotificationManager';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
+
+// Preload logo eagerly so it's always instant on first render
+if (typeof window !== 'undefined') {
+  try {
+    const _preload = new window.Image();
+    _preload.src = appLogo;
+  } catch {}
+}
 import { getMockNearbyAlerts } from '@/lib/mockNearby';
 
 // ======================
