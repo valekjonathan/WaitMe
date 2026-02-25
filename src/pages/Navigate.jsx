@@ -447,8 +447,13 @@ export default function Navigate() {
       : `${(distanceMeters / 1000).toFixed(1)} km`
     : '--';
 
+  // Create user photo marker (buyer's photo as map icon)
+  const userPhotoIcon = user?.photo_url
+    ? `<img src="${user.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#7c3aed;">${(user?.full_name || 'Yo').charAt(0)}</div>`;
+
   return (
-    <div className="min-h-[100dvh] bg-black text-white flex flex-col" style={{background:'#1a1a2e'}}>
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
 
       {/* ── Payment success overlay ── */}
       {showPaymentSuccess && (
@@ -484,8 +489,11 @@ export default function Navigate() {
         </motion.div>
       )}
 
-      {/* ── MAPA (full screen, detrás de todo) ── */}
-      <div className="fixed inset-0 z-0">
+      {/* ── HEADER — idéntico al de todas las pantallas ── */}
+      <Header title="Navegación" showBackButton backTo="History" />
+
+      {/* ── MAPA — desde bajo el header hasta el bottom panel ── */}
+      <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: 'calc(var(--bottom-nav-h) + 160px)' }}>
         <ParkingMap
           alerts={displayAlert && isSeller ? [displayAlert] : []}
           userLocation={userLocation}
@@ -494,25 +502,17 @@ export default function Navigate() {
           sellerLocation={sellerLocation?.length >= 2 ? sellerLocation : [43.362, -5.849]}
           zoomControl={false}
           className="h-full w-full"
-          userAsCar={!isSeller && !!displayAlert}
-          userCarColor={displayAlert?.car_color || 'gris'}
-          userCarPrice={displayAlert?.price ?? 0}
+          userAsCar={false}
           showSellerMarker={!!displayAlert && !isSeller}
           onRouteLoaded={onRouteLoaded}
+          userPhotoHtml={userPhotoIcon}
         />
       </div>
 
-      {/* ── TOP BAR (Uber-style) ── */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 pt-safe" style={{paddingTop:'calc(env(safe-area-inset-top,0px) + 12px)'}}>
-        <Link to={createPageUrl('History')}>
-          <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg">
-            <ArrowLeft className="w-5 h-5 text-gray-900" />
-          </button>
-        </Link>
-
-        {/* ETA pill */}
-        {isTracking && (
-          <div className="flex-1 bg-gray-900/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-3 shadow-xl">
+      {/* ETA pill — flotando sobre el mapa justo debajo del header */}
+      {isTracking && (
+        <div className="fixed left-0 right-0 z-40 px-4" style={{ top: 'calc(56px + 8px)' }}>
+          <div className="bg-gray-900/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-3 shadow-xl">
             <div>
               <p className="text-white font-black text-xl leading-none">
                 {etaMinutes != null ? `${etaMinutes} min` : distLabel}
@@ -521,11 +521,11 @@ export default function Navigate() {
             </div>
             <div className="ml-auto w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* ── BOTTOM PANEL (Uber-style card) ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50" style={{paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
+      {/* ── BOTTOM PANEL (Uber-style card) — encima del BottomNav ── */}
+      <div className="fixed left-0 right-0 z-50" style={{ bottom: 'var(--bottom-nav-h)' }}>
         <div className="bg-gray-950 rounded-t-3xl shadow-2xl px-4 pt-3 pb-4 border-t border-gray-800">
 
           {/* Drag handle */}
@@ -558,22 +558,19 @@ export default function Navigate() {
 
           {/* Action buttons row */}
           <div className="flex gap-2 mb-3">
-            {/* Chat */}
             <button
               onClick={() => displayAlert && (window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert.user_email || displayAlert.user_id}`))}
-              className="flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-500 flex items-center justify-center gap-2 transition-colors"
+              className="flex-1 h-10 rounded-xl bg-green-600 hover:bg-green-500 flex items-center justify-center gap-2 transition-colors"
             >
-              <MessageCircle className="w-5 h-5 text-white" />
+              <MessageCircle className="w-4 h-4 text-white" />
               <span className="text-white font-semibold text-sm">Chat</span>
             </button>
-
-            {/* Llamar */}
             <button
               onClick={() => phoneEnabled && (window.location.href = `tel:${displayAlert.phone}`)}
               disabled={!phoneEnabled}
-              className={`flex-1 h-12 rounded-xl flex items-center justify-center gap-2 transition-colors ${phoneEnabled ? 'bg-white hover:bg-gray-100' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
+              className={`flex-1 h-10 rounded-xl flex items-center justify-center gap-2 transition-colors ${phoneEnabled ? 'bg-white hover:bg-gray-100' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
             >
-              <Phone className={`w-5 h-5 ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`} />
+              <Phone className={`w-4 h-4 ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`} />
               <span className={`font-semibold text-sm ${phoneEnabled ? 'text-gray-900' : 'text-gray-500'}`}>Llamar</span>
             </button>
           </div>
@@ -582,14 +579,14 @@ export default function Navigate() {
           {isSeller ? (
             <button
               onClick={() => (window.location.href = createPageUrl('History'))}
-              className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base transition-colors"
+              className="w-full h-12 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base transition-colors"
             >
               He desaparcado ✓
             </button>
           ) : !isTracking ? (
             <button
               onClick={startTracking}
-              className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors"
+              className="w-full h-12 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors"
             >
               <Navigation className="w-5 h-5" />
               Iniciar navegación
@@ -601,7 +598,7 @@ export default function Navigate() {
               )}
               <button
                 onClick={stopTracking}
-                className="w-full h-12 rounded-2xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-sm flex items-center justify-center gap-2 border border-gray-700 transition-colors"
+                className="w-full h-10 rounded-2xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold text-sm flex items-center justify-center gap-2 border border-gray-700 transition-colors"
               >
                 <AlertCircle className="w-4 h-4" />
                 Detener navegación
@@ -609,17 +606,19 @@ export default function Navigate() {
             </div>
           )}
 
-          {/* Simular llegada (demo only) */}
           {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
             <button
               onClick={() => setForceRelease(true)}
-              className="w-full mt-2 h-10 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-sm hover:bg-amber-500/10 transition-colors"
+              className="w-full mt-2 h-8 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-sm hover:bg-amber-500/10 transition-colors"
             >
               Simular llegada (demo)
             </button>
           )}
         </div>
       </div>
+
+      {/* ── BottomNav siempre visible ── */}
+      <BottomNav />
 
     </div>
   );
