@@ -840,7 +840,7 @@ const badgeCls = isCompletedOrCanceled
         </div>
       
           </>
-        )}
+        ) : null}
 </main>
 
       <BottomNav />
