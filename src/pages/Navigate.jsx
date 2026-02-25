@@ -304,6 +304,7 @@ export default function Navigate() {
     car_color: isBuyer ? displayAlert.car_color : (displayAlert.reserved_by_car_color || 'gris'),
     phone: isBuyer ? (displayAlert.phone || null) : null,
     allow_phone_calls: isBuyer ? displayAlert.allow_phone_calls : false,
+    wait_until: displayAlert.expires_at, // Para mostrar la hora hasta que expira
   } : null;
 
   return (
