@@ -1492,16 +1492,16 @@ const myFinalizedAlerts = useMemo(() => {
 
                                 <div className="border-t border-gray-700/80 mb-2" />
 
-                                <div className="flex items-start gap-1.5 text-xs mb-2">
-                                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                                  <span className="text-white leading-5">
+                                <div className="flex items-center gap-1.5 text-xs mb-2 min-h-[20px]">
+                                  <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400" />
+                                  <span className="text-white leading-none">
                                     {formatAddress(alert.address) || 'Ubicación marcada'}
                                   </span>
                                 </div>
 
-                                <div className="flex items-center gap-1 text-xs overflow-hidden">
-                                  <Clock className="w-3.5 h-3.5 flex-shrink-0 text-purple-400" />
-                                  <span className="truncate">
+                                <div className="flex items-center gap-1.5 text-xs overflow-hidden min-h-[20px]">
+                                  <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
+                                  <span className="leading-none">
                                     <span className="text-white">Te vas en {alert.available_in_minutes} min · </span>
                                     <span className="text-purple-400">Debes esperar hasta las:</span>
                                     {' '}<span className="text-white font-bold" style={{ fontSize: '15px' }}>{waitUntilLabel}</span>
