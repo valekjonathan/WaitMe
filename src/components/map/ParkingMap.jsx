@@ -323,14 +323,14 @@ export default function ParkingMap({
           `}</style>
           {/*
             Contenedor: centrado horizontalmente, con la PUNTA INFERIOR exactamente en el centro del mapa.
-            Altura total = bola (18px) + palito (35px) = 53px → top: calc(50% - 53px), left: 50% - 9px
+            +10px sube el pin 10 píxeles más arriba
           */}
           <div
             className="absolute z-[2000] pointer-events-none flex flex-col items-center"
             style={{
               left: '50%',
               top: '50%',
-              transform: 'translate(-50%, -100%)',
+              transform: 'translate(-50%, calc(-100% - 10px))',
               width: 18,
             }}
           >
