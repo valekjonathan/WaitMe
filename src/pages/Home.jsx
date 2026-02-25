@@ -547,15 +547,11 @@ export default function Home() {
       />
 
       <main className="fixed inset-0 top-0 bottom-0">
-        <AnimatePresence mode="wait">
-          {/* HOME PRINCIPAL */}
-          {!mode && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
-            >
+        {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
+          style={{ display: mode ? 'none' : 'flex' }}
+        >
               <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                 <div className="w-full h-full">
                   <ParkingMap
@@ -572,8 +568,10 @@ export default function Home() {
               <div className="text-center mb-4 w-full flex flex-col items-center relative top-[-20px] z-10 px-6">
                 <img
                   loading="eager"
-                  decoding="sync"
+                  decoding="async"
                   fetchPriority="high"
+                  width={212}
+                  height={212}
                   src={appLogo}
                   alt="WaitMe!"
                   className="w-[212px] h-[212px] mb-0 object-contain mt-[0px]"
@@ -609,9 +607,9 @@ export default function Home() {
                   ¡ Estoy aparcado aquí !
                 </Button>
               </div>
-            </motion.div>
-          )}
+        </div>
 
+        <AnimatePresence mode="wait">
           {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
           {mode === 'search' && (
             <motion.div
