@@ -1235,8 +1235,26 @@ const myFinalizedAlerts = useMemo(() => {
           <TabsContent value="alerts" className={`space-y-3 pt-1 pb-6 ${noScrollBar}`}>
                 <SectionTag variant="green" text="Activas" />
 
-                {/* "Me lo pienso" pending requests */}
-                {thinkingRequests.map((item) => {
+                {/* Merged active alerts and thinking requests sorted by time */}
+                {(() => {
+                  const thinkingItems = thinkingRequests.map(item => ({
+                    __type: 'thinking',
+                    __ts: item.alert?.created_date ? new Date(item.alert.created_date).getTime() : 0,
+                    item
+                  }));
+                  const activeItems = visibleActiveAlerts.map((a, idx) => ({
+                    __type: 'active',
+                    __ts: toMs(a.created_date) || 0,
+                    item: a,
+                    index: idx
+                  }));
+                  const merged = [...thinkingItems, ...activeItems]
+                    .sort((a, b) => b.__ts - a.__ts)
+                    .slice(0, 1); // Only show the most recent one
+
+                  return merged.map(entry => {
+                    if (entry.__type === 'thinking') {
+                      const item = entry.item;
                   const req = item.request;
                   const alt = item.alert;
                   const buyer = req?.buyer || {};
