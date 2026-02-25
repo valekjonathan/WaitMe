@@ -46,6 +46,8 @@ export default function Alertas() {
   const [cancelConfirmAlert, setCancelConfirmAlert] = useState(null);
   const [expirePromptOpen, setExpirePromptOpen] = useState(false);
   const [expirePromptAlert, setExpirePromptAlert] = useState(null);
+  const [cancelReservedOpen, setCancelReservedOpen] = useState(false);
+  const [cancelReservedAlert, setCancelReservedAlert] = useState(null);
 
   // "Me lo pienso" requests shown in Activas
   const [thinkingRequests, setThinkingRequests] = useState(() => {
