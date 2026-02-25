@@ -15,7 +15,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import NotificationManager from '@/components/NotificationManager';
-import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
+
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
@@ -492,7 +492,7 @@ export default function Home() {
   return (
     <div className="min-h-[100dvh] w-full text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
       <NotificationManager user={user} />
-      <WaitMeRequestScheduler />
+      
 
       <Header
         iconVariant="bottom"
