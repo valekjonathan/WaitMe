@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { getBestFinalizedTs } from '@/lib/alertSelectors';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -45,8 +44,7 @@ export default function HistorySellerView({
   CardHeaderRow,
   MoneyChip,
   CountdownButton,
-  renderableFinalized,
-  rejectedRequests,
+  finalItems,
   statusLabelFrom,
   MarcoContent,
   deleteAlertSafe,
@@ -363,41 +361,29 @@ export default function HistorySellerView({
                       <SectionTag variant="red" text="Finalizadas" />
                       </div>
 
-                      {/* ── Unified sorted finalized list (alerts + rejected requests) ── */}
-                      {(() => {
-                  const rejectedItems = rejectedRequests
-                    .filter(i => !hiddenKeys.has(`rejected-${i.id}`))
-                    .map(i => ({ __type: 'rejected', __ts: i.savedAt || 0, item: i }));
-
-                  const finalizedItems = renderableFinalized
-                    .map(item => ({ __type: 'finalized', __ts: getBestFinalizedTs(item.data), item }));
-
-                  const merged = [...rejectedItems, ...finalizedItems]
-                    .sort((a, b) => b.__ts - a.__ts);
-
-                  if (merged.length === 0) return (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
-                    >
-                      <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
-                    </motion.div>
-                  );
-
-                  return <div className="space-y-[20px]">{merged.map((entry, index) => {
-                    if (entry.__type === 'rejected') {
-                      const item = entry.item;
-                      const rKey = `rejected-${item.id}`;
-                      const req = item.request;
-                      const alt = item.alert;
+                      {/* ── Finalizadas: pre-ordenado en History.jsx → sólo .map() ── */}
+                      {finalItems.length === 0 ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 h-[160px] flex items-center justify-center"
+                        >
+                          <p className="text-gray-500 font-semibold">No tienes alertas finalizadas</p>
+                        </motion.div>
+                      ) : (
+                      <div className="space-y-[20px]">
+                      {finalItems.map((item, index) => {
+                    if (item.type === 'rejected') {
+                      const rKey = item.id;
+                      const req = item.data.request;
+                      const alt = item.data.alert;
                       const buyer = req?.buyer || {};
                       const firstName = (buyer?.name || 'Usuario').split(' ')[0];
                       const carLabel = String(buyer?.car_model || 'Sin datos').trim();
                       const plate = buyer?.plate || '';
                       const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
                       const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
-                      const ts = item.savedAt || Date.now();
+                      const ts = item.data.savedAt || item.created_date || Date.now();
                       const dateText = formatCardDate(ts);
                       const mins = Number(alt?.available_in_minutes) || 0;
                       const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
@@ -508,12 +494,10 @@ export default function HistorySellerView({
                       );
                     }
 
-                    // finalized alert/transaction
-                    const item = entry.item;
+                    // finalized alert/transaction (pre-filtered, pre-sorted by History.jsx)
                       const finalizedCardClass =
                         'bg-gray-900 rounded-xl p-2 border-2 border-gray-700/80 relative';
                       const key = item.id;
-                      if (hiddenKeys.has(key)) return null;
 
                       if (item.type === 'alert') {
   const a = item.data;
@@ -791,8 +775,9 @@ export default function HistorySellerView({
                           </div>
                         </motion.div>
                       );
-                  })}</div>
-                })()}
+                  })}
+                      </div>
+                      )}
 
                   </TabsContent>
   );

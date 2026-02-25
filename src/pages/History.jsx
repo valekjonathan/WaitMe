@@ -673,8 +673,8 @@ const myFinalizedAlerts = useMemo(() => {
     );
   });
   
-  // Ordenar: primero las finalizadas (más recientes). Usa updated_at/completed_at/cancelled_at/created_at
-  return finalized.sort((a, b) => getBestFinalizedTs(b) - getBestFinalizedTs(a));
+  // Sin sort aquí: myFinalizedAll aplica el único sort final
+  return finalized;
 }, [myAlerts, user?.id, user?.email]);
     
   // Reservas (tuyas como comprador)
@@ -724,12 +724,14 @@ const myFinalizedAlerts = useMemo(() => {
   }, [nowTs, reservationsActiveAll, queryClient]);
 
 
+  // Sin sort aquí: myFinalizedAll aplica el único sort final
   const myFinalizedAsSellerTx = useMemo(() => [
     ...transactions.filter((t) => t.seller_id === user?.id),
     ...mockTransactions
-  ].sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)),
-  [transactions, user?.id, mockTransactions]);
+  ], [transactions, user?.id, mockTransactions]);
 
+  // Único array ordenado para Finalizadas: alertas propias + transacciones + solicitudes rechazadas.
+  // UN solo sort aquí; HistorySellerView recibe finalItems ya ordenado y sólo hace .map().
   const myFinalizedAll = useMemo(() => [
     ...myFinalizedAlerts.map((a) => ({
       type: 'alert',
@@ -742,15 +744,21 @@ const myFinalizedAlerts = useMemo(() => {
       id: `final-tx-${t.id}`,
       created_date: getBestFinalizedTs(t),
       data: t
+    })),
+    ...rejectedRequests.map((i) => ({
+      type: 'rejected',
+      id: `rejected-${i.id}`,
+      created_date: i.savedAt || 0,
+      data: i
     }))
-  ].sort((a, b) => getBestFinalizedTs(b.data) - getBestFinalizedTs(a.data)),
-  [myFinalizedAlerts, myFinalizedAsSellerTx]);
+  ].sort((a, b) => (b.created_date || 0) - (a.created_date || 0)),
+  [myFinalizedAlerts, myFinalizedAsSellerTx, rejectedRequests]);
 
-
-  const renderableFinalized = useMemo(() => {
-    return myFinalizedAll
-      .filter((item) => !hiddenKeys.has(item.id));
-  }, [myFinalizedAll, hiddenKeys]);
+  // Filtro de tarjetas ocultas (X botón). Pasa el array ya limpio al componente.
+  const finalItems = useMemo(
+    () => myFinalizedAll.filter((item) => !hiddenKeys.has(item.id)),
+    [myFinalizedAll, hiddenKeys]
+  );
 
  
     
@@ -1190,8 +1198,7 @@ const myFinalizedAlerts = useMemo(() => {
             CardHeaderRow={CardHeaderRow}
             MoneyChip={MoneyChip}
             CountdownButton={CountdownButton}
-            renderableFinalized={renderableFinalized}
-            rejectedRequests={rejectedRequests}
+            finalItems={finalItems}
             statusLabelFrom={statusLabelFrom}
             MarcoContent={MarcoContent}
             deleteAlertSafe={deleteAlertSafe}
