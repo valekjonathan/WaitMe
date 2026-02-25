@@ -86,32 +86,32 @@ function createUserLocationIcon() {
           50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
       </style>
-      <div style="position: relative; width: 40px; height: 80px;">
+      <div style="position: relative; width: 40px; height: 100px;">
         <div style="
           position: absolute;
-          bottom: 20px;
+          bottom: 0px;
           left: 50%;
           transform: translateX(-50%);
           width: 2px;
-          height: 35px;
+          height: 45px;
           background: #a855f7;
         "></div>
         <div style="
           position: absolute;
-          bottom: 50px;
+          bottom: 40px;
           left: 50%;
           transform: translateX(-50%);
-          width: 18px;
-          height: 18px;
+          width: 20px;
+          height: 20px;
           background: #a855f7;
           border-radius: 50%;
-          box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+          box-shadow: 0 0 18px rgba(168, 85, 247, 0.9);
           animation: pulse-purple 1.5s ease-in-out infinite;
         "></div>
       </div>
     `,
-    iconSize: [40, 80],
-    iconAnchor: [20, 55]
+    iconSize: [40, 100],
+    iconAnchor: [20, 100]
   });
 }
 
