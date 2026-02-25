@@ -1515,11 +1515,11 @@ const myFinalizedAlerts = useMemo(() => {
                         );
                       })
                       .slice(0, 1)}
-                  </div>
-                )}
+                      </div>
+                      ) : null}
 
-                <div className="pt-2">
-                  <SectionTag variant="red" text="Finalizadas" />
+                      <div className="pt-2">
+                      <SectionTag variant="red" text="Finalizadas" />
                 </div>
 
                 {rejectedRequests.map((item) => {
