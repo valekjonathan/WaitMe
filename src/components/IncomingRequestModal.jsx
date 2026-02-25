@@ -115,6 +115,42 @@ export default function IncomingRequestModal(){
       await base44.entities.ParkingAlert.update(request.alertId,payload);
       queryClient.invalidateQueries({queryKey:['alerts']});
       queryClient.invalidateQueries({queryKey:['myAlerts']});
+
+      // Crear conversación y mensaje inicial de Sofia automáticamente
+      const currentUser = await base44.auth.me().catch(()=>null);
+      if(currentUser){
+        const convId = `${buyer?.id||'buyer'}_${currentUser.id||currentUser.email}_${request.alertId}`;
+        // Buscar si ya existe la conversación
+        const existingConvs = await base44.entities.Conversation.filter({alert_id: request.alertId}).catch(()=>[]);
+        let conv = existingConvs?.[0];
+        if(!conv){
+          conv = await base44.entities.Conversation.create({
+            participant1_id: buyer?.id||'buyer',
+            participant1_name: buyer?.name||'Usuario',
+            participant1_photo: buyer?.photo||null,
+            participant2_id: currentUser.id||currentUser.email,
+            participant2_name: currentUser.full_name||currentUser.email||'Yo',
+            participant2_photo: currentUser.photo_url||null,
+            alert_id: request.alertId,
+            last_message_text: 'ey ! te he enviado un waitme',
+            last_message_at: new Date().toISOString(),
+            unread_count_p2: 1,
+          }).catch(()=>null);
+        }
+        if(conv){
+          await base44.entities.ChatMessage.create({
+            conversation_id: conv.id,
+            alert_id: request.alertId,
+            sender_id: buyer?.id||'buyer',
+            sender_name: (buyer?.name||'Usuario').split(' ')[0],
+            sender_photo: buyer?.photo||null,
+            receiver_id: currentUser.id||currentUser.email,
+            message: 'ey ! te he enviado un waitme',
+            read: false,
+            message_type: 'user',
+          }).catch(()=>null);
+        }
+      }
     }catch{setLoading(false);}
   };
 
