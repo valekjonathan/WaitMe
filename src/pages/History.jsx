@@ -1840,7 +1840,7 @@ const myFinalizedAlerts = useMemo(() => {
                           </div>
                         </motion.div>
                       );
-                  })}</div>;
+                  })}</div>
                 })()}
 
                   </TabsContent>
