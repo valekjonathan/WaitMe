@@ -313,7 +313,7 @@ export default function ParkingMap({
   return (
     <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
       {useCenterPin && (
-        /* Pin idéntico al home: bola parpadeante + palito, anclado al centro exacto del mapa */
+        /* Pin: bola arriba + palito abajo, la BASE del palito toca el centro exacto del mapa */
         <>
           <style>{`
             @keyframes pin-pulse {
@@ -321,7 +321,7 @@ export default function ParkingMap({
               50% { opacity: 0.85; transform: translateX(-50%) scale(1.15); box-shadow: 0 0 0 8px rgba(168,85,247,0); }
             }
           `}</style>
-          {/* Palito: empieza exactamente en el centro (top:50%, left:50%) y sube hacia arriba */}
+          {/* Palito: arranca en el centro (base) y sube 35px */}
           <div
             className="absolute z-[2000] pointer-events-none"
             style={{
@@ -333,13 +333,13 @@ export default function ParkingMap({
               background: '#a855f7',
             }}
           />
-          {/* Bola: centrada horizontalmente, su base toca la punta del palito */}
+          {/* Bola: encima del palito — desplazada hacia arriba 35px + su propio radio (9px) */}
           <div
             className="absolute z-[2000] pointer-events-none"
             style={{
               left: '50%',
               top: '50%',
-              transform: `translateX(-50%) translateY(calc(-100% - 35px))`,
+              transform: 'translate(-50%, calc(-100% - 35px - 9px))',
               width: 18,
               height: 18,
               borderRadius: '50%',
