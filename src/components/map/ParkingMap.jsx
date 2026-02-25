@@ -526,14 +526,13 @@ export default function ParkingMap({
           </Marker>
         }
         
-        {/* Ruta */}
+        {/* Ruta continua */}
         {route && (
           <Polyline
             positions={route}
             color="#a855f7"
-            weight={4}
-            opacity={0.8}
-            dashArray="10, 10"
+            weight={5}
+            opacity={0.9}
           />
         )}
 
