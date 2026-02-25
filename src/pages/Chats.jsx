@@ -585,7 +585,7 @@ const badgeCls = isCompletedOrCanceled
                       localStorage.setItem('waitme:chat_unread', String(total));
                       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
                     } catch {}
-                    navigate(createPageUrl(`chat?alertId=${dc.alert_id}&userId=${dc.buyer_id}&otherName=${encodeURIComponent(dc.buyer_name||'')}&otherPhoto=${encodeURIComponent(dc.buyer_photo||'')}&demoFirstMsg=${encodeURIComponent(dc.first_message||'')}`));
+                    navigate(createPageUrl(`chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`));
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
