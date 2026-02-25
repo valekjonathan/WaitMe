@@ -585,7 +585,7 @@ const badgeCls = isCompletedOrCanceled
                       localStorage.setItem('waitme:chat_unread', String(total));
                       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
                     } catch {}
-                    navigate(createPageUrl(`Chat?alertId=${dc.alert_id}&userId=${dc.buyer_id}&otherName=${encodeURIComponent(dc.buyer_name||'')}&otherPhoto=${encodeURIComponent(dc.buyer_photo||'')}&demoFirstMsg=${encodeURIComponent(dc.first_message||'')}`));
+                    navigate(createPageUrl(`chat?alertId=${dc.alert_id}&userId=${dc.buyer_id}&otherName=${encodeURIComponent(dc.buyer_name||'')}&otherPhoto=${encodeURIComponent(dc.buyer_photo||'')}&demoFirstMsg=${encodeURIComponent(dc.first_message||'')}`));
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -727,7 +727,7 @@ const badgeCls = isCompletedOrCanceled
               const photo = encodeURIComponent(otherUserPhoto || '');
               const demo = demoMode ? 'demo=true&' : '';
               const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
-              navigate(createPageUrl(`Chat?${demo}conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
+              navigate(createPageUrl(`chat?${demo}conversationId=${conv.id}${alertIdParam}&otherName=${name}&otherPhoto=${photo}`));
             };
 
             return (
