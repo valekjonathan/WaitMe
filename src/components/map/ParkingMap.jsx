@@ -483,8 +483,8 @@ export default function ParkingMap({
           </Marker>
         ))}
 
-        {/* Seller / destino: con ruta activa o cuando se debe mostrar destino (navegación) */}
-        {sellerLocation && (showRoute || showSellerMarker) && sellerLocation !== normalizedUserLocation && (
+        {/* Seller / destino: siempre visible en navegación */}
+        {sellerLocation && (showRoute || showSellerMarker) && (
           <Marker 
             position={sellerLocation}
             icon={L.divIcon({
