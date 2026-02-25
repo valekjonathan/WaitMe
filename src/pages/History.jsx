@@ -1443,8 +1443,9 @@ const myFinalizedAlerts = useMemo(() => {
                                       />
                                       <button
                                         onClick={() => {
-                                          hideKey(cardKey);
-                                          cancelAlertMutation.mutate(alert.id);
+                                          // Alerta reservada: mostrar advertencia de penalización
+                                          setCancelReservedAlert(alert);
+                                          setCancelReservedOpen(true);
                                         }}
                                         disabled={cancelAlertMutation.isPending}
                                         className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
