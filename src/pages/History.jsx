@@ -1645,8 +1645,8 @@ const myFinalizedAlerts = useMemo(() => {
                               <Navigation className="w-4 h-4"/>
                             </Button>
                             <div className="flex-1">
-                              <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center">
-                                <span className="font-mono font-extrabold text-sm text-gray-400/70">RECHAZADA</span>
+                              <div className="w-full h-8 rounded-lg border-2 border-purple-400/50 bg-purple-500/20 flex items-center justify-center">
+                                <span className="font-bold text-sm text-purple-300">Te reservó:</span>
                               </div>
                             </div>
                           </div>
