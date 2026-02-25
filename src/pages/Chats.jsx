@@ -295,7 +295,7 @@ placeholderData: (prev) => prev,
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
-      const data = await base44.entities.Alert.list({
+      const data = await base44.entities.ParkingAlert.list({
         filter: { or: [{ user_id: user?.id }, { reserved_by_id: user?.id }] }
       });
       return data || [];
