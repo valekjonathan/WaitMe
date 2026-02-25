@@ -552,7 +552,8 @@ const getCreatedTs = (alert) => {
     );
   };
 
-  // ====== Ocultar tarjetas al borrar (UI) ======
+  // ====== Ocultar tarjetas al borrar (UI) — persistido en ref para no perderse en re-renders ======
+  const hiddenKeysRef = useRef(new Set());
   const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
   const isHidden = (key) => hiddenKeys.has(key);
   const hideKey = (key) => {
