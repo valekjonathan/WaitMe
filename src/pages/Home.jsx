@@ -19,6 +19,7 @@ import NotificationManager from '@/components/NotificationManager';
 import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
+import { alertsKey, alertsPrefix } from '@/lib/alertsQueryKey';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -163,17 +164,18 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts', mode, locationKey],
+    queryKey: alertsKey(mode, locationKey),
     enabled: mode === 'search',
     queryFn: async () => {
       // 10 usuarios cerca (demo local)
       return getMockNearbyAlerts(userLocation);
     },
-    staleTime: 0,
+    staleTime: 15_000,
     gcTime: 10 * 60 * 1000,
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnWindowFocus: true,
+    refetchOnMount: false,
+    placeholderData: (prev) => prev,
   });
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
@@ -379,12 +381,13 @@ export default function Home() {
 },
 
   onSuccess: (newAlert) => {
-    // Actualiza la key activa exacta ['alerts', mode, locationKey]
-    queryClient.setQueryData(['alerts', mode, locationKey], (old) => {
+    // Update optimista sobre la key exacta activa
+    queryClient.setQueryData(alertsKey(mode, locationKey), (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
-    queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
+    // Invalida el prefijo para refrescar todas las variantes
+    queryClient.invalidateQueries({ queryKey: alertsPrefix });
 
     queryClient.setQueryData(['myAlerts'], (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
@@ -392,7 +395,7 @@ export default function Home() {
     });
 
     if (import.meta.env.DEV) {
-      console.debug('[P1] createAlertMutation.onSuccess → updated [alerts,', mode, locationKey, ']');
+      console.debug('[alertsKey] createAlertMutation.onSuccess → setQueryData', alertsKey(mode, locationKey));
     }
 
     try {
@@ -415,7 +418,7 @@ export default function Home() {
       return;
     }
 
-    queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
+    queryClient.invalidateQueries({ queryKey: alertsPrefix });
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }
 });
@@ -466,7 +469,7 @@ export default function Home() {
       navigate(createPageUrl('History'));
 
       // Usa la key activa exacta para cancelar + snapshot + update optimista
-      const activeKey = ['alerts', mode, locationKey];
+      const activeKey = alertsKey(mode, locationKey);
       await queryClient.cancelQueries({ queryKey: activeKey });
 
       const previousAlerts = queryClient.getQueryData(activeKey);
@@ -485,12 +488,12 @@ export default function Home() {
     onError: (err, alert, context) => {
       // Restaura el snapshot usando la key guardada en el contexto
       if (context?.previousAlerts !== undefined) {
-        queryClient.setQueryData(context.activeKey ?? ['alerts', mode, locationKey], context.previousAlerts);
+        queryClient.setQueryData(context.activeKey ?? alertsKey(mode, locationKey), context.previousAlerts);
       }
       setSelectedAlert(null);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts', mode, locationKey] });
+      queryClient.invalidateQueries({ queryKey: alertsPrefix });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
     }
