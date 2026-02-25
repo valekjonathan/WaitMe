@@ -144,9 +144,9 @@ export default function Header({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
       {/* barra superior */}
-      <div className="px-4 py-3">
-        {/* ✅ Grid 3 columnas: el centro nunca pisa izquierda/derecha */}
-        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
+      <div className="px-4 py-3 relative">
+        {/* Grid 3 columnas: izq y der */}
+        <div className="flex items-center justify-between">
           {/* IZQUIERDA */}
           <div className="flex items-center gap-2">
             {showBackButton ? (
@@ -180,9 +180,6 @@ export default function Header({
             </Link>
           </div>
 
-          {/* CENTRO */}
-          <div className="min-w-0 px-1">{titleNode}</div>
-
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
             <Link to={createPageUrl('Settings')}>
@@ -196,6 +193,11 @@ export default function Header({
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* CENTRO: título absolutamente centrado */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto">{titleNode}</div>
         </div>
       </div>
 
