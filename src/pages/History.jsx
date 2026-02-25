@@ -1741,7 +1741,7 @@ const myFinalizedAlerts = useMemo(() => {
                               </span>
                             </div>
 
-                            <CountdownButton text={statusLabelFrom(a.status)} dimmed={true} />
+                            <CountdownButton text={statusLabelFrom(a.status, a)} dimmed={true} />
                           </motion.div>
                         );
                       }
