@@ -1232,6 +1232,10 @@ const myFinalizedAlerts = useMemo(() => {
                       localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
                       window.dispatchEvent(new Event('waitme:thinkingUpdated'));
                     } catch {}
+                    // Optimistically update the cache so the card appears immediately in Activas
+                    queryClient.setQueryData(['myAlerts'], (old = []) =>
+                      old.map(a => a.id === req.alertId ? { ...a, ...payload } : a)
+                    );
                     base44.entities.ParkingAlert.update(req.alertId, payload).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                     });
