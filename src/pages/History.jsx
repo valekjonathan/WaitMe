@@ -1420,12 +1420,12 @@ const myFinalizedAlerts = useMemo(() => {
                         <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={rejectThinking}>Rechazar</Button>
                       </div>
                     </motion.div>
-                  return null;
-                  }
-                  // Entry type is 'active'
-                  const alert = entry.item;
-                  const index = entry.index;
-                         const createdTs = getCreatedTs(alert);
+                      );
+                    }
+                    // Entry type is 'active'
+                    const alert = entry.item;
+                    const index = entry.index;
+                    const createdTs = getCreatedTs(alert);
                          const waitUntilTs = getWaitUntilTs(alert);
 
 
