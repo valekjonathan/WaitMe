@@ -1358,7 +1358,7 @@ const myFinalizedAlerts = useMemo(() => {
                   );
                 })}
 
-                {visibleActiveAlerts.length === 0 && thinkingRequests.length === 0 ? (
+                {visibleActiveAlerts.length === 0 && thinkingRequests.length === 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1366,7 +1366,8 @@ const myFinalizedAlerts = useMemo(() => {
                   >
                     <p className="text-gray-500 font-semibold">No tienes ninguna alerta activa.</p>
                   </motion.div>
-                ) : visibleActiveAlerts.length > 0 ? (
+                )}
+                {visibleActiveAlerts.length > 0 && (
                   <div className="space-y-[20px]">
                     {visibleActiveAlerts
                        .sort((a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0))
