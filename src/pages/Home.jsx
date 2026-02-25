@@ -109,6 +109,14 @@ export default function Home() {
     maxDistance: 10
   });
 
+  const locationKey = useMemo(() => {
+    if (!userLocation) return null;
+    const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
+    const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
+    if (lat == null || lng == null) return null;
+    return `${Number(lat).toFixed(3)},${Number(lng).toFixed(3)}`;
+  }, [userLocation]);
+
   // BLINDADO: resetea SIEMPRE al logo (los 2 botones grandes), sin tocar la UI del logo.
   const resetToLogo = useCallback((opts = { invalidate: true }) => {
     setMode(null);
@@ -153,7 +161,7 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: ['alerts', mode, userLocation],
+    queryKey: ['alerts', mode, locationKey],
     enabled: mode === 'search',
     queryFn: async () => {
       // 10 usuarios cerca (demo local)
