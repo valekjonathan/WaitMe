@@ -552,17 +552,23 @@ const getCreatedTs = (alert) => {
     );
   };
 
-  // ====== Ocultar tarjetas al borrar (UI) — persistido en ref para no perderse en re-renders ======
-  const hiddenKeysRef = useRef(new Set());
-  const [hiddenKeys, setHiddenKeys] = useState(() => new Set());
-  const isHidden = (key) => hiddenKeys.has(key);
+  // ====== Ocultar tarjetas al borrar (UI) — persistido en localStorage ======
+  const [hiddenKeys, setHiddenKeys] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('waitme:hidden_keys') || '[]');
+      return new Set(stored);
+    } catch {
+      return new Set();
+    }
+  });
+
   const hideKey = (key) => {
-    hiddenKeysRef.current.add(key);
-    setHiddenKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
+    const next = new Set(hiddenKeys);
+    next.add(key);
+    setHiddenKeys(next);
+    try {
+      localStorage.setItem('waitme:hidden_keys', JSON.stringify(Array.from(next)));
+    } catch {}
   };
 
   const deleteAlertSafe = async (id) => {
