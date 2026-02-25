@@ -721,7 +721,7 @@ const visibleActiveAlerts = useMemo(() => {
   }, [nowTs, visibleActiveAlerts, queryClient, user?.id, user?.email]);
 
 const myFinalizedAlerts = useMemo(() => {
-  return myAlerts.filter((a) => {
+  const finalized = myAlerts.filter((a) => {
     if (!a) return false;
 
     const isMine =
@@ -734,6 +734,9 @@ const myFinalizedAlerts = useMemo(() => {
       String(a.status || '').toLowerCase()
     );
   });
+  
+  // Ordenar: primero las finalizadas (más recientes)
+  return finalized.sort((a, b) => (toMs(b.updated_date) || toMs(b.created_date) || 0) - (toMs(a.updated_date) || toMs(a.created_date) || 0));
 }, [myAlerts, user?.id, user?.email]);
     
   // Reservas (tuyas como comprador)
