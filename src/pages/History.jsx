@@ -2162,18 +2162,18 @@ const myFinalizedAlerts = useMemo(() => {
                                 </Badge>
                               }
                               dateText={dateText}
-                              dateClassName="text-gray-600"
-                              right={
-                                <div className="flex items-center gap-1">
-                                  {mode === 'paid' ? (
-                                    <MoneyChip
-                                      mode="red"
-                                      showDownIcon
-                                      amountText={formatPriceInt(a.price)}
-                                    />
-                                  ) : (
-                                    <MoneyChip mode="neutral" amountText={formatPriceInt(a.price)} />
-                                  )}
+                               dateClassName="text-white"
+                               right={
+                                 <div className="flex items-center gap-1">
+                                   {mode === 'paid' ? (
+                                     <MoneyChip
+                                       mode="red"
+                                       showDownIcon
+                                       amountText={formatPriceInt(a.price)}
+                                     />
+                                   ) : (
+                                     <MoneyChip mode="neutral" amountText={formatPriceInt(a.price)} />
+                                   )}
 
                                   <button
                                     onClick={async () => {
