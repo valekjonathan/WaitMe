@@ -103,6 +103,10 @@ export default function IncomingRequestModal(){
       localStorage.setItem('waitme:thinking_requests',JSON.stringify([]));
       window.dispatchEvent(new Event('waitme:thinkingUpdated'));
     }catch{}
+    // Optimistically update the alert in cache so it appears immediately in Activas
+    queryClient.setQueryData(['myAlerts'], (old=[]) =>
+      Array.isArray(old) ? old.map(a => a.id === request.alertId ? {...a,...payload} : a) : old
+    );
     try{window.dispatchEvent(new Event('waitme:badgeRefresh'));}catch{}
     handleClose();
     navigate(createPageUrl('History'));
