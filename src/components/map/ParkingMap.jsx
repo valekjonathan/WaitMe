@@ -86,10 +86,10 @@ function createUserLocationIcon() {
           50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
       </style>
-      <div style="position: relative; width: 40px; height: 60px;">
+      <div style="position: relative; width: 40px; height: 80px;">
         <div style="
           position: absolute;
-          bottom: 0;
+          bottom: 20px;
           left: 50%;
           transform: translateX(-50%);
           width: 2px;
@@ -98,7 +98,7 @@ function createUserLocationIcon() {
         "></div>
         <div style="
           position: absolute;
-          bottom: 30px;
+          bottom: 50px;
           left: 50%;
           transform: translateX(-50%);
           width: 18px;
@@ -110,8 +110,8 @@ function createUserLocationIcon() {
         "></div>
       </div>
     `,
-    iconSize: [40, 60],
-    iconAnchor: [20, 60]
+    iconSize: [40, 80],
+    iconAnchor: [20, 55]
   });
 }
 
