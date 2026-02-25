@@ -10,6 +10,24 @@ export default function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [chatUnread, setChatUnread] = useState(0);
+
+  // Escuchar evento cuando llega un waitme aceptado o mensaje nuevo
+  useEffect(() => {
+    const handler = () => {
+      try {
+        const count = parseInt(localStorage.getItem('waitme:chat_unread') || '0', 10);
+        setChatUnread(isNaN(count) ? 0 : count);
+      } catch {}
+    };
+    handler(); // cargar inicial
+    window.addEventListener('waitme:chatUnreadUpdate', handler);
+    window.addEventListener('waitme:acceptedWaitMe', handler);
+    return () => {
+      window.removeEventListener('waitme:chatUnreadUpdate', handler);
+      window.removeEventListener('waitme:acceptedWaitMe', handler);
+    };
+  }, []);
 
   // Una sola fuente de verdad: myAlerts (el badge se deriva de aquí)
   const { data: myAlerts = [], isFetched, isFetching } = useQuery({
