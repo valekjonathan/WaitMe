@@ -19,6 +19,16 @@ export default function WaitMeRequestScheduler() {
 
       timerRef.current = setTimeout(async () => {
         if (firedRef.current) return;
+
+        // Guard: only fire if the published alert is still active
+        if (publishedAlertId) {
+          try {
+            const a = await base44.entities.ParkingAlert.get(publishedAlertId);
+            const st = String(a?.status || '').toLowerCase();
+            if (st !== 'active' && st !== 'reserved') return; // alert was cancelled/expired
+          } catch {}
+        }
+
         firedRef.current = true;
 
         try {
