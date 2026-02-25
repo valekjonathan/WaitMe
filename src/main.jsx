@@ -6,14 +6,14 @@ import { AuthProvider } from "./lib/AuthContext";
 import App from "./App";
 import "./globals.css";
 
-// Optimización: evita refetches innecesarios y reduce trabajo en el primer render.
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
-      gcTime: 10 * 60_000,
+      staleTime: 5 * 60_000,
+      gcTime: 30 * 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      refetchOnMount: false,
       retry: 1,
     },
   },
