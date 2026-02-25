@@ -1201,7 +1201,7 @@ const myFinalizedAlerts = useMemo(() => {
                   const firstName = (buyer?.name || 'Usuario').split(' ')[0];
                   const carLabel = String(buyer?.car_model || 'Sin datos').trim();
                   const plate = buyer?.plate || '';
-                  const carFillColor = getCarFill(buyer?.car_color || 'gris');
+                  const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
                   const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
                   const mins = Number(alt?.available_in_minutes) || 0;
                   const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
