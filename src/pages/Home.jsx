@@ -594,29 +594,11 @@ export default function Home() {
                 <p className="text-xl font-bold mt-[3px] whitespace-nowrap relative top-[-65px]">
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
-              </div>
 
-              {/* Pin vertical centrado — bolita animada + palito */}
-              <div className="flex flex-col items-center relative top-[-20px] z-10 mb-1">
-                <div
-                  className="animate-pulse"
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    background: '#a855f7',
-                    boxShadow: '0 0 12px rgba(168,85,247,0.8)',
-                    flexShrink: 0,
-                  }}
-                />
-                <div
-                  style={{
-                    width: 2,
-                    height: 32,
-                    background: '#a855f7',
-                    flexShrink: 0,
-                  }}
-                />
+                <div className="flex flex-col items-center mt-2 mb-2">
+                  <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
+                  <div className="w-[2px] h-8 bg-purple-500" />
+                </div>
               </div>
 
               {/* BOTONES */}
