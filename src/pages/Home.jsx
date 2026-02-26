@@ -596,6 +596,29 @@ export default function Home() {
                 </p>
               </div>
 
+              {/* Pin vertical centrado — bolita animada + palito */}
+              <div className="flex flex-col items-center relative top-[-20px] z-10 mb-1">
+                <div
+                  className="animate-pulse"
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#a855f7',
+                    boxShadow: '0 0 12px rgba(168,85,247,0.8)',
+                    flexShrink: 0,
+                  }}
+                />
+                <div
+                  style={{
+                    width: 2,
+                    height: 32,
+                    background: '#a855f7',
+                    flexShrink: 0,
+                  }}
+                />
+              </div>
+
               {/* BOTONES */}
               <div className="w-full max-w-sm mx-auto space-y-4 relative top-[-20px] z-10 px-6">
                 <Button
