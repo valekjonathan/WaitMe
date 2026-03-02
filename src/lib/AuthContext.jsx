@@ -124,8 +124,14 @@ export const AuthProvider = ({ children }) => {
       console.log('Login redirect bloqueado en entorno local');
       return;
     }
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    // Avoid redirect loop: never redirect if already on /login
+    if (window.location.pathname === '/login') return;
+    // Avoid nesting from_url inside from_url (causes URI_TOO_LONG)
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('from_url')) return;
+    // Use pathname+search only (not full href) to keep URL short
+    const returnTo = window.location.pathname + window.location.search;
+    base44.auth.redirectToLogin(returnTo);
   }, []);
 
   useEffect(() => {
