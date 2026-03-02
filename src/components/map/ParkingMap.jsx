@@ -410,6 +410,9 @@ export default function ParkingMap({
         style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000, imageRendering: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
         className="rounded-2xl"
         zoomControl={zoomControl}
+        zoomSnap={1}
+        zoomDelta={1}
+        preferCanvas={true}
         key={`map-${zoomControl}`}>
 
         <TileLayer
