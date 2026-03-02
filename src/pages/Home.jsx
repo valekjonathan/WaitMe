@@ -596,30 +596,32 @@ export default function Home() {
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
 
-                <div className="flex flex-col items-center mt-3 mb-3" style={{ transform: 'translateY(-5px)' }}>
-                  <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
-                  <div className="w-[2px] h-8 bg-purple-500" />
-                </div>
+                <div className="flex flex-col items-center w-full max-w-sm" style={{ transform: 'translateY(-5px)' }}>
+                  <div className="flex flex-col items-center mt-3 mb-3">
+                    <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
+                    <div className="w-[2px] h-8 bg-purple-500" />
+                  </div>
 
-                <div className="w-full max-w-sm space-y-4 mt-4" style={{ transform: 'translateY(-5px)' }}>
-                  <Button
-                    onClick={() => setMode('search')}
-                    className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
-                  >
-                    <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
-                    ¿ Dónde quieres aparcar ?
-                  </Button>
+                  <div className="w-full space-y-4 mt-4">
+                    <Button
+                      onClick={() => setMode('search')}
+                      className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
+                    >
+                      <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
+                      ¿ Dónde quieres aparcar ?
+                    </Button>
 
-                  <Button
-                    onClick={() => {
-                      getCurrentLocation();
-                      setMode('create');
-                    }}
-                    className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
-                  >
-                    <CarIconProfile color="#000000" size="w-20 h-14" />
-                    ¡ Estoy aparcado aquí !
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        getCurrentLocation();
+                        setMode('create');
+                      }}
+                      className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
+                    >
+                      <CarIconProfile color="#000000" size="w-20 h-14" />
+                      ¡ Estoy aparcado aquí !
+                    </Button>
+                  </div>
                 </div>
               </div>
         </div>
