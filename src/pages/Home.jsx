@@ -557,7 +557,7 @@ export default function Home() {
       <main className="fixed inset-0 top-0 bottom-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden"
+          className="absolute inset-0 flex flex-col items-center justify-start overflow-hidden"
           style={{ display: mode ? 'none' : 'flex' }}
         >
               {showBackgroundMap && (
