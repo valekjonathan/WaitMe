@@ -597,7 +597,7 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col items-center w-full max-w-sm">
-                  <div className="flex flex-col items-center mt-[7px] mb-3">
+                  <div className="flex flex-col items-center mt-[7px] mb-[4px]">
                     <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
                     <div className="w-[2px] h-8 bg-purple-500" />
                   </div>
