@@ -312,7 +312,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   return (
-    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000, transform: 'translateZ(0)', backfaceVisibility: 'hidden', imageRendering: 'auto' }}>
+    <div className={`absolute inset-0 ${className}`} style={{ zIndex: 1000, transform: 'translateZ(0)', backfaceVisibility: 'hidden', imageRendering: 'auto' }}>
       {useCenterPin && (
         /* Pin: bolita ARRIBA + palito ABAJO con la punta del palito en el centro exacto del mapa */
         <>
@@ -407,7 +407,7 @@ export default function ParkingMap({
       <MapContainer
         center={defaultCenter}
         zoom={16}
-        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000, imageRendering: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
+        style={{ width: '100%', height: '100%', display: 'block' }}
         className="rounded-2xl"
         zoomControl={zoomControl}
         zoomSnap={1}
