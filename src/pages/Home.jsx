@@ -575,7 +575,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="relative z-10 flex flex-col items-center justify-center w-full px-6">
+              <div className="relative z-10 flex flex-col items-center justify-start w-full px-6 pt-16">
                 <img
                   loading="eager"
                   decoding="async"
@@ -600,7 +600,7 @@ export default function Home() {
                   <div className="w-[2px] h-8 bg-purple-500" />
                 </div>
 
-                <div className="w-full max-w-sm space-y-4">
+                <div className="w-full max-w-sm space-y-4 mt-4">
                   <Button
                     onClick={() => setMode('search')}
                     className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
