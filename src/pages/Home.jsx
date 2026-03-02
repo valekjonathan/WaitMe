@@ -253,12 +253,12 @@ export default function Home() {
 
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
 
-  useEffect(() => {
-    if (!isDemoMode()) return;
-    startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-    return () => unsub?.();
-  }, []);
+  // useEffect(() => {
+  //   if (!isDemoMode()) return;
+  //   startDemoFlow();
+  //   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+  //   return () => unsub?.();
+  // }, []);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);

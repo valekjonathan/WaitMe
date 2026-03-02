@@ -64,11 +64,11 @@ export default function Notifications() {
   const [requests, setRequests] = useState([]);
   const [alertsById, setAlertsById] = useState({});
 
-  useEffect(() => {
-    startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
-    return () => unsub?.();
-  }, []);
+  // useEffect(() => {
+  //   startDemoFlow();
+  //   const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
+  //   return () => unsub?.();
+  // }, []);
 
   useEffect(() => {
     const load = () => {

@@ -57,12 +57,12 @@ export default function Chat() {
   // ======================
   const [, forceTick] = useState(0);
 
-  useEffect(() => {
-    if (!isDemo) return;
-    startDemoFlow();
-    const unsub = subscribeDemoFlow(() => forceTick((x) => x + 1));
-    return () => unsub?.();
-  }, [isDemo]);
+  // useEffect(() => {
+  //   if (!isDemo) return;
+  //   startDemoFlow();
+  //   const unsub = subscribeDemoFlow(() => forceTick((x) => x + 1));
+  //   return () => unsub?.();
+  // }, [isDemo]);
 
   // OJO: demoFlow ES UN OBJETO (no función)
   const demoSt = isDemo ? demoFlow : null;

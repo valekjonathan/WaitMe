@@ -522,9 +522,9 @@ export function setDemoMode() { return true; }
 ====================================================== */
 
 export default function DemoFlowManager() {
-  useEffect(() => {
-    // Siempre activo: la app arranca con datos y se ve igual en Preview y en iPhone (PWA).
-    startDemoFlow();
-  }, []);
+  // useEffect(() => {
+  //   // Siempre activo: la app arranca con datos y se ve igual en Preview y en iPhone (PWA).
+  //   startDemoFlow();
+  // }, []);
   return null;
 }

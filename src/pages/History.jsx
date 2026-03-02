@@ -88,12 +88,12 @@ useEffect(() => {
   return () => clearInterval(id);
 }, []);
 
-useEffect(() => {
-  if (!isDemoMode()) return;
-  startDemoFlow();
-  const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-  return () => unsub?.();
-}, []);
+// useEffect(() => {
+//   if (!isDemoMode()) return;
+//   startDemoFlow();
+//   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+//   return () => unsub?.();
+// }, []);
 
 
 const queryClient = useQueryClient();

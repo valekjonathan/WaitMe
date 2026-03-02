@@ -216,12 +216,12 @@ export default function Chats() {
   const demoMode = useMemo(() => isDemoMode(), []);
   const [demoTick, setDemoTick] = useState(0);
 
-  useEffect(() => {
-    if (!demoMode) return;
-    startDemoFlow();
-    const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-    return () => unsub?.();
-  }, [demoMode]);
+  // useEffect(() => {
+  //   if (!demoMode) return;
+  //   startDemoFlow();
+  //   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
+  //   return () => unsub?.();
+  // }, [demoMode]);
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
