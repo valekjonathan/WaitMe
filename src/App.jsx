@@ -36,20 +36,12 @@ export default function App() {
 
   if (isLocalhost) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#111',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#000' }}>
         <div style={{
           width: '393px',
           height: '852px',
+          margin: '0 auto',
           overflow: 'hidden',
-          position: 'relative',
-          borderRadius: '48px',
-          boxShadow: '0 0 0 2px #333, 0 0 40px rgba(0,0,0,0.8)',
         }}>
           {appContent}
         </div>
