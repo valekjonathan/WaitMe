@@ -573,7 +573,7 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none" style={{ backgroundBlendMode: 'multiply' }}></div>
+              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
               <div className="relative z-10 flex flex-col items-center w-full px-6 mt-6">
                 <img
