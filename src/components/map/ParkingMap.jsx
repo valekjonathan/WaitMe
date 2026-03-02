@@ -180,12 +180,9 @@ function MapInvalidateSize() {
     };
     const t1 = setTimeout(run, 100);
     const t2 = setTimeout(run, 500);
-    const onResize = () => run();
-    window.addEventListener('resize', onResize);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      window.removeEventListener('resize', onResize);
     };
   }, [map]);
   return null;
