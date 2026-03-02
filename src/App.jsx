@@ -38,10 +38,11 @@ export default function App() {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#000' }}>
         <div style={{
-          width: '393px',
-          height: '852px',
+          width: 393,
+          height: 852,
           margin: '0 auto',
           overflow: 'hidden',
+          backgroundColor: '#000',
         }}>
           {appContent}
         </div>
