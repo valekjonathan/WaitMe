@@ -4,6 +4,14 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      host: '192.168.0.10'
+    }
+  },
   build: {
     // Logos/PNG pequeños inline => carga instantánea (iOS PWA incluido)
     assetsInlineLimit: 200000,
