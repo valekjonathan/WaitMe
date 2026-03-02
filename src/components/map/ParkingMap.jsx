@@ -407,7 +407,7 @@ export default function ParkingMap({
       <MapContainer
         center={defaultCenter}
         zoom={16}
-        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}
+        style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000, imageRendering: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
         className="rounded-2xl"
         zoomControl={zoomControl}
         key={`map-${zoomControl}`}>
