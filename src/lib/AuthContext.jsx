@@ -120,6 +120,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const navigateToLogin = useCallback(() => {
+    if (window.location.hostname === 'localhost') {
+      console.log('Login redirect bloqueado en entorno local');
+      return;
+    }
     // Use the SDK's redirectToLogin method
     base44.auth.redirectToLogin(window.location.href);
   }, []);
