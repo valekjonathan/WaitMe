@@ -312,7 +312,7 @@ export default function ParkingMap({
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   return (
-    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000 }}>
+    <div className={`relative ${className}`} style={{ height: '100%', minHeight: '400px', width: '100%', zIndex: 1000, transform: 'translateZ(0)', backfaceVisibility: 'hidden', imageRendering: 'auto' }}>
       {useCenterPin && (
         /* Pin: bolita ARRIBA + palito ABAJO con la punta del palito en el centro exacto del mapa */
         <>
