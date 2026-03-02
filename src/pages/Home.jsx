@@ -543,7 +543,6 @@ export default function Home() {
 
   return (
     <div className="min-h-[100dvh] w-full text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
-      <p className="text-3xl font-bold text-red-500 text-center py-4">TEST HOME DESDE GITHUB</p>
       <NotificationManager user={user} />
       
 
