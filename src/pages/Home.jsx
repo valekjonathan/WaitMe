@@ -575,7 +575,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="relative z-10 flex flex-col items-center justify-start w-full px-6 pt-16">
+              <div className="relative z-10 flex flex-col items-center justify-start w-full px-6 pt-4">
                 <img
                   loading="eager"
                   decoding="async"
