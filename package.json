@@ -17,6 +17,7 @@
     "sync:ios": "npm run build && npx cap sync ios",
     "run:ios": "npm run build && npx cap sync ios && npx cap open ios",
     "sim": "npm run build && npx cap sync ios && open -a Simulator",
+    "ios:auto": "npm run build && npx cap sync ios && open -a Simulator",
     "go": "npm run dev"
   },
   "dependencies": {
