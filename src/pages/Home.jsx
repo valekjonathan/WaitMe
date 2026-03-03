@@ -590,7 +590,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="relative z-10 flex flex-col items-center w-full px-6 mt-6">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6">
                 <img
                   loading="eager"
                   decoding="async"
@@ -599,7 +599,7 @@ export default function Home() {
                   height={212}
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] object-contain mt-[47px] translate-y-[5px]"
+                  className="w-[212px] h-[212px] object-contain translate-y-[5px]"
                 />
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-38px]">
