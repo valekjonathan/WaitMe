@@ -201,24 +201,46 @@ export default function Home() {
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }, [user?.id, user?.email, queryClient]);
 
+  // Reverse geocoding (estable, sin deps cambiantes)
+  const reverseGeocode = useCallback((lat, lng) => {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=19&addressdetails=1`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.address) {
+          const a = data.address;
+          const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
+          const number = a.house_number || '';
+          setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // One-shot: usado al pulsar "Estoy aparcado aquí" para refrescar posición al instante
   const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation([latitude, longitude]);
+        setSelectedPosition({ lat: latitude, lng: longitude });
+        reverseGeocode(latitude, longitude);
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+  }, [reverseGeocode]);
 
-    // Primero pedimos baja precisión (rápido) para no dejar el mapa en blanco
-    const reverseGeocode = (lat, lng) => {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=19&addressdetails=1`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.address) {
-            const a = data.address;
-            const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
-            const number = a.house_number || '';
-            setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
-          }
-        })
-        .catch(() => {});
-    };
+  // Watcher GPS continuo tipo Uber — arranca al montar, limpia al desmontar
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
+      setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
+      setAddress('Oviedo');
+      return;
+    }
 
+    // Fix rápido de baja precisión para que el mapa no arranque en blanco
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -229,27 +251,26 @@ export default function Home() {
       () => {
         setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
         setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
-        if (!address) setAddress('Oviedo');
+        setAddress('Oviedo');
       },
       { enableHighAccuracy: false, timeout: 4000, maximumAge: 30 * 1000 }
     );
 
-    // Alta precisión GPS real
-    navigator.geolocation.getCurrentPosition(
+    // Watcher de alta precisión continuo
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
+        const { latitude, longitude, accuracy } = pos.coords;
+        if (accuracy > 30) return; // ignorar lecturas con precisión peor de 30 m
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
         reverseGeocode(latitude, longitude);
       },
       () => {},
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
-  }, []);
 
-  useEffect(() => {
-    getCurrentLocation();
-  }, [getCurrentLocation]);
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [reverseGeocode]);
 
   // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
 
