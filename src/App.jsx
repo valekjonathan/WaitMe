@@ -23,7 +23,13 @@ function AuthGate() {
 
 export default function App() {
   return (
-    <div className="min-h-[100dvh] bg-black flex flex-col">
+    <div
+      className="min-h-[100dvh] bg-black flex flex-col"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
       <DemoFlowManager />
       <WaitMeRequestScheduler />
       <IncomingRequestModal />
