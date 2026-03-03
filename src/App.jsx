@@ -5,6 +5,7 @@ import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 
+
 function AuthGate() {
   const { user, isLoadingAuth, navigateToLogin } = useAuth();
   const redirected = useRef(false);
@@ -22,6 +23,18 @@ function AuthGate() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const initStatusBar = async () => {
+      try {
+        const { StatusBar } = await import('@capacitor/status-bar');
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      } catch {
+        // No-op en web / entorno no-Capacitor
+      }
+    };
+    initStatusBar();
+  }, []);
+
   return (
     <div
       className="min-h-[100dvh] bg-black flex flex-col"
