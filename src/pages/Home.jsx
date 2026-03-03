@@ -562,14 +562,7 @@ export default function Home() {
           style={{ display: mode ? 'none' : 'block' }}
         >
               {showBackgroundMap && (
-                <div
-                  className="absolute inset-0 pointer-events-none overflow-hidden"
-                  style={{
-                    maskImage: 'linear-gradient(to bottom, transparent 44%, black 63%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 44%, black 63%)',
-                    opacity: 0.3,
-                  }}
-                >
+                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                   <div className="w-full h-full">
                     <ParkingMap
                       alerts={homeMapAlerts}
@@ -583,6 +576,34 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
+              {/* 3 coches mock — asoman parcialmente detrás del botón morado */}
+              <div className="absolute left-[6%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '200px' }}>
+                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
+                  <div className="w-2 h-2 rounded-full bg-blue-400" />
+                  <span className="text-[10px] text-white font-semibold">SUV · 7€</span>
+                </div>
+                <div className="w-px h-2 bg-gray-400/60" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+              </div>
+
+              <div className="absolute left-[42%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '225px' }}>
+                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
+                  <div className="w-2 h-2 rounded-full bg-orange-400" />
+                  <span className="text-[10px] text-white font-semibold">Van · 5€</span>
+                </div>
+                <div className="w-px h-2 bg-gray-400/60" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+              </div>
+
+              <div className="absolute right-[6%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '190px' }}>
+                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
+                  <div className="w-2 h-2 rounded-full bg-green-400" />
+                  <span className="text-[10px] text-white font-semibold">Car · 10€</span>
+                </div>
+                <div className="w-px h-2 bg-gray-400/60" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+              </div>
+
               <div className="relative z-10 flex flex-col items-center w-full px-6 mt-6">
                 <img
                   loading="eager"
@@ -592,7 +613,7 @@ export default function Home() {
                   height={212}
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] object-contain mt-[42px]"
+                  className="w-[212px] h-[212px] object-contain mt-[47px]"
                 />
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-38px]">
