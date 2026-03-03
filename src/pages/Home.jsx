@@ -299,8 +299,22 @@ export default function Home() {
 
   const homeMapAlerts = useMemo(() => {
     if (mode === 'search') return searchAlerts || [];
-    // Coches demo visuales en pantalla principal
-    if (mode === null) return getMockNearbyAlerts(userLocation);
+    if (mode === null) {
+      const base = getMockNearbyAlerts(userLocation);
+      const lat0 = Array.isArray(userLocation)
+        ? Number(userLocation[0])
+        : Number(userLocation?.latitude ?? userLocation?.lat ?? 43.3623);
+      const lng0 = Array.isArray(userLocation)
+        ? Number(userLocation[1])
+        : Number(userLocation?.longitude ?? userLocation?.lng ?? -5.8489);
+      // 3 coches extra bien al sur: aparecen en la zona del botón morado en pantalla
+      const extra = [
+        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  car_color: 'azul',   vehicle_type: 'suv',  status: 'active' },
+        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  car_color: 'rojo',   vehicle_type: 'van',  status: 'active' },
+        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, car_color: 'negro',  vehicle_type: 'car',  status: 'active' },
+      ];
+      return [...base, ...extra];
+    }
     return [];
   }, [mode, searchAlerts, userLocation]);
 
@@ -576,34 +590,6 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              {/* 3 coches mock — asoman parcialmente detrás del botón morado */}
-              <div className="absolute left-[6%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '200px' }}>
-                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
-                  <div className="w-2 h-2 rounded-full bg-blue-400" />
-                  <span className="text-[10px] text-white font-semibold">SUV · 7€</span>
-                </div>
-                <div className="w-px h-2 bg-gray-400/60" />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
-              </div>
-
-              <div className="absolute left-[42%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '225px' }}>
-                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
-                  <div className="w-2 h-2 rounded-full bg-orange-400" />
-                  <span className="text-[10px] text-white font-semibold">Van · 5€</span>
-                </div>
-                <div className="w-px h-2 bg-gray-400/60" />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
-              </div>
-
-              <div className="absolute right-[6%] z-[5] pointer-events-none flex flex-col items-center" style={{ bottom: '190px' }}>
-                <div className="bg-gray-900/90 border border-gray-600/60 rounded-lg px-1.5 py-0.5 flex items-center gap-1 shadow-lg">
-                  <div className="w-2 h-2 rounded-full bg-green-400" />
-                  <span className="text-[10px] text-white font-semibold">Car · 10€</span>
-                </div>
-                <div className="w-px h-2 bg-gray-400/60" />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
-              </div>
-
               <div className="relative z-10 flex flex-col items-center w-full px-6 mt-6">
                 <img
                   loading="eager"
@@ -613,7 +599,7 @@ export default function Home() {
                   height={212}
                   src={appLogo}
                   alt="WaitMe!"
-                  className="w-[212px] h-[212px] object-contain mt-[47px]"
+                  className="w-[212px] h-[212px] object-contain mt-[47px] translate-y-[5px]"
                 />
 
                 <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-38px]">
