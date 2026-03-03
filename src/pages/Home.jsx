@@ -590,7 +590,13 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6">
+              <div
+                className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6"
+                style={{
+                  paddingTop: '60px',
+                  paddingBottom: 'var(--bottom-nav-h)',
+                }}
+              >
                 <img
                   loading="eager"
                   decoding="async"
