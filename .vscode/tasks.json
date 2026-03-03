@@ -10,19 +10,14 @@
       },
       "isBackground": true,
       "problemMatcher": {
-        "owner": "vite",
+        "owner": "vite-dev",
         "pattern": {
-          "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
-          "file": 1,
-          "line": 2,
-          "column": 3,
-          "severity": 4,
-          "message": 5
+          "regexp": "^$"
         },
         "background": {
           "activeOnStart": true,
           "beginsPattern": "VITE",
-          "endsPattern": "Local:.*localhost"
+          "endsPattern": "Local:"
         }
       },
       "group": {
@@ -32,16 +27,16 @@
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "tab": "START DEV 🚀"
+        "group": "autostart"
       },
       "runOptions": {
         "runOn": "folderOpen"
       }
     },
     {
-      "label": "iOS Simulator (Live Reload)",
+      "label": "iOS Simulator (Auto)",
       "type": "shell",
-      "command": "npm run build && npx cap sync ios && open -a Simulator",
+      "command": "bash scripts/autostart-ios.sh",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -50,14 +45,20 @@
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "tab": "iOS Simulator 📱"
+        "group": "autostart"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
       }
     },
     {
-      "label": "START ALL (Dev + iOS Simulator)",
-      "dependsOrder": "sequence",
-      "dependsOn": ["START DEV", "iOS Simulator (Live Reload)"],
-      "group": "build",
+      "label": "iOS Simulator (Manual)",
+      "type": "shell",
+      "command": "npm run build && npx cap sync ios && open -a Simulator && sleep 4 && xcrun simctl launch booted com.waitman.app",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": false,
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
