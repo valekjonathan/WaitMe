@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
-    "ios:run": "npm run ios:sync && npm run ios:open"
+    "ios:run": "npm run build && npx cap sync ios && npx cap open ios",
+    "ios:device": "npm run build && npx cap sync ios"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.3",
