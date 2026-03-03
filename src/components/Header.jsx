@@ -110,7 +110,7 @@ export default function Header({
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2 border-gray-600 shadow-[0_1px_0_rgba(255,255,255,0.08)]">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[rgba(255,255,255,0.05)]" style={{ backgroundColor: '#0B0B0F' }}>
       
       <div className="px-4 py-3 relative">
         <div className="flex items-center justify-between">

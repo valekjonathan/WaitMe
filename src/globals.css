@@ -38,7 +38,7 @@
   }
   html, body {
     @apply text-white;
-    background-color: #0b0b0b;
+    background-color: #0B0B0F;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -50,7 +50,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #0b0b0b;
+    background-color: #0B0B0F;
   }
 }
 
@@ -69,7 +69,7 @@
 
 /* DVH GLOBAL FIX (iOS PWA / Safari) */
 html, body, #root { height: 100%; }
-body { min-height: 100dvh; background: #000; }
+body { min-height: 100dvh; background: #0B0B0F; }
 
 /* ── Safe-area (iPhone Dynamic Island / notch) ── */
 :root {

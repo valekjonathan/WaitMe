@@ -80,7 +80,7 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 px-4 pt-[6px] z-[2147483647] pointer-events-auto" style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))', paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))', paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))' }}>
+    <nav className="fixed bottom-0 left-0 right-0 px-4 pt-[6px] z-[2147483647] pointer-events-auto" style={{ backgroundColor: '#0B0B0F', borderTop: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'calc(8px + env(safe-area-inset-bottom, 0px))', paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))', paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))' }}>
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
         <NavLink
           to="/history"
