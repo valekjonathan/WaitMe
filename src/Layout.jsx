@@ -11,8 +11,14 @@ import NotificationSettings from './pages/NotificationSettings';
 
 export default function Layout() {
   return (
-    <div className="min-h-[100dvh] bg-black flex flex-col">
-      <div className="flex-1 page-bottom-pad">
+    <div className="h-[100dvh] bg-black flex flex-col overflow-hidden">
+      {/* Placeholder que ocupa la altura del Header fijo (60px) */}
+      <div className="flex-shrink-0 h-[60px]" />
+      {/* Zona central: ocupa todo lo que queda hasta el BottomNav */}
+      <div
+        className="flex-1 flex flex-col min-h-0"
+        style={{ paddingBottom: 'var(--bottom-nav-h)' }}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />

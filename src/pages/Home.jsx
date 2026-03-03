@@ -557,7 +557,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
+    <div className="flex-1 flex flex-col w-full text-white min-h-0" style={{ backgroundColor: '#0b0b0b' }}>
       <NotificationManager user={user} />
       
 
@@ -569,11 +569,11 @@ export default function Home() {
         onBack={handleBack}
       />
 
-      <main className="fixed inset-0 top-0 bottom-0">
+      <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ display: mode ? 'none' : 'block' }}
+          className="flex-1 flex flex-col relative overflow-hidden min-h-0"
+          style={{ display: mode ? 'none' : 'flex' }}
         >
               {showBackgroundMap && (
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
@@ -590,13 +590,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div
-                className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6"
-                style={{
-                  paddingTop: '60px',
-                  paddingBottom: 'var(--bottom-nav-h)',
-                }}
-              >
+              <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
                 <img
                   loading="eager"
                   decoding="async"
