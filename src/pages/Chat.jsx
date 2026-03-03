@@ -9,8 +9,6 @@ import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  startDemoFlow,
-  subscribeDemoFlow,
   getDemoConversation,
   getDemoMessages,
   markDemoRead,

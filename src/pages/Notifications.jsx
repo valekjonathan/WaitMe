@@ -10,25 +10,16 @@ import { base44 } from '@/api/base44Client';
 import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import {
   Bell,
-  CheckCircle,
-  XCircle,
   MapPin,
-  Timer,
-  TrendingUp,
-  AlertCircle,
   Navigation,
   Clock,
   MessageCircle,
   Phone,
   PhoneOff
 } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
-const _unused = { CheckCircle, XCircle, Timer, TrendingUp, AlertCircle, Clock, MessageCircle, Phone, PhoneOff };
 import UserAlertCard from '@/components/cards/UserAlertCard';
 
 import {
-  startDemoFlow,
-  subscribeDemoFlow,
   getDemoAlertById,
   getDemoNotifications,
   ensureConversationForAlert,
@@ -37,18 +28,6 @@ import {
   markAllDemoRead,
   applyDemoAction
 } from '@/components/DemoFlowManager';
-
-const iconMap = {
-  incoming_waitme: <Bell className="w-5 h-5 text-purple-400" />,
-  reservation_accepted: <CheckCircle className="w-5 h-5 text-green-400" />,
-  reservation_rejected: <XCircle className="w-5 h-5 text-red-400" />,
-  buyer_nearby: <MapPin className="w-5 h-5 text-blue-400" />,
-  prorroga_request: <Timer className="w-5 h-5 text-orange-400" />,
-  payment_completed: <TrendingUp className="w-5 h-5 text-green-400" />,
-  time_expired: <AlertCircle className="w-5 h-5 text-red-400" />,
-  cancellation: <XCircle className="w-5 h-5 text-gray-400" />,
-  status_update: <Bell className="w-5 h-5 text-purple-400" />
-};
 
 function normalize(s) {
   return String(s || '').trim().toLowerCase();
@@ -63,12 +42,6 @@ export default function Notifications() {
   const [requestsTick, setRequestsTick] = useState(0);
   const [requests, setRequests] = useState([]);
   const [alertsById, setAlertsById] = useState({});
-
-  // useEffect(() => {
-  //   startDemoFlow();
-  //   const unsub = subscribeDemoFlow(() => setTick((t) => t + 1));
-  //   return () => unsub?.();
-  // }, []);
 
   useEffect(() => {
     const load = () => {

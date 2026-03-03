@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, MessageCircle, Phone, PhoneOff } from 'lucide-react';
 
@@ -21,11 +21,6 @@ function MarcoCard({
   conversationId,
   role
 }) {
-  const [showChat, setShowChat] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
-  const [showMediaMenu, setShowMediaMenu] = useState(false);
-  const cameraInputRef = useRef(null);
-  const galleryInputRef = useRef(null);
   const stUpper = String(statusText || '').trim().toUpperCase();
   const isCountdownLike =
     typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
@@ -223,7 +218,6 @@ function MarcoCard({
             </div>
           </div>
 
-          {priceChip ? <div className="hidden">{priceChip}</div> : null}
         </div>
       </div>
 

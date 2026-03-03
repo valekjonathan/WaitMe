@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { X, SlidersHorizontal, Clock, Euro, MapPin, Navigation } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
+function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
   return (
     <motion.div
       initial={{ x: -300 }}
@@ -100,3 +100,4 @@ export default function MapFilters({ filters, onFilterChange, onClose, alertsCou
     </motion.div>
   );
 }
+export default React.memo(MapFilters);

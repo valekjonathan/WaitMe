@@ -14,9 +14,6 @@ import ParkingMap from '@/components/map/ParkingMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
-import NotificationManager from '@/components/NotificationManager';
-
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 import { alertsKey, alertsPrefix } from '@/lib/alertsQueryKey';
@@ -30,6 +27,7 @@ if (typeof window !== 'undefined') {
   } catch {}
 }
 import { getMockNearbyAlerts } from '@/lib/mockNearby';
+import { haversineKm } from '@/utils/carUtils';
 
 // ======================
 // Helpers
@@ -37,23 +35,6 @@ import { getMockNearbyAlerts } from '@/lib/mockNearby';
 const FALLBACK_LAT = 43.3623; // Oviedo
 const FALLBACK_LNG = -5.8489; // Oviedo
 
-
-// ======================
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-const buildDemoAlerts = (lat, lng) => {
-  return [];
-};
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
   <svg viewBox="0 0 48 24" className={size} fill="none">
@@ -97,7 +78,6 @@ export default function Home() {
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false);
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
-  const [demoTick, setDemoTick] = useState(0);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -272,15 +252,6 @@ export default function Home() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [reverseGeocode]);
 
-  // Defensa extra: si el logo falla al cargar (iOS/Safari a veces), reintenta 1 vez.
-
-  // useEffect(() => {
-  //   if (!isDemoMode()) return;
-  //   startDemoFlow();
-  //   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-  //   return () => unsub?.();
-  // }, []);
-
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get('reset')) {
@@ -306,7 +277,7 @@ export default function Home() {
       const lng = a.longitude ?? a.lng;
 
       if (uLat != null && uLng != null && lat != null && lng != null) {
-        const km = calculateDistance(uLat, uLng, lat, lng);
+        const km = haversineKm(uLat, uLng, lat, lng);
         if (Number.isFinite(km) && km > filters.maxDistance) return false;
       }
       return true;
@@ -579,9 +550,6 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col w-full text-white min-h-0" style={{ backgroundColor: '#0b0b0b' }}>
-      <NotificationManager user={user} />
-      
-
       <Header
         iconVariant="bottom"
         title="WaitMe!"

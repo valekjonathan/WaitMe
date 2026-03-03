@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Polyline } from 'react-leaflet';
-import { Car } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Button } from '@/components/ui/button';

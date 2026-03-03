@@ -122,17 +122,6 @@ function UserAlertCard({
 
   const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
 
-  const PlateProfile = ({ plate }) => (
-    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-8 w-24">
-      <div className="bg-blue-600 h-full w-6 flex items-center justify-center">
-        <span className="text-white text-[9px] font-bold">E</span>
-      </div>
-      <span className="flex-1 text-center text-black font-mono font-bold text-base tracking-wider">
-        {formatPlate(plate)}
-      </span>
-    </div>
-  );
-
   const CardHeaderRow = ({ left, dateText, right }) => (
     <div className="flex items-center gap-2 mb-2">
       <div className="flex-shrink-0">{left}</div>
@@ -403,13 +392,4 @@ const carColors = {
 };
 const getCarFill = (colorName) => carColors[colorName] || '#CCCCCC';
 
-const CarIconProfile = ({ color, size = 'w-8 h-5' }) => (
-  <svg viewBox="0 0 48 24" className={size} fill="none">
-    <path d="M6 8 L6 18 L42 18 L42 10 L38 8 Z" fill={color} stroke="white" strokeWidth="1.5" />
-    <rect x="8" y="9" width="8" height="6" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
-    <rect x="12" y="5" width="20" height="4" fill="white" />
-    <rect x="2" y="18" width="6" height="2" fill="white" />
-    <rect x="40" y="18" width="6" height="2" fill="white" />
-  </svg>
-);
 export default React.memo(UserAlertCard);

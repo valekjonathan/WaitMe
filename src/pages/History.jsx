@@ -8,15 +8,12 @@ import {
   Euro,
   TrendingUp,
   TrendingDown,
-  Loader,
   X,
   MessageCircle,
   PhoneOff,
   Phone,
   Navigation
 } from 'lucide-react';
-// eslint-disable-next-line no-unused-vars
-const _unusedLoader = Loader;
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,10 +23,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import BottomNav from '@/components/BottomNav';
 import Header from '@/components/Header';
-import UserCard from '@/components/cards/UserCard';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
-import { isDemoMode, startDemoFlow, subscribeDemoFlow, getDemoAlerts } from '@/components/DemoFlowManager';
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
 import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
@@ -47,8 +42,6 @@ export default function Alertas() {
   const { user } = useAuth();
   const [userLocation, setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
-  const [demoTick, setDemoTick] = useState(0);
-
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancelConfirmAlert, setCancelConfirmAlert] = useState(null);
   const [expirePromptOpen, setExpirePromptOpen] = useState(false);
@@ -87,14 +80,6 @@ useEffect(() => {
   }, 1000);
   return () => clearInterval(id);
 }, []);
-
-// useEffect(() => {
-//   if (!isDemoMode()) return;
-//   startDemoFlow();
-//   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-//   return () => unsub?.();
-// }, []);
-
 
 const queryClient = useQueryClient();
 
@@ -586,14 +571,6 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
     }
   }
 });
-const mockReservationsFinal = useMemo(() => {
-    return [];
-  }, [user?.id]);
-
-  const mockTransactions = useMemo(() => {
-  return [];
-}, [user?.id]);
-
  
 
 
@@ -726,10 +703,10 @@ const myFinalizedAlerts = useMemo(() => {
 
 
   // Sin sort aquí: myFinalizedAll aplica el único sort final
-  const myFinalizedAsSellerTx = useMemo(() => [
-    ...transactions.filter((t) => t.seller_id === user?.id),
-    ...mockTransactions
-  ], [transactions, user?.id, mockTransactions]);
+  const myFinalizedAsSellerTx = useMemo(
+    () => transactions.filter((t) => t.seller_id === user?.id),
+    [transactions, user?.id]
+  );
 
   // Único array ordenado para Finalizadas.
   // Cada wrapper lleva finalized_at: timestamp cliente (stampFinalizedAt) o
@@ -785,12 +762,6 @@ const myFinalizedAlerts = useMemo(() => {
       created_date: t.created_date,
       data: t
     })),
-  ...mockReservationsFinal.map((a) => ({
-    type: 'alert',
-    id: `res-final-mock-${a.id}`,
-    created_date: a.created_date,
-    data: a
-  }))
 ];
   const reservationsFinalAll = reservationsFinalAllBase.sort(
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)

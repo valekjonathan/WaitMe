@@ -14,13 +14,6 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
-import {
-  isDemoMode,
-  startDemoFlow,
-  subscribeDemoFlow,
-  getDemoConversations,
-  getDemoAlerts
-} from '@/components/DemoFlowManager';
 
 // ======================
 // Helpers
@@ -211,17 +204,6 @@ export default function Chats() {
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
-
-  // Demo “vivo” y sincronizado (CHATS / CHAT / NOTIFICACIONES)
-  const demoMode = useMemo(() => isDemoMode(), []);
-  const [demoTick, setDemoTick] = useState(0);
-
-  // useEffect(() => {
-  //   if (!demoMode) return;
-  //   startDemoFlow();
-  //   const unsub = subscribeDemoFlow(() => setDemoTick((t) => t + 1));
-  //   return () => unsub?.();
-  // }, [demoMode]);
 
   const [showProrrogaDialog, setShowProrrogaDialog] = useState(false);
   const [selectedProrroga, setSelectedProrroga] = useState(null);
@@ -725,8 +707,6 @@ const badgeCls = isCompletedOrCanceled
             const navigateToChat = () => {
               const name = encodeURIComponent(otherUserName || '');
               const photo = encodeURIComponent(otherUserPhoto || '');
-              const demo = demoMode ? 'demo=true&' : '';
-              const alertIdParam = conv.alert_id ? `&alertId=${encodeURIComponent(conv.alert_id)}` : '';
               navigate(`/chat?conversationId=${conv.id}&alertId=${conv.alert_id}&otherName=${name}&otherPhoto=${photo}`);
             };
 
