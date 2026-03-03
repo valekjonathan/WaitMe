@@ -133,7 +133,7 @@ export default function Header({
               <div className="w-10 h-10" />
             )}
 
-            <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 relative overflow-visible">
+            <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 relative overflow-visible cursor-pointer" onClick={() => navigate('/settings')}>
               <span className="text-purple-400 font-bold text-sm relative">
                 {creditsNumber.toFixed(2)}€
                 <AnimatePresence>

@@ -561,7 +561,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
-          className="flex-1 flex flex-col relative overflow-hidden min-h-0"
+          className="flex-1 flex flex-col relative overflow-hidden min-h-0 pt-[60px] pb-[72px]"
           style={{ display: mode ? 'none' : 'flex' }}
         >
               {showBackgroundMap && (
@@ -579,7 +579,7 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
-              <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
+              <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
                 <img
                   loading="eager"
                   decoding="async"
