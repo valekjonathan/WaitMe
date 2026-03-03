@@ -1,25 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import Layout from './Layout';
+import Login from '@/pages/Login';
 import DemoFlowManager from '@/components/DemoFlowManager';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 
+function AuthRouter() {
+  const { user, isLoadingAuth } = useAuth();
 
-function AuthGate() {
-  const { user, isLoadingAuth, navigateToLogin } = useAuth();
-  const redirected = useRef(false);
+  if (isLoadingAuth) return null;
 
-  useEffect(() => {
-    if (redirected.current) return;
-    if (isLoadingAuth) return;
-    if (!user) {
-      redirected.current = true;
-      navigateToLogin();
-    }
-  }, [user, isLoadingAuth, navigateToLogin]);
+  if (!user) return <Login />;
 
-  return null;
+  return (
+    <>
+      <DemoFlowManager />
+      <WaitMeRequestScheduler />
+      <IncomingRequestModal />
+      <Layout />
+    </>
+  );
 }
 
 export default function App() {
@@ -40,11 +41,7 @@ export default function App() {
       className="min-h-[100dvh] bg-black flex flex-col"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <DemoFlowManager />
-      <WaitMeRequestScheduler />
-      <IncomingRequestModal />
-      <AuthGate />
-      <Layout />
+      <AuthRouter />
     </div>
   );
 }

@@ -148,7 +148,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     navigateToLogin,
     checkAppState,
-  }), [user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, appPublicSettings, logout, navigateToLogin, checkAppState]);
+    checkUserAuth,
+  }), [user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, appPublicSettings, logout, navigateToLogin, checkAppState, checkUserAuth]);
 
   return (
     <AuthContext.Provider value={contextValue}>
