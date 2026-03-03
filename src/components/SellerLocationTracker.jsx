@@ -6,6 +6,29 @@ import L from 'leaflet';
 import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
 
+const buyerLocationIcon = L.divIcon({
+  className: 'custom-buyer-icon',
+  html: `
+    <div style="
+      width: 40px; 
+      height: 40px; 
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2L2 19h20L12 2z"/>
+      </svg>
+    </div>
+  `,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+});
+
 const userLocationIcon = L.divIcon({
   className: 'user-location-marker',
   html: `
@@ -48,14 +71,12 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
 
   // Obtener la alerta
   useEffect(() => {
-    const fetchAlert = async () => {
-      if (!alertId) return;
-      const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
-      if (alerts.length > 0) {
-        setAlert(alerts[0]);
-      }
-    };
-    fetchAlert();
+    if (!alertId) return;
+    let cancelled = false;
+    base44.entities.ParkingAlert.filter({ id: alertId }).then((alerts) => {
+      if (!cancelled && alerts.length > 0) setAlert(alerts[0]);
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, [alertId]);
 
   // Obtener ubicaciones de compradores que están navegando hacia esta alerta
@@ -142,28 +163,7 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
             <Marker 
               key={loc.id}
               position={[loc.latitude, loc.longitude]} 
-              icon={L.divIcon({
-                className: 'custom-buyer-icon',
-                html: `
-                  <div style="
-                    width: 40px; 
-                    height: 40px; 
-                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                    border: 3px solid white;
-                    border-radius: 50%;
-                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  ">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                      <path d="M12 2L2 19h20L12 2z"/>
-                    </svg>
-                  </div>
-                `,
-                iconSize: [40, 40],
-                iconAnchor: [20, 20]
-              })}
+              icon={buyerLocationIcon}
             >
               <Popup>Usuario en camino</Popup>
             </Marker>

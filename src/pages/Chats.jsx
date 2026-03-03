@@ -220,17 +220,12 @@ export default function Chats() {
   }, []);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-        // Si no hay sesión (preview/demo), seguimos con un usuario local.
-        setUser({ id: 'me', display_name: 'Tú', photo_url: null });
-      }
-    };
-    fetchUser();
+    let cancelled = false;
+    base44.auth.me().then((currentUser) => {
+      if (!cancelled) setUser(currentUser);
+    }).catch(() => {
+      if (!cancelled) setUser({ id: 'me', display_name: 'Tú', photo_url: null });
+    });
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -241,6 +236,8 @@ export default function Chats() {
         { enableHighAccuracy: true, maximumAge: 15000, timeout: 5000 }
       );
     }
+
+    return () => { cancelled = true; };
   }, []);
 
   const [demoConvs, setDemoConvs] = useState(() => {

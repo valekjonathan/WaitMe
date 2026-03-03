@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -15,15 +15,16 @@ function formatAddress(addr){
   return`${s}, Oviedo`;
 }
 
+const CAR_COLOR_MAP_MODAL={
+  blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',
+  rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',
+  naranja:'#f97316',marron:'#92400e',morado:'#7c3aed',rosa:'#ec4899',
+  beige:'#d4b483',
+};
+
 function getCarFill(color){
-  const map={
-    blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',
-    rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',
-    naranja:'#f97316',marrón:'#92400e',morado:'#7c3aed',rosa:'#ec4899',
-    beige:'#d4b483',
-  };
   const key=String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  return map[key]||'#9ca3af';
+  return CAR_COLOR_MAP_MODAL[key]||'#9ca3af';
 }
 
 function CarIconProfile({color,size='w-16 h-10'}){
@@ -78,7 +79,7 @@ export default function IncomingRequestModal(){
     return()=>window.removeEventListener('waitme:showIncomingRequestModal',handler);
   },[]);
 
-  const handleClose=()=>{setOpen(false);setRequest(null);setAlert(null);setLoading(false);};
+  const handleClose=useCallback(()=>{setOpen(false);setRequest(null);setAlert(null);setLoading(false);},[]);
 
   const acceptRequest=async()=>{
     if(!request?.alertId)return;
@@ -221,26 +222,31 @@ export default function IncomingRequestModal(){
     handleClose();
   };
 
-  if(!request)return null;
+  // Stable values that only depend on alert/request — not on the 1-second nowTs tick
+  const stableInfo = useMemo(() => {
+    if (!request) return null;
+    const buyer = request.buyer || {};
+    const userName = buyer?.name || 'Usuario';
+    const firstName = userName.split(' ')[0];
+    const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+    const plate = buyer?.plate || '';
+    const carFill = getCarFill(buyer?.car_color || 'gris');
+    const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7c3aed&color=fff&size=128`;
+    const phoneEnabled = Boolean(buyer?.phone);
+    const mins = Number(alert?.available_in_minutes) || 0;
+    const alertCreatedKey = alert?.id ? `alert-created-${alert.id}` : null;
+    const storedCreated = alertCreatedKey ? Number(localStorage.getItem(alertCreatedKey) || '0') : 0;
+    const createdTs = storedCreated > 0 ? storedCreated : (alert?.created_date ? new Date(alert.created_date).getTime() : Date.now());
+    const waitUntilTs = createdTs + mins * 60 * 1000;
+    const waitUntilLabel = new Date(waitUntilTs).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
+    return { buyer, userName, firstName, carLabel, plate, carFill, photo, phoneEnabled, mins, waitUntilTs, waitUntilLabel };
+  }, [request, alert]);
 
-  const buyer=request.buyer||{};
-  const userName=buyer?.name||'Usuario';
-  const firstName=userName.split(' ')[0];
-  const carLabel=String(buyer?.car_model||'Sin datos').trim();
-  const plate=buyer?.plate||'';
-  const carFill=getCarFill(buyer?.car_color||'gris');
-  const photo=buyer?.photo||`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7c3aed&color=fff&size=128`;
-  const phoneEnabled=Boolean(buyer?.phone);
+  if (!request || !stableInfo) return null;
 
-  const mins=Number(alert?.available_in_minutes)||0;
-  // Usar el timestamp guardado en localStorage para consistencia (igual que History.js)
-  const alertCreatedKey = alert?.id ? `alert-created-${alert.id}` : null;
-  const storedCreated = alertCreatedKey ? Number(localStorage.getItem(alertCreatedKey)||'0') : 0;
-  const createdTs = storedCreated > 0 ? storedCreated : (alert?.created_date ? new Date(alert.created_date).getTime() : Date.now());
-  const waitUntilTs=createdTs+mins*60*1000;
+  const { buyer, userName, firstName, carLabel, plate, carFill, photo, phoneEnabled, mins, waitUntilTs, waitUntilLabel } = stableInfo;
 
-  const waitUntilLabel=new Date(waitUntilTs).toLocaleTimeString('es-ES',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hour12:false});
-
+  // Dynamic — only these depend on the 1-second tick
   const remainingMs=Math.max(0,waitUntilTs-nowTs);
   const remSec=Math.floor(remainingMs/1000);
   const remHrs=Math.floor(remSec/3600);

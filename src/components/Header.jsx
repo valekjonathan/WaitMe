@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings, User, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,8 @@ export default function Header({
   const [bannerReq, setBannerReq] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
   const [creditsPulse, setCreditsPulse] = useState(null);
+  const bannerTimerRef = useRef(null);
+  const pulseTimerRef = useRef(null);
 
   // -------- BALANCE --------
   useEffect(() => {
@@ -83,7 +85,8 @@ export default function Header({
       setBannerReq(pending || null);
       if (pending) {
         setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);
+        clearTimeout(bannerTimerRef.current);
+        bannerTimerRef.current = setTimeout(() => setShowBanner(false), 5000);
       }
     };
 
@@ -93,6 +96,7 @@ export default function Header({
     return () => {
       window.removeEventListener('waitme:requestsChanged', onChange);
       window.removeEventListener('waitme:showIncomingBanner', onShow);
+      clearTimeout(bannerTimerRef.current);
     };
   }, []);
 
@@ -102,11 +106,15 @@ export default function Header({
       const amount = Number(e?.detail?.amount ?? 0);
       if (!Number.isFinite(amount) || amount <= 0) return;
       setCreditsPulse({ id: Date.now(), amount });
-      setTimeout(() => setCreditsPulse(null), 1200);
+      clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = setTimeout(() => setCreditsPulse(null), 1200);
     };
 
     window.addEventListener('waitme:paymentReleased', onPayment);
-    return () => window.removeEventListener('waitme:paymentReleased', onPayment);
+    return () => {
+      window.removeEventListener('waitme:paymentReleased', onPayment);
+      clearTimeout(pulseTimerRef.current);
+    };
   }, []);
 
   return (

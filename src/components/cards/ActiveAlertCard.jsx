@@ -1,18 +1,16 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/AuthContext';
+import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 function ActiveAlertCard({ userLocation, onRefresh }) {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  const myAlerts = queryClient.getQueryData(['myAlerts']) ?? [];
+  const { data: myAlerts = [] } = useMyAlerts();
   const myActiveAlerts = myAlerts.filter(a => a.status === 'active');
 
-  const handleCancel = async (alertId) => {
+  const handleCancel = useCallback(async (alertId) => {
     try {
       await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
@@ -20,7 +18,7 @@ function ActiveAlertCard({ userLocation, onRefresh }) {
     } catch (e) {
       console.error('Error cancelando alerta:', e);
     }
-  };
+  }, [queryClient, onRefresh]);
 
   if (myActiveAlerts.length === 0) return null;
 
