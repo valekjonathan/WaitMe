@@ -298,10 +298,11 @@ export default function Home() {
   }, [mode, filteredAlerts]);
 
   const homeMapAlerts = useMemo(() => {
-    // Solo mostramos usuarios/alertas en la pantalla "Dónde quieres aparcar"
     if (mode === 'search') return searchAlerts || [];
+    // Mostrar coches demo visuales en la pantalla principal
+    if (mode === null) return getMockNearbyAlerts(userLocation);
     return [];
-  }, [mode, searchAlerts]);
+  }, [mode, searchAlerts, userLocation]);
 
   const createAlertMutation = useMutation({
   mutationFn: async (data) => {
@@ -575,6 +576,15 @@ export default function Home() {
 
               <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
 
+              {/* PIN — centrado exacto sobre el mapa, punta del palito en el centro */}
+              <div
+                className="absolute z-20 pointer-events-none flex flex-col items-center"
+                style={{ left: '50%', top: '50%', transform: 'translate(-50%, -100%)' }}
+              >
+                <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
+                <div className="w-[2px] h-8 bg-purple-500" />
+              </div>
+
               <div className="relative z-10 flex flex-col items-center w-full px-6 mt-6">
                 <img
                   loading="eager"
@@ -587,7 +597,7 @@ export default function Home() {
                   className="w-[212px] h-[212px] object-contain mt-[42px]"
                 />
 
-                <h1 className="text-4xl font-bold leading-none whitespace-nowrap">
+                <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-28px]">
                   Wait<span className="text-purple-500">Me!</span>
                 </h1>
 
@@ -595,32 +605,25 @@ export default function Home() {
                   Aparca donde te <span className="text-purple-500">avisen!</span>
                 </p>
 
-                <div className="flex flex-col items-center w-full max-w-sm">
-                  <div className="flex flex-col items-center mt-[7px] mb-[4px]">
-                    <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
-                    <div className="w-[2px] h-8 bg-purple-500" />
-                  </div>
+                <div className="w-full max-w-sm space-y-4 mt-4">
+                  <Button
+                    onClick={() => setMode('search')}
+                    className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
+                  >
+                    <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
+                    ¿ Dónde quieres aparcar ?
+                  </Button>
 
-                  <div className="w-full space-y-4 mt-4">
-                    <Button
-                      onClick={() => setMode('search')}
-                      className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
-                    >
-                      <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
-                      ¿ Dónde quieres aparcar ?
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        getCurrentLocation();
-                        setMode('create');
-                      }}
-                      className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
-                    >
-                      <CarIconProfile color="#000000" size="w-20 h-14" />
-                      ¡ Estoy aparcado aquí !
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => {
+                      getCurrentLocation();
+                      setMode('create');
+                    }}
+                    className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
+                  >
+                    <CarIconProfile color="#000000" size="w-20 h-14" />
+                    ¡ Estoy aparcado aquí !
+                  </Button>
                 </div>
               </div>
         </div>
