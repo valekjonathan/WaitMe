@@ -26,39 +26,19 @@
       },
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated",
-        "group": "autostart"
+        "panel": "dedicated"
       },
       "runOptions": {
         "runOn": "folderOpen"
       }
     },
     {
-      "label": "iOS Simulator (Auto)",
+      "label": "cap sync ios",
       "type": "shell",
-      "command": "bash scripts/autostart-ios.sh",
+      "command": "npx cap sync ios",
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "isBackground": false,
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "autostart"
-      },
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
-    },
-    {
-      "label": "iOS Simulator (Manual)",
-      "type": "shell",
-      "command": "npm run build && npx cap sync ios && open -a Simulator && sleep 4 && xcrun simctl launch booted com.waitman.app",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "isBackground": false,
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
