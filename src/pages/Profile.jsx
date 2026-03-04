@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
+import { useLayoutHeader } from '@/lib/LayoutContext';
 import { isProfileComplete, getMissingProfileFields, toProfilePayload } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -30,9 +30,8 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, updateProfileFromDb } = useAuth();
+  const { user, profile, setProfile } = useAuth();
   const setHeader = useLayoutHeader();
-  const setProfileFormData = useSetProfileFormData();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -50,10 +49,7 @@ export default function Profile() {
 
   let raw =
     formData?.avatar_url ||
-    user?.user_metadata?.avatar_url ||
-    user?.user_metadata?.picture ||
-    user?.photo_url ||
-    user?.avatar_url ||
+    profile?.avatar_url ||
     "";
 
   raw = String(raw || "").trim();
@@ -68,50 +64,28 @@ export default function Profile() {
 
   const nameForInitial =
     (formData?.full_name ||
-     user?.user_metadata?.full_name ||
-     user?.user_metadata?.name ||
+     profile?.full_name ||
      "").trim();
 
   const initial = (nameForInitial ? nameForInitial[0] : "?").toUpperCase();
 
   useEffect(() => {
-    if (!user || hydrated) return;
+    if (!profile || hydrated) return;
     setFormData({
-      full_name: user.full_name || user.display_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
-      car_brand: user.car_brand || '',
-      car_model: user.car_model || '',
-      car_color: user.car_color || 'gris',
-      vehicle_type: user.vehicle_type || 'car',
-      car_plate: user.car_plate || '',
-      avatar_url: user.photo_url || user.avatar_url || '',
-      phone: user.phone || '',
-      allow_phone_calls: user.allow_phone_calls || false,
-      notifications_enabled: user.notifications_enabled !== false,
-      email_notifications: user.email_notifications !== false,
+      full_name: profile.full_name || '',
+      car_brand: profile.car_brand || '',
+      car_model: profile.car_model || '',
+      car_color: profile.car_color || 'gris',
+      vehicle_type: profile.vehicle_type || 'car',
+      car_plate: profile.car_plate || '',
+      avatar_url: profile.avatar_url || '',
+      phone: profile.phone || '',
+      allow_phone_calls: profile.allow_phone_calls || false,
+      notifications_enabled: profile.notifications_enabled !== false,
+      email_notifications: profile.email_notifications !== false,
     });
     setHydrated(true);
-  }, [user, hydrated]);
-
-  useEffect(() => {
-    if (user && !formData.full_name) {
-      const name =
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        "";
-
-      if (name) {
-        setFormData((prev) => ({
-          ...prev,
-          full_name: name,
-        }));
-      }
-    }
-  }, [user]);
-
-  useEffect(() => {
-    setProfileFormData(formData);
-    return () => setProfileFormData(null);
-  }, [formData, setProfileFormData]);
+  }, [profile, hydrated]);
 
   useEffect(() => {
     if (!user?.id || !hydrated) return;
@@ -125,14 +99,14 @@ export default function Profile() {
           .select()
           .single();
         if (!error && data) {
-          updateProfileFromDb(user.id);
+          setProfile(data);
         }
       } catch (error) {
         console.error('Error guardando:', error);
       }
     };
     save();
-  }, [formData, user?.id, hydrated, updateProfileFromDb]);
+  }, [formData, user?.id, hydrated, setProfile]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -170,13 +144,13 @@ export default function Profile() {
         .select()
         .single();
       if (!error && data) {
-        updateProfileFromDb(user.id);
+        setProfile(data);
       }
     } catch (error) {
       console.error('Error guardando:', error);
     }
     navigate('/');
-  }, [formData, user?.id, navigate, updateProfileFromDb]);
+  }, [formData, user?.id, navigate, setProfile]);
 
   useEffect(() => {
     setHeader({ showBackButton: true, onBack: handleBack });
@@ -326,7 +300,7 @@ export default function Profile() {
               {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">
-                  {formData.full_name || user?.full_name}
+                  {formData.full_name || profile?.full_name}
                 </p>
 
                 <div className="flex items-center justify-between">

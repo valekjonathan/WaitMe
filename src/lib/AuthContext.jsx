@@ -5,6 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
@@ -66,6 +67,7 @@ export const AuthProvider = ({ children }) => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser?.id) {
         setUser(null);
+        setProfile(null);
         setIsAuthenticated(false);
         setIsLoadingAuth(false);
         return;
@@ -73,15 +75,29 @@ export const AuthProvider = ({ children }) => {
       const appUser = await ensureUserInDb(authUser);
       if (!appUser?.id) {
         setUser(null);
+        setProfile(null);
         setIsAuthenticated(false);
         setIsLoadingAuth(false);
         return;
       }
       setUser(appUser);
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        setProfile(null);
+      }
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Auth resolve failed:', error);
       setUser(null);
+      setProfile(null);
       setIsAuthenticated(false);
       setAuthError({ type: 'unknown', message: error?.message || 'Error de autenticación' });
     } finally {
@@ -99,17 +115,26 @@ export const AuthProvider = ({ children }) => {
             const appUser = await ensureUserInDb(session.user);
             if (appUser?.id) {
               setUser(appUser);
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              if (profileData) setProfile(profileData);
+              else setProfile(null);
               setIsAuthenticated(true);
               setAuthError(null);
             }
           } catch (err) {
             console.error('Auth state change error:', err);
             setUser(null);
+            setProfile(null);
             setIsAuthenticated(false);
           }
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setProfile(null);
         setIsAuthenticated(false);
       }
       setIsLoadingAuth(false);
@@ -124,6 +149,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async (shouldRedirect = false) => {
     setUser(null);
+    setProfile(null);
     setIsAuthenticated(false);
     await supabase.auth.signOut();
     if (shouldRedirect) {
@@ -135,37 +161,11 @@ export const AuthProvider = ({ children }) => {
     // No-op when using Supabase; Login is shown by AuthRouter when !user?.id
   }, []);
 
-  const updateProfileFromDb = useCallback(async (userId) => {
-    if (!userId) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    if (!data) return;
-    setUser((prev) => {
-      if (!prev || prev.id !== userId) return prev;
-      return {
-        ...prev,
-        full_name: data.full_name ?? prev.full_name,
-        car_brand: data.car_brand ?? prev.car_brand,
-        car_model: data.car_model ?? prev.car_model,
-        car_color: data.car_color ?? prev.car_color ?? 'gris',
-        vehicle_type: data.vehicle_type ?? prev.vehicle_type ?? 'car',
-        car_plate: data.car_plate ?? prev.car_plate,
-        phone: data.phone ?? prev.phone,
-        photo_url: data.avatar_url ?? data.photo_url ?? prev.photo_url,
-        allow_phone_calls: data.allow_phone_calls ?? prev.allow_phone_calls,
-        notifications_enabled: data.notifications_enabled !== false,
-        email_notifications: data.email_notifications !== false,
-      };
-    });
-  }, []);
-
   const contextValue = useMemo(
     () => ({
       user,
-      profile: user,
+      profile,
+      setProfile,
       isAuthenticated,
       isLoadingAuth,
       authError,
@@ -175,9 +175,8 @@ export const AuthProvider = ({ children }) => {
       navigateToLogin,
       checkAppState: checkUserAuth,
       checkUserAuth,
-      updateProfileFromDb,
     }),
-    [user, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth, updateProfileFromDb]
+    [user, profile, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth]
   );
 
   return (

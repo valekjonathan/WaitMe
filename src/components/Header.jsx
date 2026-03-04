@@ -1,9 +1,8 @@
 import React, { useMemo, useCallback, useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
-import { useProfileFormData } from '@/lib/LayoutContext';
 import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 import { getBalance } from '@/lib/transactionEngine';
@@ -16,12 +15,8 @@ export default function Header({
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
-  const profileFormData = useProfileFormData();
-  const isOnProfile = location.pathname.toLowerCase() === "/profile";
-  const guardSource = isOnProfile ? (profileFormData || {}) : (user || {});
-  const { guard } = useProfileGuard(guardSource);
+  const { user, profile } = useAuth();
+  const { guard } = useProfileGuard(profile);
 
   const [balance, setBalance] = useState(() => getBalance(user?.id));
   const [bannerReq, setBannerReq] = useState(null);

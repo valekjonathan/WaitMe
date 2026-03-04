@@ -10,14 +10,13 @@ export function LayoutProvider({ children }) {
     onBack: null,
     titleClassName: 'text-[24px] leading-[24px]',
   });
-  const [profileFormData, setProfileFormData] = useState(null);
 
   const setHeader = useCallback((config) => {
     setHeaderConfig((prev) => ({ ...prev, ...config }));
   }, []);
 
   return (
-    <LayoutContext.Provider value={{ headerConfig, setHeader, profileFormData, setProfileFormData }}>
+    <LayoutContext.Provider value={{ headerConfig, setHeader }}>
       {children}
     </LayoutContext.Provider>
   );
@@ -31,14 +30,4 @@ export function useLayoutHeader() {
 export function useLayoutHeaderConfig() {
   const ctx = useContext(LayoutContext);
   return ctx?.headerConfig ?? {};
-}
-
-export function useProfileFormData() {
-  const ctx = useContext(LayoutContext);
-  return ctx?.profileFormData ?? null;
-}
-
-export function useSetProfileFormData() {
-  const ctx = useContext(LayoutContext);
-  return ctx?.setProfileFormData ?? (() => {});
 }
