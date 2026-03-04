@@ -1,15 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { Camera, Phone } from 'lucide-react';
+import { Phone, ImagePlus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+
+const REQUIRED_FIELDS = ['full_name', 'phone', 'car_brand', 'car_model', 'car_color', 'vehicle_type', 'car_plate'];
+
+function isProfileComplete(data) {
+  return REQUIRED_FIELDS.every((f) => {
+    const v = data[f];
+    return v != null && String(v).trim() !== '';
+  });
+}
 
 const carColors = [
   { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -22,24 +37,27 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, isLoadingAuth } = useAuth();
+  const { user, isLoadingAuth, checkUserAuth } = useAuth();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
-    display_name: '',
+    full_name: '',
     car_brand: '',
     car_model: '',
     car_color: 'gris',
     vehicle_type: 'car',
     car_plate: '',
-    photo_url: '',
+    avatar_url: '',
     phone: '',
     allow_phone_calls: false,
     notifications_enabled: true,
     email_notifications: true,
   });
+  const fileInputRef = useRef(null);
 
   // Foto instantánea: muestra caché local (si existe) y actualiza en segundo plano
   const [photoSrc, setPhotoSrc] = useState('');
+
+  const avatarUrl = formData.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -51,20 +69,15 @@ export default function Profile() {
       if (cached) setPhotoSrc(cached);
     } catch (_) {}
 
-    const url = formData.photo_url || '';
-    if (!url) return;
+    if (!avatarUrl) return;
 
-    // Precarga inmediata
     const img = new Image();
     img.decoding = 'sync';
-    img.src = url;
+    img.src = avatarUrl;
 
     img.onload = () => {
-      // Si no hay caché, al menos mostramos la URL ya cargada
-      if (!cached) setPhotoSrc(url);
-
-      // Intento de caché local como dataURL (si CORS lo permite)
-      fetch(url)
+      if (!cached) setPhotoSrc(avatarUrl);
+      fetch(avatarUrl)
         .then((r) => r.blob())
         .then(
           (blob) =>
@@ -87,21 +100,20 @@ export default function Profile() {
     };
 
     img.onerror = () => {
-      // Fallback: intentamos renderizar directamente la URL
-      if (!cached) setPhotoSrc(url);
+      if (!cached) setPhotoSrc(avatarUrl);
     };
-  }, [formData.photo_url, user?.id]);
+  }, [avatarUrl, user?.id]);
 
   useEffect(() => {
     if (!user || hydrated) return;
     setFormData({
-      display_name: user.display_name || user.full_name?.split(' ')[0] || '',
+      full_name: user.full_name || user.display_name || '',
       car_brand: user.car_brand || '',
       car_model: user.car_model || '',
       car_color: user.car_color || 'gris',
       vehicle_type: user.vehicle_type || 'car',
       car_plate: user.car_plate || '',
-      photo_url: user.photo_url || '',
+      avatar_url: user.photo_url || user.avatar_url || '',
       phone: user.phone || '',
       allow_phone_calls: user.allow_phone_calls || false,
       notifications_enabled: user.notifications_enabled !== false,
@@ -110,36 +122,37 @@ export default function Profile() {
     setHydrated(true);
   }, [user, hydrated]);
 
-  // Pre-carga de la foto para que sea instantánea al entrar.
   useEffect(() => {
-    const url = formData.photo_url || user?.photo_url;
-    if (!url) return;
+    if (!avatarUrl) return;
     const img = new Image();
-    img.src = url;
-  }, [formData.photo_url, user?.photo_url]);
+    img.src = avatarUrl;
+  }, [avatarUrl]);
 
-  const autoSave = async (data) => {
-    if (!user?.id) return;
-    try {
-      const payload = {
-        display_name: data.display_name,
-        car_brand: data.car_brand,
-        car_model: data.car_model,
-        car_color: data.car_color,
-        vehicle_type: data.vehicle_type,
-        car_plate: data.car_plate,
-        avatar_url: data.photo_url,
-        phone: data.phone,
-        allow_phone_calls: data.allow_phone_calls,
-        notifications_enabled: data.notifications_enabled,
-        email_notifications: data.email_notifications,
-        updated_at: new Date().toISOString(),
-      };
-      await supabase.from('profiles').update(payload).eq('id', user.id);
-    } catch (error) {
-      console.error('Error guardando:', error);
-    }
-  };
+  const autoSave = useCallback(
+    async (data) => {
+      if (!user?.id) return;
+      try {
+        const payload = {
+          full_name: data.full_name,
+          car_brand: data.car_brand,
+          car_model: data.car_model,
+          car_color: data.car_color,
+          vehicle_type: data.vehicle_type,
+          car_plate: data.car_plate,
+          avatar_url: data.avatar_url,
+          phone: data.phone,
+          allow_phone_calls: data.allow_phone_calls,
+          notifications_enabled: data.notifications_enabled,
+          email_notifications: data.email_notifications,
+          updated_at: new Date().toISOString(),
+        };
+        await supabase.from('profiles').update(payload).eq('id', user.id);
+      } catch (error) {
+        console.error('Error guardando:', error);
+      }
+    },
+    [user?.id]
+  );
 
   const updateField = (field, value) => {
     const newData = { ...formData, [field]: value };
@@ -158,11 +171,20 @@ export default function Profile() {
         .upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
-      updateField('photo_url', urlData.publicUrl);
+      updateField('avatar_url', urlData.publicUrl);
     } catch (error) {
       console.error('Error subiendo foto:', error);
     }
   };
+
+  const handleBack = useCallback(async () => {
+    if (!isProfileComplete(formData)) {
+      alert('Debes completar tu perfil para continuar');
+      return;
+    }
+    await checkUserAuth();
+    navigate('/home');
+  }, [formData, navigate, checkUserAuth]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 
@@ -276,10 +298,12 @@ export default function Profile() {
     />
   );
 
+  const nameInitial = (formData.full_name || user?.full_name || '?').trim().charAt(0).toUpperCase();
+
   return (
     // Sin scroll en "Mi perfil"
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
-      <Header title="Mi Perfil" showBackButton={true} backTo="Home" />
+      <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
@@ -287,32 +311,64 @@ export default function Profile() {
           {/* +4px de separación negra respecto a la línea del menú superior */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
             <div className="flex gap-4">
-              {/* Foto */}
+              {/* Avatar: user_metadata.avatar_url primero, si no inicial del nombre */}
               <div className="relative">
-                <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
-                  {formData.photo_url ? (
-                    <img
-                      src={photoSrc || formData.photo_url}
-                      alt="Perfil"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      decoding="sync"
-                      fetchPriority="high"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
-                  )}
-                </div>
-                <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-                </label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button type="button" className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center focus:outline-none focus:ring-0">
+                      {avatarUrl ? (
+                        <img
+                          src={photoSrc || avatarUrl}
+                          alt="Perfil"
+                          className="w-full h-full object-cover"
+                          loading="eager"
+                          decoding="sync"
+                          fetchPriority="high"
+                        />
+                      ) : (
+                        <span className="text-4xl font-bold text-purple-400">{nameInitial}</span>
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-gray-900 border-gray-700 text-white min-w-[180px]">
+                    <DropdownMenuItem
+                      className="text-white focus:bg-gray-800 focus:text-white cursor-pointer"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      <ImagePlus className="w-4 h-4 mr-2" />
+                      Cambiar foto
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-white focus:bg-gray-800 focus:text-white cursor-pointer"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        updateField('avatar_url', '');
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar foto
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-gray-400 focus:bg-gray-800 cursor-pointer">
+                      Cancelar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
               </div>
 
               {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">
-                  {formData.display_name || user?.full_name?.split(' ')[0]}
+                  {formData.full_name || user?.full_name || 'Nombre'}
                 </p>
 
                 <div className="flex items-center justify-between">
@@ -341,16 +397,15 @@ export default function Profile() {
 
           {/* Formulario */}
           <div className="space-y-3">
-            {/* Nombre y Teléfono en la misma fila */}
+            {/* Nombre completo y Teléfono en la misma fila */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-gray-400 text-sm">Nombre</Label>
+                <Label className="text-gray-400 text-sm">Nombre completo</Label>
                 <Input
-                  value={formData.display_name}
-                  onChange={(e) => updateField('display_name', e.target.value.slice(0, 15))}
+                  value={formData.full_name}
+                  onChange={(e) => updateField('full_name', e.target.value)}
                   placeholder="Tu nombre"
                   className="bg-gray-900 border-gray-700 text-white h-9"
-                  maxLength={15}
                 />
               </div>
 

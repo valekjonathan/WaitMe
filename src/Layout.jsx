@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import Home from './pages/Home';
 
 const Chats            = lazy(() => import('./pages/Chats'));
@@ -11,6 +12,26 @@ const Settings         = lazy(() => import('./pages/Settings'));
 const Alertas          = lazy(() => import('./pages/History'));
 const NavigatePage     = lazy(() => import('./pages/Navigate'));
 
+const PROFILE_REQUIRED = ['full_name', 'phone', 'car_brand', 'car_model', 'car_color', 'vehicle_type', 'car_plate'];
+
+function isProfileComplete(u) {
+  if (!u) return false;
+  return PROFILE_REQUIRED.every((f) => {
+    const v = u[f];
+    return v != null && String(v).trim() !== '';
+  });
+}
+
+function ProfileGuard({ children }) {
+  const location = useLocation();
+  const { user } = useAuth();
+  const isHome = location.pathname === '/' || location.pathname.toLowerCase() === '/home';
+  if (isHome && user?.id && !isProfileComplete(user)) {
+    return <Navigate to="/profile" replace />;
+  }
+  return children;
+}
+
 export default function Layout() {
   return (
     <div className="h-[100dvh] bg-black flex flex-col overflow-hidden">
@@ -21,6 +42,7 @@ export default function Layout() {
         className="flex-1 flex flex-col min-h-0"
         style={{ paddingBottom: 'var(--bottom-nav-h)' }}
       >
+        <ProfileGuard>
         <Suspense fallback={null}>
           <Routes>
             <Route path="/"                      element={<Home />} />
@@ -38,6 +60,7 @@ export default function Layout() {
             <Route path="/navigate"              element={<NavigatePage />} />
           </Routes>
         </Suspense>
+        </ProfileGuard>
       </div>
     </div>
   );
