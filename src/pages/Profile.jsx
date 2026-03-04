@@ -36,11 +36,11 @@ export default function Profile() {
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
-    car_brand: '',
-    car_model: '',
-    car_color: 'gris',
+    brand: '',
+    model: '',
+    color: 'gris',
     vehicle_type: 'car',
-    car_plate: '',
+    plate: '',
     avatar_url: '',
     phone: '',
     allow_phone_calls: false,
@@ -74,11 +74,11 @@ export default function Profile() {
     if (!profile || hydrated) return;
     setFormData({
       full_name: profile.full_name || '',
-      car_brand: profile.car_brand || '',
-      car_model: profile.car_model || '',
-      car_color: profile.car_color || 'gris',
+      brand: profile.brand || '',
+      model: profile.model || '',
+      color: profile.color || 'gris',
       vehicle_type: profile.vehicle_type || 'car',
-      car_plate: profile.car_plate || '',
+      plate: profile.plate || '',
       avatar_url: profile.avatar_url || '',
       phone: profile.phone || '',
       allow_phone_calls: profile.allow_phone_calls || false,
@@ -163,7 +163,7 @@ export default function Profile() {
     return () => setHeader({ onBack: null });
   }, [handleBack, setHeader]);
 
-  const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
+  const selectedColor = carColors.find((c) => c.value === formData.color) || carColors[5];
 
   const formatPlate = useMemo(() => {
     return (value = '') => {
@@ -176,7 +176,7 @@ export default function Profile() {
 
   const handlePlateChange = (raw) => {
     const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-    updateField('car_plate', clean);
+    updateField('plate', clean);
   };
 
   const VehicleIconProfile = ({ type, color, size = 'w-16 h-10' }) => {
@@ -312,7 +312,7 @@ export default function Profile() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium text-sm">
-                      {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                      {formData.brand || 'Sin'} {formData.model || 'coche'}
                     </p>
                   </div>
                   <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} />
@@ -325,7 +325,7 @@ export default function Profile() {
                       <span className="text-white text-[8px] font-bold">E</span>
                     </div>
                     <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                      {formData.car_plate ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : '0000 XXX'}
+                      {formData.plate ? `${formData.plate.slice(0, 4)} ${formData.plate.slice(4)}`.trim() : '0000 XXX'}
                     </span>
                   </div>
                 </div>
@@ -377,8 +377,8 @@ export default function Profile() {
               <div className="space-y-1.5">
                 <Label className="text-gray-400 text-sm">Marca</Label>
                 <Input
-                  value={formData.car_brand}
-                  onChange={(e) => updateField('car_brand', e.target.value)}
+                  value={formData.brand}
+                  onChange={(e) => updateField('brand', e.target.value)}
                   placeholder="Seat, Renault..."
                   className="bg-gray-900 border-gray-700 text-white h-9"
                 />
@@ -387,8 +387,8 @@ export default function Profile() {
               <div className="space-y-1.5">
                 <Label className="text-gray-400 text-sm">Modelo</Label>
                 <Input
-                  value={formData.car_model}
-                  onChange={(e) => updateField('car_model', e.target.value)}
+                  value={formData.model}
+                  onChange={(e) => updateField('model', e.target.value)}
                   placeholder="Ibiza, Megane..."
                   className="bg-gray-900 border-gray-700 text-white h-9"
                 />
@@ -398,7 +398,7 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-gray-400 text-sm">Color</Label>
-                <Select value={formData.car_color} onValueChange={(value) => updateField('car_color', value)}>
+                <Select value={formData.color} onValueChange={(value) => updateField('color', value)}>
                   <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -453,8 +453,8 @@ export default function Profile() {
 
             <div className="space-y-1.5">
               <Label className="text-gray-400 text-sm">Matrícula</Label>
-              <Input
-                value={formatPlate(formData.car_plate)}
+                <Input
+                  value={formatPlate(formData.plate)}
                 onChange={(e) => handlePlateChange(e.target.value)}
                 placeholder="1234 ABC"
                 className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"

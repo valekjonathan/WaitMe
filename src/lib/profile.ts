@@ -2,11 +2,11 @@ export function normalizeProfile(profile = {}) {
   return {
     full_name: String(profile.full_name || profile.name || "").trim(),
     phone: String(profile.phone || profile.phone_number || "").trim(),
-    brand: String(profile.brand || profile.car_brand || "").trim(),
-    model: String(profile.model || profile.car_model || "").trim(),
-    color: String(profile.color || profile.car_color || "").trim(),
-    vehicle_type: String(profile.vehicle_type || profile.vehicle || profile.car_type || "").trim(),
-    plate: String(profile.plate || profile.license_plate || profile.car_plate || "").trim(),
+    brand: String(profile.brand || "").trim(),
+    model: String(profile.model || "").trim(),
+    color: String(profile.color || "").trim(),
+    vehicle_type: String(profile.vehicle_type || profile.vehicle || "").trim(),
+    plate: String(profile.plate || profile.license_plate || "").trim(),
   };
 }
 
@@ -33,15 +33,11 @@ export function toProfilePayload(formData) {
   return {
     full_name: p.full_name,
     phone: p.phone,
-    car_brand: p.brand,
-    car_model: p.model,
-    car_color: p.color || 'gris',
+    brand: p.brand,
+    model: p.model,
+    color: p.color || 'gris',
     vehicle_type: p.vehicle_type || 'car',
-    car_plate: p.plate,
+    plate: p.plate,
     avatar_url: formData?.avatar_url ?? '',
-    allow_phone_calls: formData?.allow_phone_calls ?? false,
-    notifications_enabled: formData?.notifications_enabled !== false,
-    email_notifications: formData?.email_notifications !== false,
-    updated_at: new Date().toISOString(),
   };
 }
