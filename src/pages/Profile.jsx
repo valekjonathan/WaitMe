@@ -279,14 +279,12 @@ export default function Profile() {
     );
   };
 
-  // Etiquetas del desplegable
   const vehicleLabel = (t) => {
     if (t === 'suv') return 'Voluminoso';
     if (t === 'van') return 'Furgoneta';
     return 'Normal';
   };
 
-  // ✅ CAMBIO: icono pequeño = MISMO SVG que arriba (misma forma)
   const VehicleIconSmall = ({ type }) => (
     <VehicleIconProfile
       type={type}
@@ -304,9 +302,9 @@ export default function Profile() {
 
       <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          {/* Tarjeta: solo foto + nombre */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
-            <div className="flex gap-4 items-center">
+          {/* Tarjeta: foto + nombre (sin marca, modelo ni matrícula) */}
+          <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
+            <div className="flex gap-4">
               <div className="relative">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -359,14 +357,17 @@ export default function Profile() {
                   onChange={handlePhotoUpload}
                 />
               </div>
-              <p className="text-xl font-bold text-white">
-                {displayName || 'Nombre'}
-              </p>
+              <div className="pl-3 flex-1 flex flex-col justify-between">
+                <p className="text-xl font-bold text-white">
+                  {displayName || 'Nombre'}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Formulario */}
           <div className="space-y-3">
+            {/* Nombre y Teléfono en la misma fila */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-gray-400 text-sm">Nombre</Label>
