@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
-// Redirect URL after Google OAuth — use env var for production, current origin for local dev
-const OAUTH_REDIRECT =
-  import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
+const OAUTH_REDIRECT = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
 
 export default function Login() {
   const { checkUserAuth } = useAuth();
@@ -14,8 +12,19 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGoogleLogin = () => {
-    base44.auth.loginWithProvider('google', OAUTH_REDIRECT);
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: OAUTH_REDIRECT },
+      });
+    } catch (err) {
+      setError(err?.message || 'Error al iniciar sesión con Google');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -24,15 +33,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email.trim(), password);
+      await supabase.auth.signInWithPassword({ email: email.trim(), password });
       await checkUserAuth();
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.data?.message ||
-        err?.message ||
-        'Credenciales incorrectas. Inténtalo de nuevo.';
-      setError(msg);
+      setError(err?.message || 'Credenciales incorrectas. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
