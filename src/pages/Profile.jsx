@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -119,8 +119,23 @@ export default function Profile() {
   }, [formData.photo_url, user?.photo_url]);
 
   const autoSave = async (data) => {
+    if (!user?.id) return;
     try {
-      await base44.auth.updateMe(data);
+      const payload = {
+        display_name: data.display_name,
+        car_brand: data.car_brand,
+        car_model: data.car_model,
+        car_color: data.car_color,
+        vehicle_type: data.vehicle_type,
+        car_plate: data.car_plate,
+        avatar_url: data.photo_url,
+        phone: data.phone,
+        allow_phone_calls: data.allow_phone_calls,
+        notifications_enabled: data.notifications_enabled,
+        email_notifications: data.email_notifications,
+        updated_at: new Date().toISOString(),
+      };
+      await supabase.from('profiles').update(payload).eq('id', user.id);
     } catch (error) {
       console.error('Error guardando:', error);
     }
@@ -134,13 +149,18 @@ export default function Profile() {
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        updateField('photo_url', file_url);
-      } catch (error) {
-        console.error('Error subiendo foto:', error);
-      }
+    if (!file || !user?.id) return;
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      updateField('photo_url', urlData.publicUrl);
+    } catch (error) {
+      console.error('Error subiendo foto:', error);
     }
   };
 

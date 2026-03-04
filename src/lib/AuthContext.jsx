@@ -11,23 +11,52 @@ export const AuthProvider = ({ children }) => {
 
   const ensureUserInDb = useCallback(async (authUser) => {
     if (!authUser?.id) return null;
+    const email = authUser.email ?? '';
+    const fullName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? '';
+    const avatarUrl = authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '';
+
     const { data: existing } = await supabase
-      .from('users')
-      .select('id')
+      .from('profiles')
+      .select('*')
       .eq('id', authUser.id)
       .maybeSingle();
 
     if (!existing) {
-      const { error } = await supabase.from('users').insert({
+      const { error } = await supabase.from('profiles').insert({
         id: authUser.id,
-        email: authUser.email ?? '',
+        email,
+        full_name: fullName,
+        avatar_url: avatarUrl,
         created_at: new Date().toISOString(),
       });
       if (error) {
         if (error.code !== '23505') throw error;
       }
     }
-    return { id: authUser.id, email: authUser.email ?? '', ...authUser };
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authUser.id)
+      .maybeSingle();
+
+    return {
+      id: authUser.id,
+      email: email || profile?.email,
+      full_name: fullName || profile?.full_name,
+      display_name: profile?.display_name ?? fullName?.split(' ')[0] ?? '',
+      photo_url: avatarUrl || profile?.avatar_url || profile?.photo_url,
+      car_brand: profile?.car_brand,
+      car_model: profile?.car_model,
+      car_color: profile?.car_color,
+      vehicle_type: profile?.vehicle_type,
+      car_plate: profile?.car_plate,
+      phone: profile?.phone,
+      allow_phone_calls: profile?.allow_phone_calls,
+      notifications_enabled: profile?.notifications_enabled,
+      email_notifications: profile?.email_notifications,
+      ...authUser,
+    };
   }, []);
 
   const resolveSession = useCallback(async () => {
