@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import { useLayoutHeader } from '@/lib/LayoutContext';
 import ParkingMap from '@/components/map/ParkingMap';
+import MapboxMap from '@/components/MapboxMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -560,12 +561,7 @@ export default function Home() {
               {showBackgroundMap && (
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                   <div className="w-full h-full">
-                    <ParkingMap
-                      alerts={homeMapAlerts}
-                      userLocation={userLocation}
-                      userLocationOffsetY={120}
-                      zoomControl={false}
-                    />
+                    <MapboxMap />
                   </div>
                 </div>
               )}
