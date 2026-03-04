@@ -11,7 +11,7 @@ function AuthRouter() {
 
   if (isLoadingAuth) return null;
 
-  if (!user) return <Login />;
+  if (!user?.id) return <Login />;
 
   return (
     <>

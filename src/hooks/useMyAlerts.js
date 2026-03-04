@@ -36,7 +36,8 @@ export const MY_ALERTS_OPTIONS = {
 async function fetchMyAlerts(userId, userEmail) {
   if (!userId && !userEmail) return [];
   if (userId) return (await base44.entities.ParkingAlert.filter({ user_id: userId })) || [];
-  return (await base44.entities.ParkingAlert.filter({ user_email: userEmail })) || [];
+  if (userEmail) return (await base44.entities.ParkingAlert.filter({ user_email: userEmail })) || [];
+  return [];
 }
 
 /**

@@ -15,6 +15,7 @@ import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
+import { useAuth } from '@/lib/AuthContext';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 import { alertsKey, alertsPrefix } from '@/lib/alertsQueryKey';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
@@ -118,14 +119,7 @@ export default function Home() {
     return () => window.removeEventListener('waitme:goLogo', goLogo);
   }, [resetToLogo]);
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
-  });
+  const { user } = useAuth();
 
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],

@@ -14,6 +14,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
+import { useAuth } from '@/lib/AuthContext';
 
 // ======================
 // Helpers
@@ -199,8 +200,8 @@ const PriceChip = ({ amount, direction }) => {
 
 export default function Chats() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [user, setUser] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [nowTs, setNowTs] = useState(Date.now());
@@ -220,13 +221,6 @@ export default function Chats() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    base44.auth.me().then((currentUser) => {
-      if (!cancelled) setUser(currentUser);
-    }).catch(() => {
-      if (!cancelled) setUser({ id: 'me', display_name: 'Tú', photo_url: null });
-    });
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -236,8 +230,6 @@ export default function Chats() {
         { enableHighAccuracy: true, maximumAge: 15000, timeout: 5000 }
       );
     }
-
-    return () => { cancelled = true; };
   }, []);
 
   const [demoConvs, setDemoConvs] = useState(() => {
@@ -255,12 +247,13 @@ export default function Chats() {
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
+      if (!user?.id) return [];
       const data = await base44.entities.Conversation.list({
-        filter: { or: [{ participant1_id: user?.id }, { participant2_id: user?.id }] }
+        filter: { or: [{ participant1_id: user.id }, { participant2_id: user.id }] }
       });
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
 placeholderData: (prev) => prev,
@@ -274,12 +267,13 @@ placeholderData: (prev) => prev,
   const { data: alerts = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
+      if (!user?.id) return [];
       const data = await base44.entities.ParkingAlert.list({
-        filter: { or: [{ user_id: user?.id }, { reserved_by_id: user?.id }] }
+        filter: { or: [{ user_id: user.id }, { reserved_by_id: user.id }] }
       });
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
 placeholderData: (prev) => prev,

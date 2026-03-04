@@ -14,26 +14,50 @@ export const AuthProvider = ({ children }) => {
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
   const checkUserAuth = useCallback(async () => {
-    try {
-      // Now check if the user is authenticated
-      setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      setIsAuthenticated(true);
-      setIsLoadingAuth(false);
-    } catch (error) {
-      console.error('User auth check failed:', error);
-      setIsLoadingAuth(false);
-      setIsAuthenticated(false);
-      
-      // If user auth fails, it might be an expired token
-      if (error.status === 401 || error.status === 403) {
-        setAuthError({
-          type: 'auth_required',
-          message: 'Authentication required'
-        });
+    setIsLoadingAuth(true);
+    const maxRetries = 3;
+    const retryDelayMs = 2000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const currentUser = await base44.auth.me();
+        if (!currentUser?.id) {
+          if (attempt < maxRetries) {
+            await new Promise((r) => setTimeout(r, retryDelayMs));
+            continue;
+          }
+          setUser(null);
+          setIsAuthenticated(false);
+          setAuthError({ type: 'user_not_provisioned', message: 'Usuario no provisionado. Inténtalo de nuevo.' });
+          setIsLoadingAuth(false);
+          return;
+        }
+        setUser(currentUser);
+        setIsAuthenticated(true);
+        setAuthError(null);
+        setIsLoadingAuth(false);
+        return;
+      } catch (error) {
+        console.error('User auth check failed (attempt ' + attempt + '):', error);
+        const isNotFound = error?.message?.includes('ObjectNotFoundError') || error?.message?.includes('Invalid id value') || error?.status === 404;
+        if (attempt < maxRetries && isNotFound) {
+          await new Promise((r) => setTimeout(r, retryDelayMs));
+          continue;
+        }
+        setUser(null);
+        setIsAuthenticated(false);
+        if (error?.status === 401 || error?.status === 403) {
+          setAuthError({ type: 'auth_required', message: 'Authentication required' });
+        } else if (isNotFound) {
+          setAuthError({ type: 'user_not_provisioned', message: 'Usuario no encontrado. Inténtalo de nuevo.' });
+        } else {
+          setAuthError({ type: 'unknown', message: error?.message || 'Error de autenticación' });
+        }
+        setIsLoadingAuth(false);
+        return;
       }
     }
+    setIsLoadingAuth(false);
   }, []);
 
   const checkAppState = useCallback(async () => {
@@ -58,6 +82,7 @@ export const AuthProvider = ({ children }) => {
         
         // If we got the app public settings successfully, check if user is authenticated
         if (appParams.token) {
+          base44.auth.setToken(appParams.token);
           await checkUserAuth();
         } else {
           setIsLoadingAuth(false);
