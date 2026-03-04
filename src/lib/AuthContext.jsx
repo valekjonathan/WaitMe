@@ -42,19 +42,19 @@ export const AuthProvider = ({ children }) => {
 
     return {
       id: authUser.id,
-      email: email || profile?.email,
-      full_name: fullName || profile?.full_name,
-      display_name: profile?.display_name ?? fullName?.split(' ')[0] ?? '',
-      photo_url: avatarUrl || profile?.avatar_url || profile?.photo_url,
-      car_brand: profile?.car_brand,
-      car_model: profile?.car_model,
-      car_color: profile?.car_color,
-      vehicle_type: profile?.vehicle_type,
-      car_plate: profile?.car_plate,
-      phone: profile?.phone,
-      allow_phone_calls: profile?.allow_phone_calls,
-      notifications_enabled: profile?.notifications_enabled,
-      email_notifications: profile?.email_notifications,
+      email: profile?.email || email,
+      full_name: profile?.full_name || fullName,
+      display_name: profile?.display_name ?? (profile?.full_name || fullName)?.split(' ')[0] ?? '',
+      photo_url: profile?.avatar_url || profile?.photo_url || avatarUrl,
+      car_brand: profile?.car_brand ?? '',
+      car_model: profile?.car_model ?? '',
+      car_color: profile?.car_color ?? 'gris',
+      vehicle_type: profile?.vehicle_type ?? 'car',
+      car_plate: profile?.car_plate ?? '',
+      phone: profile?.phone ?? '',
+      allow_phone_calls: profile?.allow_phone_calls ?? false,
+      notifications_enabled: profile?.notifications_enabled !== false,
+      email_notifications: profile?.email_notifications !== false,
       ...authUser,
     };
   }, []);
@@ -135,6 +135,33 @@ export const AuthProvider = ({ children }) => {
     // No-op when using Supabase; Login is shown by AuthRouter when !user?.id
   }, []);
 
+  const updateProfileFromDb = useCallback(async (userId) => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (!data) return;
+    setUser((prev) => {
+      if (!prev || prev.id !== userId) return prev;
+      return {
+        ...prev,
+        full_name: data.full_name ?? prev.full_name,
+        car_brand: data.car_brand ?? prev.car_brand,
+        car_model: data.car_model ?? prev.car_model,
+        car_color: data.car_color ?? prev.car_color ?? 'gris',
+        vehicle_type: data.vehicle_type ?? prev.vehicle_type ?? 'car',
+        car_plate: data.car_plate ?? prev.car_plate,
+        phone: data.phone ?? prev.phone,
+        photo_url: data.avatar_url ?? data.photo_url ?? prev.photo_url,
+        allow_phone_calls: data.allow_phone_calls ?? prev.allow_phone_calls,
+        notifications_enabled: data.notifications_enabled !== false,
+        email_notifications: data.email_notifications !== false,
+      };
+    });
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -148,8 +175,9 @@ export const AuthProvider = ({ children }) => {
       navigateToLogin,
       checkAppState: checkUserAuth,
       checkUserAuth,
+      updateProfileFromDb,
     }),
-    [user, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth]
+    [user, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth, updateProfileFromDb]
   );
 
   return (

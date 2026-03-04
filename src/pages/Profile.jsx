@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
-import { isProfileComplete, getMissingProfileFields } from '@/lib/profile';
+import { isProfileComplete, getMissingProfileFields, toProfilePayload } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, checkUserAuth } = useAuth();
+  const { user, updateProfileFromDb } = useAuth();
   const setHeader = useLayoutHeader();
   const setProfileFormData = useSetProfileFormData();
   const [hydrated, setHydrated] = useState(false);
@@ -117,27 +117,22 @@ export default function Profile() {
     if (!user?.id || !hydrated) return;
     const save = async () => {
       try {
-        const payload = {
-          full_name: formData.full_name,
-          car_brand: formData.car_brand,
-          car_model: formData.car_model,
-          car_color: formData.car_color,
-          vehicle_type: formData.vehicle_type,
-          car_plate: formData.car_plate,
-          avatar_url: formData.avatar_url,
-          phone: formData.phone,
-          allow_phone_calls: formData.allow_phone_calls,
-          notifications_enabled: formData.notifications_enabled,
-          email_notifications: formData.email_notifications,
-          updated_at: new Date().toISOString(),
-        };
-        await supabase.from('profiles').update(payload).eq('id', user.id);
+        const payload = toProfilePayload(formData);
+        const { data, error } = await supabase
+          .from('profiles')
+          .update(payload)
+          .eq('id', user.id)
+          .select()
+          .single();
+        if (!error && data) {
+          updateProfileFromDb(user.id);
+        }
       } catch (error) {
         console.error('Error guardando:', error);
       }
     };
     save();
-  }, [formData, user?.id, hydrated]);
+  }, [formData, user?.id, hydrated, updateProfileFromDb]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -167,36 +162,26 @@ export default function Profile() {
       return;
     }
     try {
-      const payload = {
-        full_name: formData.full_name,
-        car_brand: formData.car_brand,
-        car_model: formData.car_model,
-        car_color: formData.car_color,
-        vehicle_type: formData.vehicle_type,
-        car_plate: formData.car_plate,
-        avatar_url: formData.avatar_url,
-        phone: formData.phone,
-        allow_phone_calls: formData.allow_phone_calls,
-        notifications_enabled: formData.notifications_enabled,
-        email_notifications: formData.email_notifications,
-        updated_at: new Date().toISOString(),
-      };
-      await supabase.from('profiles').update(payload).eq('id', user.id);
-      await checkUserAuth();
+      const payload = toProfilePayload(formData);
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(payload)
+        .eq('id', user.id)
+        .select()
+        .single();
+      if (!error && data) {
+        updateProfileFromDb(user.id);
+      }
     } catch (error) {
       console.error('Error guardando:', error);
     }
     navigate('/');
-  }, [formData, user?.id, navigate, checkUserAuth]);
+  }, [formData, user?.id, navigate, updateProfileFromDb]);
 
   useEffect(() => {
     setHeader({ showBackButton: true, onBack: handleBack });
     return () => setHeader({ onBack: null });
   }, [handleBack, setHeader]);
-
-  useEffect(() => {
-    return () => checkUserAuth();
-  }, [checkUserAuth]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 

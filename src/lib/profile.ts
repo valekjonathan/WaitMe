@@ -26,3 +26,22 @@ export function getMissingProfileFields(profile) {
 export function isProfileComplete(profile) {
   return getMissingProfileFields(profile).length === 0;
 }
+
+/** Crea payload para Supabase profiles desde formData */
+export function toProfilePayload(formData) {
+  const p = normalizeProfile(formData);
+  return {
+    full_name: p.full_name,
+    phone: p.phone,
+    car_brand: p.brand,
+    car_model: p.model,
+    car_color: p.color || 'gris',
+    vehicle_type: p.vehicle_type || 'car',
+    car_plate: p.plate,
+    avatar_url: formData?.avatar_url ?? '',
+    allow_phone_calls: formData?.allow_phone_calls ?? false,
+    notifications_enabled: formData?.notifications_enabled !== false,
+    email_notifications: formData?.email_notifications !== false,
+    updated_at: new Date().toISOString(),
+  };
+}
