@@ -24,15 +24,16 @@ npx supabase migration new <name>
 
 Migrations are pushed to the linked Supabase project when changes in `supabase/migrations/` are pushed to `main`.
 
-**Required secrets:**
+**Required secrets:** See [docs/SETUP_SUPABASE_GITHUB_SECRETS.md](../docs/SETUP_SUPABASE_GITHUB_SECRETS.md)
+
 - `SUPABASE_ACCESS_TOKEN` - From [Supabase Dashboard](https://supabase.com/dashboard/account/tokens)
-- `SUPABASE_PROJECT_ID` - Project reference from Project Settings
+- `SUPABASE_PROJECT_REF` - Project reference from Project Settings → General
 - `SUPABASE_DB_PASSWORD` - Database password
 
 **Link project locally:**
 ```bash
 npx supabase login
-npx supabase link --project-ref <PROJECT_ID>
+npx supabase link --project-ref <PROJECT_REF>
 ```
 
 ## Local development
