@@ -33,9 +33,9 @@ const ROUTE_HEADER = {
 
 function ProfileGuard({ children }) {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const isHome = location.pathname === '/' || location.pathname.toLowerCase() === '/home';
-  if (isHome && user?.id && !isProfileComplete(user)) {
+  if (isHome && user?.id && !isProfileComplete(profile)) {
     return <Navigate to="/profile" replace />;
   }
   return children;
