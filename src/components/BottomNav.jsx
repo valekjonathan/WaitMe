@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
+import { useProfileFormData } from '@/lib/LayoutContext';
 import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
@@ -18,7 +19,8 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { guard } = useProfileGuard(user);
+  const profileFormData = useProfileFormData();
+  const { guard } = useProfileGuard(profileFormData || user);
   const queryClient = useQueryClient();
   const [chatUnread, setChatUnread] = useState(0);
 

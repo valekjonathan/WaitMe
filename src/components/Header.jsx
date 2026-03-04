@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
+import { useProfileFormData } from '@/lib/LayoutContext';
 import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 import { getBalance } from '@/lib/transactionEngine';
@@ -16,7 +17,8 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { guard } = useProfileGuard(user);
+  const profileFormData = useProfileFormData();
+  const { guard } = useProfileGuard(profileFormData || user);
 
   const [balance, setBalance] = useState(() => getBalance(user?.id));
   const [bannerReq, setBannerReq] = useState(null);

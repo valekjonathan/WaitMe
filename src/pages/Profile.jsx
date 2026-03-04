@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { useLayoutHeader } from '@/lib/LayoutContext';
+import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
 import { isProfileComplete } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -30,8 +30,9 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, checkUserAuth } = useAuth();
+  const { user } = useAuth();
   const setHeader = useLayoutHeader();
+  const setProfileFormData = useSetProfileFormData();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -108,6 +109,11 @@ export default function Profile() {
   }, [user]);
 
   useEffect(() => {
+    setProfileFormData(formData);
+    return () => setProfileFormData(null);
+  }, [formData, setProfileFormData]);
+
+  useEffect(() => {
     if (!user?.id || !hydrated) return;
     const save = async () => {
       try {
@@ -159,12 +165,30 @@ export default function Profile() {
       alert('Debes rellenar todos los campos');
       return;
     }
-    await checkUserAuth();
-    setTimeout(() => navigate('/'), 0);
-  }, [formData, navigate, checkUserAuth]);
+    try {
+      const payload = {
+        full_name: formData.full_name,
+        car_brand: formData.car_brand,
+        car_model: formData.car_model,
+        car_color: formData.car_color,
+        vehicle_type: formData.vehicle_type,
+        car_plate: formData.car_plate,
+        avatar_url: formData.avatar_url,
+        phone: formData.phone,
+        allow_phone_calls: formData.allow_phone_calls,
+        notifications_enabled: formData.notifications_enabled,
+        email_notifications: formData.email_notifications,
+        updated_at: new Date().toISOString(),
+      };
+      await supabase.from('profiles').update(payload).eq('id', user.id);
+    } catch (error) {
+      console.error('Error guardando:', error);
+    }
+    navigate('/');
+  }, [formData, user?.id, navigate]);
 
   useEffect(() => {
-    setHeader({ onBack: handleBack });
+    setHeader({ showBackButton: true, onBack: handleBack });
     return () => setHeader({ onBack: null });
   }, [handleBack, setHeader]);
 
