@@ -1,9 +1,7 @@
--- Ejecutar en Supabase SQL Editor si la tabla profiles no existe
--- y crear bucket 'avatars' en Storage con políticas públicas de lectura
-
 -- Tabla profiles (compatible con auth.users)
 -- Campos obligatorios: full_name, phone, brand, model, color, vehicle_type, plate
 -- Campo opcional: avatar_url
+-- Nota: crear bucket 'avatars' en Storage con políticas públicas de lectura
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
