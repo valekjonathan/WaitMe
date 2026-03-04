@@ -296,8 +296,7 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">
-        <div className="flex flex-col justify-center min-h-[calc(100vh-140px)]">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center overflow-hidden min-h-screen">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -310,12 +309,9 @@ export default function Profile() {
                       src={avatarSrc}
                       alt="avatar"
                       className="w-full h-full object-cover"
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-2xl">👤</span>
-                    </div>
+                    <span className="text-2xl">👤</span>
                   )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
@@ -484,7 +480,6 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
-        </div>
       </main>
 
       <BottomNav />
