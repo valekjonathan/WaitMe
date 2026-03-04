@@ -378,7 +378,12 @@ export default function Profile() {
               {/* Info */}
               <div className="pl-3 flex-1 flex items-center">
                 <p className="text-xl font-bold text-white">
-                  {formData.full_name || firstWord(user?.user_metadata?.full_name || user?.user_metadata?.name || user?.full_name || '')}
+                  {firstWord(
+                  formData.full_name ||
+                  user?.user_metadata?.full_name ||
+                  user?.user_metadata?.name ||
+                  ""
+                )}
                 </p>
               </div>
             </div>
