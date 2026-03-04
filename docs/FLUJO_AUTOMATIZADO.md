@@ -2,8 +2,9 @@
 
 ## Resumen
 
-- **Pre-commit:** lint + auto-fix en archivos staged antes de cada commit
-- **npm run ship:** lint:fix → build → commit → push (un solo comando)
+- **Pre-commit:** eslint --fix (lint-staged) + build. Si falla, no se hace commit.
+- **Post-commit:** push automático a origin/main
+- **npm run ship:** lint:fix → build → commit (post-commit hace push)
 - **GitHub Actions:** lint + build en cada push a main
 
 ## Comandos
@@ -13,11 +14,17 @@
 | `npm run lint` | Ejecuta ESLint |
 | `npm run lint:fix` | ESLint con auto-corrección |
 | `npm run check` | lint + build (verificación completa) |
-| `npm run ship` | lint:fix → build → git add → commit → push |
+| `npm run ship` | lint:fix → build → git add → commit (push vía post-commit) |
 
 ## Pre-commit (Husky + lint-staged)
 
-Al hacer `git commit`, se ejecuta automáticamente `lint-staged`, que aplica `eslint --fix` a los archivos staged. Si hay errores que no se pueden corregir, el commit se aborta.
+Antes de cada `git commit`:
+1. `lint-staged` ejecuta `eslint --fix` en archivos staged (corrige errores automáticamente)
+2. `npm run build` — si falla, el commit se aborta y se muestra el error
+
+## Post-commit
+
+Tras cada commit exitoso: `git push origin main`
 
 ## Ship (flujo completo)
 
@@ -25,11 +32,10 @@ Al hacer `git commit`, se ejecuta automáticamente `lint-staged`, que aplica `es
 npm run ship
 ```
 
-1. Ejecuta `npm run lint:fix`
-2. Ejecuta `npm run build`
-3. Si todo pasa: `git add .` → `git commit -m "chore: auto-update"` → `git push origin main`
-4. Si hay errores: se detiene y no hace commit
+1. `npm run lint:fix`
+2. `npm run build` — si falla, se detiene y no hace commit
+3. Si todo pasa: `git add .` → `git commit -m "chore: auto-update"` (post-commit hace push)
 
 ## GitHub Actions
 
-El workflow `.github/workflows/lint-and-build.yml` se ejecuta en cada push a main y verifica lint y build. No hay workflows de Supabase.
+El workflow `.github/workflows/lint-and-build.yml` se ejecuta en cada push a main. No hay workflows de Supabase.

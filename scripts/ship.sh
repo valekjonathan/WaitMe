@@ -17,9 +17,8 @@ echo ""
 echo "=== Staging changes ==="
 git add .
 if ! git diff --staged --quiet 2>/dev/null; then
-  echo "Committing and pushing..."
+  echo "Committing (post-commit will push)..."
   git commit -m "chore: auto-update"
-  git push origin main
   echo "Done."
 else
   echo "No changes to commit."
