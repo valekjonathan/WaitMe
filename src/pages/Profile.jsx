@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
+import { isProfileComplete } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,15 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-
-const REQUIRED_FIELDS = ['full_name', 'phone', 'car_brand', 'car_model', 'car_color', 'vehicle_type', 'car_plate'];
-
-function isProfileComplete(data) {
-  return REQUIRED_FIELDS.every((f) => {
-    const v = data[f];
-    return v != null && String(v).trim() !== '';
-  });
-}
 
 const carColors = [
   { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -54,6 +46,14 @@ export default function Profile() {
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     "";
+
+  const initial =
+    (formData?.full_name ||
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      "")
+      .charAt(0)
+      .toUpperCase();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -175,11 +175,11 @@ export default function Profile() {
 
   const handleBack = useCallback(async () => {
     if (!isProfileComplete(formData)) {
-      alert('Debes completar tu perfil para continuar');
+      alert('Debes rellenar todos los campos');
       return;
     }
     await checkUserAuth();
-    navigate('/home');
+    navigate('/');
   }, [formData, navigate, checkUserAuth]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
@@ -313,7 +313,9 @@ export default function Profile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl">👤</span>
+                    <span className="text-2xl font-semibold">
+                      {initial || "?"}
+                    </span>
                   )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
