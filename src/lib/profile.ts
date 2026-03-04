@@ -1,12 +1,13 @@
-export function normalizeProfile(profile = {}) {
+export function normalizeProfile(profile) {
+  const p = profile ?? {};
   return {
-    full_name: String(profile.full_name || profile.name || "").trim(),
-    phone: String(profile.phone || profile.phone_number || "").trim(),
-    brand: String(profile.brand || "").trim(),
-    model: String(profile.model || "").trim(),
-    color: String(profile.color || "").trim(),
-    vehicle_type: String(profile.vehicle_type || profile.vehicle || "").trim(),
-    plate: String(profile.plate || "").trim(),
+    full_name: String(p.full_name || p.name || "").trim(),
+    phone: String(p.phone || p.phone_number || "").trim(),
+    brand: String(p.brand || "").trim(),
+    model: String(p.model || "").trim(),
+    color: String(p.color || "").trim(),
+    vehicle_type: String(p.vehicle_type || p.vehicle || "").trim(),
+    plate: String(p.plate || "").trim(),
   };
 }
 
