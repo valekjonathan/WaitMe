@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+// import mapboxgl from 'mapbox-gl';
+// import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/lib/supabaseClient';
 import { useMapMatch } from '@/hooks/useMapMatch';
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+// const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = null; // Mapbox deshabilitado temporalmente
 
 const DEFAULT_CENTER = [-5.8494, 43.3619]; // Gijón fallback
 const INITIAL_ZOOM = 16;
@@ -51,7 +52,7 @@ export default function MapboxMap({
   const animationRef = useRef(null);
   const [alerts, setAlerts] = useState([]);
   const [mapError, setMapError] = useState(null);
-  const { addPoint, corrected } = useMapMatch(!!MAPBOX_TOKEN);
+  const { addPoint, corrected } = useMapMatch(false); // !!MAPBOX_TOKEN
 
   // Cargar alertas activas desde Supabase + Realtime
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function MapboxMap({
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Inicializar mapa y capa parking_alerts_layer
+  // Inicializar mapa y capa parking_alerts_layer — MAPBOX COMENTADO
   useEffect(() => {
     if (!MAPBOX_TOKEN || !containerRef.current) return;
     setMapError(null);
@@ -114,43 +115,43 @@ export default function MapboxMap({
       const center = userPosition
         ? [userPosition.lng, userPosition.lat]
         : DEFAULT_CENTER;
-      map = new mapboxgl.Map({
-        container: containerRef.current,
-        style,
-        center,
-        zoom: INITIAL_ZOOM,
-      });
+      // map = new mapboxgl.Map({
+      //   container: containerRef.current,
+      //   style,
+      //   center,
+      //   zoom: INITIAL_ZOOM,
+      // });
 
-      map.on('error', (e) => {
-        console.error('[MapboxMap]', e);
-        setMapError('Error cargando mapa');
-      });
+      // map.on('error', (e) => {
+      //   console.error('[MapboxMap]', e);
+      //   setMapError('Error cargando mapa');
+      // });
 
-      map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+      // map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
-      map.on('load', () => {
-        try {
-          map.addSource('parking_alerts_source', {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features: [] },
-          });
-          map.addLayer({
-            id: 'parking_alerts_layer',
-            type: 'circle',
-            source: 'parking_alerts_source',
-            paint: {
-              'circle-radius': 8,
-              'circle-color': '#6D28D9',
-              'circle-opacity': 0.8,
-            },
-          });
-        } catch (err) {
-          console.error('[MapboxMap] load', err);
-          setMapError('Error cargando mapa');
-        }
-      });
+      // map.on('load', () => {
+      //   try {
+      //     map.addSource('parking_alerts_source', {
+      //       type: 'geojson',
+      //       data: { type: 'FeatureCollection', features: [] },
+      //     });
+      //     map.addLayer({
+      //       id: 'parking_alerts_layer',
+      //       type: 'circle',
+      //       source: 'parking_alerts_source',
+      //       paint: {
+      //         'circle-radius': 8,
+      //         'circle-color': '#6D28D9',
+      //         'circle-opacity': 0.8,
+      //       },
+      //     });
+      //   } catch (err) {
+      //     console.error('[MapboxMap] load', err);
+      //     setMapError('Error cargando mapa');
+      //   }
+      // });
 
-      mapRef.current = map;
+      // mapRef.current = map;
     } catch (err) {
       console.error('[MapboxMap] init', err);
       setMapError('Error cargando mapa');
@@ -253,9 +254,9 @@ export default function MapboxMap({
         border-radius: 50%;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
       `;
-      markerRef.current = new mapboxgl.Marker({ element: el })
-        .setLngLat(displayPosRef.current)
-        .addTo(map);
+      // markerRef.current = new mapboxgl.Marker({ element: el })
+      //   .setLngLat(displayPosRef.current)
+      //   .addTo(map);
     }
 
     // Añadir círculo de precisión cuando el mapa esté cargado
