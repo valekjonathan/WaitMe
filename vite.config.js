@@ -8,10 +8,7 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
-    strictPort: true,
-    hmr: {
-      host: '192.168.0.10'
-    }
+    strictPort: true
   },
   build: {
     // Logos/PNG pequeños inline => carga instantánea (iOS PWA incluido)
