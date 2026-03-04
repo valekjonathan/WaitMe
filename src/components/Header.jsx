@@ -45,8 +45,8 @@ export default function Header({
 
   // -------- BACK BUTTON --------
   const handleBack = useCallback(() => {
-    if (onBack) return onBack();
     guard(() => {
+      if (onBack) return onBack();
       if (backTo) {
         navigate(`/${backTo.toLowerCase()}`);
       } else {

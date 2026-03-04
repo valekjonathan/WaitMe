@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
 import { toProfilePayload } from '@/lib/profile';
-import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +33,6 @@ export default function Profile() {
   const { user, profile, setProfile } = useAuth();
   const setHeader = useLayoutHeader();
   const setProfileFormData = useSetProfileFormData();
-  const { guard } = useProfileGuard(formData);
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -154,25 +152,23 @@ export default function Profile() {
     }
   };
 
-  const handleBack = useCallback(() => {
-    guard(async () => {
-      try {
-        const payload = toProfilePayload(formData);
-        const { data, error } = await supabase
-          .from('profiles')
-          .update(payload)
-          .eq('id', user.id)
-          .select()
-          .single();
-        if (!error && data) {
-          setProfile(data);
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('Error guardando:', error);
+  const handleBack = useCallback(async () => {
+    try {
+      const payload = toProfilePayload(formData);
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(payload)
+        .eq('id', user.id)
+        .select()
+        .single();
+      if (!error && data) {
+        setProfile(data);
+        navigate('/');
       }
-    });
-  }, [guard, formData, user?.id, navigate, setProfile]);
+    } catch (error) {
+      console.error('Error guardando:', error);
+    }
+  }, [formData, user?.id, navigate, setProfile]);
 
   useEffect(() => {
     setHeader({ showBackButton: true, onBack: handleBack });
