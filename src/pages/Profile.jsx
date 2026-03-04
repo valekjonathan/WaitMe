@@ -53,7 +53,7 @@ export default function Profile() {
     formData?.avatar_url ||
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
-    null;
+    "";
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -296,7 +296,8 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)] overflow-hidden">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">
+        <div className="flex flex-col justify-center min-h-[calc(100vh-140px)]">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -309,6 +310,7 @@ export default function Profile() {
                       src={avatarSrc}
                       alt="avatar"
                       className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -482,6 +484,7 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
+        </div>
       </main>
 
       <BottomNav />
