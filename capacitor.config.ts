@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.waitme.app',
   appName: 'WaitMe',
   webDir: 'dist',
+  bundledWebRuntime: false,
 };
 
 export default config;
