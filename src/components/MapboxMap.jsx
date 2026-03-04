@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/lib/supabaseClient';
+import { useMapMatch } from '@/hooks/useMapMatch';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -49,6 +50,7 @@ export default function MapboxMap({
   const displayPosRef = useRef(null);
   const animationRef = useRef(null);
   const [alerts, setAlerts] = useState([]);
+  const { addPoint, corrected } = useMapMatch(!!MAPBOX_TOKEN);
 
   // Cargar alertas activas desde Supabase + Realtime
   useEffect(() => {
@@ -82,11 +84,9 @@ export default function MapboxMap({
 
     const handlePosition = (pos) => {
       const { latitude, longitude, accuracy } = pos.coords;
-      setUserPosition({
-        lng: longitude,
-        lat: latitude,
-        accuracy: accuracy ?? 20,
-      });
+      const acc = accuracy ?? 20;
+      setUserPosition({ lng: longitude, lat: latitude, accuracy: acc });
+      addPoint(latitude, longitude, acc);
       setError(null);
     };
 
@@ -146,26 +146,28 @@ export default function MapboxMap({
     };
   }, [MAPBOX_TOKEN, style]);
 
+  const effectivePosition = corrected ?? userPosition;
+
   // Seguimiento automático: flyTo al recibir nueva posición
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !userPosition) return;
+    if (!map || !effectivePosition) return;
 
-    const center = [userPosition.lng, userPosition.lat];
+    const center = [effectivePosition.lng, effectivePosition.lat];
     map.flyTo({
       center,
       zoom: TRACKING_ZOOM,
       speed: FLY_SPEED,
       essential: true,
     });
-  }, [userPosition]);
+  }, [effectivePosition]);
 
   // Interpolación suave del marcador y actualización de círculo de precisión
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !userPosition) return;
+    if (!map || !effectivePosition) return;
 
-    const target = [userPosition.lng, userPosition.lat];
+    const target = [effectivePosition.lng, effectivePosition.lat];
     if (!displayPosRef.current) displayPosRef.current = [...target];
 
     const updateMarkerAndCircle = () => {
@@ -201,11 +203,11 @@ export default function MapboxMap({
             type: 'Point',
             coordinates: displayPosRef.current,
           },
-          properties: { accuracy: userPosition.accuracy },
+          properties: { accuracy: effectivePosition.accuracy ?? userPosition?.accuracy ?? 20 },
         });
       }
       if (map.getLayer('user_accuracy_layer')) {
-        const accuracy = userPosition.accuracy ?? 20;
+        const accuracy = effectivePosition.accuracy ?? userPosition?.accuracy ?? 20;
         const zoom = map.getZoom();
         const radiusPx = metersToCircleRadiusPixels(accuracy, zoom, display[1]);
         const fillColor =
@@ -241,7 +243,7 @@ export default function MapboxMap({
       if (map.getLayer('user_accuracy_layer')) return;
 
       const coords = displayPosRef.current;
-      const accuracy = userPosition.accuracy ?? 20;
+      const accuracy = effectivePosition?.accuracy ?? userPosition?.accuracy ?? 20;
       const zoom = map.getZoom();
       const radiusPx = metersToCircleRadiusPixels(accuracy, zoom, coords[1]);
       const fillColor =
@@ -281,7 +283,7 @@ export default function MapboxMap({
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [userPosition]);
+  }, [effectivePosition, userPosition]);
 
   // Actualizar GeoJSON de alertas en el mapa
   useEffect(() => {
