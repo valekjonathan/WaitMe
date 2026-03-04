@@ -44,15 +44,18 @@ export default function Profile() {
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     user?.photo_url ||
-    user?.avatar_url ||
     "";
-  if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
+
+  if (avatarSrc && !avatarSrc.startsWith("http")) {
     const { data } = supabase.storage.from("avatars").getPublicUrl(avatarSrc);
-    avatarSrc = data.publicUrl;
+    avatarSrc = data?.publicUrl || "";
   }
 
-  const nameForInitial = formData?.full_name || user?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "";
-  const initial = nameForInitial.charAt(0).toUpperCase() || "?";
+  const initial =
+    (formData?.full_name ||
+     user?.user_metadata?.full_name ||
+     user?.user_metadata?.name ||
+     "?")[0].toUpperCase();
 
   useEffect(() => {
     if (!user || hydrated) return;
@@ -74,10 +77,17 @@ export default function Profile() {
 
   useEffect(() => {
     if (user && !formData.full_name) {
-      setFormData((prev) => ({
-        ...prev,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name || prev.full_name || '',
-      }));
+      const name =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        "";
+
+      if (name) {
+        setFormData((prev) => ({
+          ...prev,
+          full_name: name,
+        }));
+      }
     }
   }, [user]);
 
@@ -255,8 +265,9 @@ export default function Profile() {
   );
 
   return (
-    <div className="flex-1 flex flex-col justify-center items-center px-4 min-h-0 overflow-hidden">
-      <div className="w-full max-w-md">
+    <div className="flex flex-col flex-1 min-h-0 px-4">
+      <div className="flex-1 flex flex-col justify-center items-center">
+        <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -271,9 +282,7 @@ export default function Profile() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-2xl font-semibold">
-                      {initial || "?"}
-                    </span>
+                    <span className="text-2xl font-semibold">{initial}</span>
                   )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
@@ -442,6 +451,7 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
+        </div>
       </div>
     </div>
   );
