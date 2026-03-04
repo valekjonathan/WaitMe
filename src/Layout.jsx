@@ -58,12 +58,14 @@ function LayoutShell() {
         onBack={merged.onBack}
         titleClassName={merged.titleClassName}
       />
-      <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24 overflow-hidden">
-        <ProfileGuard>
-          <Suspense fallback={null}>
-            <Outlet />
-          </Suspense>
-        </ProfileGuard>
+      <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <ProfileGuard>
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
+          </ProfileGuard>
+        </div>
       </main>
       <BottomNav />
     </div>
