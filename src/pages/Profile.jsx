@@ -114,6 +114,23 @@ export default function Profile() {
     return () => setProfileFormData(null);
   }, [formData, setProfileFormData]);
 
+  useEffect(() => {
+    return () => {
+      if (user?.id && hydrated) {
+        const payload = toProfilePayload(formData);
+        supabase
+          .from('profiles')
+          .update(payload)
+          .eq('id', user.id)
+          .select()
+          .single()
+          .then(({ data }) => {
+            if (data) setProfile(data);
+          });
+      }
+    };
+  }, [formData, user?.id, hydrated, setProfile]);
+
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
