@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" manifest="/manifest.json">
+<html lang="es" manifest="./manifest.json">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -7,26 +7,13 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="WaitMe!" />
     <meta name="theme-color" content="#ffffff" />
-    <style>
-      html, body, #root { background: #ffffff !important; color: #000000; margin: 0; padding: 0; min-height: 100vh; }
-    </style>
-    <link rel="icon" type="image/png" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="preload" as="image" href="/src/assets/d2ae993d3_WaitMe.png" />
+    <link rel="icon" type="image/png" href="./apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
     <title>WaitMe!</title>
   </head>
   <body>
-    <div id="html-diag" style="position:fixed;top:0;left:0;right:0;padding:16px;background:#fff;color:#000;font-family:sans-serif;font-size:18px;z-index:99999;border-bottom:2px solid #333;">
-      HTML OK
-    </div>
     <div id="root"></div>
-    <script>
-      (function(){
-        var el = document.getElementById('html-diag');
-        if (el) el.textContent = 'HTML+JS INLINE OK';
-      })();
-    </script>
-    <script type="module" src="./src/main.jsx"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

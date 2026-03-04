@@ -17,27 +17,27 @@ if [ ! -f "dist/index.html" ]; then
   echo "[ios:run] ERROR: dist/index.html no existe"
   exit 1
 fi
-DIST_JS=$(find dist/assets -name "*.js" 2>/dev/null | wc -l)
-if [ "$DIST_JS" -lt 1 ]; then
-  echo "[ios:run] ERROR: No hay .js en dist/assets/"
+DIST_ENTRY=$(find dist/assets -name "index-*.js" 2>/dev/null | head -1)
+if [ -z "$DIST_ENTRY" ]; then
+  echo "[ios:run] ERROR: No existe dist/assets/index-*.js"
   exit 1
 fi
-echo "[ios:run]   dist/index.html OK, $DIST_JS .js en dist/assets/"
+echo "[ios:run]   dist/index.html OK, dist/assets/index-*.js OK"
 
 echo "[ios:run] 3. Sync iOS..."
 npx cap sync ios
 
-echo "[ios:run] 4. Validar bundle..."
+echo "[ios:run] 4. Validar bundle iOS..."
 if [ ! -f "ios/App/App/public/index.html" ]; then
   echo "[ios:run] ERROR: ios/App/App/public/index.html no existe"
   exit 1
 fi
-JS_COUNT=$(find ios/App/App/public/assets -name "*.js" 2>/dev/null | wc -l)
-if [ "$JS_COUNT" -lt 1 ]; then
-  echo "[ios:run] ERROR: No hay archivos .js en ios/App/App/public/assets/"
+IOS_ENTRY=$(find ios/App/App/public/assets -name "index-*.js" 2>/dev/null | head -1)
+if [ -z "$IOS_ENTRY" ]; then
+  echo "[ios:run] ERROR: No existe ios/App/App/public/assets/index-*.js"
   exit 1
 fi
-echo "[ios:run]   index.html OK, $JS_COUNT .js en assets/"
+echo "[ios:run]   ios/App/App/public OK (index.html + assets/index-*.js)"
 
 echo "[ios:run] 5. Compilar .app..."
 cd ios/App
