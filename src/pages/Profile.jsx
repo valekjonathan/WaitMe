@@ -1,28 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { Camera, Phone, ImagePlus, Trash2 } from 'lucide-react';
+import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
 const REQUIRED_FIELDS = ['full_name', 'phone', 'car_brand', 'car_model', 'car_color', 'vehicle_type', 'car_plate'];
-
-function firstWord(name) {
-  if (!name) return "";
-  return name.trim().split(" ")[0];
-}
 
 function isProfileComplete(data) {
   return REQUIRED_FIELDS.every((f) => {
@@ -42,7 +31,7 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user, isLoadingAuth, checkUserAuth } = useAuth();
+  const { user, checkUserAuth } = useAuth();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -57,12 +46,10 @@ export default function Profile() {
     notifications_enabled: true,
     email_notifications: true,
   });
-  const fileInputRef = useRef(null);
 
-  // Foto instantánea: muestra caché local (si existe) y actualiza en segundo plano
   const [photoSrc, setPhotoSrc] = useState('');
 
-  const avatarUrl = formData.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+  const photoUrl = formData.avatar_url || user?.photo_url || user?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -74,15 +61,15 @@ export default function Profile() {
       if (cached) setPhotoSrc(cached);
     } catch (_) {}
 
-    if (!avatarUrl) return;
+    if (!photoUrl) return;
 
     const img = new Image();
     img.decoding = 'sync';
-    img.src = avatarUrl;
+    img.src = photoUrl;
 
     img.onload = () => {
-      if (!cached) setPhotoSrc(avatarUrl);
-      fetch(avatarUrl)
+      if (!cached) setPhotoSrc(photoUrl);
+      fetch(photoUrl)
         .then((r) => r.blob())
         .then(
           (blob) =>
@@ -105,19 +92,14 @@ export default function Profile() {
     };
 
     img.onerror = () => {
-      if (!cached) setPhotoSrc(avatarUrl);
+      if (!cached) setPhotoSrc(photoUrl);
     };
-  }, [avatarUrl, user?.id]);
+  }, [photoUrl, user?.id]);
 
   useEffect(() => {
     if (!user || hydrated) return;
-    const rawName =
-      user?.user_metadata?.full_name ||
-      user?.user_metadata?.name ||
-      "";
-    const cleanName = firstWord(rawName);
     setFormData({
-      full_name: cleanName,
+      full_name: user.full_name || user.display_name || '',
       car_brand: user.car_brand || '',
       car_model: user.car_model || '',
       car_color: user.car_color || 'gris',
@@ -133,10 +115,10 @@ export default function Profile() {
   }, [user, hydrated]);
 
   useEffect(() => {
-    if (!avatarUrl) return;
+    if (!photoUrl) return;
     const img = new Image();
-    img.src = avatarUrl;
-  }, [avatarUrl]);
+    img.src = photoUrl;
+  }, [photoUrl]);
 
   const autoSave = useCallback(
     async (data) => {
@@ -284,6 +266,14 @@ export default function Profile() {
     );
   };
 
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none" aria-hidden="true">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+  );
+
   const vehicleLabel = (t) => {
     if (t === 'suv') return 'Voluminoso';
     if (t === 'van') return 'Furgoneta';
@@ -298,14 +288,6 @@ export default function Profile() {
     />
   );
 
-  const CarIconSmall = ({ color }) => (
-    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none" aria-hidden="true">
-      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
-      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
-    </svg>
-  );
-
   return (
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
@@ -318,9 +300,9 @@ export default function Profile() {
               {/* Foto */}
               <div className="relative">
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
-                  {avatarUrl ? (
+                  {photoUrl ? (
                     <img
-                      src={photoSrc || avatarUrl}
+                      src={photoSrc || photoUrl}
                       alt="Perfil"
                       className="w-full h-full object-cover"
                       loading="eager"
@@ -331,60 +313,38 @@ export default function Profile() {
                     <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
                   )}
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors focus:outline-none focus:ring-0"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-gray-900 border-gray-700 text-white min-w-[180px]">
-                    <DropdownMenuItem
-                      className="text-white focus:bg-gray-800 focus:text-white cursor-pointer"
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        fileInputRef.current?.click();
-                      }}
-                    >
-                      <ImagePlus className="w-4 h-4 mr-2" />
-                      Cambiar foto
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-white focus:bg-gray-800 focus:text-white cursor-pointer"
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        updateField('avatar_url', '');
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Eliminar foto
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-gray-400 focus:bg-gray-800 cursor-pointer">
-                      Cancelar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                />
+                <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
+                  <Camera className="w-4 h-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
               </div>
 
               {/* Info */}
-              <div className="pl-3 flex-1 flex items-center">
+              <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">
-                  {firstWord(
-                  formData.full_name ||
-                  user?.user_metadata?.full_name ||
-                  user?.user_metadata?.name ||
-                  ""
-                )}
+                  {formData.full_name || user?.full_name}
                 </p>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium text-sm">
+                      {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                    </p>
+                  </div>
+                  <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} />
+                </div>
+
+                {/* Matrícula estilo placa */}
+                <div className="mt-2 flex items-center">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">E</span>
+                    </div>
+                    <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                      {formData.car_plate ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : '0000 XXX'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
