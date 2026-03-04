@@ -103,6 +103,7 @@ export default function MapboxMap({
   }, [userPosition]);
 
   if (!MAPBOX_TOKEN) {
+    console.warn('Mapbox token missing');
     return (
       <div className={`flex items-center justify-center bg-gray-900 text-amber-500 ${className}`}>
         <p>Configura VITE_MAPBOX_TOKEN en .env</p>
