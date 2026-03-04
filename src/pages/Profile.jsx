@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { Phone, ImagePlus, Trash2 } from 'lucide-react';
+import { Camera, Phone, ImagePlus, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -293,34 +293,46 @@ export default function Profile() {
     />
   );
 
-  const displayName = firstWord(formData.full_name || user?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || '');
-  const nameInitial = displayName.trim().charAt(0).toUpperCase() || '?';
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none" aria-hidden="true">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+  );
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center overflow-hidden">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          {/* Tarjeta: foto + nombre (sin marca, modelo ni matrícula) */}
+          {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
             <div className="flex gap-4">
+              {/* Foto */}
               <div className="relative">
+                <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
+                  {avatarUrl ? (
+                    <img
+                      src={photoSrc || avatarUrl}
+                      alt="Perfil"
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      decoding="sync"
+                      fetchPriority="high"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
+                  )}
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button type="button" className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800 flex items-center justify-center focus:outline-none focus:ring-0">
-                      {avatarUrl ? (
-                        <img
-                          src={photoSrc || avatarUrl}
-                          alt="Perfil"
-                          className="w-full h-full object-cover"
-                          loading="eager"
-                          decoding="sync"
-                          fetchPriority="high"
-                        />
-                      ) : (
-                        <span className="text-4xl font-bold text-purple-400">{nameInitial}</span>
-                      )}
+                    <button
+                      type="button"
+                      className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors focus:outline-none focus:ring-0"
+                    >
+                      <Camera className="w-4 h-4" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-gray-900 border-gray-700 text-white min-w-[180px]">
@@ -357,10 +369,33 @@ export default function Profile() {
                   onChange={handlePhotoUpload}
                 />
               </div>
+
+              {/* Info */}
               <div className="pl-3 flex-1 flex flex-col justify-between">
                 <p className="text-xl font-bold text-white">
-                  {displayName || 'Nombre'}
+                  {formData.full_name || user?.full_name?.split(' ')[0]}
                 </p>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium text-sm">
+                      {formData.car_brand || 'Sin'} {formData.car_model || 'coche'}
+                    </p>
+                  </div>
+                  <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} />
+                </div>
+
+                {/* Matrícula estilo placa */}
+                <div className="mt-2 flex items-center">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">E</span>
+                    </div>
+                    <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                      {formData.car_plate ? `${formData.car_plate.slice(0, 4)} ${formData.car_plate.slice(4)}`.trim() : '0000 XXX'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -373,8 +408,10 @@ export default function Profile() {
                 <Label className="text-gray-400 text-sm">Nombre</Label>
                 <Input
                   value={formData.full_name}
-                  onChange={(e) => updateField('full_name', e.target.value)}
+                  onChange={(e) => updateField('full_name', e.target.value.slice(0, 15))}
+                  placeholder="Tu nombre"
                   className="bg-gray-900 border-gray-700 text-white h-9"
+                  maxLength={15}
                 />
               </div>
 
@@ -383,6 +420,7 @@ export default function Profile() {
                 <Input
                   value={formData.phone}
                   onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="+34 600 00 00"
                   className="bg-gray-900 border-gray-700 text-white h-9 text-sm"
                   type="tel"
                 />
@@ -408,6 +446,7 @@ export default function Profile() {
                 <Input
                   value={formData.car_brand}
                   onChange={(e) => updateField('car_brand', e.target.value)}
+                  placeholder="Seat, Renault..."
                   className="bg-gray-900 border-gray-700 text-white h-9"
                 />
               </div>
@@ -417,6 +456,7 @@ export default function Profile() {
                 <Input
                   value={formData.car_model}
                   onChange={(e) => updateField('car_model', e.target.value)}
+                  placeholder="Ibiza, Megane..."
                   className="bg-gray-900 border-gray-700 text-white h-9"
                 />
               </div>
@@ -433,7 +473,7 @@ export default function Profile() {
                     {carColors.map((color) => (
                       <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
                         <div className="flex items-center gap-2">
-                          <VehicleIconProfile type="car" color={color.fill} size="w-6 h-4" />
+                          <CarIconSmall color={color.fill} />
                           {color.label}
                         </div>
                       </SelectItem>
@@ -480,15 +520,13 @@ export default function Profile() {
 
             <div className="space-y-1.5">
               <Label className="text-gray-400 text-sm">Matrícula</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={formatPlate(formData.car_plate)}
-                  onChange={(e) => handlePlateChange(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9 flex-1"
-                  maxLength={8}
-                />
-                <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} size="w-6 h-4" />
-              </div>
+              <Input
+                value={formatPlate(formData.car_plate)}
+                onChange={(e) => handlePlateChange(e.target.value)}
+                placeholder="1234 ABC"
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
+                maxLength={8}
+              />
             </div>
           </div>
         </motion.div>
