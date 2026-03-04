@@ -1,27 +1,20 @@
 import { useCallback, useMemo } from "react";
-import { normalizeProfile, isProfileComplete } from "@/lib/profile";
+import { isProfileComplete, getMissingProfileFields } from "@/lib/profile";
 
-export function useProfileGuard(profileOrFormData) {
-  const normalized = useMemo(
-    () => normalizeProfile(profileOrFormData),
-    [profileOrFormData]
-  );
-  const complete = useMemo(
-    () => isProfileComplete(normalized),
-    [normalized]
-  );
+export function useProfileGuard(profile) {
+  const complete = useMemo(() => isProfileComplete(profile), [profile]);
 
   const guard = useCallback(
-    (fn) => {
-      if (!complete) {
-        alert("Debes rellenar todos los campos");
-        return false;
+    (callback) => {
+      const missing = getMissingProfileFields(profile);
+      if (missing.length) {
+        alert(`Debes rellenar: ${missing.join(", ")}`);
+        return;
       }
-      fn();
-      return true;
+      callback();
     },
-    [complete]
+    [profile]
   );
 
-  return { guard, complete, normalized };
+  return { guard, complete };
 }

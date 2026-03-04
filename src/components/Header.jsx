@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -16,9 +16,12 @@ export default function Header({
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const profileFormData = useProfileFormData();
-  const { guard } = useProfileGuard(profileFormData || user);
+  const isOnProfile = location.pathname.toLowerCase() === "/profile";
+  const guardSource = isOnProfile ? (profileFormData || {}) : (user || {});
+  const { guard } = useProfileGuard(guardSource);
 
   const [balance, setBalance] = useState(() => getBalance(user?.id));
   const [bannerReq, setBannerReq] = useState(null);
@@ -132,7 +135,7 @@ export default function Header({
           {/* IZQUIERDA */}
           <div className="flex items-center gap-2">
             {showBackButton ? (
-              <button onClick={handleBack} className="text-white p-2">
+              <button type="button" onClick={handleBack} className="text-white p-2">
                 <ArrowLeft className="w-6 h-6" />
               </button>
             ) : (

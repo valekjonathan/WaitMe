@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
-import { isProfileComplete } from '@/lib/profile';
+import { isProfileComplete, getMissingProfileFields } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ const carColors = [
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, checkUserAuth } = useAuth();
   const setHeader = useLayoutHeader();
   const setProfileFormData = useSetProfileFormData();
   const [hydrated, setHydrated] = useState(false);
@@ -161,8 +161,9 @@ export default function Profile() {
   };
 
   const handleBack = useCallback(async () => {
-    if (!isProfileComplete(formData)) {
-      alert('Debes rellenar todos los campos');
+    const missing = getMissingProfileFields(formData);
+    if (missing.length) {
+      alert(`Debes rellenar: ${missing.join(", ")}`);
       return;
     }
     try {
@@ -181,16 +182,21 @@ export default function Profile() {
         updated_at: new Date().toISOString(),
       };
       await supabase.from('profiles').update(payload).eq('id', user.id);
+      await checkUserAuth();
     } catch (error) {
       console.error('Error guardando:', error);
     }
     navigate('/');
-  }, [formData, user?.id, navigate]);
+  }, [formData, user?.id, navigate, checkUserAuth]);
 
   useEffect(() => {
     setHeader({ showBackButton: true, onBack: handleBack });
     return () => setHeader({ onBack: null });
   }, [handleBack, setHeader]);
+
+  useEffect(() => {
+    return () => checkUserAuth();
+  }, [checkUserAuth]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 

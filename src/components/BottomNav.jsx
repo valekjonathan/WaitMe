@@ -20,7 +20,9 @@ export default function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
   const profileFormData = useProfileFormData();
-  const { guard } = useProfileGuard(profileFormData || user);
+  const isOnProfile = location.pathname.toLowerCase() === "/profile";
+  const guardSource = isOnProfile ? (profileFormData || {}) : (user || {});
+  const { guard } = useProfileGuard(guardSource);
   const queryClient = useQueryClient();
   const [chatUnread, setChatUnread] = useState(0);
 
