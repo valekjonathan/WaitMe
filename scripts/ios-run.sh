@@ -12,6 +12,18 @@ rm -rf ios/App/App/public
 echo "[ios:run] 2. Build..."
 npm run build
 
+echo "[ios:run] 2b. Validar dist..."
+if [ ! -f "dist/index.html" ]; then
+  echo "[ios:run] ERROR: dist/index.html no existe"
+  exit 1
+fi
+DIST_JS=$(find dist/assets -name "*.js" 2>/dev/null | wc -l)
+if [ "$DIST_JS" -lt 1 ]; then
+  echo "[ios:run] ERROR: No hay .js en dist/assets/"
+  exit 1
+fi
+echo "[ios:run]   dist/index.html OK, $DIST_JS .js en dist/assets/"
+
 echo "[ios:run] 3. Sync iOS..."
 npx cap sync ios
 
