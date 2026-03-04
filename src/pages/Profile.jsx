@@ -107,36 +107,34 @@ export default function Profile() {
     }
   }, [user]);
 
-  const autoSave = useCallback(
-    async (data) => {
-      if (!user?.id) return;
+  useEffect(() => {
+    if (!user?.id || !hydrated) return;
+    const save = async () => {
       try {
         const payload = {
-          full_name: data.full_name,
-          car_brand: data.car_brand,
-          car_model: data.car_model,
-          car_color: data.car_color,
-          vehicle_type: data.vehicle_type,
-          car_plate: data.car_plate,
-          avatar_url: data.avatar_url,
-          phone: data.phone,
-          allow_phone_calls: data.allow_phone_calls,
-          notifications_enabled: data.notifications_enabled,
-          email_notifications: data.email_notifications,
+          full_name: formData.full_name,
+          car_brand: formData.car_brand,
+          car_model: formData.car_model,
+          car_color: formData.car_color,
+          vehicle_type: formData.vehicle_type,
+          car_plate: formData.car_plate,
+          avatar_url: formData.avatar_url,
+          phone: formData.phone,
+          allow_phone_calls: formData.allow_phone_calls,
+          notifications_enabled: formData.notifications_enabled,
+          email_notifications: formData.email_notifications,
           updated_at: new Date().toISOString(),
         };
         await supabase.from('profiles').update(payload).eq('id', user.id);
       } catch (error) {
         console.error('Error guardando:', error);
       }
-    },
-    [user?.id]
-  );
+    };
+    save();
+  }, [formData, user?.id, hydrated]);
 
   const updateField = (field, value) => {
-    const newData = { ...formData, [field]: value };
-    setFormData(newData);
-    autoSave(newData);
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePhotoUpload = async (e) => {
@@ -282,7 +280,7 @@ export default function Profile() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 px-4">
-      <div className="flex-1 flex flex-col justify-center items-center">
+      <div className="flex flex-col items-center pt-6 pb-6">
         <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}

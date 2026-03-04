@@ -44,14 +44,29 @@ export function normalizeProfile(profile) {
 }
 
 export function isProfileComplete(profile) {
-  const n = normalizeProfile(profile);
+  if (!profile) return false;
+
+  const full_name = profile.full_name || profile.name;
+  const phone = profile.phone || profile.phone_number;
+  const brand = profile.brand || profile.car_brand;
+  const model = profile.model || profile.car_model;
+  const color = profile.color || profile.car_color;
+  const vehicle =
+    profile.vehicle_type ||
+    profile.vehicle ||
+    profile.car_type;
+  const plate =
+    profile.plate ||
+    profile.license_plate ||
+    profile.car_plate;
+
   return (
-    n.full_name !== "" &&
-    n.phone !== "" &&
-    n.car_brand !== "" &&
-    n.car_model !== "" &&
-    n.car_color !== "" &&
-    n.car_type !== "" &&
-    n.car_plate !== ""
+    full_name &&
+    phone &&
+    brand &&
+    model &&
+    color &&
+    vehicle &&
+    plate
   );
 }
