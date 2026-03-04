@@ -17,7 +17,11 @@ export default function Login() {
         options: { redirectTo: OAUTH_REDIRECT },
       });
     } catch (err) {
-      setError(err?.message || `Error al iniciar sesión con ${provider === 'google' ? 'Google' : 'Apple'}`);
+      if (provider === 'apple') {
+        alert('Apple no está configurado todavía.');
+      } else {
+        setError(err?.message || 'Error al iniciar sesión con Google');
+      }
     } finally {
       setLoading(false);
     }
