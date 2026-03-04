@@ -1,41 +1,28 @@
-# Flujo de trabajo automatizado
+# Flujo automatizado
 
-## Resumen
-
-- **Pre-commit:** eslint --fix (lint-staged) + build. Si falla, no se hace commit.
-- **Post-commit:** push automático a origin/main
-- **npm run ship:** lint:fix → build → commit (post-commit hace push)
-- **GitHub Actions:** lint + build en cada push a main
-
-## Comandos
-
-| Comando | Descripción |
-|---------|-------------|
-| `npm run lint` | Ejecuta ESLint |
-| `npm run lint:fix` | ESLint con auto-corrección |
-| `npm run check` | lint + build (verificación completa) |
-| `npm run ship` | lint:fix → build → git add → commit (push vía post-commit) |
-
-## Pre-commit (Husky + lint-staged)
+## Pre-commit
 
 Antes de cada `git commit`:
-1. `lint-staged` ejecuta `eslint --fix` en archivos staged (corrige errores automáticamente)
-2. `npm run build` — si falla, el commit se aborta y se muestra el error
+1. **lint-staged** → `eslint --fix` en archivos staged
+2. **npm run build** → si falla, el commit se aborta
 
 ## Post-commit
 
 Tras cada commit exitoso: `git push origin main`
 
-## Ship (flujo completo)
-
-```bash
-npm run ship
-```
-
-1. `npm run lint:fix`
-2. `npm run build` — si falla, se detiene y no hace commit
-3. Si todo pasa: `git add .` → `git commit -m "chore: auto-update"` (post-commit hace push)
-
 ## GitHub Actions
 
-El workflow `.github/workflows/lint-and-build.yml` se ejecuta en cada push a main. No hay workflows de Supabase.
+`.github/workflows/lint-and-build.yml`: lint + build en cada push a main.
+
+## Cómo trabajar
+
+1. Haz cambios en Cursor
+2. `git add .` y `git commit -m "tu mensaje"`
+3. El pre-commit ejecuta lint y build; si pasan, el commit se completa
+4. El post-commit hace push automático a main
+
+Alternativa: `npm run ship` para lint:fix → build → add → commit (el push lo hace post-commit).
+
+---
+
+**Estado:** Auth y perfil usan Supabase. Alertas, chat y transacciones siguen usando base44 (pendiente migración).
