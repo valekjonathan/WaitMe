@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { supabase } from '@/lib/supabaseClient';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -15,6 +16,19 @@ const GEOLOCATION_OPTIONS = {
   maximumAge: 0,
   timeout: 5000,
 };
+
+/** Convierte alertas a GeoJSON FeatureCollection */
+function alertsToGeoJSON(alerts) {
+  const features = (alerts || [])
+    .filter((a) => a?.lat != null && a?.lng != null && a?.status === 'active')
+    .map((a) => ({
+      type: 'Feature',
+      id: a.id,
+      geometry: { type: 'Point', coordinates: [Number(a.lng), Number(a.lat)] },
+      properties: { id: a.id, price: a.price, vehicle_type: a.vehicle_type },
+    }));
+  return { type: 'FeatureCollection', features };
+}
 
 /** Convierte metros a píxeles de radio en Mapbox según zoom y latitud */
 function metersToCircleRadiusPixels(meters, zoom, lat) {
@@ -34,6 +48,30 @@ export default function MapboxMap({
   const [error, setError] = useState(null);
   const displayPosRef = useRef(null);
   const animationRef = useRef(null);
+  const [alerts, setAlerts] = useState([]);
+
+  // Cargar alertas activas desde Supabase + Realtime
+  useEffect(() => {
+    const loadAlerts = async () => {
+      const { data } = await supabase
+        .from('parking_alerts')
+        .select('id, lat, lng, price, vehicle_type, status')
+        .eq('status', 'active');
+      setAlerts(data ?? []);
+    };
+    loadAlerts();
+
+    const channel = supabase
+      .channel('parking_alerts_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parking_alerts' }, () => {
+        loadAlerts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Geolocalización precisa con watchPosition (incluye accuracy)
   useEffect(() => {
@@ -82,7 +120,6 @@ export default function MapboxMap({
     map.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
     map.on('load', () => {
-      // Capa futura para mostrar coches (parking alerts)
       map.addSource('parking_alerts_source', {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
@@ -245,6 +282,14 @@ export default function MapboxMap({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [userPosition]);
+
+  // Actualizar GeoJSON de alertas en el mapa
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.getSource?.('parking_alerts_source')) return;
+    const source = map.getSource('parking_alerts_source');
+    if (source) source.setData(alertsToGeoJSON(alerts));
+  }, [alerts]);
 
   if (!MAPBOX_TOKEN) {
     console.warn('Mapbox token missing');
