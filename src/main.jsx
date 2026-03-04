@@ -31,9 +31,14 @@ const queryClient = new QueryClient({
   },
 });
 
-// SMOKE TEST: render mínimo para confirmar bundle carga en iOS
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <div style={{ background: "white", color: "black", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>
-    WAITME BOOT OK
-  </div>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
