@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useMapMatch } from '@/hooks/useMapMatch';
 
@@ -34,7 +34,7 @@ function metersToCircleRadiusPixels(meters, zoom, lat) {
   return Math.max(8, meters / metersPerPixel);
 }
 
-export default function MapboxMap({ className = '', style = MAP_STYLE }) {
+function MapboxMapInner({ className = '', style = MAP_STYLE }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const mapboxglRef = useRef(null);
@@ -349,4 +349,38 @@ export default function MapboxMap({ className = '', style = MAP_STYLE }) {
       )}
     </div>
   );
+}
+
+function MapPlaceholder({ msg }) {
+  return (
+    <div
+      className="flex items-center justify-center bg-gray-900 text-amber-500"
+      style={{ minHeight: 120 }}
+    >
+      <p className="text-sm">{msg}</p>
+    </div>
+  );
+}
+
+export default function MapboxMap(props) {
+  try {
+    return (
+      <MapboxErrorBoundary fallback={<MapPlaceholder msg="Mapa no disponible" />}>
+        <MapboxMapInner {...props} />
+      </MapboxErrorBoundary>
+    );
+  } catch (e) {
+    return <MapPlaceholder msg={`Mapbox: ${String(e?.message || e)}`} />;
+  }
+}
+
+class MapboxErrorBoundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(e) {
+    return { error: e };
+  }
+  render() {
+    if (this.state.error) return this.props.fallback;
+    return this.props.children;
+  }
 }
