@@ -9,8 +9,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import "./globals.css";
 import "./styles/no-zoom.css";
 
-const DIAG_STEP = parseInt(import.meta.env.VITE_DIAG_STEP || "5", 10);
-
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 if (SENTRY_DSN) {
   Sentry.init({
@@ -33,21 +31,8 @@ const queryClient = new QueryClient({
   },
 });
 
-function DiagMinimal() {
-  return (
-    <div style={{ background: "#000", color: "#fff", padding: "24px" }}>
-      <h1>WaitMe OK</h1>
-      <p>React montó correctamente</p>
-    </div>
-  );
-}
-
-function renderApp() {
-  if (DIAG_STEP === 0) return <DiagMinimal />;
-  if (DIAG_STEP === 1) return <QueryClientProvider client={queryClient}><DiagMinimal /></QueryClientProvider>;
-  if (DIAG_STEP === 2) return <QueryClientProvider client={queryClient}><AuthProvider><DiagMinimal /></AuthProvider></QueryClientProvider>;
-  if (DIAG_STEP === 3) return <QueryClientProvider client={queryClient}><AuthProvider><BrowserRouter><DiagMinimal /></BrowserRouter></AuthProvider></QueryClientProvider>;
-  return (
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
@@ -55,11 +40,5 @@ function renderApp() {
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <ErrorBoundary>
-    {renderApp()}
   </ErrorBoundary>
 );
