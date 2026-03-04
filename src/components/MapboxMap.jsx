@@ -50,6 +50,7 @@ export default function MapboxMap({
   const displayPosRef = useRef(null);
   const animationRef = useRef(null);
   const [alerts, setAlerts] = useState([]);
+  const [mapError, setMapError] = useState(null);
   const { addPoint, corrected } = useMapMatch(!!MAPBOX_TOKEN);
 
   // Cargar alertas activas desde Supabase + Realtime
@@ -106,42 +107,61 @@ export default function MapboxMap({
   // Inicializar mapa y capa parking_alerts_layer
   useEffect(() => {
     if (!MAPBOX_TOKEN || !containerRef.current) return;
+    setMapError(null);
 
-    const center = userPosition
-      ? [userPosition.lng, userPosition.lat]
-      : DEFAULT_CENTER;
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style,
-      center,
-      zoom: INITIAL_ZOOM,
-    });
-
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
-
-    map.on('load', () => {
-      map.addSource('parking_alerts_source', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
+    let map = null;
+    try {
+      const center = userPosition
+        ? [userPosition.lng, userPosition.lat]
+        : DEFAULT_CENTER;
+      map = new mapboxgl.Map({
+        container: containerRef.current,
+        style,
+        center,
+        zoom: INITIAL_ZOOM,
       });
-      map.addLayer({
-        id: 'parking_alerts_layer',
-        type: 'circle',
-        source: 'parking_alerts_source',
-        paint: {
-          'circle-radius': 8,
-          'circle-color': '#6D28D9',
-          'circle-opacity': 0.8,
-        },
-      });
-    });
 
-    mapRef.current = map;
+      map.on('error', (e) => {
+        console.error('[MapboxMap]', e);
+        setMapError('Error cargando mapa');
+      });
+
+      map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+      map.on('load', () => {
+        try {
+          map.addSource('parking_alerts_source', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] },
+          });
+          map.addLayer({
+            id: 'parking_alerts_layer',
+            type: 'circle',
+            source: 'parking_alerts_source',
+            paint: {
+              'circle-radius': 8,
+              'circle-color': '#6D28D9',
+              'circle-opacity': 0.8,
+            },
+          });
+        } catch (err) {
+          console.error('[MapboxMap] load', err);
+          setMapError('Error cargando mapa');
+        }
+      });
+
+      mapRef.current = map;
+    } catch (err) {
+      console.error('[MapboxMap] init', err);
+      setMapError('Error cargando mapa');
+    }
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (markerRef.current) markerRef.current.remove();
-      map.remove();
+      if (map) {
+        map.remove();
+      }
       mapRef.current = null;
     };
   }, [MAPBOX_TOKEN, style]);
@@ -296,8 +316,16 @@ export default function MapboxMap({
   if (!MAPBOX_TOKEN) {
     console.warn('Mapbox token missing');
     return (
-      <div className={`flex items-center justify-center bg-gray-900 text-amber-500 ${className}`}>
+      <div className={`flex items-center justify-center bg-gray-900 text-amber-500 ${className}`} style={{ minHeight: 120 }}>
         <p>Configura VITE_MAPBOX_TOKEN en .env</p>
+      </div>
+    );
+  }
+
+  if (mapError) {
+    return (
+      <div className={`flex items-center justify-center bg-gray-900 text-amber-500 ${className}`} style={{ minHeight: 120 }}>
+        <p>{mapError}</p>
       </div>
     );
   }

@@ -1,0 +1,12 @@
+/**
+ * Evita zoom en iOS Safari/Capacitor al enfocar inputs.
+ * Safari hace zoom automático si font-size < 16px.
+ */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.4;
+  }
+}

@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 function AuthRouter() {
   const { user, isLoadingAuth } = useAuth();
 
-  if (isLoadingAuth) return null;
+  if (isLoadingAuth) return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;
 
   if (!user?.id) return <Login />;
 
