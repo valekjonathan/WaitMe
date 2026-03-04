@@ -6,12 +6,22 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const DEFAULT_CENTER = [-5.8494, 43.3619]; // Gijón fallback
 const INITIAL_ZOOM = 16;
+const TRACKING_ZOOM = 17;
+const FLY_SPEED = 0.8;
+const LERP_FACTOR = 0.12;
 
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: true,
   maximumAge: 0,
   timeout: 5000,
 };
+
+/** Convierte metros a píxeles de radio en Mapbox según zoom y latitud */
+function metersToCircleRadiusPixels(meters, zoom, lat) {
+  const metersPerPixel =
+    (156543.03392 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom);
+  return Math.max(8, meters / metersPerPixel);
+}
 
 export default function MapboxMap({
   className = '',
@@ -22,8 +32,10 @@ export default function MapboxMap({
   const markerRef = useRef(null);
   const [userPosition, setUserPosition] = useState(null);
   const [error, setError] = useState(null);
+  const displayPosRef = useRef(null);
+  const animationRef = useRef(null);
 
-  // Geolocalización precisa con watchPosition
+  // Geolocalización precisa con watchPosition (incluye accuracy)
   useEffect(() => {
     if (!navigator.geolocation) {
       setError('Geolocalización no soportada');
@@ -31,8 +43,12 @@ export default function MapboxMap({
     }
 
     const handlePosition = (pos) => {
-      const { latitude, longitude } = pos.coords;
-      setUserPosition([longitude, latitude]);
+      const { latitude, longitude, accuracy } = pos.coords;
+      setUserPosition({
+        lng: longitude,
+        lat: latitude,
+        accuracy: accuracy ?? 20,
+      });
       setError(null);
     };
 
@@ -49,11 +65,13 @@ export default function MapboxMap({
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // Inicializar mapa
+  // Inicializar mapa y capa parking_alerts_layer
   useEffect(() => {
     if (!MAPBOX_TOKEN || !containerRef.current) return;
 
-    const center = userPosition || DEFAULT_CENTER;
+    const center = userPosition
+      ? [userPosition.lng, userPosition.lat]
+      : DEFAULT_CENTER;
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style,
@@ -62,29 +80,110 @@ export default function MapboxMap({
     });
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+    map.on('load', () => {
+      // Capa futura para mostrar coches (parking alerts)
+      map.addSource('parking_alerts_source', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+      map.addLayer({
+        id: 'parking_alerts_layer',
+        type: 'circle',
+        source: 'parking_alerts_source',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': '#6D28D9',
+          'circle-opacity': 0.8,
+        },
+      });
+    });
+
     mapRef.current = map;
 
     return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (markerRef.current) markerRef.current.remove();
       map.remove();
       mapRef.current = null;
     };
   }, [MAPBOX_TOKEN, style]);
 
-  // Centrar en usuario y actualizar marcador
+  // Seguimiento automático: flyTo al recibir nueva posición
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !userPosition) return;
 
-    if (userPosition) {
-      map.flyTo({ center: userPosition, zoom: INITIAL_ZOOM });
+    const center = [userPosition.lng, userPosition.lat];
+    map.flyTo({
+      center,
+      zoom: TRACKING_ZOOM,
+      speed: FLY_SPEED,
+      essential: true,
+    });
+  }, [userPosition]);
 
-      // Eliminar marcador anterior
-      if (markerRef.current) {
-        markerRef.current.remove();
+  // Interpolación suave del marcador y actualización de círculo de precisión
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !userPosition) return;
+
+    const target = [userPosition.lng, userPosition.lat];
+    if (!displayPosRef.current) displayPosRef.current = [...target];
+
+    const updateMarkerAndCircle = () => {
+      const display = displayPosRef.current;
+      if (!display) return;
+
+      const [lng, lat] = display;
+      const [tLng, tLat] = target;
+
+      const dlng = tLng - lng;
+      const dlat = tLat - lat;
+      const dist = Math.sqrt(dlng * dlng + dlat * dlat);
+
+      if (dist < 1e-7) {
+        displayPosRef.current = [...target];
+      } else {
+        displayPosRef.current = [
+          lng + dlng * LERP_FACTOR,
+          lat + dlat * LERP_FACTOR,
+        ];
       }
 
-      // Marcador del usuario: punto blanco, borde morado #6D28D9, sombra suave
+      if (markerRef.current) {
+        markerRef.current.setLngLat(displayPosRef.current);
+      }
+
+      // Actualizar círculo de precisión GPS
+      const accSource = map.getSource('user_accuracy_source');
+      if (accSource) {
+        accSource.setData({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: displayPosRef.current,
+          },
+          properties: { accuracy: userPosition.accuracy },
+        });
+      }
+      if (map.getLayer('user_accuracy_layer')) {
+        const accuracy = userPosition.accuracy ?? 20;
+        const zoom = map.getZoom();
+        const radiusPx = metersToCircleRadiusPixels(accuracy, zoom, display[1]);
+        const fillColor =
+          accuracy > 15 ? 'rgba(107, 114, 128, 0.25)' : 'rgba(109, 40, 217, 0.2)';
+        map.setPaintProperty('user_accuracy_layer', 'circle-radius', radiusPx);
+        map.setPaintProperty('user_accuracy_layer', 'circle-color', fillColor);
+      }
+
+      if (dist >= 1e-7) {
+        animationRef.current = requestAnimationFrame(updateMarkerAndCircle);
+      }
+    };
+
+    // Crear marcador si no existe
+    if (!markerRef.current) {
       const el = document.createElement('div');
       el.className = 'user-location-marker';
       el.style.cssText = `
@@ -95,11 +194,56 @@ export default function MapboxMap({
         border-radius: 50%;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
       `;
-
       markerRef.current = new mapboxgl.Marker({ element: el })
-        .setLngLat(userPosition)
+        .setLngLat(displayPosRef.current)
         .addTo(map);
     }
+
+    // Añadir círculo de precisión cuando el mapa esté cargado
+    const setupAccuracyCircle = () => {
+      if (map.getLayer('user_accuracy_layer')) return;
+
+      const coords = displayPosRef.current;
+      const accuracy = userPosition.accuracy ?? 20;
+      const zoom = map.getZoom();
+      const radiusPx = metersToCircleRadiusPixels(accuracy, zoom, coords[1]);
+      const fillColor =
+        accuracy > 15 ? 'rgba(107, 114, 128, 0.25)' : 'rgba(109, 40, 217, 0.2)';
+
+      map.addSource('user_accuracy_source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: coords },
+          properties: { accuracy },
+        },
+      });
+      map.addLayer(
+        {
+          id: 'user_accuracy_layer',
+          type: 'circle',
+          source: 'user_accuracy_source',
+          paint: {
+            'circle-radius': radiusPx,
+            'circle-color': fillColor,
+            'circle-stroke-width': 0,
+          },
+        },
+        'parking_alerts_layer'
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      setupAccuracyCircle();
+    } else {
+      map.once('load', setupAccuracyCircle);
+    }
+
+    animationRef.current = requestAnimationFrame(updateMarkerAndCircle);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
   }, [userPosition]);
 
   if (!MAPBOX_TOKEN) {
