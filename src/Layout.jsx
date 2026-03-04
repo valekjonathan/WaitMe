@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
+import { isProfileComplete } from '@/lib/profile';
 import Home from './pages/Home';
 
 const Chats            = lazy(() => import('./pages/Chats'));
@@ -11,16 +12,6 @@ const Profile          = lazy(() => import('./pages/Profile'));
 const Settings         = lazy(() => import('./pages/Settings'));
 const Alertas          = lazy(() => import('./pages/History'));
 const NavigatePage     = lazy(() => import('./pages/Navigate'));
-
-const PROFILE_REQUIRED = ['full_name', 'phone', 'car_brand', 'car_model', 'car_color', 'vehicle_type', 'car_plate'];
-
-function isProfileComplete(u) {
-  if (!u) return false;
-  return PROFILE_REQUIRED.every((f) => {
-    const v = u[f];
-    return v != null && String(v).trim() !== '';
-  });
-}
 
 function ProfileGuard({ children }) {
   const location = useLocation();

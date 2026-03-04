@@ -1,8 +1,9 @@
 import React, { useMemo, useCallback, useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings, User, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
+import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { getWaitMeRequests } from '@/lib/waitmeRequests';
 import { getBalance } from '@/lib/transactionEngine';
 
@@ -15,6 +16,7 @@ export default function Header({
 }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { guard } = useProfileGuard(user);
 
   const [balance, setBalance] = useState(() => getBalance(user?.id));
   const [bannerReq, setBannerReq] = useState(null);
@@ -39,12 +41,14 @@ export default function Header({
   // -------- BACK BUTTON --------
   const handleBack = useCallback(() => {
     if (onBack) return onBack();
-    if (backTo) {
-      navigate(`/${backTo.toLowerCase()}`);
-    } else {
-      navigate(-1);
-    }
-  }, [onBack, navigate, backTo]);
+    guard(() => {
+      if (backTo) {
+        navigate(`/${backTo.toLowerCase()}`);
+      } else {
+        navigate(-1);
+      }
+    });
+  }, [onBack, navigate, backTo, guard]);
 
   // -------- TITLE (SIEMPRE PASIVO) --------
   const innerTitle = useMemo(() => {
@@ -133,7 +137,7 @@ export default function Header({
               <div className="w-10 h-10" />
             )}
 
-            <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 relative overflow-visible cursor-pointer" onClick={() => navigate('/settings')}>
+            <div className="bg-purple-600/20 border border-purple-500/70 rounded-full px-3 py-1.5 flex items-center gap-1 relative overflow-visible cursor-pointer" onClick={() => guard(() => navigate('/settings'))}>
               <span className="text-purple-400 font-bold text-sm relative">
                 {creditsNumber.toFixed(2)}€
                 <AnimatePresence>
@@ -156,13 +160,13 @@ export default function Header({
 
           {/* DERECHA */}
           <div className="flex items-center justify-end gap-[11px]">
-            <Link to="/settings">
+            <button type="button" onClick={(e) => { e.preventDefault(); guard(() => navigate('/settings')); }} className="p-0 border-0 bg-transparent cursor-pointer">
               <Settings className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)] cursor-pointer" />
-            </Link>
+            </button>
 
-            <Link to="/profile">
-              <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)] cursor-pointer ml-[8px]" />
-            </Link>
+            <button type="button" onClick={(e) => { e.preventDefault(); guard(() => navigate('/profile')); }} className="p-0 border-0 bg-transparent cursor-pointer ml-[8px]">
+              <User className="w-7 h-7 text-purple-400 hover:text-purple-300 transition-colors drop-shadow-[0_0_1px_rgba(255,255,255,0.85)] cursor-pointer" />
+            </button>
           </div>
         </div>
 

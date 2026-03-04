@@ -138,6 +138,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       user,
+      profile: user,
       isAuthenticated,
       isLoadingAuth,
       authError,

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { isProfileComplete } from '@/lib/profile';
+import { isProfileComplete, normalizeProfile } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,66 +39,24 @@ export default function Profile() {
     email_notifications: true,
   });
 
-  const [photoSrc, setPhotoSrc] = useState('');
+  const nForm = useMemo(() => normalizeProfile(formData), [formData]);
+  const nUser = useMemo(() => normalizeProfile(user), [user]);
 
-  const avatarSrc =
-    formData?.avatar_url ||
-    user?.user_metadata?.avatar_url ||
+  let avatarSrc =
+    nForm.avatar_url ||
+    nUser.avatar_url ||
     user?.user_metadata?.picture ||
+    user?.user_metadata?.avatar_url ||
     "";
+  if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
+    const { data } = supabase.storage.from("avatars").getPublicUrl(avatarSrc);
+    avatarSrc = data.publicUrl;
+  }
 
-  const initial =
-    (formData?.full_name ||
-      user?.user_metadata?.full_name ||
-      user?.user_metadata?.name ||
-      "")
-      .charAt(0)
-      .toUpperCase();
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const cacheKey = `waitme_profile_photo_cache_${user?.id || 'default'}`;
-    let cached = '';
-    try {
-      cached = window.localStorage.getItem(cacheKey) || '';
-      if (cached) setPhotoSrc(cached);
-    } catch (_) {}
-
-    if (!avatarSrc) return;
-
-    const img = new Image();
-    img.decoding = 'sync';
-    img.src = avatarSrc;
-
-    img.onload = () => {
-      if (!cached) setPhotoSrc(avatarSrc);
-      fetch(avatarSrc)
-        .then((r) => r.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            })
-        )
-        .then((dataUrl) => {
-          if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
-            try {
-              window.localStorage.setItem(cacheKey, dataUrl);
-              setPhotoSrc(dataUrl);
-            } catch (_) {}
-          }
-        })
-        .catch(() => {});
-    };
-
-    img.onerror = () => {
-      if (!cached) setPhotoSrc(avatarSrc);
-    };
-  }, [avatarSrc, user?.id]);
+  const initial = useMemo(() => {
+    const name = nForm.full_name || nUser.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "";
+    return (name.charAt(0).toUpperCase() || "?");
+  }, [nForm.full_name, nUser.full_name, user?.user_metadata?.full_name, user?.user_metadata?.name]);
 
   useEffect(() => {
     if (!user || hydrated) return;
@@ -117,12 +75,6 @@ export default function Profile() {
     });
     setHydrated(true);
   }, [user, hydrated]);
-
-  useEffect(() => {
-    if (!avatarSrc) return;
-    const img = new Image();
-    img.src = avatarSrc;
-  }, [avatarSrc]);
 
   const autoSave = useCallback(
     async (data) => {
@@ -179,7 +131,7 @@ export default function Profile() {
       return;
     }
     await checkUserAuth();
-    navigate('/');
+    setTimeout(() => navigate('/'), 0);
   }, [formData, navigate, checkUserAuth]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
@@ -296,7 +248,7 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 overflow-hidden flex flex-col min-h-[100dvh]">
+      <main className="flex-1 min-h-0 pt-[69px] pb-24 px-4 overflow-hidden flex flex-col">
         <div className="flex-1 flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">

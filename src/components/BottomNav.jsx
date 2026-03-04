@@ -18,7 +18,7 @@ export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { guardNavigation } = useProfileGuard(user);
+  const { guard } = useProfileGuard(user);
   const queryClient = useQueryClient();
   const [chatUnread, setChatUnread] = useState(0);
 
@@ -71,14 +71,14 @@ export default function BottomNav() {
   const handleMapClick = useCallback(
     (e) => {
       e?.preventDefault?.();
-      guardNavigation(() => {
+      guard(() => {
         try {
           window.dispatchEvent(new Event('waitme:goLogo'));
         } catch {}
         navigate('/', { replace: false });
       });
     },
-    [navigate, guardNavigation]
+    [navigate, guard]
   );
 
   return (
@@ -89,7 +89,7 @@ export default function BottomNav() {
           className={({ isActive }) => `${BASE_BTN} ${isActive ? ACTIVE_STYLE : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            guardNavigation(() => navigate('/history'));
+            guard(() => navigate('/history'));
           }}
         >
           <div className="relative">
@@ -144,7 +144,7 @@ export default function BottomNav() {
           className={({ isActive }) => `${BASE_BTN} ${isActive ? ACTIVE_STYLE : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            guardNavigation(() => {
+            guard(() => {
               handleChatsClick();
               navigate('/chats');
             });
