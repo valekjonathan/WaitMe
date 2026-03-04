@@ -6,8 +6,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="WaitMe!" />
-    <meta name="theme-color" content="#000000" />
-
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      html, body, #root { background: #ffffff !important; color: #000000; margin: 0; padding: 0; min-height: 100vh; }
+    </style>
     <link rel="icon" type="image/png" href="/apple-touch-icon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
@@ -15,7 +17,16 @@
     <title>WaitMe!</title>
   </head>
   <body>
+    <div id="html-diag" style="position:fixed;top:0;left:0;right:0;padding:16px;background:#fff;color:#000;font-family:sans-serif;font-size:18px;z-index:99999;border-bottom:2px solid #333;">
+      HTML OK
+    </div>
     <div id="root"></div>
+    <script>
+      (function(){
+        var el = document.getElementById('html-diag');
+        if (el) el.textContent = 'HTML+JS INLINE OK';
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
