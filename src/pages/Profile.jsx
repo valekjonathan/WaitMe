@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { useLayoutHeader } from '@/lib/LayoutContext';
+import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
 import { isProfileComplete, getMissingProfileFields, toProfilePayload } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { user, profile, setProfile } = useAuth();
   const setHeader = useLayoutHeader();
+  const setProfileFormData = useSetProfileFormData();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -107,6 +108,11 @@ export default function Profile() {
     };
     save();
   }, [formData, user?.id, hydrated, setProfile]);
+
+  useEffect(() => {
+    setProfileFormData(formData);
+    return () => setProfileFormData(null);
+  }, [formData, setProfileFormData]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
