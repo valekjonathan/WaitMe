@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQueryClient } from '@tanstack/react-query';
@@ -182,14 +180,7 @@ export default function Notifications() {
 
   return (
     <div className="min-h-[100dvh] bg-black text-white flex flex-col">
-      <Header
-        title="Notificaciones"
-        showBackButton
-        backTo="Home"
-        titleClassName="text-[20px] leading-[20px]"
-      />
-
-      <main className="pt-20 pb-24">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto">
         {/* Solicitudes entrantes (reales) */}
         {requests.filter((r) => r?.type === 'incoming_waitme_request').length > 0 && (
           <div className="px-4 pt-4 space-y-4">
@@ -456,8 +447,6 @@ export default function Notifications() {
           </>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

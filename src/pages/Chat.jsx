@@ -5,8 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getDemoConversation,
@@ -420,8 +418,6 @@ export default function Chat() {
 
   return (
     <div className="min-min-h-[100dvh] bg-black flex flex-col">
-      <Header title="Chat" showBackButton={true} backTo="Chats" />
-
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
         <div className="flex items-center gap-3 px-4 py-1 pt-[10px]">
@@ -670,8 +666,6 @@ export default function Chat() {
           </div>
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

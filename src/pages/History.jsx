@@ -21,8 +21,6 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import BottomNav from '@/components/BottomNav';
-import Header from '@/components/Header';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
 import HistorySellerView from './HistorySellerView';
@@ -1137,9 +1135,7 @@ const myFinalizedAlerts = useMemo(() => {
 
   return (
     <div className="min-h-[100dvh] text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
-      <Header title="Alertas" showBackButton={true} backTo="Home" />
-
-      <main className="pt-[56px] pb-20 px-4">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
           <div className="fixed top-[56px] left-0 right-0 z-40 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800" style={{ backgroundColor: 'rgba(11,11,11,0.93)' }}>
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0 flex justify-between">
@@ -1558,8 +1554,6 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
         );
       })()}
-
-      <BottomNav />
 
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')

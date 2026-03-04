@@ -5,8 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigation, Phone, MessageCircle, AlertCircle, ChevronDown, ChevronUp, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
-import BottomNav from '@/components/BottomNav';
-import Header from '@/components/Header';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
@@ -403,8 +401,6 @@ export default function Navigate() {
         </motion.div>
       )}
 
-      <Header title="Navegación" showBackButton backTo="History" titleClassName="text-[13px] leading-[13px] font-semibold select-none text-center max-w-xs" />
-
       {/* MAPA */}
       <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: '0' }}>
         <ParkingMap
@@ -536,8 +532,6 @@ export default function Navigate() {
           </AnimatePresence>
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
+import { useLayoutHeader } from '@/lib/LayoutContext';
 import ParkingMap from '@/components/map/ParkingMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
@@ -73,6 +72,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
+  const setHeader = useLayoutHeader();
   const [mode, setMode] = useState(null);
   // null | 'search' | 'create'
 
@@ -524,6 +524,11 @@ export default function Home() {
     resetToLogo({ invalidate: false });
   }, [resetToLogo]);
 
+  useEffect(() => {
+    setHeader({ showBackButton: !!mode, onBack: mode ? handleBack : null });
+    return () => setHeader({ showBackButton: false, onBack: null });
+  }, [mode, handleBack, setHeader]);
+
   const handleMapMove = useCallback((center) => {
     setSelectedPosition({ lat: center[0], lng: center[1] });
   }, []);
@@ -544,14 +549,6 @@ export default function Home() {
 
   return (
     <div className="flex-1 flex flex-col w-full text-white min-h-0" style={{ backgroundColor: '#0b0b0b' }}>
-      <Header
-        iconVariant="bottom"
-        title="WaitMe!"
-        unreadCount={unreadCount}
-        showBackButton={!!mode}
-        onBack={handleBack}
-      />
-
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
@@ -818,8 +815,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </main>
-
-      <BottomNav />
 
       {oneActiveAlertOpen && (
   <div className="fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center">

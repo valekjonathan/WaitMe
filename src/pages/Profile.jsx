@@ -2,15 +2,14 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { isProfileComplete, normalizeProfile } from '@/lib/profile';
+import { useLayoutHeader } from '@/lib/LayoutContext';
+import { isProfileComplete } from '@/lib/profile';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
 
 const carColors = [
   { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
@@ -24,6 +23,7 @@ const carColors = [
 export default function Profile() {
   const navigate = useNavigate();
   const { user, checkUserAuth } = useAuth();
+  const setHeader = useLayoutHeader();
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -39,29 +39,25 @@ export default function Profile() {
     email_notifications: true,
   });
 
-  const nForm = useMemo(() => normalizeProfile(formData), [formData]);
-  const nUser = useMemo(() => normalizeProfile(user), [user]);
-
   let avatarSrc =
-    nForm.avatar_url ||
-    nUser.avatar_url ||
-    user?.user_metadata?.picture ||
+    formData?.avatar_url ||
     user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    user?.photo_url ||
+    user?.avatar_url ||
     "";
   if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
     const { data } = supabase.storage.from("avatars").getPublicUrl(avatarSrc);
     avatarSrc = data.publicUrl;
   }
 
-  const initial = useMemo(() => {
-    const name = nForm.full_name || nUser.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "";
-    return (name.charAt(0).toUpperCase() || "?");
-  }, [nForm.full_name, nUser.full_name, user?.user_metadata?.full_name, user?.user_metadata?.name]);
+  const nameForInitial = formData?.full_name || user?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || "";
+  const initial = nameForInitial.charAt(0).toUpperCase() || "?";
 
   useEffect(() => {
     if (!user || hydrated) return;
     setFormData({
-      full_name: user.full_name || user.display_name || '',
+      full_name: user.full_name || user.display_name || user.user_metadata?.full_name || user.user_metadata?.name || '',
       car_brand: user.car_brand || '',
       car_model: user.car_model || '',
       car_color: user.car_color || 'gris',
@@ -75,6 +71,15 @@ export default function Profile() {
     });
     setHydrated(true);
   }, [user, hydrated]);
+
+  useEffect(() => {
+    if (user && !formData.full_name) {
+      setFormData((prev) => ({
+        ...prev,
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || prev.full_name || '',
+      }));
+    }
+  }, [user]);
 
   const autoSave = useCallback(
     async (data) => {
@@ -133,6 +138,11 @@ export default function Profile() {
     await checkUserAuth();
     setTimeout(() => navigate('/'), 0);
   }, [formData, navigate, checkUserAuth]);
+
+  useEffect(() => {
+    setHeader({ onBack: handleBack });
+    return () => setHeader({ onBack: null });
+  }, [handleBack, setHeader]);
 
   const selectedColor = carColors.find((c) => c.value === formData.car_color) || carColors[5];
 
@@ -245,12 +255,8 @@ export default function Profile() {
   );
 
   return (
-    <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
-      <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
-
-      <main className="flex-1 min-h-0 pt-[69px] pb-24 px-4 overflow-hidden flex flex-col">
-        <div className="flex-1 flex flex-col justify-center items-center">
-          <div className="w-full max-w-md">
+    <div className="flex-1 flex flex-col justify-center items-center px-4 min-h-0 overflow-hidden">
+      <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -436,11 +442,7 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
-          </div>
-        </div>
-      </main>
-
-      <BottomNav />
+      </div>
     </div>
   );
 }

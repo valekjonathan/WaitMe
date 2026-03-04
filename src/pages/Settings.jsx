@@ -17,8 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Logo from '@/components/Logo';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
@@ -48,9 +46,7 @@ export default function Settings() {
 
   return (
     <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
-      <Header title="Ajustes" showBackButton={true} backTo="Home" />
-
-      <main className="pt-20 pb-24 px-4">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,8 +171,6 @@ export default function Settings() {
           </div>
         </motion.div>
       </main>
-
-      <BottomNav />
     </div>
   );
 }

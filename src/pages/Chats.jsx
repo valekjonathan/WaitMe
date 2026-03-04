@@ -11,8 +11,6 @@ import { toast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
 import MarcoCard from '@/components/cards/MarcoCard';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -534,9 +532,7 @@ const badgeCls = isCompletedOrCanceled
 
   return (
     <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
-      <Header title="Chats" showBackButton={true} backTo="Home" unreadCount={totalUnread} />
-
-      <main className="pt-[60px] pb-24">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto">
         {/* Conversaciones demo (WaitMe aceptados) */}
         {demoConvs.length > 0 && (
           <div className="px-4 pt-3 space-y-3">
@@ -823,8 +819,6 @@ const badgeCls = isCompletedOrCanceled
           </>
         )}
 </main>
-
-      <BottomNav />
 
       <Dialog
         open={showProrrogaDialog}
