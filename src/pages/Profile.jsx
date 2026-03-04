@@ -151,11 +151,11 @@ export default function Profile() {
         .single();
       if (!error && data) {
         setProfile(data);
+        navigate('/');
       }
     } catch (error) {
       console.error('Error guardando:', error);
     }
-    navigate('/');
   }, [formData, user?.id, navigate, setProfile]);
 
   useEffect(() => {
