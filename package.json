@@ -12,7 +12,7 @@
     "ship": "bash scripts/ship.sh",
     "prepare": "husky",
     "preview": "vite preview",
-    "dev:ios": "concurrently \"npm run dev\" \"npx cap run ios\"",
+    "dev:ios": "concurrently \"npm run dev\" \"CAPACITOR_USE_DEV_SERVER=true npx cap run ios\"",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios"
   },
