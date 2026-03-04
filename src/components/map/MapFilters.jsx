@@ -1,8 +1,8 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { X, SlidersHorizontal, Clock, Euro, MapPin, Navigation } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, Clock, Euro, Navigation } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function MapFilters({ filters, onFilterChange, onClose, alertsCount }) {
   return (

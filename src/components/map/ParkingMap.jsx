@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Button } from '@/components/ui/button';
 
 // Fix para iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;

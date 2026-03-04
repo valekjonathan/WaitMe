@@ -16,11 +16,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
 import HistorySellerView from './HistorySellerView';

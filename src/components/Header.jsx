@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useState, useRef } from 'react';
+import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

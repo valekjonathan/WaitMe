@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Preload the logo image so it's always instant
 let _logoPreloaded = false;

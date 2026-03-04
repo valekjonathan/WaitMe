@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 

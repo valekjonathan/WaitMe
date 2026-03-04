@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 
 /* ======================================================
    DEMO CENTRAL ÚNICO (LIMPIO + SINCRONIZADO)

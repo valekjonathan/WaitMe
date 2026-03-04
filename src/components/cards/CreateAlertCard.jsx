@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MapPin, Clock, Euro } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
