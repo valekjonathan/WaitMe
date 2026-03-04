@@ -1,44 +1,42 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import * as Sentry from "@sentry/react";
-import { AuthProvider } from "./lib/AuthContext";
 import App from "./App";
-import ErrorBoundary from "./components/ErrorBoundary";
-import "./globals.css";
-import "./styles/no-zoom.css";
 
-const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
-if (SENTRY_DSN) {
-  Sentry.init({
-    dsn: SENTRY_DSN,
-    tracesSampleRate: 0.1,
-    environment: import.meta.env.MODE,
-  });
+function ErrorFallback({ error }) {
+  return (
+    <div style={{ padding: 40, fontFamily: "sans-serif" }}>
+      <h1>App error</h1>
+      <pre style={{ whiteSpace: "pre-wrap" }}>{String(error)}</pre>
+    </div>
+  );
 }
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60_000,
-      gcTime: 30 * 60_000,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      retry: 1,
-    },
-  },
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) return <ErrorFallback error={this.state.error} />;
+    return this.props.children;
+  }
+}
+
+window.addEventListener("error", (e) => {
+  const msg = e?.message || "Unknown JS error";
+  document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif"><h1>JS ERROR</h1><pre style="white-space:pre-wrap">${msg}</pre></div>`;
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  const reason = e?.reason ? String(e.reason) : "Unknown promise rejection";
+  document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif"><h1>PROMISE ERROR</h1><pre style="white-space:pre-wrap">${reason}</pre></div>`;
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+    <App />
   </ErrorBoundary>
 );
