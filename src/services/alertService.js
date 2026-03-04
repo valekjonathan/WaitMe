@@ -3,6 +3,7 @@
  * Sustituye base44.entities.ParkingAlert cuando se complete la migración.
  */
 import { supabase } from '@/lib/supabaseClient';
+import { encode, getNeighborPrefixes } from '@/lib/geohash';
 
 const TABLE = 'parking_alerts';
 
@@ -18,6 +19,7 @@ const TABLE = 'parking_alerts';
  * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createAlert({ userId, lat, lng, price, vehicleType = 'car', expiresAt }) {
+  const geohash = encode(lat, lng, 7);
   const { data, error } = await supabase
     .from(TABLE)
     .insert({
@@ -27,6 +29,7 @@ export async function createAlert({ userId, lat, lng, price, vehicleType = 'car'
       price,
       vehicle_type: vehicleType,
       status: 'active',
+      geohash,
       expires_at: expiresAt instanceof Date ? expiresAt.toISOString() : expiresAt,
     })
     .select()
@@ -54,6 +57,28 @@ export async function getActiveAlerts({ userId } = {}) {
 
   const { data, error } = await query;
   return { data, error };
+}
+
+/**
+ * Obtiene alertas activas cerca de (lat, lng) usando geohash.
+ * @param {number} lat - Latitud
+ * @param {number} lng - Longitud
+ * @param {number} [radiusKm=2] - Radio aproximado en km
+ * @returns {Promise<{data: object[]|null, error: object|null}>}
+ */
+export async function getActiveAlertsNear(lat, lng, radiusKm = 2) {
+  const geohash = encode(lat, lng, 7);
+  const prefixes = getNeighborPrefixes(geohash, radiusKm);
+  const orFilter = prefixes.map((p) => `geohash.ilike.${p}%`).join(',');
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .eq('status', 'active')
+    .or(orFilter)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: null, error };
+  return { data: data ?? [], error: null };
 }
 
 /**
