@@ -7,14 +7,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // DIAG: cargar test.html para verificar WKWebView sin React
-        DispatchQueue.main.async {
-            if let rootVC = self.window?.rootViewController as? CAPBridgeViewController,
-               let url = Bundle.main.url(forResource: "test", withExtension: "html", subdirectory: "public") {
-                rootVC.loadViewIfNeeded()
-                rootVC.webView?.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
-            }
-        }
+        // Override point for customization after application launch.
         return true
     }
 
