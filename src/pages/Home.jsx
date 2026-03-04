@@ -295,9 +295,9 @@ export default function Home() {
         : Number(userLocation?.longitude ?? userLocation?.lng ?? -5.8489);
       // 3 coches extra bien al sur: aparecen en la zona del botón morado en pantalla
       const extra = [
-        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  car_color: 'azul',   vehicle_type: 'suv',  status: 'active' },
-        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  car_color: 'rojo',   vehicle_type: 'van',  status: 'active' },
-        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, car_color: 'negro',  vehicle_type: 'car',  status: 'active' },
+        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  color: 'azul',   vehicle_type: 'suv',  status: 'active' },
+        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  color: 'rojo',   vehicle_type: 'van',  status: 'active' },
+        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, color: 'negro',  vehicle_type: 'car',  status: 'active' },
       ];
       return [...base, ...extra];
     }
@@ -349,10 +349,10 @@ export default function Home() {
       address: data.address,
       price: data.price,
       available_in_minutes: data.available_in_minutes,
-      car_brand: data.car_brand || '',
-      car_model: data.car_model || '',
-      car_color: data.car_color || '',
-      car_plate: data.car_plate || '',
+      brand: data.brand || '',
+      model: data.model || '',
+      color: data.color || '',
+      plate: data.plate || '',
       phone: data.phone,
       allow_phone_calls: data.allow_phone_calls,
       wait_until: futureTime.toISOString(),
@@ -432,10 +432,10 @@ export default function Home() {
       }
 
       const buyerName = user?.full_name || user?.display_name || 'Usuario';
-      const buyerCarBrand = user?.car_brand || '';
-      const buyerCarModel = user?.car_model || '';
-      const buyerCarColor = user?.car_color || 'gris';
-      const buyerPlate = user?.car_plate || '';
+      const buyerCarBrand = user?.brand || '';
+      const buyerCarModel = user?.model || '';
+      const buyerCarColor = user?.color || 'gris';
+      const buyerPlate = user?.plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
       return Promise.all([
@@ -767,10 +767,10 @@ export default function Home() {
                         available_in_minutes: data.minutes,
                         user_name: currentUser?.full_name?.split(' ')[0] || currentUser?.display_name || 'Usuario',
                         user_photo: currentUser?.photo_url || null,
-                        car_brand: currentUser?.car_brand || 'Sin marca',
-                        car_model: currentUser?.car_model || 'Sin modelo',
-                        car_color: currentUser?.car_color || 'gris',
-                        car_plate: currentUser?.car_plate || '0000XXX',
+                        brand: currentUser?.brand || 'Sin marca',
+                        model: currentUser?.model || 'Sin modelo',
+                        color: currentUser?.color || 'gris',
+                        plate: currentUser?.plate || '0000XXX',
                         phone: currentUser?.phone || null,
                         allow_phone_calls: currentUser?.allow_phone_calls || false
                       };
@@ -957,11 +957,11 @@ export default function Home() {
           <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
             <p className="text-sm text-gray-400">
               <span className="text-white">
-                {confirmDialog.alert?.car_brand} {confirmDialog.alert?.car_model}
+                {confirmDialog.alert?.brand} {confirmDialog.alert?.model}
               </span>
             </p>
             <p className="text-sm text-gray-400">
-              Matrícula: <span className="text-white font-mono">{confirmDialog.alert?.car_plate}</span>
+              Matrícula: <span className="text-white font-mono">{confirmDialog.alert?.plate}</span>
             </p>
             <p className="text-sm text-gray-400">
               Se va en: <span className="text-purple-400">{confirmDialog.alert?.available_in_minutes} min</span>

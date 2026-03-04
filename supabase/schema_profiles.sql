@@ -2,7 +2,7 @@
 -- y crear bucket 'avatars' en Storage con políticas públicas de lectura
 
 -- Tabla profiles (compatible con auth.users)
--- Campos obligatorios: full_name, phone, car_brand, car_model, car_color, vehicle_type, car_plate
+-- Campos obligatorios: full_name, phone, brand, model, color, vehicle_type, plate
 -- Campo opcional: avatar_url
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -10,11 +10,11 @@ create table if not exists public.profiles (
   full_name text,
   avatar_url text,
   display_name text,
-  car_brand text,
-  car_model text,
-  car_color text default 'gris',
+  brand text,
+  model text,
+  color text default 'gris',
   vehicle_type text default 'car',
-  car_plate text,
+  plate text,
   phone text,
   allow_phone_calls boolean default false,
   notifications_enabled boolean default true,

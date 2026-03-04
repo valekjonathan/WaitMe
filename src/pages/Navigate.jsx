@@ -43,10 +43,10 @@ const DEMO_ALERTS = {
     user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
     user_id: 'seller-1',
     user_email: 'seller1@test.com',
-    car_brand: 'SEAT',
-    car_model: 'León',
-    car_color: 'blanco',
-    car_plate: '1234 JKL',
+    brand: 'SEAT',
+    model: 'León',
+    color: 'blanco',
+    plate: '1234 JKL',
     address: 'Calle Campoamor, 13',
     latitude: 43.3629,
     longitude: -5.8488,
@@ -55,11 +55,11 @@ const DEMO_ALERTS = {
     price: 3,
     available_in_minutes: 6
   },
-  'demo_2': { id:'demo_2', user_name:'Marco', user_photo:'https://randomuser.me/api/portraits/men/32.jpg', user_id:'seller-2', user_email:'seller2@test.com', car_brand:'Volkswagen', car_model:'Golf', car_color:'negro', car_plate:'5678 HJP', address:'Calle Fray Ceferino, Oviedo', latitude:43.3612, longitude:-5.8502, phone:'600456789', allow_phone_calls:true, price:5, available_in_minutes:10 },
-  'demo_3': { id:'demo_3', user_name:'Nerea', user_photo:'https://randomuser.me/api/portraits/women/68.jpg', user_id:'seller-3', user_email:'seller3@test.com', car_brand:'Toyota', car_model:'RAV4', car_color:'azul', car_plate:'9012 LSR', address:'Calle Campoamor, Oviedo', latitude:43.363, longitude:-5.8489, phone:'600789012', allow_phone_calls:true, price:7, available_in_minutes:14 },
-  'demo_4': { id:'demo_4', user_name:'David', user_photo:'https://randomuser.me/api/portraits/men/19.jpg', user_id:'seller-4', user_email:'seller4@test.com', car_brand:'Renault', car_model:'Trafic', car_color:'gris', car_plate:'3456 JTZ', address:'Plaza de la Escandalera, Oviedo', latitude:43.3609, longitude:-5.8501, phone:'600234567', allow_phone_calls:true, price:4, available_in_minutes:4 },
-  'demo_5': { id:'demo_5', user_name:'Lucía', user_photo:'https://randomuser.me/api/portraits/women/12.jpg', user_id:'seller-5', user_email:'seller5@test.com', car_brand:'Peugeot', car_model:'208', car_color:'rojo', car_plate:'7788 MNB', address:'Calle Rosal, Oviedo', latitude:43.3623, longitude:-5.8483, phone:'600345678', allow_phone_calls:true, price:2, available_in_minutes:3 },
-  'demo_6': { id:'demo_6', user_name:'Álvaro', user_photo:'https://randomuser.me/api/portraits/men/61.jpg', user_id:'seller-6', user_email:'seller6@test.com', car_brand:'Kia', car_model:'Sportage', car_color:'verde', car_plate:'2468 GHT', address:'Calle Jovellanos, Oviedo', latitude:43.3615, longitude:-5.8505, phone:'600567890', allow_phone_calls:true, price:6, available_in_minutes:18 }
+  'demo_2': { id:'demo_2', user_name:'Marco', user_photo:'https://randomuser.me/api/portraits/men/32.jpg', user_id:'seller-2', user_email:'seller2@test.com', brand:'Volkswagen', model:'Golf', color:'negro', plate:'5678 HJP', address:'Calle Fray Ceferino, Oviedo', latitude:43.3612, longitude:-5.8502, phone:'600456789', allow_phone_calls:true, price:5, available_in_minutes:10 },
+  'demo_3': { id:'demo_3', user_name:'Nerea', user_photo:'https://randomuser.me/api/portraits/women/68.jpg', user_id:'seller-3', user_email:'seller3@test.com', brand:'Toyota', model:'RAV4', color:'azul', plate:'9012 LSR', address:'Calle Campoamor, Oviedo', latitude:43.363, longitude:-5.8489, phone:'600789012', allow_phone_calls:true, price:7, available_in_minutes:14 },
+  'demo_4': { id:'demo_4', user_name:'David', user_photo:'https://randomuser.me/api/portraits/men/19.jpg', user_id:'seller-4', user_email:'seller4@test.com', brand:'Renault', model:'Trafic', color:'gris', plate:'3456 JTZ', address:'Plaza de la Escandalera, Oviedo', latitude:43.3609, longitude:-5.8501, phone:'600234567', allow_phone_calls:true, price:4, available_in_minutes:4 },
+  'demo_5': { id:'demo_5', user_name:'Lucía', user_photo:'https://randomuser.me/api/portraits/women/12.jpg', user_id:'seller-5', user_email:'seller5@test.com', brand:'Peugeot', model:'208', color:'rojo', plate:'7788 MNB', address:'Calle Rosal, Oviedo', latitude:43.3623, longitude:-5.8483, phone:'600345678', allow_phone_calls:true, price:2, available_in_minutes:3 },
+  'demo_6': { id:'demo_6', user_name:'Álvaro', user_photo:'https://randomuser.me/api/portraits/men/61.jpg', user_id:'seller-6', user_email:'seller6@test.com', brand:'Kia', model:'Sportage', color:'verde', plate:'2468 GHT', address:'Calle Jovellanos, Oviedo', latitude:43.3615, longitude:-5.8505, phone:'600567890', allow_phone_calls:true, price:6, available_in_minutes:18 }
 };
 
 export default function Navigate() {
@@ -253,9 +253,9 @@ export default function Navigate() {
     : (displayAlert?.reserved_by_photo || (displayAlert?.reserved_by_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128` : null));
 
   // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde) + icono coche
-  const userCarIcon = displayAlert?.car_color
+  const userCarIcon = displayAlert?.color
     ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
-        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.car_color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="14" cy="18" r="2" fill="#666"/>
@@ -273,9 +273,9 @@ export default function Navigate() {
     : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#22c55e;">Yo${userCarIcon}</div>`;
 
   // Icono del vendedor: foto cuadrada con bordes redondeados + icono coche
-  const sellerCarIcon = displayAlert?.car_color
+  const sellerCarIcon = displayAlert?.color
     ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
-        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.car_color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="14" cy="18" r="2" fill="#666"/>
@@ -297,10 +297,10 @@ export default function Navigate() {
     // Para UserAlertCard siempre mostramos los datos del vendedor (la otra persona)
     user_name: sellerName,
     user_photo: sellerPhoto,
-    car_brand: isBuyer ? displayAlert.car_brand : (displayAlert.reserved_by_car?.split(' ')[0] || ''),
-    car_model: isBuyer ? displayAlert.car_model : (displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || ''),
-    car_plate: isBuyer ? displayAlert.car_plate : (displayAlert.reserved_by_plate || ''),
-    car_color: isBuyer ? displayAlert.car_color : (displayAlert.reserved_by_car_color || 'gris'),
+    brand: isBuyer ? displayAlert.brand : (displayAlert.reserved_by_car?.split(' ')[0] || ''),
+    model: isBuyer ? displayAlert.model : (displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || ''),
+    plate: isBuyer ? displayAlert.plate : (displayAlert.reserved_by_plate || ''),
+    color: isBuyer ? displayAlert.color : (displayAlert.reserved_by_car_color || 'gris'),
     phone: isBuyer ? (displayAlert.phone || null) : null,
     allow_phone_calls: isBuyer ? displayAlert.allow_phone_calls : false,
     wait_until: displayAlert.expires_at, // Para mostrar la hora hasta que expira

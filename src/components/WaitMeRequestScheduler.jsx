@@ -68,8 +68,8 @@ export default function WaitMeRequestScheduler() {
               name: buyer.name,
               photo: buyer.photo,
               vehicle_type: buyer.vehicle_type,
-              car_model: buyer.car_model,
-              car_color: buyer.car_color,
+              model: buyer.model,
+              color: buyer.color,
               plate: buyer.plate,
               phone: buyer.phone
             }

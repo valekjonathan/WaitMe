@@ -108,8 +108,8 @@ export default function Notifications() {
         reserved_by_email: null,
         reserved_by_name: buyer?.name || 'Usuario',
         reserved_by_photo: buyer?.photo || null,
-        reserved_by_car: String(buyer?.car_model || '').trim(),
-        reserved_by_car_color: buyer?.car_color || 'gris',
+        reserved_by_car: `${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
+        reserved_by_car_color: buyer?.color || 'gris',
         reserved_by_plate: buyer?.plate || '',
         reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
       });
@@ -194,9 +194,9 @@ export default function Notifications() {
                 const statusText =
                   status === 'rejected' ? 'RECHAZADA' : status === 'accepted' ? 'ACEPTADA' : 'PENDIENTE';
 
-                const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
                 const plate = buyer?.plate || '';
-                const carColor = buyer?.car_color || 'gris';
+                const carColor = buyer?.color || 'gris';
 
                 const address = alert?.address || '';
                 const mins = alert?.available_in_minutes;
@@ -206,10 +206,10 @@ export default function Notifications() {
                 const fakeAlert = {
                   user_name: buyer?.name || 'Usuario',
                   user_photo: buyer?.photo || null,
-                  car_brand: '',
-                  car_model: carLabel,
-                  car_color: carColor,
-                  car_plate: plate,
+                  brand: '',
+                  model: carLabel,
+                  color: carColor,
+                  plate: plate,
                   address: address,
                   available_in_minutes: typeof mins === 'number' ? mins : null,
                   price: price,
@@ -294,9 +294,9 @@ export default function Notifications() {
                 const otherName = alert?.user_name || n?.fromName || 'Usuario';
                 const otherPhoto = alert?.user_photo || null;
 
-                const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim();
-                const plate = alert?.car_plate || '';
-                const carColor = alert?.car_color || 'gris';
+                const carLabel = `${alert?.brand || ''} ${alert?.model || ''}`.trim();
+                const plate = alert?.plate || '';
+                const carColor = alert?.color || 'gris';
                 const address = alert?.address || '';
                 const phoneEnabled = !!alert?.allow_phone_calls;
                 const phone = alert?.phone || null;

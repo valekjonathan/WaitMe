@@ -92,9 +92,9 @@ function HistorySellerView({ sellerContext = {} }) {
                       const alt = item.alert;
                       const buyer = req?.buyer || {};
                       const firstName = (buyer?.name || 'Usuario').split(' ')[0];
-                      const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                      const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
                       const plate = buyer?.plate || '';
-                      const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
+                      const carFillColor = getCarFillThinking(buyer?.color || 'gris');
                       const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
                       const mins = Number(alt?.available_in_minutes) || 0;
                       const altCreatedTs = alt?.created_date ? new Date(alt.created_date).getTime() : Date.now();
@@ -115,8 +115,8 @@ function HistorySellerView({ sellerContext = {} }) {
                           reserved_by_id: buyer?.id || 'buyer',
                           reserved_by_name: buyer?.name || 'Usuario',
                           reserved_by_photo: buyer?.photo || null,
-                          reserved_by_car: String(buyer?.car_model || '').trim(),
-                          reserved_by_car_color: buyer?.car_color || 'gris',
+                          reserved_by_car: `${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
+                          reserved_by_car_color: buyer?.color || 'gris',
                           reserved_by_plate: buyer?.plate || '',
                         };
                         try {
@@ -383,9 +383,9 @@ function HistorySellerView({ sellerContext = {} }) {
                       const alt = item.data.alert;
                       const buyer = req?.buyer || {};
                       const firstName = (buyer?.name || 'Usuario').split(' ')[0];
-                      const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+                      const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
                       const plate = buyer?.plate || '';
-                      const carFillColor = getCarFillThinking(buyer?.car_color || 'gris');
+                      const carFillColor = getCarFillThinking(buyer?.color || 'gris');
                       const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(buyer?.name||'U')}&background=7c3aed&color=fff&size=128`;
                       const ts = item.finalized_at || getBestFinalizedTs(item.data) || Date.now();
                       const dateText = formatCardDate(ts);
@@ -513,7 +513,7 @@ function HistorySellerView({ sellerContext = {} }) {
   const waitUntilLabel = hasExpiry
     ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
     : '--:--';
-  const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+  const carLabel = `${a.brand || ''} ${a.model || ''}`.trim();
   const mode = reservationMoneyModeFromStatus(a.status);
 
   // Si fue cancelada porque el vendedor se fue ("Me voy") y había reserva, mostrar tarjeta completa ReservedByContent
@@ -697,19 +697,16 @@ function HistorySellerView({ sellerContext = {} }) {
                         tx.buyerCar ||
                         tx.buyer_car_label ||
                         tx.buyerCarLabel ||
-                        (tx.buyer_car_brand
-                          ? `${tx.buyer_car_brand || ''} ${tx.buyer_car_model || ''}`.trim()
+                        (tx.buyer_brand
+                          ? `${tx.buyer_brand || ''} ${tx.buyer_model || ''}`.trim()
                           : '');
                       const buyerPlate =
                         tx.buyer_plate ||
                         tx.buyerPlate ||
-                        tx.buyer_car_plate ||
-                        tx.buyerCarPlate ||
-                        tx.car_plate ||
-                        tx.carPlate ||
+                        tx.plate ||
                         '';
                       const buyerColor =
-                        tx.buyer_car_color || tx.buyerCarColor || tx.car_color || tx.carColor || '';
+                        tx.buyer_color || tx.buyerColor || tx.color || '';
 
                       const ts = item.finalized_at || getBestFinalizedTs(tx);
                       const dateText = ts ? formatCardDate(ts) : '--';

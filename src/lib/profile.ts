@@ -6,7 +6,7 @@ export function normalizeProfile(profile = {}) {
     model: String(profile.model || "").trim(),
     color: String(profile.color || "").trim(),
     vehicle_type: String(profile.vehicle_type || profile.vehicle || "").trim(),
-    plate: String(profile.plate || profile.license_plate || "").trim(),
+    plate: String(profile.plate || "").trim(),
   };
 }
 

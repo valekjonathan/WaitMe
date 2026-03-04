@@ -56,10 +56,6 @@ export const AuthProvider = ({ children }) => {
       allow_phone_calls: profile?.allow_phone_calls ?? false,
       notifications_enabled: profile?.notifications_enabled !== false,
       email_notifications: profile?.email_notifications !== false,
-      car_brand: profile?.brand ?? '',
-      car_model: profile?.model ?? '',
-      car_color: profile?.color ?? 'gris',
-      car_plate: profile?.plate ?? '',
       ...authUser,
     };
   }, []);

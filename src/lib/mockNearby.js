@@ -12,8 +12,9 @@ export const MOCK_USERS = [
     name: 'Sofía',
     photo: 'https://randomuser.me/api/portraits/women/68.jpg',
     vehicle_type: 'car',
-    car_model: 'SEAT León',
-    car_color: 'blanco',
+    brand: 'SEAT',
+    model: 'León',
+    color: 'blanco',
     plate: '1234 JKL',
     phone: '+34 612 345 901'
   },
@@ -22,8 +23,9 @@ export const MOCK_USERS = [
     name: 'Hugo',
     photo: 'https://randomuser.me/api/portraits/men/32.jpg',
     vehicle_type: 'suv',
-    car_model: 'Nissan Qashqai',
-    car_color: 'gris',
+    brand: 'Nissan',
+    model: 'Qashqai',
+    color: 'gris',
     plate: '5678 MNP',
     phone: '+34 611 224 872'
   },
@@ -32,8 +34,9 @@ export const MOCK_USERS = [
     name: 'Nuria',
     photo: 'https://randomuser.me/api/portraits/women/44.jpg',
     vehicle_type: 'van',
-    car_model: 'Volkswagen Transporter',
-    car_color: 'negro',
+    brand: 'Volkswagen',
+    model: 'Transporter',
+    color: 'negro',
     plate: '9012 BCD',
     phone: '+34 613 908 771'
   },
@@ -42,8 +45,9 @@ export const MOCK_USERS = [
     name: 'Iván',
     photo: 'https://randomuser.me/api/portraits/men/75.jpg',
     vehicle_type: 'car',
-    car_model: 'Renault Clio',
-    car_color: 'rojo',
+    brand: 'Renault',
+    model: 'Clio',
+    color: 'rojo',
     plate: '3456 FGH',
     phone: '+34 610 552 330'
   },
@@ -52,8 +56,9 @@ export const MOCK_USERS = [
     name: 'Marco',
     photo: 'https://randomuser.me/api/portraits/men/12.jpg',
     vehicle_type: 'car',
-    car_model: 'Peugeot 208',
-    car_color: 'azul',
+    brand: 'Peugeot',
+    model: '208',
+    color: 'azul',
     plate: '7890 QRS',
     phone: '+34 614 401 992'
   },
@@ -62,8 +67,9 @@ export const MOCK_USERS = [
     name: 'Laura',
     photo: 'https://randomuser.me/api/portraits/women/12.jpg',
     vehicle_type: 'suv',
-    car_model: 'Kia Sportage',
-    car_color: 'verde',
+    brand: 'Kia',
+    model: 'Sportage',
+    color: 'verde',
     plate: '2468 TUV',
     phone: '+34 615 993 120'
   },
@@ -72,8 +78,9 @@ export const MOCK_USERS = [
     name: 'Dani',
     photo: 'https://randomuser.me/api/portraits/men/46.jpg',
     vehicle_type: 'car',
-    car_model: 'Toyota Corolla',
-    car_color: 'negro',
+    brand: 'Toyota',
+    model: 'Corolla',
+    color: 'negro',
     plate: '1357 WXY',
     phone: '+34 616 220 415'
   },
@@ -82,8 +89,9 @@ export const MOCK_USERS = [
     name: 'Paula',
     photo: 'https://randomuser.me/api/portraits/women/25.jpg',
     vehicle_type: 'van',
-    car_model: 'Mercedes Vito',
-    car_color: 'gris',
+    brand: 'Mercedes',
+    model: 'Vito',
+    color: 'gris',
     plate: '8642 ZAB',
     phone: '+34 617 882 064'
   },
@@ -92,8 +100,9 @@ export const MOCK_USERS = [
     name: 'Álvaro',
     photo: 'https://randomuser.me/api/portraits/men/19.jpg',
     vehicle_type: 'car',
-    car_model: 'Volkswagen Golf',
-    car_color: 'blanco',
+    brand: 'Volkswagen',
+    model: 'Golf',
+    color: 'blanco',
     plate: '9753 CDE',
     phone: '+34 618 771 203'
   },
@@ -102,8 +111,9 @@ export const MOCK_USERS = [
     name: 'Claudia',
     photo: 'https://randomuser.me/api/portraits/women/55.jpg',
     vehicle_type: 'suv',
-    car_model: 'Hyundai Tucson',
-    car_color: 'morado',
+    brand: 'Hyundai',
+    model: 'Tucson',
+    color: 'morado',
     plate: '1122 FJK',
     phone: '+34 619 330 778'
   }
@@ -159,12 +169,13 @@ export function getMockNearbyAlerts(userLocation) {
       user_photo: u.photo,
 
       // “todos los datos”
-      car_model: u.car_model,
+      brand: u.brand,
+      model: u.model,
       plate: u.plate,
       phone: u.phone,
 
       vehicle_type: u.vehicle_type,
-      car_color: u.car_color,
+      color: u.color,
 
       address: streets[i] || 'Calle Gran Vía, n1, Oviedo',
 

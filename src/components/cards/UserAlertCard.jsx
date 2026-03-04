@@ -120,7 +120,7 @@ function UserAlertCard({
     onBuyAlert?.(alert);
   };
 
-  const carLabel = `${alert?.car_brand || ''} ${alert?.car_model || ''}`.trim() || 'Sin datos';
+  const carLabel = `${alert?.brand || ''} ${alert?.model || ''}`.trim() || 'Sin datos';
 
   const CardHeaderRow = ({ left, dateText, right }) => (
     <div className="flex items-center gap-2 mb-2">
@@ -220,7 +220,7 @@ function UserAlertCard({
                   <span className="text-white text-[8px] font-bold">E</span>
                 </div>
                 <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                  {formatPlate(alert?.car_plate)}
+                  {formatPlate(alert?.plate)}
                 </span>
               </div>
             </div>
@@ -230,7 +230,7 @@ function UserAlertCard({
                 <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
                   <path
                     d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
-                    fill={getCarFill(alert?.car_color)}
+                    fill={getCarFill(alert?.color)}
                     stroke="white"
                     strokeWidth="1.5"
                   />

@@ -83,7 +83,7 @@ export default function HistoryBuyerView({
                         return null;
                       }
 
-                      const carLabel = `${alert.car_brand || ''} ${alert.car_model || ''}`.trim();
+                      const carLabel = `${alert.brand || ''} ${alert.model || ''}`.trim();
                       const phoneEnabled = Boolean(alert.phone && alert.allow_phone_calls !== false);
 
                       const dateText = formatCardDate(createdTs);
@@ -155,8 +155,8 @@ export default function HistoryBuyerView({
                             photoUrl={alert.user_photo}
                             name={alert.user_name}
                             carLabel={carLabel || 'Sin datos'}
-                            plate={alert.car_plate}
-                            carColor={alert.car_color}
+                            plate={alert.plate}
+                            carColor={alert.color}
                             address={alert.address}
                             timeLine={
                               <span className="text-white leading-5">
@@ -226,7 +226,7 @@ export default function HistoryBuyerView({
                          ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
                          : '--:--';
 
-                        const carLabel = `${a.car_brand || ''} ${a.car_model || ''}`.trim();
+                        const carLabel = `${a.brand || ''} ${a.model || ''}`.trim();
                         const phoneEnabled = Boolean(a.phone && a.allow_phone_calls !== false);
 
                         const mode = reservationMoneyModeFromStatus(a.status);
@@ -284,8 +284,8 @@ export default function HistoryBuyerView({
                               photoUrl={a.user_photo}
                               name={a.user_name}
                               carLabel={carLabel || 'Sin datos'}
-                              plate={a.car_plate}
-                              carColor={a.car_color}
+                              plate={a.plate}
+                              carColor={a.color}
                               address={a.address}
                               timeLine={
                                 <span className="text-white leading-5">
@@ -315,17 +315,14 @@ export default function HistoryBuyerView({
                       const sellerName = tx.seller_name || 'Usuario';
                       const sellerPhoto = tx.seller_photo_url || tx.sellerPhotoUrl || '';
                       const sellerCarLabel =
-                        tx.seller_car || tx.sellerCar || `${tx.seller_car_brand || ''} ${tx.seller_car_model || ''}`.trim();
+                        tx.seller_car || tx.sellerCar || `${tx.seller_brand || ''} ${tx.seller_model || ''}`.trim();
                       const sellerPlate =
                         tx.seller_plate ||
                         tx.sellerPlate ||
-                        tx.seller_car_plate ||
-                        tx.sellerCarPlate ||
-                        tx.car_plate ||
-                        tx.carPlate ||
+                        tx.plate ||
                         '';
                       const sellerColor =
-                        tx.seller_car_color || tx.sellerCarColor || tx.car_color || tx.carColor || '';
+                        tx.seller_color || tx.sellerColor || tx.color || '';
 
                       const txPaid = String(tx.status || '').toLowerCase() === 'completed';
 

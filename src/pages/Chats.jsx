@@ -539,7 +539,7 @@ const badgeCls = isCompletedOrCanceled
             {demoConvs.map((dc) => {
               const buyerFirstName = (dc.buyer_name || 'Usuario').split(' ')[0];
               const buyerPhoto = dc.buyer_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(dc.buyer_name||'U')}&background=7c3aed&color=fff&size=128`;
-              const carLabel = `${dc.car_brand || ''} ${dc.car_model || ''}`.trim() || 'Sin datos';
+              const carLabel = `${dc.brand || ''} ${dc.model || ''}`.trim() || 'Sin datos';
               const hasUnread = (dc.unread || 0) > 0;
               return (
                 <div key={dc.id}
@@ -594,7 +594,7 @@ const badgeCls = isCompletedOrCanceled
                         <div className="flex-shrink-0">
                           <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
                             <div className="bg-blue-600 h-full w-5 flex items-center justify-center"><span className="text-white text-[8px] font-bold">E</span></div>
-                            <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{dc.car_plate || '0000 XXX'}</span>
+                            <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{dc.plate || '0000 XXX'}</span>
                           </div>
                         </div>
                       </div>
@@ -741,9 +741,9 @@ const badgeCls = isCompletedOrCanceled
                       <MarcoCard
                         photoUrl={otherUserPhoto}
                         name={otherUserName}
-                        carLabel={`${alert.car_brand || ''} ${alert.car_model || ''}`.trim()}
-                        plate={alert.car_plate}
-                        carColor={alert.car_color || 'gris'}
+                        carLabel={`${alert.brand || ''} ${alert.model || ''}`.trim()}
+                        plate={alert.plate}
+                        carColor={alert.color || 'gris'}
                         address={alert.address}
                         timeLine={
                           isSeller ? (

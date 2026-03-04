@@ -92,8 +92,8 @@ export default function IncomingRequestModal(){
       reserved_by_email:null,
       reserved_by_name:buyer?.name||'Usuario',
       reserved_by_photo:buyer?.photo||null,
-      reserved_by_car:String(buyer?.car_model||'').trim(),
-      reserved_by_car_color:buyer?.car_color||'gris',
+      reserved_by_car:`${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
+      reserved_by_car_color:buyer?.color||'gris',
       reserved_by_plate:buyer?.plate||'',
       reserved_by_vehicle_type:buyer?.vehicle_type||'car'
     };
@@ -131,10 +131,10 @@ export default function IncomingRequestModal(){
         buyer_name: buyerName,
         buyer_photo: buyer?.photo || null,
         buyer_id: buyer?.id || 'buyer',
-        car_model: buyer?.car_model || '',
-        car_brand: buyer?.car_brand || '',
-        car_color: buyer?.car_color || 'gris',
-        car_plate: buyer?.plate || '',
+        model: buyer?.model || '',
+        brand: buyer?.brand || '',
+        color: buyer?.color || 'gris',
+        plate: buyer?.plate || '',
         address: request?.address || '',
         price: request?.price || 3,
         allow_phone_calls: Boolean(buyer?.phone),
@@ -228,9 +228,9 @@ export default function IncomingRequestModal(){
     const buyer = request.buyer || {};
     const userName = buyer?.name || 'Usuario';
     const firstName = userName.split(' ')[0];
-    const carLabel = String(buyer?.car_model || 'Sin datos').trim();
+    const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
     const plate = buyer?.plate || '';
-    const carFill = getCarFill(buyer?.car_color || 'gris');
+    const carFill = getCarFill(buyer?.color || 'gris');
     const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7c3aed&color=fff&size=128`;
     const phoneEnabled = Boolean(buyer?.phone);
     const mins = Number(alert?.available_in_minutes) || 0;
