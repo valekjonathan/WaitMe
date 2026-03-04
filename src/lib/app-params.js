@@ -41,7 +41,12 @@ const getAppParams = () => {
 	}
 	return {
 		appId: getAppParamValue("app_id", { defaultValue: import.meta.env.VITE_BASE44_APP_ID }),
-		serverUrl: getAppParamValue("server_url", { defaultValue: import.meta.env.VITE_BASE44_BACKEND_URL }),
+		serverUrl: getAppParamValue("server_url", {
+			defaultValue:
+				import.meta.env.VITE_BASE44_BACKEND_URL ||
+				import.meta.env.VITE_BASE44_API_BASE_URL ||
+				'https://api.base44.app',
+		}),
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.pathname }),
 		functionsVersion: getAppParamValue("functions_version"),
