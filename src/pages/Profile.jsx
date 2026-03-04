@@ -296,7 +296,7 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 overflow-hidden flex flex-col flex-1 min-h-0">
+      <main className="pt-[69px] pb-24 px-4 overflow-hidden flex flex-col min-h-[100dvh]">
         <div className="flex-1 flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
