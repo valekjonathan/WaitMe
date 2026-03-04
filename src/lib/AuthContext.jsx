@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
       if (profileData) {
         setProfile(profileData);
       } else {
-        setProfile(null);
+        setProfile({});
       }
       setIsAuthenticated(true);
     } catch (error) {
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
               .eq('id', session.user.id)
               .single();
             if (profileData) setProfile(profileData);
-            else setProfile(null);
+            else setProfile({});
             setIsAuthenticated(true);
             setAuthError(null);
           }
@@ -163,6 +163,20 @@ export const AuthProvider = ({ children }) => {
     await resolveSession();
   }, [resolveSession]);
 
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      setProfile(data ?? {});
+    } catch (err) {
+      console.error('refreshProfile failed:', err);
+    }
+  }, [user?.id]);
+
   const logout = useCallback(async (shouldRedirect = false) => {
     setUser(null);
     setProfile(null);
@@ -180,7 +194,7 @@ export const AuthProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       user,
-      profile,
+      profile: profile ?? {},
       setProfile,
       isAuthenticated,
       isLoadingAuth,
@@ -191,8 +205,9 @@ export const AuthProvider = ({ children }) => {
       navigateToLogin,
       checkAppState: checkUserAuth,
       checkUserAuth,
+      refreshProfile,
     }),
-    [user, profile, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth]
+    [user, profile, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth, refreshProfile]
   );
 
   return (
