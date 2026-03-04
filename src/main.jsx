@@ -32,13 +32,7 @@ const queryClient = new QueryClient({
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <div style={{background:"white",color:"black",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"28px"}}>
+    WAITME TEST OK
+  </div>
 );
