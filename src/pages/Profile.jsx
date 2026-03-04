@@ -296,7 +296,8 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center overflow-hidden min-h-screen">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto overflow-hidden flex flex-col">
+        <div className="min-h-[calc(100dvh-69px-96px)] flex flex-col justify-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -480,6 +481,7 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
+        </div>
       </main>
 
       <BottomNav />
