@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "dev:ios": "concurrently \"npm run dev\" \"CAPACITOR_USE_DEV_SERVER=true npx cap run ios\"",
     "ios:sync": "npm run build && npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "ios:reset": "bash scripts/ios-reset.sh"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.3",
