@@ -1,7 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Routes, Route, useLocation, Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
-import { isProfileComplete } from '@/lib/profile';
+import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
@@ -31,16 +29,6 @@ const ROUTE_HEADER = {
   '/navigate': { title: 'Navegación', showBackButton: true, backTo: 'History', titleClassName: 'text-[13px] leading-[13px] font-semibold select-none text-center max-w-xs' },
 };
 
-function ProfileGuard({ children }) {
-  const location = useLocation();
-  const { user, profile } = useAuth();
-  const isHome = location.pathname === '/' || location.pathname.toLowerCase() === '/home';
-  if (isHome && user?.id && !isProfileComplete(profile)) {
-    return <Navigate to="/profile" replace />;
-  }
-  return children;
-}
-
 function LayoutShell() {
   const location = useLocation();
   const path = location.pathname;
@@ -60,11 +48,9 @@ function LayoutShell() {
       />
       <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24">
         <div className="flex-1 min-h-0 flex flex-col">
-          <ProfileGuard>
-            <Suspense fallback={null}>
-              <Outlet />
-            </Suspense>
-          </ProfileGuard>
+          <Suspense fallback={null}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
       <BottomNav />

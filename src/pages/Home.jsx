@@ -15,6 +15,7 @@ import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useAuth } from '@/lib/AuthContext';
+import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 import { alertsKey, alertsPrefix } from '@/lib/alertsQueryKey';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
@@ -119,7 +120,8 @@ export default function Home() {
     return () => window.removeEventListener('waitme:goLogo', goLogo);
   }, [resetToLogo]);
 
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { guard } = useProfileGuard(profile);
 
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
@@ -502,7 +504,7 @@ export default function Home() {
   });
 
   const handleBuyAlert = (alert) => {
-    setConfirmDialog({ open: true, alert });
+    guard(() => setConfirmDialog({ open: true, alert }));
   };
 
   const handleChat = async () => {
@@ -606,10 +608,10 @@ export default function Home() {
                     </Button>
 
                     <Button
-                      onClick={() => {
+                      onClick={() => guard(() => {
                         getCurrentLocation();
                         setMode('create');
-                      }}
+                      })}
                       className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
                     >
                       <CarIconProfile color="#000000" size="w-20 h-14" />

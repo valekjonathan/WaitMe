@@ -3,7 +3,6 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 
@@ -17,8 +16,7 @@ const LABEL_CLASS_LONG = 'text-[9px] font-bold leading-none mt-[2px] whitespace-
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile } = useAuth();
-  const { guard } = useProfileGuard(profile);
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [chatUnread, setChatUnread] = useState(0);
 
@@ -71,14 +69,12 @@ export default function BottomNav() {
   const handleMapClick = useCallback(
     (e) => {
       e?.preventDefault?.();
-      guard(() => {
-        try {
-          window.dispatchEvent(new Event('waitme:goLogo'));
-        } catch {}
-        navigate('/', { replace: false });
-      });
+      try {
+        window.dispatchEvent(new Event('waitme:goLogo'));
+      } catch {}
+      navigate('/', { replace: false });
     },
-    [navigate, guard]
+    [navigate]
   );
 
   return (
@@ -89,7 +85,7 @@ export default function BottomNav() {
           className={({ isActive }) => `${BASE_BTN} ${isActive ? ACTIVE_STYLE : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            guard(() => navigate('/history'));
+            navigate('/history');
           }}
         >
           <div className="relative">
@@ -144,10 +140,8 @@ export default function BottomNav() {
           className={({ isActive }) => `${BASE_BTN} ${isActive ? ACTIVE_STYLE : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            guard(() => {
-              handleChatsClick();
-              navigate('/chats');
-            });
+            handleChatsClick();
+            navigate('/chats');
           }}
         >
           <div className="relative">
