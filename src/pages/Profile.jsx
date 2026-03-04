@@ -49,7 +49,11 @@ export default function Profile() {
 
   const [photoSrc, setPhotoSrc] = useState('');
 
-  const photoUrl = formData.avatar_url || user?.photo_url || user?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+  const avatarSrc =
+    formData?.avatar_url ||
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    null;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -61,15 +65,15 @@ export default function Profile() {
       if (cached) setPhotoSrc(cached);
     } catch (_) {}
 
-    if (!photoUrl) return;
+    if (!avatarSrc) return;
 
     const img = new Image();
     img.decoding = 'sync';
-    img.src = photoUrl;
+    img.src = avatarSrc;
 
     img.onload = () => {
-      if (!cached) setPhotoSrc(photoUrl);
-      fetch(photoUrl)
+      if (!cached) setPhotoSrc(avatarSrc);
+      fetch(avatarSrc)
         .then((r) => r.blob())
         .then(
           (blob) =>
@@ -92,9 +96,9 @@ export default function Profile() {
     };
 
     img.onerror = () => {
-      if (!cached) setPhotoSrc(photoUrl);
+      if (!cached) setPhotoSrc(avatarSrc);
     };
-  }, [photoUrl, user?.id]);
+  }, [avatarSrc, user?.id]);
 
   useEffect(() => {
     if (!user || hydrated) return;
@@ -115,10 +119,10 @@ export default function Profile() {
   }, [user, hydrated]);
 
   useEffect(() => {
-    if (!photoUrl) return;
+    if (!avatarSrc) return;
     const img = new Image();
-    img.src = photoUrl;
-  }, [photoUrl]);
+    img.src = avatarSrc;
+  }, [avatarSrc]);
 
   const autoSave = useCallback(
     async (data) => {
@@ -292,7 +296,7 @@ export default function Profile() {
     <div className="h-[100dvh] overflow-hidden bg-black text-white flex flex-col">
       <Header title="Mi Perfil" showBackButton={true} onBack={handleBack} />
 
-      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 overflow-hidden">
+      <main className="pt-[69px] pb-24 px-4 max-w-md mx-auto flex-1 flex flex-col justify-center min-h-[calc(100vh-140px)] overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           {/* Tarjeta tipo DNI */}
           <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
@@ -300,17 +304,16 @@ export default function Profile() {
               {/* Foto */}
               <div className="relative">
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
-                  {photoUrl ? (
+                  {avatarSrc ? (
                     <img
-                      src={photoSrc || photoUrl}
-                      alt="Perfil"
+                      src={avatarSrc}
+                      alt="avatar"
                       className="w-full h-full object-cover"
-                      loading="eager"
-                      decoding="sync"
-                      fetchPriority="high"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl text-gray-500">👤</div>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-2xl">👤</span>
+                    </div>
                   )}
                 </div>
                 <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
