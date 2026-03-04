@@ -11,6 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 
+function normalizeAvatarPath(p) {
+  if (!p) return "";
+  const s = String(p).trim();
+  if (!s) return "";
+  if (s.startsWith("avatars/")) return s.slice("avatars/".length);
+  return s;
+}
+
 const carColors = [
   { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
   { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
@@ -39,23 +47,31 @@ export default function Profile() {
     email_notifications: true,
   });
 
-  let avatarSrc =
+  let raw =
     formData?.avatar_url ||
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     user?.photo_url ||
+    user?.avatar_url ||
     "";
 
-  if (avatarSrc && !avatarSrc.startsWith("http")) {
-    const { data } = supabase.storage.from("avatars").getPublicUrl(avatarSrc);
+  raw = String(raw || "").trim();
+
+  let avatarSrc = raw;
+
+  if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
+    const path = normalizeAvatarPath(avatarSrc);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     avatarSrc = data?.publicUrl || "";
   }
 
-  const initial =
+  const nameForInitial =
     (formData?.full_name ||
      user?.user_metadata?.full_name ||
      user?.user_metadata?.name ||
-     "?")[0].toUpperCase();
+     "").trim();
+
+  const initial = (nameForInitial ? nameForInitial[0] : "?").toUpperCase();
 
   useEffect(() => {
     if (!user || hydrated) return;
@@ -277,9 +293,12 @@ export default function Profile() {
                 <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
                   {avatarSrc ? (
                     <img
+                      key={avatarSrc}
                       src={avatarSrc}
                       alt="avatar"
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                     />
                   ) : (
                     <span className="text-2xl font-semibold">{initial}</span>

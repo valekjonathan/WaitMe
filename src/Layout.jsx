@@ -50,7 +50,7 @@ function LayoutShell() {
   const merged = { ...baseConfig, ...routeConfig, ...ctxConfig };
 
   return (
-    <div className="flex flex-col min-h-screen bg-black">
+    <div className="flex flex-col min-h-[100dvh] bg-black">
       <Header
         title={merged.title}
         showBackButton={merged.showBackButton}
@@ -58,7 +58,7 @@ function LayoutShell() {
         onBack={merged.onBack}
         titleClassName={merged.titleClassName}
       />
-      <main className="flex-1 flex flex-col pt-[69px] pb-24 min-h-0 overflow-hidden">
+      <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24 overflow-hidden">
         <ProfileGuard>
           <Suspense fallback={null}>
             <Outlet />
