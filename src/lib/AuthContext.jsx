@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const authInFlightRef = useRef(false);
 
   const ensureUserInDb = useCallback(async (authUser) => {
     if (!authUser?.id) return null;
@@ -61,6 +62,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const resolveSession = useCallback(async () => {
+    if (authInFlightRef.current) return;
+    authInFlightRef.current = true;
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
@@ -69,7 +72,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
-        setIsLoadingAuth(false);
         return;
       }
       const appUser = await ensureUserInDb(authUser);
@@ -77,7 +79,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
-        setIsLoadingAuth(false);
         return;
       }
       setUser(appUser);
@@ -102,6 +103,7 @@ export const AuthProvider = ({ children }) => {
       setAuthError({ type: 'unknown', message: error?.message || 'Error de autenticación' });
     } finally {
       setIsLoadingAuth(false);
+      authInFlightRef.current = false;
     }
   }, [ensureUserInDb]);
 
@@ -109,33 +111,47 @@ export const AuthProvider = ({ children }) => {
     resolveSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (session?.user?.id) {
-          try {
-            const appUser = await ensureUserInDb(session.user);
-            if (appUser?.id) {
-              setUser(appUser);
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              if (profileData) setProfile(profileData);
-              else setProfile(null);
-              setIsAuthenticated(true);
-              setAuthError(null);
-            }
-          } catch (err) {
-            console.error('Auth state change error:', err);
-            setUser(null);
-            setProfile(null);
-            setIsAuthenticated(false);
-          }
-        }
-      } else if (event === 'SIGNED_OUT') {
+      if (event === 'INITIAL_SESSION') {
+        setIsLoadingAuth(false);
+        return;
+      }
+      if (event === 'SIGNED_OUT') {
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
+        setIsLoadingAuth(false);
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (authInFlightRef.current || !session?.user?.id) {
+          setIsLoadingAuth(false);
+          return;
+        }
+        authInFlightRef.current = true;
+        try {
+          const appUser = await ensureUserInDb(session.user);
+          if (appUser?.id) {
+            setUser(appUser);
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            if (profileData) setProfile(profileData);
+            else setProfile(null);
+            setIsAuthenticated(true);
+            setAuthError(null);
+          }
+        } catch (err) {
+          console.error('Auth state change error:', err);
+          setUser(null);
+          setProfile(null);
+          setIsAuthenticated(false);
+        } finally {
+          setIsLoadingAuth(false);
+          authInFlightRef.current = false;
+        }
+        return;
       }
       setIsLoadingAuth(false);
     });

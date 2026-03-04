@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
 import { toProfilePayload } from '@/lib/profile';
+import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +34,7 @@ export default function Profile() {
   const { user, profile, setProfile } = useAuth();
   const setHeader = useLayoutHeader();
   const setProfileFormData = useSetProfileFormData();
+  const hydratedOnceRef = useRef(false);
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -71,7 +73,8 @@ export default function Profile() {
   const initial = (nameForInitial ? nameForInitial[0] : "?").toUpperCase();
 
   useEffect(() => {
-    if (!profile || hydrated) return;
+    if (!profile || hydratedOnceRef.current) return;
+    hydratedOnceRef.current = true;
     setFormData({
       full_name: profile.full_name || '',
       brand: profile.brand || '',
@@ -86,50 +89,40 @@ export default function Profile() {
       email_notifications: profile.email_notifications !== false,
     });
     setHydrated(true);
-  }, [profile, hydrated]);
+  }, [profile]);
 
-  useEffect(() => {
-    if (!user?.id || !hydrated) return;
-    const save = async () => {
-      try {
-        const payload = toProfilePayload(formData);
-        const { data, error } = await supabase
-          .from('profiles')
-          .update(payload)
-          .eq('id', user.id)
-          .select()
-          .single();
-        if (!error && data) {
-          setProfile(data);
-        }
-      } catch (error) {
-        console.error('Error guardando:', error);
-      }
-    };
-    save();
-  }, [formData, user?.id, hydrated, setProfile]);
+  const saveProfile = useCallback(
+    async (payload) => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(payload)
+        .eq('id', user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    [user?.id]
+  );
+
+  useDebouncedSave({
+    enabled: !!hydrated && !!user?.id,
+    formData,
+    toPayload: toProfilePayload,
+    saveFn: saveProfile,
+    delay: 750,
+    onSuccess: setProfile,
+    onError: (err) => {
+      console.error('Error guardando perfil:', err);
+      alert('Error al guardar. Intenta de nuevo.');
+    },
+  });
 
   useEffect(() => {
     setProfileFormData(formData);
     return () => setProfileFormData(null);
   }, [formData, setProfileFormData]);
-
-  useEffect(() => {
-    return () => {
-      if (user?.id && hydrated) {
-        const payload = toProfilePayload(formData);
-        supabase
-          .from('profiles')
-          .update(payload)
-          .eq('id', user.id)
-          .select()
-          .single()
-          .then(({ data }) => {
-            if (data) setProfile(data);
-          });
-      }
-    };
-  }, [formData, user?.id, hydrated, setProfile]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -153,6 +146,7 @@ export default function Profile() {
   };
 
   const handleBack = useCallback(async () => {
+    if (!user?.id) return;
     try {
       const payload = toProfilePayload(formData);
       const { data, error } = await supabase
@@ -161,12 +155,14 @@ export default function Profile() {
         .eq('id', user.id)
         .select()
         .single();
-      if (!error && data) {
+      if (error) throw error;
+      if (data) {
         setProfile(data);
         navigate('/');
       }
     } catch (error) {
       console.error('Error guardando:', error);
+      alert('Error al guardar. Intenta de nuevo.');
     }
   }, [formData, user?.id, navigate, setProfile]);
 

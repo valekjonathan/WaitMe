@@ -74,7 +74,8 @@ export default function Chat() {
 
   const demoOtherUser = useMemo(() => {
     if (!isDemo || !demoConv) return null;
-    return demoSt?.users?.[demoConv.otherUserId] || null;
+    const otherId = demoConv.participant1_id === 'me' ? demoConv.participant2_id : demoConv.participant1_id;
+    return (demoSt?.users || []).find((u) => u.id === otherId) || null;
   }, [isDemo, demoConv, demoSt]);
 
   useEffect(() => {
