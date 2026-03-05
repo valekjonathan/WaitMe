@@ -1,43 +1,32 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { HashRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AuthProvider } from "./lib/AuthContext";
+import { getSupabaseConfig } from "./lib/supabaseClient";
+import App from "./App";
+import MissingEnvScreen from "./diagnostics/MissingEnvScreen";
+import "./globals.css";
+import "./styles/no-zoom.css";
 
-function ErrorBoundary({ children }) {
-  const [error, setError] = React.useState(null);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60_000,
+      gcTime: 30 * 60_000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
+      retry: 1,
+    },
+  },
+});
 
-  if (error) {
-    return (
-      <div
-        style={{
-          background: "white",
-          color: "red",
-          fontSize: 18,
-          padding: 40,
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        REACT ERROR
-        {"\n\n"}
-        {String(error)}
-      </div>
-    );
-  }
-
-  return (
-    <React.Suspense fallback={<div style={{ padding: 40 }}>Cargando...</div>}>
-      <Inner setError={setError}>{children}</Inner>
-    </React.Suspense>
-  );
-}
-
-class Inner extends React.Component {
+class ErrorBoundary extends React.Component {
   state = { error: null };
 
   static getDerivedStateFromError(error) {
     return { error };
-  }
-
-  componentDidCatch(error) {
-    this.props.setError(error);
   }
 
   render() {
@@ -45,15 +34,15 @@ class Inner extends React.Component {
       return (
         <div
           style={{
-            background: "white",
-            color: "red",
-            fontSize: 18,
-            padding: 40,
+            background: "#1a1a1a",
+            color: "#fca5a5",
+            padding: 24,
+            fontFamily: "system-ui, sans-serif",
             whiteSpace: "pre-wrap",
+            minHeight: "100vh",
           }}
         >
-          REACT ERROR
-          {"\n\n"}
+          <h2 style={{ marginBottom: 16 }}>Error</h2>
           {String(this.state.error)}
         </div>
       );
@@ -62,25 +51,26 @@ class Inner extends React.Component {
   }
 }
 
-function TestApp() {
-  return (
-    <div
-      style={{
-        background: "white",
-        color: "black",
-        fontSize: 40,
-        padding: 40,
-      }}
-    >
-      REACT ARRANCÓ
-    </div>
-  );
+const rootEl = document.getElementById("root");
+if (rootEl) {
+  const config = getSupabaseConfig();
+  if (!config.ok) {
+    ReactDOM.createRoot(rootEl).render(
+      <HashRouter>
+        <MissingEnvScreen missing={config.missing} />
+      </HashRouter>
+    );
+  } else {
+    ReactDOM.createRoot(rootEl).render(
+      <ErrorBoundary>
+        <HashRouter>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </QueryClientProvider>
+        </HashRouter>
+      </ErrorBoundary>
+    );
+  }
 }
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
-
-root.render(
-  <ErrorBoundary>
-    <TestApp />
-  </ErrorBoundary>
-);
