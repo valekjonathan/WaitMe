@@ -38,10 +38,14 @@ export default function App() {
 
   return (
     <div
-      className="min-h-[100dvh] bg-black flex flex-col"
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      style={{
+        background: "white",
+        color: "black",
+        fontSize: 40,
+        padding: 40,
+      }}
     >
-      <AuthRouter />
+      APP ARRANCÓ
     </div>
   );
 }
