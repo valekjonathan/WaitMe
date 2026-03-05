@@ -1,6 +1,6 @@
 # Supabase — Migraciones SOLO en main, tras CI exitoso
 # Corre tras CI exitoso (workflow_run) o manual (workflow_dispatch)
-name: Supabase
+name: disabled-temporarily
 
 # Una sola ejecución por commit; cancelar duplicados (ej. re-runs de CI)
 concurrency:

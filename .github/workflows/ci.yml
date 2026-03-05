@@ -1,6 +1,6 @@
 # CI — Lint, typecheck, tests, build
 # Gate único: todo debe pasar antes de migrations
-name: CI
+name: disabled-temporarily
 
 # Desactivado temporalmente: solo manual (workflow_dispatch)
 on:

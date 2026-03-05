@@ -619,7 +619,10 @@ export default function Home() {
           }}
         >
               {/* HERO: logo + frase + pin + botones — centrado sin márgenes ni padding */}
-              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-auto">
+              <div
+                className="relative z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-auto"
+                style={{ position: 'relative', zIndex: 10, transform: 'translateY(-40px)' }}
+              >
                 <img
                   loading="eager"
                   decoding="async"

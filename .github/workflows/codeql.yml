@@ -1,6 +1,6 @@
 # CodeQL — análisis de seguridad de código
 # https://docs.github.com/en/code-security/codeql-cli
-name: CodeQL
+name: disabled-temporarily
 
 # Desactivado temporalmente: solo manual (workflow_dispatch)
 on:
