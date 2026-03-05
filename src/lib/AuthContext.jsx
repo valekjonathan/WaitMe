@@ -1,5 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
+
+const isDevIos = () => import.meta.env.DEV && Capacitor.getPlatform?.() === 'ios';
 
 const AuthContext = createContext();
 
@@ -120,6 +123,31 @@ export const AuthProvider = ({ children }) => {
   }, [ensureUserInDb]);
 
   useEffect(() => {
+    // Bypass login en DEV + iOS simulator para probar mapa (OAuth no funciona en capacitor://localhost)
+    if (isDevIos()) {
+      const devUser = {
+        id: 'dev-user',
+        email: 'dev@waitme.local',
+        full_name: 'Dev User',
+        display_name: 'Dev',
+        photo_url: null,
+        brand: '',
+        model: '',
+        color: 'gris',
+        vehicle_type: 'car',
+        plate: '',
+        phone: null,
+        allow_phone_calls: false,
+        notifications_enabled: true,
+        email_notifications: true,
+      };
+      setUser(devUser);
+      setProfile(devUser);
+      setIsAuthenticated(true);
+      setIsLoadingAuth(false);
+      return;
+    }
+
     const supabase = getSupabase();
     if (!supabase) {
       setIsLoadingAuth(false);
