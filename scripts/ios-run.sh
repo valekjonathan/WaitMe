@@ -90,7 +90,14 @@ fi
 echo ""
 echo "--- TOP ERRORS ---"
 if [ -f "$LOG_FILE" ]; then
-  grep -iE "error|failed|exception|webkit|capacitor" "$LOG_FILE" 2>/dev/null | head -30 || echo "(ninguna línea con error/failed/exception/webkit/capacitor)"
+  grep -iE "error|exception|failed|webkit|capacitor|chunk|module|router|auth" "$LOG_FILE" 2>/dev/null | head -40 || echo "(ninguna línea con error/exception/failed/webkit/capacitor/chunk/module/router/auth)"
+else
+  echo "NO LOGS CAPTURED"
+fi
+echo ""
+echo "--- LAST 80 LINES ---"
+if [ -f "$LOG_FILE" ]; then
+  tail -80 "$LOG_FILE"
 else
   echo "NO LOGS CAPTURED"
 fi

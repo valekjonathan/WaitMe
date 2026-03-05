@@ -14,6 +14,65 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot-overlay" style="position:fixed;inset:0;background:#fff;z-index:999999;padding:16px;font-family:monospace;font-size:14px;overflow:auto;color:#000;">
+      BOOT 0: HTML OK
+    </div>
+    <script>
+      (function(){
+        var overlay = document.getElementById('boot-overlay');
+        if (!overlay) return;
+        overlay.textContent = 'BOOT 1: INLINE JS OK';
+        var traces = [];
+        var maxTraces = 50;
+        function addTrace(tag, msg) {
+          traces.push(tag + ': ' + msg);
+          if (traces.length > maxTraces) traces.shift();
+        }
+        function updateOverlay(title, detail) {
+          var txt = title + (detail ? '\n\n' + detail : '');
+          if (traces.length) txt += '\n\n--- TRACES ---\n' + traces.slice(-20).join('\n');
+          overlay.textContent = txt;
+          overlay.style.display = 'block';
+        }
+        window.onerror = function(msg, url, line, col, err) {
+          var stack = err && err.stack ? err.stack : '';
+          addTrace('ERROR', msg + (stack ? '\n' + stack : ''));
+          updateOverlay('WINDOW ERROR\n\n' + msg, stack);
+          return false;
+        };
+        window.onunhandledrejection = function(e) {
+          var r = e.reason;
+          var msg = r && r.stack ? r.stack : String(r);
+          addTrace('PROMISE', msg);
+          updateOverlay('PROMISE ERROR\n\n', msg);
+        };
+        var _ce = console.error;
+        var _cw = console.warn;
+        console.error = function() {
+          addTrace('console.error', Array.prototype.slice.call(arguments).join(' '));
+          _ce.apply(console, arguments);
+        };
+        console.warn = function() {
+          addTrace('console.warn', Array.prototype.slice.call(arguments).join(' '));
+          _cw.apply(console, arguments);
+        };
+        window.__bootOverlay = overlay;
+        window.__bootUpdate = updateOverlay;
+        window.__bootHide = function() {
+          overlay.style.display = 'none';
+        };
+        window.__bootTraces = traces;
+        setTimeout(function(){
+          var root = document.getElementById('root');
+          var rootHasContent = root && root.children && root.children.length > 0;
+          if (!rootHasContent && overlay.style.display !== 'none') {
+            var detail = 'App no pintó nada en 2500ms';
+            if (traces.length) detail += '\n\nÚltimas trazas:\n' + traces.slice(-30).join('\n');
+            updateOverlay('BOOT TIMEOUT: App no pintó nada', detail);
+          }
+        }, 2500);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
