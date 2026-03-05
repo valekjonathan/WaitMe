@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import * as notifications from '@/data/notifications';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as transactions from '@/data/transactions';
 import { Button } from '@/components/ui/button';
@@ -125,15 +126,20 @@ export default function Home() {
   const { user, profile } = useAuth();
   const { guard } = useProfileGuard(profile);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsub = notifications.subscribeNotifications(user.id, () => {
+      queryClient.invalidateQueries({ queryKey: ['unreadCount', user.id] });
+    });
+    return unsub;
+  }, [user?.id, queryClient]);
+
   const { data: unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const notifications = await base44.entities.Notification.filter({
-        user_id: user.id,
-        read: false
-      });
-      return notifications?.length || 0;
+      const { data } = await notifications.listNotifications(user.id, { unreadOnly: true });
+      return data?.length || 0;
     },
     staleTime: 10_000,
     gcTime: 5 * 60 * 1000,

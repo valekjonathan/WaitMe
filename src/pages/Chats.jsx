@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import * as chat from '@/data/chat';
 import * as alerts from '@/data/alerts';
+import * as notifications from '@/data/notifications';
 import { Search, X, Navigation, TrendingUp, TrendingDown, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -416,16 +416,22 @@ export default function Chats() {
     const { alert, isBuyer } = currentExpiredAlert;
 
     try {
-      await base44.entities.Notification.create({
+      const recipientId = isBuyer ? alert.user_id : alert.reserved_by_id;
+      const { error } = await notifications.createNotification({
+        user_id: recipientId,
         type: 'extension_request',
-        recipient_id: isBuyer ? alert.user_id : alert.reserved_by_id,
-        sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-        alert_id: alert.id,
-        amount: price,
-        extension_minutes: minutes,
-        status: 'pending'
+        title: 'Prórroga solicitada',
+        message: `${minutes} min por ${price}€`,
+        metadata: {
+          sender_id: user?.id,
+          sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
+          alert_id: alert.id,
+          amount: price,
+          extension_minutes: minutes,
+          status: 'pending'
+        }
       });
+      if (error) throw error;
 
       toast({
         title: '✅ PRÓRROGA ENVIADA',

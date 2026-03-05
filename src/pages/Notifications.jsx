@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import {
   Bell,
@@ -34,7 +35,18 @@ function normalize(s) {
 export default function Notifications() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [tick, setTick] = useState(0);
+
+  const { data: realNotifications = [] } = useQuery({
+    queryKey: ['notifications', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await notifications.listNotifications(user.id);
+      return data ?? [];
+    },
+    staleTime: 10_000,
+  });
 
   // Solicitudes reales (localStorage) tipo “Usuario quiere tu WaitMe!”
   const [requestsTick, setRequestsTick] = useState(0);
@@ -134,15 +146,36 @@ export default function Notifications() {
   };
 
   const notifications = useMemo(() => {
-    const list = getDemoNotifications?.() || [];
-    // Más nuevas arriba
-    return [...list].sort((a, b) => (b?.t || 0) - (a?.t || 0));
-  }, [tick]);
+    const demo = getDemoNotifications?.() || [];
+    const real = (realNotifications || []).map((n) => ({ ...n, _isReal: true }));
+    const merged = [...demo.map((d) => ({ ...d, _isReal: false })), ...real];
+    return merged.sort((a, b) => (b?.t ?? b?.createdAt ?? 0) - (a?.t ?? a?.createdAt ?? 0));
+  }, [tick, realNotifications]);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n?.read).length,
     [notifications]
   );
+
+  const markRead = async (n) => {
+    if (!n?.id) return;
+    if (n._isReal && user?.id) {
+      await notifications.markAsRead(n.id, user.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
+    } else {
+      markDemoNotificationRead(n.id);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (user?.id) {
+      await notifications.markAllAsRead(user.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
+    }
+    markAllDemoRead?.();
+  };
 
   const openChat = (conversationId, alertId) => {
     if (!conversationId) return;
@@ -173,7 +206,7 @@ export default function Notifications() {
       action
     });
 
-    if (n?.id) markDemoNotificationRead(n.id);
+    if (n?.id) markRead(n);
 
     openChat(conv?.id, alertId);
   };
@@ -278,7 +311,7 @@ export default function Notifications() {
                   variant="ghost"
                   size="sm"
                   className="text-purple-400 hover:text-purple-300"
-                  onClick={() => markAllDemoRead?.()}
+                  onClick={() => handleMarkAllRead()}
                 >
                   Marcar todas como leídas
                 </Button>
@@ -311,7 +344,7 @@ export default function Notifications() {
                 const handleChatClick = (e) => {
                     e?.stopPropagation();
                     const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
-                    if (n?.id) markDemoNotificationRead(n.id);
+                    if (n?.id) markRead(n);
                     openChat(convId, n?.alertId);
                   };
 
@@ -325,7 +358,7 @@ export default function Notifications() {
                     key={n.id}
                     onClick={() => {
                       const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
-                      if (n?.id) markDemoNotificationRead(n.id);
+                      if (n?.id) markRead(n);
                       if (convId) openChat(convId, n?.alertId);
                     }}
                     className={`rounded-xl border-2 p-2 transition-all cursor-pointer ${
@@ -420,7 +453,7 @@ export default function Notifications() {
 
                         {hasLatLon && (
                           <Button size="icon" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
-                            onClick={(e) => { e.stopPropagation(); if (n?.id) markDemoNotificationRead(n.id); openNavigate(n?.alertId); }}>
+                            onClick={(e) => { e.stopPropagation(); if (n?.id) markRead(n); openNavigate(n?.alertId); }}>
                             <Navigation className="w-4 h-4" />
                           </Button>
                         )}

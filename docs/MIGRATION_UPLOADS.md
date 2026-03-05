@@ -48,7 +48,6 @@ Sustituir `base44.integrations.Core.UploadFile` por Supabase Storage. Los compon
 
 - ChatMessage.create (mensajes de sistema en Navigate)
 - ParkingAlert (en Navigate)
-- Notification (en Chats)
 - Resto de entidades no migradas
 
 ## Ejecutar migración
