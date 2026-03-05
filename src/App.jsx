@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
@@ -9,6 +10,27 @@ import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
+
+async function processOAuthUrl(url, onSuccess) {
+  if (!url?.startsWith('capacitor://localhost')) return false;
+  try {
+    await Browser.close();
+  } catch {
+    /* no-op */
+  }
+  const hash = url.split('#')[1];
+  if (!hash) return false;
+  const params = new URLSearchParams(hash);
+  const access_token = params.get('access_token');
+  const refresh_token = params.get('refresh_token');
+  if (!access_token || !refresh_token) return false;
+  const supabase = getSupabase();
+  if (!supabase) return false;
+  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+  if (error) return false;
+  onSuccess?.();
+  return true;
+}
 
 function AuthRouter() {
   const { user, isLoadingAuth } = useAuth();
@@ -28,6 +50,9 @@ function AuthRouter() {
 }
 
 export default function App() {
+  const { checkUserAuth } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const initStatusBar = async () => {
       try {
@@ -42,31 +67,21 @@ export default function App() {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const handleAppUrlOpen = async ({ url }) => {
-      if (url?.startsWith('capacitor://localhost')) {
-        try {
-          await Browser.close();
-        } catch {
-          // No-op si Browser no está abierto
-        }
-        const hash = url.includes('#') ? url.slice(url.indexOf('#')) : '';
-        if (hash) {
-          const supabase = getSupabase();
-          if (supabase) {
-            const params = new URLSearchParams(hash.slice(1));
-            const accessToken = params.get('access_token');
-            const refreshToken = params.get('refresh_token');
-            if (accessToken && refreshToken) {
-              await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-            }
-          }
-        }
-      }
+    const onOAuthSuccess = () => {
+      checkUserAuth();
+      navigate('/', { replace: true });
     };
+    const handleUrl = async (url) => {
+      await processOAuthUrl(url, onOAuthSuccess);
+    };
+    const handleAppUrlOpen = ({ url }) => handleUrl(url);
     let sub;
     CapacitorApp.addListener('appUrlOpen', handleAppUrlOpen).then((s) => (sub = s));
+    CapacitorApp.getLaunchUrl().then((result) => {
+      if (result?.url) handleUrl(result.url);
+    }).catch(() => {});
     return () => sub?.remove?.();
-  }, []);
+  }, [checkUserAuth, navigate]);
 
   return (
     <div
