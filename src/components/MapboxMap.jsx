@@ -596,7 +596,11 @@ export default function MapboxMap({
           <div>mapCreated: {String(diag.mapCreated ?? false)}</div>
           <div>canvasPresent: {String(diag.canvasPresent ?? false)}</div>
           {diag.errorCode && <div className="text-amber-400">errorCode: {diag.errorCode}</div>}
-          {diag.lastError && <div className="text-red-400 truncate" title={diag.lastError}>lastError: {String(diag.lastError).slice(0, 40)}…</div>}
+          {diag.lastError && (
+            <div className="text-red-400 truncate" title={String(diag.lastError).replace(/pk\.[a-zA-Z0-9_.-]+/g, '[REDACTED]')}>
+              lastError: {String(diag.lastError).replace(/pk\.[a-zA-Z0-9_.-]+/g, '[REDACTED]').slice(0, 50)}…
+            </div>
+          )}
         </div>
       )}
     </div>
