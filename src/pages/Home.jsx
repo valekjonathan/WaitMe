@@ -589,7 +589,7 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden text-white">
       {/* Mapa como fondo a pantalla completa */}
-      <MapboxMap className="absolute inset-0 w-full h-full" />
+      <MapboxMap className="absolute inset-0 z-0 w-full h-full" />
 
       {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
       <div
@@ -603,12 +603,14 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* HERO_CENTER_AREA: centrado exacto entre header y bottom nav (grid place-items) */}
+        {/* HERO_TOP: centrado — logo + texto + pin + botón "¿Dónde quieres aparcar?" */}
         <div
           className="overflow-hidden"
           style={{
-            display: mode ? 'none' : 'grid',
-            placeItems: 'center',
+            display: mode ? 'none' : 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             position: 'absolute',
             top: headerHeight,
             bottom: navHeight,
@@ -617,57 +619,71 @@ export default function Home() {
             pointerEvents: 'none',
           }}
         >
-          {/* HERO_BLOCK: logo + frase + pin + botones */}
           <div
-            className="hero-block relative flex flex-col items-center text-center px-6 pointer-events-auto"
-            style={{ position: 'relative', zIndex: 10 }}
+            className="relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto"
           >
-                <img
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  width={212}
-                  height={212}
-                  src={appLogo}
-                  alt="WaitMe!"
-                  className="w-[212px] h-[212px] object-contain translate-y-[5px]"
-                />
+            <img
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={212}
+              height={212}
+              src={appLogo}
+              alt="WaitMe!"
+              className="w-[212px] h-[212px] object-contain translate-y-[5px]"
+            />
 
-                <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-38px]">
-                  Wait<span className="text-purple-500">Me!</span>
-                </h1>
+            <h1 className="text-4xl font-bold leading-none whitespace-nowrap mt-[-38px]">
+              Wait<span className="text-purple-500">Me!</span>
+            </h1>
 
-                <p className="text-xl font-bold mt-2 whitespace-nowrap">
-                  Aparca donde te <span className="text-purple-500">avisen!</span>
-                </p>
+            <p className="text-xl font-bold mt-2 whitespace-nowrap">
+              Aparca donde te <span className="text-purple-500">avisen!</span>
+            </p>
 
-                <div className="flex flex-col items-center w-full max-w-sm">
-                  <div className="flex flex-col items-center mt-[7px] mb-[4px]">
-                    <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
-                    <div className="w-[2px] h-8 bg-purple-500" />
-                  </div>
+            <div className="flex flex-col items-center w-full max-w-sm">
+              <div className="flex flex-col items-center mt-[7px] mb-[4px]">
+                <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
+                <div className="w-[2px] h-8 bg-purple-500" />
+              </div>
 
-                  <div className="w-full space-y-4 mt-4">
-                    <Button
-                      onClick={() => setMode('search')}
-                      className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
-                    >
-                      <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
-                      ¿ Dónde quieres aparcar ?
-                    </Button>
+              <div className="w-full mt-4">
+                <Button
+                  onClick={() => setMode('search')}
+                  className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
+                >
+                  <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
+                  ¿ Dónde quieres aparcar ?
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                    <Button
-                      onClick={() => guard(() => {
-                        getCurrentLocation();
-                        setMode('create');
-                      })}
-                      className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
-                    >
-                      <CarIconProfile color="#000000" size="w-20 h-14" />
-                      ¡ Estoy aparcado aquí !
-                    </Button>
-                  </div>
-                </div>
+        {/* HERO_BOTTOM: botón morado encima del bottom nav */}
+        <div
+          className="overflow-hidden"
+          style={{
+            display: mode ? 'none' : 'flex',
+            justifyContent: 'center',
+            position: 'absolute',
+            bottom: `calc(${navHeight}px + 16px)`,
+            left: 0,
+            right: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          <div className="w-full max-w-sm px-6 pointer-events-auto">
+            <Button
+              onClick={() => guard(() => {
+                getCurrentLocation();
+                setMode('create');
+              })}
+              className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
+            >
+              <CarIconProfile color="#000000" size="w-20 h-14" />
+              ¡ Estoy aparcado aquí !
+            </Button>
           </div>
         </div>
 
