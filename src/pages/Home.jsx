@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import * as alerts from '@/data/alerts';
@@ -100,6 +100,7 @@ export default function Home() {
 
   const [headerHeight, setHeaderHeight] = useState(60);
   const [navHeight, setNavHeight] = useState(72);
+  const heroRef = useRef(null);
 
   useEffect(() => {
     const measure = () => {
@@ -116,6 +117,32 @@ export default function Home() {
     if (navEl) ro.observe(navEl);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (mode) return;
+    const hero = heroRef.current;
+    const container = document.querySelector('[data-home-content]');
+    if (!hero || !container) return;
+
+    const centerHero = () => {
+      const containerHeight = container.offsetHeight;
+      const heroHeight = hero.offsetHeight;
+      const offset = (containerHeight - heroHeight) / 2;
+      hero.style.position = 'absolute';
+      hero.style.top = `${offset}px`;
+      hero.style.left = '50%';
+      hero.style.transform = 'translateX(-50%)';
+    };
+
+    centerHero();
+    window.addEventListener('resize', centerHero);
+    const ro = new ResizeObserver(centerHero);
+    ro.observe(container);
+    return () => {
+      window.removeEventListener('resize', centerHero);
+      ro.disconnect();
+    };
+  }, [mode]);
 
   const locationKey = useMemo(() => {
     if (!userLocation) return null;
@@ -605,11 +632,10 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* MAIN_CONTENT: bloque completo centrado entre header y bottom nav */}
         <div
+          data-home-content
           className="overflow-hidden"
           style={{
-            display: mode ? 'none' : 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: mode ? 'none' : 'block',
             position: 'absolute',
             top: headerHeight,
             bottom: navHeight,
@@ -618,7 +644,10 @@ export default function Home() {
             pointerEvents: 'none',
           }}
         >
-          <div className="hero-block relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto">
+          <div
+            ref={heroRef}
+            className="hero-block relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto"
+          >
             <img
               loading="eager"
               decoding="async"
