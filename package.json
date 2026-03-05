@@ -16,7 +16,9 @@
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",
     "ios:reset": "bash scripts/ios-reset.sh",
-    "ios:run": "bash scripts/ios-run.sh"
+    "ios:run": "bash scripts/ios-run.sh",
+    "supabase:migrate": "bash scripts/supabase-migrate.sh",
+    "supabase:migrate:direct": "node scripts/run-profile-migration.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.3",
@@ -100,7 +102,9 @@
     "globals": "^15.14.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
+    "pg": "^8.20.0",
     "postcss": "^8.5.3",
+    "supabase": "^2.76.16",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^6.1.0"
