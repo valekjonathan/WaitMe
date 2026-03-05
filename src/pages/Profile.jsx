@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { getSupabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
-import { toProfilePayload } from '@/lib/profile';
-import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Camera, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
 function normalizeAvatarPath(p) {
@@ -36,6 +35,7 @@ export default function Profile() {
   const setProfileFormData = useSetProfileFormData();
   const hydratedOnceRef = useRef(false);
   const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     brand: '',
@@ -96,56 +96,62 @@ export default function Profile() {
     setHydrated(true);
   }, [profile]);
 
-  const saveProfile = useCallback(async (payload) => {
+  const handleSave = useCallback(async () => {
     const supabase = getSupabase();
-    if (!supabase) return null;
+    if (!supabase) return;
     const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser?.id) return null;
-    const fullPayload = {
-      id: authUser.id,
-      email: authUser.email ?? '',
-      full_name: payload.full_name,
-      display_name: (payload.full_name || '').split(' ')[0] || payload.full_name || '',
-      avatar_url: payload.avatar_url ?? '',
-      brand: payload.brand ?? '',
-      model: payload.model ?? '',
-      color: payload.color ?? 'gris',
-      vehicle_type: payload.vehicle_type ?? 'car',
-      plate: payload.plate ?? '',
-      phone: payload.phone ?? '',
-      allow_phone_calls: payload.allow_phone_calls ?? false,
-      notifications_enabled: payload.notifications_enabled !== false,
-      email_notifications: payload.email_notifications !== false,
-    };
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert(fullPayload, { onConflict: 'id' })
-      .select()
-      .single();
-    if (error) {
-      console.error('Error guardando perfil:', error);
-      throw error;
-    }
-    return data;
-  }, []);
-
-  useDebouncedSave({
-    enabled: !!hydrated && !!user?.id,
-    formData,
-    toPayload: toProfilePayload,
-    saveFn: saveProfile,
-    delay: 750,
-    onSuccess: setProfile,
-    onError: (err) => {
-      console.error('Error guardando perfil:', err);
+    if (!authUser) return;
+    setSaving(true);
+    try {
+      const displayName = (formData.full_name || '').split(' ')[0] || formData.full_name || '';
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: authUser.id,
+          email: authUser.email,
+          full_name: formData.full_name,
+          display_name: displayName,
+          avatar_url: formData.avatar_url,
+          brand: formData.brand,
+          model: formData.model,
+          color: formData.color,
+          vehicle_type: formData.vehicle_type,
+          plate: formData.plate,
+          phone: formData.phone,
+          allow_phone_calls: formData.allow_phone_calls,
+          notifications_enabled: formData.notifications_enabled,
+          email_notifications: formData.email_notifications,
+        }, { onConflict: 'id' })
+        .select()
+        .single();
+      if (error) {
+        console.error("PROFILE SAVE ERROR:", error);
+        alert('Error al guardar. Intenta de nuevo.');
+        return;
+      }
+      if (data) setProfile(data);
+      navigate('/');
+    } catch (err) {
+      console.error("PROFILE SAVE ERROR:", err);
       alert('Error al guardar. Intenta de nuevo.');
-    },
-  });
+    } finally {
+      setSaving(false);
+    }
+  }, [formData, navigate, setProfile]);
 
   useEffect(() => {
     setProfileFormData(formData);
     return () => setProfileFormData(null);
   }, [formData, setProfileFormData]);
+
+  const handleBack = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  useEffect(() => {
+    setHeader({ showBackButton: true, onBack: handleBack });
+    return () => setHeader({ onBack: null });
+  }, [handleBack, setHeader]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -169,53 +175,6 @@ export default function Profile() {
       console.error('Error subiendo foto:', error);
     }
   };
-
-  const handleBack = useCallback(async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser?.id) return;
-    try {
-      const payload = toProfilePayload(formData);
-      const fullPayload = {
-        id: authUser.id,
-        email: authUser.email ?? '',
-        full_name: payload.full_name,
-        display_name: (payload.full_name || '').split(' ')[0] || payload.full_name || '',
-        avatar_url: payload.avatar_url ?? '',
-        brand: payload.brand ?? '',
-        model: payload.model ?? '',
-        color: payload.color ?? 'gris',
-        vehicle_type: payload.vehicle_type ?? 'car',
-        plate: payload.plate ?? '',
-        phone: payload.phone ?? '',
-        allow_phone_calls: payload.allow_phone_calls ?? false,
-        notifications_enabled: payload.notifications_enabled !== false,
-        email_notifications: payload.email_notifications !== false,
-      };
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert(fullPayload, { onConflict: 'id' })
-        .select()
-        .single();
-      if (error) {
-        console.error('Error guardando perfil:', error);
-        throw error;
-      }
-      if (data) {
-        setProfile(data);
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Error guardando:', error);
-      alert('Error al guardar. Intenta de nuevo.');
-    }
-  }, [formData, navigate, setProfile]);
-
-  useEffect(() => {
-    setHeader({ showBackButton: true, onBack: handleBack });
-    return () => setHeader({ onBack: null });
-  }, [handleBack, setHeader]);
 
   const selectedColor = carColors.find((c) => c.value === formData.color) || carColors[5];
 
@@ -515,6 +474,14 @@ export default function Profile() {
                 maxLength={8}
               />
             </div>
+
+            <Button
+              onClick={handleSave}
+              disabled={saving || !user?.id}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl mt-4"
+            >
+              {saving ? 'Guardando...' : 'Guardar'}
+            </Button>
           </div>
         </motion.div>
         </div>
