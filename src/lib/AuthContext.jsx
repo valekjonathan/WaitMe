@@ -120,8 +120,6 @@ export const AuthProvider = ({ children }) => {
   }, [ensureUserInDb]);
 
   useEffect(() => {
-    resolveSession();
-
     const supabase = getSupabase();
     if (!supabase) {
       setIsLoadingAuth(false);
@@ -174,6 +172,25 @@ export const AuthProvider = ({ children }) => {
       }
       setIsLoadingAuth(false);
     });
+
+    // Procesar OAuth redirect: #access_token en la URL (web)
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (access_token && refresh_token) {
+        supabase.auth.setSession({ access_token, refresh_token })
+          .then(() => {
+            window.history.replaceState(null, '', window.location.pathname + '#/');
+          })
+          .catch(() => {})
+          .finally(() => resolveSession());
+        return () => subscription.unsubscribe();
+      }
+    }
+
+    resolveSession();
 
     return () => subscription.unsubscribe();
   }, [resolveSession, ensureUserInDb]);
