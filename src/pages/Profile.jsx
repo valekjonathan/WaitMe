@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
 import { toProfilePayload } from '@/lib/profile';
@@ -61,8 +61,13 @@ export default function Profile() {
 
   if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
     const path = normalizeAvatarPath(avatarSrc);
-    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-    avatarSrc = data?.publicUrl || "";
+    const sb = getSupabase();
+    if (sb) {
+      const { data } = sb.storage.from("avatars").getPublicUrl(path);
+      avatarSrc = data?.publicUrl || "";
+    } else {
+      avatarSrc = "";
+    }
   }
 
   const nameForInitial =
@@ -94,6 +99,8 @@ export default function Profile() {
   const saveProfile = useCallback(
     async (payload) => {
       if (!user?.id) return null;
+      const supabase = getSupabase();
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('profiles')
         .update(payload)
@@ -131,6 +138,8 @@ export default function Profile() {
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
     try {
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${user.id}/${Date.now()}.${ext}`;
@@ -147,6 +156,8 @@ export default function Profile() {
 
   const handleBack = useCallback(async () => {
     if (!user?.id) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
     try {
       const payload = toProfilePayload(formData);
       const { data, error } = await supabase

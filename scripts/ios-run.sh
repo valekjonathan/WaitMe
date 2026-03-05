@@ -9,6 +9,35 @@ echo "[ios:run] 1. Clean..."
 rm -rf dist
 rm -rf ios/App/App/public
 
+echo "[ios:run] 1b. Validar .env (solo WARNING)..."
+if [ ! -f ".env" ]; then
+  echo ""
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!!  WARNING: No existe archivo .env                                 !!"
+  echo "!!  La app mostrará MissingEnvScreen en iOS.                        !!"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo ""
+else
+  HAS_URL=$(grep -E "^VITE_SUPABASE_URL=.+" .env 2>/dev/null | wc -l)
+  HAS_KEY=$(grep -E "^VITE_SUPABASE_ANON_KEY=.+" .env 2>/dev/null | wc -l)
+  if [ "${HAS_URL:-0}" -lt 1 ]; then
+    echo ""
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!  WARNING: VITE_SUPABASE_URL no encontrado o vacío en .env       !!"
+    echo "!!  La app mostrará MissingEnvScreen en iOS si falta.               !!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo ""
+  fi
+  if [ "${HAS_KEY:-0}" -lt 1 ]; then
+    echo ""
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "!!  WARNING: VITE_SUPABASE_ANON_KEY no encontrado o vacío en .env   !!"
+    echo "!!  La app mostrará MissingEnvScreen en iOS si falta.               !!"
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo ""
+  fi
+fi
+
 echo "[ios:run] 2. Build..."
 npm run build
 

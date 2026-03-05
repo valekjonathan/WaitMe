@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -12,7 +12,8 @@ export const AuthProvider = ({ children }) => {
   const authInFlightRef = useRef(false);
 
   const ensureUserInDb = useCallback(async (authUser) => {
-    if (!authUser?.id) return null;
+    const supabase = getSupabase();
+    if (!supabase || !authUser?.id) return null;
     const email = authUser.email ?? '';
     const fullName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? '';
     const avatarUrl = authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '';
@@ -62,6 +63,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const resolveSession = useCallback(async () => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      setIsLoadingAuth(false);
+      setUser(null);
+      setProfile(null);
+      setIsAuthenticated(false);
+      return;
+    }
     if (authInFlightRef.current) return;
     authInFlightRef.current = true;
     setIsLoadingAuth(true);
@@ -109,6 +118,12 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     resolveSession();
+
+    const supabase = getSupabase();
+    if (!supabase) {
+      setIsLoadingAuth(false);
+      return;
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'INITIAL_SESSION') {
@@ -164,7 +179,8 @@ export const AuthProvider = ({ children }) => {
   }, [resolveSession]);
 
   const refreshProfile = useCallback(async () => {
-    if (!user?.id) return;
+    const supabase = getSupabase();
+    if (!supabase || !user?.id) return;
     try {
       const { data } = await supabase
         .from('profiles')
@@ -181,7 +197,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setProfile(null);
     setIsAuthenticated(false);
-    await supabase.auth.signOut();
+    const supabase = getSupabase();
+    if (supabase) await supabase.auth.signOut();
     if (shouldRedirect) {
       window.location.href = window.location.origin;
     }

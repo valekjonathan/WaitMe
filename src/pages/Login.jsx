@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 const OAUTH_REDIRECT = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
@@ -12,6 +12,11 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
+      const supabase = getSupabase();
+      if (!supabase) {
+        setError('Supabase no configurado. Revisa .env');
+        return;
+      }
       await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: OAUTH_REDIRECT },

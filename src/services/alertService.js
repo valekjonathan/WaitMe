@@ -2,23 +2,18 @@
  * Servicio de alertas de parking (Supabase).
  * Sustituye base44.entities.ParkingAlert cuando se complete la migración.
  */
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabase } from '@/lib/supabaseClient';
 import { encode, getNeighborPrefixes } from '@/lib/geohash';
 
 const TABLE = 'parking_alerts';
 
 /**
  * Crea una nueva alerta de parking.
- * @param {Object} params
- * @param {string} params.userId - UUID del usuario (profiles.id)
- * @param {number} params.lat - Latitud
- * @param {number} params.lng - Longitud
- * @param {number} params.price - Precio
- * @param {string} [params.vehicleType='car'] - Tipo de vehículo
- * @param {Date|string} params.expiresAt - Fecha de expiración
- * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function createAlert({ userId, lat, lng, price, vehicleType = 'car', expiresAt }) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
   const geohash = encode(lat, lng, 7);
   const { data, error } = await supabase
     .from(TABLE)
@@ -40,11 +35,11 @@ export async function createAlert({ userId, lat, lng, price, vehicleType = 'car'
 
 /**
  * Obtiene alertas activas.
- * @param {Object} [options]
- * @param {string} [options.userId] - Filtrar por usuario (mis alertas)
- * @returns {Promise<{data: object[]|null, error: object|null}>}
  */
 export async function getActiveAlerts({ userId } = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
   let query = supabase
     .from(TABLE)
     .select('*')
@@ -61,12 +56,11 @@ export async function getActiveAlerts({ userId } = {}) {
 
 /**
  * Obtiene alertas activas cerca de (lat, lng) usando geohash.
- * @param {number} lat - Latitud
- * @param {number} lng - Longitud
- * @param {number} [radiusKm=2] - Radio aproximado en km
- * @returns {Promise<{data: object[]|null, error: object|null}>}
  */
 export async function getActiveAlertsNear(lat, lng, radiusKm = 2) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
   const geohash = encode(lat, lng, 7);
   const prefixes = getNeighborPrefixes(geohash, radiusKm);
   const orFilter = prefixes.map((p) => `geohash.ilike.${p}%`).join(',');
@@ -83,11 +77,11 @@ export async function getActiveAlertsNear(lat, lng, radiusKm = 2) {
 
 /**
  * Reserva una alerta (comprador).
- * @param {string} alertId - UUID de la alerta
- * @param {string} reservedByUserId - UUID del usuario que reserva (profiles.id)
- * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function reserveAlert(alertId, reservedByUserId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
   const { data, error } = await supabase
     .from(TABLE)
     .update({
@@ -104,11 +98,11 @@ export async function reserveAlert(alertId, reservedByUserId) {
 
 /**
  * Cierra una alerta (cancela, expira o completa).
- * @param {string} alertId - UUID de la alerta
- * @param {string} newStatus - 'cancelled' | 'expired' | 'completed'
- * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export async function closeAlert(alertId, newStatus = 'cancelled') {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
   const { data, error } = await supabase
     .from(TABLE)
     .update({ status: newStatus })

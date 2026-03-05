@@ -3,7 +3,7 @@
  * Devuelve posición corregida o fallback a raw.
  */
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabase } from '@/lib/supabaseClient';
 
 const BUFFER_MS = 10000; // 10s ventana
 const MATCH_INTERVAL_MS = 5000; // llamar cada 5s
@@ -26,6 +26,9 @@ export function useMapMatch(enabled = true) {
     if (!enabled) return;
 
     const runMatch = async () => {
+      const supabase = getSupabase();
+      if (!supabase) return;
+
       const buf = bufferRef.current;
       if (buf.length < MIN_POINTS) return;
 
