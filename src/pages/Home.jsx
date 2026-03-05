@@ -39,6 +39,8 @@ import { haversineKm } from '@/utils/carUtils';
 // ======================
 const FALLBACK_LAT = 43.3623; // Oviedo
 const FALLBACK_LNG = -5.8489; // Oviedo
+const HEADER_H = 60;
+const NAV_H = 72;
 
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
@@ -584,22 +586,21 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* HOME PRINCIPAL — hero centrado entre header (60px) y bottom nav (72px) */}
+        {/* HOME PRINCIPAL — hero centrado entre header y bottom nav (safe area incluida) */}
         <div
           className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
             alignItems: 'center',
+            justifyContent: 'center',
             position: 'absolute',
-            top: '60px',
-            left: 0,
-            right: 0,
-            height: 'calc(100vh - 60px - 72px)',
+            inset: 0,
+            paddingTop: `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`,
+            paddingBottom: `calc(${NAV_H}px + env(safe-area-inset-bottom, 0px))`,
+            pointerEvents: 'none',
           }}
         >
-              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6">
+              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-auto">
                 <img
                   loading="eager"
                   decoding="async"
