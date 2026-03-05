@@ -40,5 +40,8 @@ export function toProfilePayload(formData) {
     vehicle_type: p.vehicle_type || 'car',
     plate: p.plate,
     avatar_url: formData?.avatar_url ?? '',
+    allow_phone_calls: formData?.allow_phone_calls ?? false,
+    notifications_enabled: formData?.notifications_enabled !== false,
+    email_notifications: formData?.email_notifications !== false,
   };
 }
