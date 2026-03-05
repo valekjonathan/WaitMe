@@ -4,6 +4,14 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    port: 5173,
+    host: true,
+    hmr: {
+      host: '192.168.0.11',
+      port: 5173,
+    },
+  },
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },

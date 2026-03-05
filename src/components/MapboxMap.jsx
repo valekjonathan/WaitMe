@@ -150,6 +150,15 @@ export default function MapboxMap({
 
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const [diag, setDiag] = useState({
+    tokenLength: 0,
+    tokenHasDots: false,
+    errorCode: null,
+    containerRect: { width: 0, height: 0 },
+    canvasPresent: false,
+    mapCreated: false,
+    lastError: null,
+  });
   const [location, setLocation] = useState(() => ({
     lat: null,
     lng: null,
@@ -236,12 +245,52 @@ export default function MapboxMap({
   }, []);
 
   useEffect(() => {
+    const updateRect = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const canvas = containerRef.current.querySelector('canvas');
+        setDiag((d) => ({
+          ...d,
+          containerRect: { width: rect.width, height: rect.height },
+          canvasPresent: !!canvas,
+          ...((rect.width === 0 || rect.height === 0) ? { errorCode: 'ZERO_SIZE' } : {}),
+        }));
+      }
+    };
+    updateRect();
+    const t1 = setTimeout(updateRect, 100);
+    const t2 = setTimeout(updateRect, 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [mapReady]);
+
+  useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!token || String(token).trim() === '' || token === 'PEGA_AQUI_EL_TOKEN') {
+    const tokenStr = token ? String(token).trim() : '';
+    const tokenLength = tokenStr.length;
+    const tokenHasDots = (tokenStr.match(/\./g) || []).length >= 2;
+    const isPlaceholder = !tokenStr ||
+      tokenStr === 'PEGA_AQUI_EL_TOKEN' || tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
+
+    setDiag((d) => ({ ...d, tokenLength, tokenHasDots, errorCode: null, lastError: null }));
+
+    if (isPlaceholder) {
+      setDiag((d) => ({ ...d, errorCode: 'NO_TOKEN' }));
       setError('no_token');
       return;
     }
+    if (!tokenHasDots) {
+      setDiag((d) => ({ ...d, errorCode: 'TOKEN_TRUNCATED' }));
+    }
+
     if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    setDiag((d) => ({ ...d, containerRect: { width: rect.width, height: rect.height } }));
+
+    if (rect.width === 0 || rect.height === 0) {
+      setDiag((d) => ({ ...d, errorCode: 'ZERO_SIZE' }));
+    }
 
     let map = null;
     let cancelled = false;
@@ -253,29 +302,61 @@ export default function MapboxMap({
         mapboxglRef.current = mapboxgl;
         import('mapbox-gl/dist/mapbox-gl.css');
         mapboxgl.accessToken = token;
-        map = new mapboxgl.Map({
-          container: containerRef.current,
-          style: DARK_STYLE,
-          center: OVIEDO_CENTER,
-          zoom: FALLBACK_ZOOM,
-          pitch: DEFAULT_PITCH,
-          bearing: 0,
-          antialias: true,
-          attributionControl: false,
-        });
 
-        map.on('load', () => {
-          if (cancelled) return;
-          mapRef.current = map;
-          setMapReady(true);
-          onMapLoad?.(map);
-        });
+        try {
+          map = new mapboxgl.Map({
+            container: container,
+            style: DARK_STYLE,
+            center: OVIEDO_CENTER,
+            zoom: FALLBACK_ZOOM,
+            pitch: DEFAULT_PITCH,
+            bearing: 0,
+            antialias: true,
+            attributionControl: false,
+          });
 
-        map.on('error', (e) => {
-          if (e.error?.message?.includes('token')) setError('no_token');
-        });
+          setDiag((d) => ({ ...d, mapCreated: true }));
+
+          map.on('load', () => {
+            if (cancelled) return;
+            mapRef.current = map;
+            map.resize();
+            setMapReady(true);
+            onMapLoad?.(map);
+
+            const canvas = container.querySelector('canvas');
+            setDiag((d) => ({ ...d, canvasPresent: !!canvas }));
+
+            setTimeout(() => {
+              if (mapRef.current) mapRef.current.resize();
+            }, 300);
+
+            if (import.meta.env.DEV) {
+              const testEl = document.createElement('div');
+              testEl.innerHTML = '<div style="width:12px;height:12px;background:#22c55e;border-radius:50%;border:2px solid white;"></div>';
+              const testMarker = new mapboxgl.Marker({ element: testEl.firstElementChild || testEl })
+                .setLngLat(OVIEDO_CENTER)
+                .addTo(map);
+              map._devTestMarker = testMarker;
+            }
+          });
+
+          map.on('error', (e) => {
+            const msg = e?.error?.message || String(e);
+            setDiag((d) => ({ ...d, lastError: msg }));
+            if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) setError('no_token');
+          });
+        } catch (err) {
+          const msg = err?.message || String(err);
+          setDiag((d) => ({ ...d, lastError: msg }));
+          setError('no_token');
+        }
       })
-      .catch(() => setError('no_token'));
+      .catch((err) => {
+        const msg = err?.message || String(err);
+        setDiag((d) => ({ ...d, lastError: msg }));
+        setError('no_token');
+      });
 
     return () => {
       cancelled = true;
@@ -285,6 +366,7 @@ export default function MapboxMap({
       if (userMarkerRef.current) { try { userMarkerRef.current.remove(); } catch {} }
       userMarkerRef.current = null;
       if (map) {
+        try { if (map._devTestMarker) map._devTestMarker.remove(); } catch {}
         try {
           if (map.getLayer('user-accuracy-fill')) map.removeLayer('user-accuracy-fill');
           if (map.getSource('user-accuracy')) map.removeSource('user-accuracy');
@@ -467,31 +549,56 @@ export default function MapboxMap({
   }, [mapReady, location.accuracy]);
 
   if (error) {
+    const msg = diag.errorCode === 'NO_TOKEN' ? 'Mapbox sin token (dev)' : 'Mapa no disponible';
     return (
-      <div className="relative w-full h-full min-h-[200px]">
+      <div className="relative w-full h-full min-h-[200px]" style={{ minHeight: '100vh' }}>
         <div
           className={`flex items-center justify-center bg-[#0B0B0F] text-gray-500 text-sm ${className}`}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', minHeight: '100vh' }}
         >
-          Mapa no disponible
+          {msg}
         </div>
         {import.meta.env.DEV && (
           <div className="absolute top-2 left-2 right-2 py-1 px-2 bg-red-900/90 text-red-200 text-xs rounded z-50">
-            Mapbox error
+            Mapbox error: {diag.errorCode || 'unknown'}
           </div>
         )}
       </div>
     );
   }
 
+  const isZeroSize = diag.containerRect && (diag.containerRect.width === 0 || diag.containerRect.height === 0);
+  const containerStyle = {
+    position: 'absolute',
+    inset: 0,
+    width: '100%',
+    height: '100%',
+    minHeight: isZeroSize ? '100vh' : '100vh',
+  };
+
   return (
     <div
       ref={containerRef}
-      className={className}
-      style={{ width: '100%', height: '100%', minHeight: 200 }}
+      className={`${className} w-full h-full`}
+      style={containerStyle}
       {...rest}
     >
       {children}
+      {import.meta.env.DEV && (
+        <div
+          className="absolute top-2 left-2 z-[9999] py-1.5 px-2 bg-black/85 text-green-300 text-[10px] font-mono rounded border border-green-600/50 max-w-[200px]"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="font-bold text-green-400 mb-0.5">MAPBOX DEV HUD</div>
+          <div>tokenLength: {diag.tokenLength ?? '-'}</div>
+          <div>tokenHasDots: {String(diag.tokenHasDots ?? false)}</div>
+          <div>container: {diag.containerRect ? `${Math.round(diag.containerRect.width)}×${Math.round(diag.containerRect.height)}` : '-'}</div>
+          <div>mapCreated: {String(diag.mapCreated ?? false)}</div>
+          <div>canvasPresent: {String(diag.canvasPresent ?? false)}</div>
+          {diag.errorCode && <div className="text-amber-400">errorCode: {diag.errorCode}</div>}
+          {diag.lastError && <div className="text-red-400 truncate" title={diag.lastError}>lastError: {String(diag.lastError).slice(0, 40)}…</div>}
+        </div>
+      )}
     </div>
   );
 }

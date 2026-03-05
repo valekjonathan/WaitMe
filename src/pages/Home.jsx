@@ -90,7 +90,6 @@ export default function Home() {
   const [address, setAddress] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [showBackgroundMap, setShowBackgroundMap] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
   const [filters, setFilters] = useState({
@@ -533,13 +532,6 @@ export default function Home() {
     navigate(createPageUrl('History'));
   };
 
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      setShowBackgroundMap(true);
-    });
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const handleBack = useCallback(() => {
     resetToLogo({ invalidate: false });
   }, [resetToLogo]);
@@ -576,21 +568,23 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col w-full text-white min-h-0">
+    <div className="relative flex-1 flex flex-col w-full text-white min-h-screen">
+      {/* Mapa como fondo a pantalla completa */}
+      <div className="absolute inset-0 z-0" style={{ minHeight: '100vh' }}>
+        <MapboxMap className="w-full h-full" />
+      </div>
+
+      {/* Overlay transparente (no sólido) */}
+      <div className="absolute inset-0 z-[1] bg-purple-950/20 pointer-events-none" />
+
+      {/* Contenido por encima del mapa */}
+      <div className="relative z-10 flex-1 flex flex-col min-h-0">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
           className="flex-1 flex flex-col relative overflow-hidden min-h-0 pt-[60px] pb-[72px]"
           style={{ display: mode ? 'none' : 'flex' }}
         >
-              {showBackgroundMap && (
-                <div className="absolute inset-0 z-0 overflow-hidden">
-                  <MapboxMap className="w-full h-full" />
-                </div>
-              )}
-
-              <div className="absolute inset-0 z-[1] bg-purple-950/20 pointer-events-none" />
-
               <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
                 <img
                   loading="eager"
@@ -1002,6 +996,7 @@ export default function Home() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
