@@ -1,10 +1,11 @@
-# Supabase — Drift check + migrations SOLO en main
+# Supabase — Migraciones SOLO en main, tras CI exitoso
 # Corre tras CI exitoso (workflow_run) o manual (workflow_dispatch)
 name: Supabase
 
+# Una sola ejecución por commit; cancelar duplicados (ej. re-runs de CI)
 concurrency:
-  group: supabase-main
-  cancel-in-progress: false
+  group: supabase-${{ github.event.workflow_run.head_sha || github.sha }}
+  cancel-in-progress: true
 
 on:
   workflow_run:
@@ -20,7 +21,7 @@ env:
 
 jobs:
   migrate:
-    name: Drift check + Push migrations
+    name: Push migrations
     runs-on: ubuntu-22.04
     # Solo ejecutar si CI pasó (o es manual)
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -38,7 +39,10 @@ jobs:
       - name: Link project
         run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 
-      - name: Check for schema drift
+      - name: Push migrations
+        run: supabase db push
+
+      - name: Check for schema drift (post-push)
         run: |
           drift_output=$(supabase db diff --schema public 2>&1 || true)
           if echo "$drift_output" | grep -qE "^(CREATE|ALTER|DROP)"; then
@@ -46,6 +50,3 @@ jobs:
             echo "$drift_output"
             exit 1
           fi
-
-      - name: Push migrations
-        run: supabase db push

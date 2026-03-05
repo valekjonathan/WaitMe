@@ -2,15 +2,15 @@
 -- WaitMe Core Schema - Migración profesional
 -- Requiere: public.profiles y auth.users existentes
 --
--- Si parking_alerts antigua existe (user_id, price, etc.), ejecutar ANTES:
---   DROP TABLE IF EXISTS public.messages CASCADE;
---   DROP TABLE IF EXISTS public.conversations CASCADE;
---   DROP TABLE IF EXISTS public.alert_reservations CASCADE;
---   DROP TABLE IF EXISTS public.parking_alerts CASCADE;
---
 -- Si ALTER PUBLICATION falla con "already member", añadir tablas en Dashboard:
 --   Database → Replication → supabase_realtime
 -- =============================================================================
+
+-- Drop tablas antiguas/incompatibles antes de recrear (orden por dependencias)
+DROP TABLE IF EXISTS public.messages CASCADE;
+DROP TABLE IF EXISTS public.conversations CASCADE;
+DROP TABLE IF EXISTS public.alert_reservations CASCADE;
+DROP TABLE IF EXISTS public.parking_alerts CASCADE;
 
 -- 1) parking_alerts
 CREATE TABLE public.parking_alerts (
