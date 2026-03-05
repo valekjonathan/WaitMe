@@ -1,15 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Polyline } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix para iconos de Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
-});
+import { useEffect, useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const carColors = {
   negro: '#1a1a1a',
@@ -21,211 +12,40 @@ const carColors = {
   amarillo: '#eab308',
   naranja: '#f97316',
   morado: '#a855f7',
-  marron: '#92400e'
+  marron: '#92400e',
 };
 
-function createCarIcon(color, price, vehicleType = 'car') {
+function createCarMarkerHtml(color, price, vehicleType = 'car') {
   const carColor = carColors[color] || '#6b7280';
-  
   let vehicleSVG = '';
-  
   if (vehicleType === 'van') {
-    vehicleSVG = `
-      <svg width="80" height="50" viewBox="0 0 48 30" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
-        <circle cx="14" cy="24" r="3" fill="#333" stroke="white" stroke-width="1"/>
-        <circle cx="34" cy="24" r="3" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="20" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
-      </svg>
-    `;
+    vehicleSVG = `<path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="3" fill="#333"/><circle cx="34" cy="24" r="3" fill="#333"/><text x="24" y="20" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
   } else if (vehicleType === 'suv') {
-    vehicleSVG = `
-      <svg width="80" height="50" viewBox="0 0 48 30" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
-        <circle cx="14" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <circle cx="36" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <text x="24" y="18" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
-      </svg>
-    `;
+    vehicleSVG = `<path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/><text x="24" y="18" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
   } else {
-    vehicleSVG = `
-      <svg width="80" height="50" viewBox="0 0 48 30" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <path d="M8 20 L10 14 L16 12 L32 12 L38 14 L42 18 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/>
-        <circle cx="14" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <circle cx="14" cy="24" r="2" fill="#666"/>
-        <circle cx="36" cy="24" r="4" fill="#333" stroke="white" stroke-width="1"/>
-        <circle cx="36" cy="24" r="2" fill="#666"/>
-        <text x="24" y="19" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="9" font-weight="bold" stroke="black" stroke-width="0.8">${Math.round(price)}€</text>
-      </svg>
-    `;
+    vehicleSVG = `<path d="M8 20 L10 14 L16 12 L32 12 L38 14 L42 18 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/><text x="24" y="19" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
   }
-
-  return L.divIcon({
-    className: 'custom-car-marker',
-    html: `
-      <div style="position: relative; width: 80px; height: 50px;">
-        ${vehicleSVG}
-      </div>
-    `,
-    iconSize: [80, 50],
-    iconAnchor: [40, 50],
-    popupAnchor: [0, -50]
-  });
+  return `<div style="width:80px;height:50px;"><svg width="80" height="50" viewBox="0 0 48 30" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">${vehicleSVG}</svg></div>`;
 }
 
-// Crear icono de ubicación del usuario estilo Uber
-function createUserLocationIcon() {
-  return L.divIcon({
-    className: 'user-location-marker',
-    html: `
-      <style>
-        @keyframes pulse-purple {
-          0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
-        }
-      </style>
-      <div style="position: relative; width: 40px; height: 100px;">
-        <div style="
-          position: absolute;
-          bottom: 0px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 2px;
-          height: 45px;
-          background: #a855f7;
-        "></div>
-        <div style="
-          position: absolute;
-          bottom: 40px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 20px;
-          height: 20px;
-          background: #a855f7;
-          border-radius: 50%;
-          box-shadow: 0 0 18px rgba(168, 85, 247, 0.9);
-          animation: pulse-purple 1.5s ease-in-out infinite;
-        "></div>
-      </div>
-    `,
-    iconSize: [40, 100],
-    iconAnchor: [20, 100]
-  });
+function createUserLocationHtml() {
+  return `
+    <div style="position:relative;width:40px;height:100px;">
+      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
+      <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;box-shadow:0 0 18px rgba(168,85,247,0.9);animation:pulse-purple 1.5s ease-in-out infinite;"></div>
+    </div>
+  `;
 }
 
-function LocationMarker({ position, setPosition, isSelecting }) {
-  const map = useMapEvents({
-    click(e) {
-      if (isSelecting) {
-        setPosition(e.latlng);
-      }
-    }
-  });
-
-  useEffect(() => {
-    if (position) {
-      map.flyTo(position, map.getZoom());
-    }
-  }, [position, map]);
-
-  return position === null ? null :
-  <Marker position={position}>
-    </Marker>;
-
+function createBuyerMarkerHtml() {
+  return `<div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:3px solid white;border-radius:50%;box-shadow:0 4px 12px rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 19h20L12 2z"/></svg></div>`;
 }
 
-function CenterPinMarker({ onMapMove, onMapMoveEnd }) {
-  const map = useMapEvents({
-    move() {
-      const center = map.getCenter();
-      if (onMapMove) {
-        onMapMove([center.lat, center.lng]);
-      }
-    },
-    moveend() {
-      const center = map.getCenter();
-      if (onMapMoveEnd) {
-        onMapMoveEnd([center.lat, center.lng]);
-      }
-    }
-  });
-
-  return null;
-}
-
-function FlyToLocation({ position, offsetY = 0, zoom = 16 }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (position && position.lat != null && position.lng != null) {
-      map.setView([position.lat, position.lng], 16);
-    } else if (position && Array.isArray(position) && position.length === 2) {
-      map.setView(position, 16);
-    }
-  }, [position, map]);
-
-  return null;
-}
-
-/** Fuerza a Leaflet a recalcular tamaño tras montar; evita mapa negro */
-function MapInvalidateSize() {
-  const map = useMap();
-  useEffect(() => {
-    const run = () => {
-      try {
-        map.invalidateSize();
-      } catch {}
-    };
-    const t1 = setTimeout(run, 100);
-    const t2 = setTimeout(run, 500);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [map]);
-  return null;
-}
-
-/** Centrado inmediato al pulsar el botón azul: fuerza vista sobre destino y origen */
-function ForceFitOnRouteStart({ userLocation, sellerLocation, active }) {
-  const map = useMap();
-  const doneRef = React.useRef(false);
-  useEffect(() => {
-    if (!active) {
-      doneRef.current = false;
-      return;
-    }
-    if (!map) return;
-    const a = userLocation && userLocation.length >= 2 ? userLocation : null;
-    const b = sellerLocation && sellerLocation.length >= 2 ? sellerLocation : null;
-    if (!a || !b || doneRef.current) return;
-    doneRef.current = true;
-    const bounds = L.latLngBounds([a, b]);
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
-  }, [active, map, userLocation, sellerLocation]);
-  return null;
-}
-
-/** Auto-zoom para que se vean ambos puntos (origen y destino) cuando hay ruta activa */
-function FitBoundsToRoute({ userLocation, sellerLocation, route, active }) {
-  const map = useMap();
-  const lastFitRef = React.useRef(0);
-  useEffect(() => {
-    if (!active || !map) return;
-    const points = [];
-    if (userLocation && userLocation.length >= 2) points.push(userLocation);
-    if (sellerLocation && sellerLocation.length >= 2) points.push(sellerLocation);
-    if (route && route.length > 0) {
-      route.forEach((p) => { if (p && p.length >= 2) points.push(p); });
-    }
-    if (points.length < 2) return;
-    const now = Date.now();
-    if (now - lastFitRef.current < 2000) return;
-    lastFitRef.current = now;
-    const bounds = L.latLngBounds(points);
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
-  }, [active, map, userLocation, sellerLocation, route]);
-  return null;
+function createSellerMarkerHtml(sellerPhotoHtml) {
+  if (sellerPhotoHtml) {
+    return `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);">${sellerPhotoHtml}</div>`;
+  }
+  return `<div style="width:40px;height:40px;background:linear-gradient(135deg,#22c55e,#16a34a);border:4px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>`;
 }
 
 export default function ParkingMap({
@@ -251,23 +71,26 @@ export default function ParkingMap({
   userCarPrice = 0,
   showSellerMarker = false,
   onRouteLoaded = null,
-  userPhotoHtml = null
+  userPhotoHtml = null,
 }) {
-  // Convertir userLocation a formato [lat, lng] si es objeto
-  const normalizedUserLocation = userLocation 
-    ? (Array.isArray(userLocation) 
-        ? userLocation 
-        : [userLocation.latitude || userLocation.lat, userLocation.longitude || userLocation.lng])
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const routeSourceRef = useRef(null);
+
+  const normalizedUserLocation = userLocation
+    ? Array.isArray(userLocation)
+      ? userLocation
+      : [userLocation.latitude ?? userLocation.lat, userLocation.longitude ?? userLocation.lng]
     : null;
-  
+
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeDuration, setRouteDuration] = useState(null);
-  const lastRouteFetchRef = React.useRef(0);
+  const lastRouteFetchRef = useRef(0);
   const ROUTE_REFETCH_MS = 8000;
 
-  // Calcular ruta (OSRM) cuando hay navegación activa; throttled para no saturar
   useEffect(() => {
     if (!showRoute || !normalizedUserLocation) {
       setRoute(null);
@@ -278,8 +101,6 @@ export default function ParkingMap({
     const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
     if (!targetLocation) {
       setRoute(null);
-      setRouteDistance(null);
-      setRouteDuration(null);
       return;
     }
     const now = Date.now();
@@ -292,281 +113,250 @@ export default function ParkingMap({
     fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.routes && data.routes[0]) {
+        if (data.routes?.[0]) {
           const r = data.routes[0];
-          const coords = r.geometry.coordinates.map((coord) => [coord[1], coord[0]]);
-          const distanceKm = r.distance / 1000;
-          const durationSec = r.duration || 0;
+          const coords = r.geometry.coordinates.map((c) => [c[1], c[0]]);
           setRoute(coords);
-          setRouteDistance(distanceKm.toFixed(2));
-          setRouteDuration(durationSec);
-          if (onRouteLoaded) onRouteLoaded({ distanceKm, durationSec });
+          setRouteDistance((r.distance / 1000).toFixed(2));
+          setRouteDuration(r.duration || 0);
+          if (onRouteLoaded) onRouteLoaded({ distanceKm: r.distance / 1000, durationSec: r.duration || 0 });
         }
       })
-      .catch((err) => console.log('Error calculando ruta:', err));
+      .catch(() => {});
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
+  useEffect(() => {
+    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!token || token === 'PEGA_AQUI_EL_TOKEN' || !containerRef.current) return;
+
+    mapboxgl.accessToken = token;
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [defaultCenter[1], defaultCenter[0]],
+      zoom: 16,
+      pitch: 45,
+      bearing: 0,
+      antialias: true,
+      attributionControl: false,
+    });
+
+    if (zoomControl) {
+      map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-left');
+    }
+
+    map.on('load', () => {
+      mapRef.current = map;
+      map.resize();
+    });
+
+    return () => {
+      markersRef.current.forEach((m) => m?.remove?.());
+      markersRef.current = [];
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    markersRef.current.forEach((m) => m?.remove?.());
+    markersRef.current = [];
+
+    const addMarker = (lngLat, html, onClick) => {
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      el.className = 'mapbox-marker';
+      const marker = new mapboxgl.Marker({ element: el.firstElementChild || el })
+        .setLngLat([lngLat[1], lngLat[0]])
+        .addTo(map);
+      if (onClick) marker.getElement().addEventListener('click', onClick);
+      markersRef.current.push(marker);
+    };
+
+    if (normalizedUserLocation && !useCenterPin) {
+      const html = userPhotoHtml
+        ? `<div style="width:44px;height:44px;overflow:hidden;">${userPhotoHtml}</div>`
+        : userAsCar
+          ? createCarMarkerHtml(userCarColor, userCarPrice, 'car')
+          : createUserLocationHtml();
+      addMarker(normalizedUserLocation, html);
+    }
+
+    buyerLocations.forEach((loc) => {
+      addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml());
+    });
+
+    if (sellerLocation && (showRoute || showSellerMarker)) {
+      addMarker(sellerLocation, createSellerMarkerHtml(sellerPhotoHtml));
+    }
+
+    if (isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0]) {
+      addMarker([selectedPosition.lat, selectedPosition.lng], createUserLocationHtml());
+    }
+
+    alerts.forEach((alert) => {
+      addMarker(
+        [alert.latitude, alert.longitude],
+        createCarMarkerHtml(alert.color, alert.price, alert.vehicle_type),
+        () => onAlertClick?.(alert)
+      );
+    });
+  }, [
+    normalizedUserLocation,
+    useCenterPin,
+    userPhotoHtml,
+    userAsCar,
+    userCarColor,
+    userCarPrice,
+    buyerLocations,
+    sellerLocation,
+    showRoute,
+    showSellerMarker,
+    sellerPhotoHtml,
+    isSelecting,
+    selectedPosition,
+    alerts,
+    onAlertClick,
+  ]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    if (route && route.length > 0) {
+      const geojson = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: route.map(([lat, lng]) => [lng, lat]),
+        },
+      };
+      if (map.getSource('route')) {
+        map.getSource('route').setData(geojson);
+      } else {
+        map.addSource('route', { type: 'geojson', data: geojson });
+        map.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#a855f7', 'line-width': 5, 'line-opacity': 0.9 },
+        });
+      }
+    } else if (map.getSource('route')) {
+      map.removeLayer('route');
+      map.removeSource('route');
+    }
+  }, [route]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    if (normalizedUserLocation) {
+      map.flyTo({ center: [normalizedUserLocation[1], normalizedUserLocation[0]], zoom: 16, duration: 500 });
+    }
+  }, [normalizedUserLocation]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    if (isSelecting && setSelectedPosition) {
+      const onClick = (e) => {
+        setSelectedPosition({ lat: e.lngLat.lat, lng: e.lngLat.lng });
+      };
+      map.on('click', onClick);
+      return () => map.off('click', onClick);
+    }
+  }, [isSelecting, setSelectedPosition]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    if (useCenterPin) {
+      const onMove = () => {
+        const c = map.getCenter();
+        onMapMove?.([c.lat, c.lng]);
+      };
+      const onMoveEnd = () => {
+        const c = map.getCenter();
+        onMapMoveEnd?.([c.lat, c.lng]);
+      };
+      map.on('move', onMove);
+      map.on('moveend', onMoveEnd);
+      return () => {
+        map.off('move', onMove);
+        map.off('moveend', onMoveEnd);
+      };
+    }
+  }, [useCenterPin, onMapMove, onMapMoveEnd]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    if (showRoute && normalizedUserLocation && sellerLocation) {
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend([normalizedUserLocation[1], normalizedUserLocation[0]]);
+      bounds.extend([sellerLocation[1], sellerLocation[0]]);
+      map.fitBounds(bounds, { padding: 50, maxZoom: 17, duration: 500 });
+    }
+  }, [showRoute, normalizedUserLocation, sellerLocation]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+
+    const t = setTimeout(() => map?.resize?.(), 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+  if (!token || token === 'PEGA_AQUI_EL_TOKEN') {
+    return (
+      <div className={`absolute inset-0 flex items-center justify-center bg-[#1a1a1a] text-gray-500 text-sm ${className}`}>
+        Configura VITE_MAPBOX_TOKEN en .env
+      </div>
+    );
+  }
+
   return (
-    <div className={`absolute inset-0 ${className}`} style={{ zIndex: 1000, transform: 'translateZ(0)', backfaceVisibility: 'hidden', imageRendering: 'auto' }}>
+    <div className={`absolute inset-0 ${className}`} style={{ zIndex: 1000, transform: 'translateZ(0)' }}>
       {useCenterPin && (
-        /* Pin: bolita ARRIBA + palito ABAJO con la punta del palito en el centro exacto del mapa */
-        <>
-          <style>{`
-            @keyframes pin-pulse {
-              0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0.7); }
-              50% { opacity: 0.85; transform: scale(1.15); box-shadow: 0 0 0 8px rgba(168,85,247,0); }
-            }
-          `}</style>
-          {/*
-            Contenedor: centrado horizontalmente, con la PUNTA INFERIOR exactamente en el centro del mapa.
-            +10px sube el pin 10 píxeles más arriba
-          */}
+        <div
+          className="absolute z-[2000] pointer-events-none flex flex-col items-center"
+          style={{ left: '50%', top: '50%', transform: 'translate(-50%, calc(-100% - 10px))', width: 18 }}
+        >
           <div
-            className="absolute z-[2000] pointer-events-none flex flex-col items-center"
             style={{
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, calc(-100% - 10px))',
               width: 18,
+              height: 18,
+              borderRadius: '50%',
+              background: '#a855f7',
+              boxShadow: '0 0 15px rgba(168,85,247,0.8)',
+              animation: 'pin-pulse 1.5s ease-in-out infinite',
             }}
-          >
-            {/* Bola arriba */}
-            <div
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                background: '#a855f7',
-                boxShadow: '0 0 15px rgba(168,85,247,0.8)',
-                animation: 'pin-pulse 1.5s ease-in-out infinite',
-                flexShrink: 0,
-              }}
-            />
-            {/* Palito abajo */}
-            <div
-              style={{
-                width: 2,
-                height: 35,
-                background: '#a855f7',
-                flexShrink: 0,
-              }}
-            />
-          </div>
-        </>
+          />
+          <div style={{ width: 2, height: 35, background: '#a855f7' }} />
+        </div>
       )}
       <style>{`
-        .leaflet-top.leaflet-left {
-          top: 10px !important;
-          left: 10px !important;
-          z-index: 1000 !important;
-          display: block !important;
-          visibility: visible !important;
+        @keyframes pin-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.85; transform: scale(1.15); }
         }
-        .leaflet-control-zoom {
-          border: 1px solid rgba(168, 85, 247, 0.3) !important;
-          border-radius: 8px !important;
-          overflow: hidden !important;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-          background: transparent !important;
-          display: flex !important;
-          flex-direction: column !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-        .leaflet-control-zoom a {
-          background-color: rgba(0, 0, 0, 0.6) !important;
-          backdrop-filter: blur(4px) !important;
-          color: white !important;
-          border: none !important;
-          width: 40px !important;
-          height: 40px !important;
-          line-height: 40px !important;
-          font-size: 20px !important;
-          font-weight: bold !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          text-decoration: none !important;
-        }
-        .leaflet-control-zoom a:hover {
-          background-color: rgba(168, 85, 247, 0.6) !important;
-        }
-        .leaflet-control-zoom-in {
-          border-bottom: 1px solid rgba(168, 85, 247, 0.3) !important;
-          border-radius: 8px 8px 0 0 !important;
-        }
-        .leaflet-control-zoom-out {
-          border-radius: 0 0 8px 8px !important;
+        @keyframes pulse-purple {
+          0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+          50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
         }
       `}</style>
-      <MapContainer
-        center={defaultCenter}
-        zoom={16}
-        style={{ width: '100%', height: '100%', display: 'block' }}
-        className="rounded-2xl"
-        zoomControl={zoomControl}
-        zoomSnap={1}
-        zoomDelta={1}
-        preferCanvas={true}
-        key={`map-${zoomControl}`}>
-
-        <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        <MapInvalidateSize />
-        
-        {normalizedUserLocation && !useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
-        
-        {useCenterPin && <CenterPinMarker onMapMove={onMapMove} onMapMoveEnd={onMapMoveEnd} />}
-        
-        {normalizedUserLocation && useCenterPin && <FlyToLocation position={normalizedUserLocation} offsetY={userLocationOffsetY} />}
-        
-        {/* Marcador de ubicación del usuario: foto cuadrada con bordes redondeados / coche / pin */}
-        {normalizedUserLocation && !useCenterPin && (
-          userPhotoHtml ? (
-            <Marker
-              position={normalizedUserLocation}
-              icon={L.divIcon({
-                className: 'user-photo-marker',
-                html: `<div style="width:44px;height:44px;overflow:hidden;">${userPhotoHtml}</div>`,
-                iconSize: [44, 44],
-                iconAnchor: [22, 22]
-              })}
-              zIndexOffset={1800}
-            />
-          ) : userAsCar ? (
-            <Marker
-              position={normalizedUserLocation}
-              icon={createCarIcon(userCarColor, userCarPrice, 'car')}
-              zIndexOffset={1800}
-            />
-          ) : (
-            <Marker
-              position={normalizedUserLocation}
-              icon={createUserLocationIcon()}
-              draggable={isSelecting}
-            />
-          )
-        )}
-
-        {/* Buyer locations (usuarios en camino - tracking en tiempo real) */}
-        {buyerLocations.map((loc) => (
-          <Marker 
-            key={loc.id}
-            position={[loc.latitude, loc.longitude]} 
-            icon={L.divIcon({
-              className: 'custom-buyer-icon',
-              html: `
-                <style>
-                  @keyframes pulse-buyer {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.1); }
-                  }
-                </style>
-                <div style="
-                  width: 40px; 
-                  height: 40px; 
-                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-                  border: 3px solid white;
-                  border-radius: 50%;
-                  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  animation: pulse-buyer 2s infinite;
-                ">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2L2 19h20L12 2z"/>
-                  </svg>
-                </div>
-              `,
-              iconSize: [40, 40],
-              iconAnchor: [20, 20]
-            })}
-            zIndexOffset={1500}
-          >
-            <Popup>Usuario en camino</Popup>
-          </Marker>
-        ))}
-
-        {/* Seller / destino: siempre visible en navegación */}
-        {sellerLocation && (showRoute || showSellerMarker) && (
-          <Marker 
-            position={sellerLocation}
-            icon={L.divIcon({
-              className: 'custom-seller-icon',
-              html: sellerPhotoHtml
-                ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);">${sellerPhotoHtml}</div>`
-                : `
-                <style>
-                  @keyframes pulse-seller {
-                    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-                    50% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
-                  }
-                </style>
-                <div style="width:40px;height:40px;background:linear-gradient(135deg,#22c55e 0%,#16a34a 100%);border:4px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:pulse-seller 2s infinite;">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                </div>`,
-              iconSize: [44, 44],
-              iconAnchor: [22, 22]
-            })}
-            zIndexOffset={2000}
-          >
-            <Popup>Vendedor: {selectedAlert?.user_name}</Popup>
-          </Marker>
-        )}
-
-        {isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0] &&
-        <Marker
-          position={selectedPosition}
-          icon={createUserLocationIcon()}>
-          </Marker>
-        }
-        
-        {/* Ruta continua */}
-        {route && (
-          <Polyline
-            positions={route}
-            color="#a855f7"
-            weight={5}
-            opacity={0.9}
-          />
-        )}
-
-        {/* Centrado inmediato al iniciar navegación */}
-        {showRoute && normalizedUserLocation && sellerLocation && (
-          <ForceFitOnRouteStart
-            userLocation={normalizedUserLocation}
-            sellerLocation={sellerLocation}
-            active={true}
-          />
-        )}
-        {/* Auto-zoom: encuadrar origen, destino y ruta */}
-        {showRoute && (route || (normalizedUserLocation && sellerLocation)) && (
-          <FitBoundsToRoute
-            userLocation={normalizedUserLocation}
-            sellerLocation={sellerLocation}
-            route={route}
-            active={!!route || !!(normalizedUserLocation && sellerLocation)}
-          />
-        )}
-
-        {/* Alertas */}
-        {alerts.map((alert) =>
-        <Marker
-          key={alert.id}
-          position={[alert.latitude, alert.longitude]}
-          icon={createCarIcon(alert.color, alert.price, alert.vehicle_type)}
-          eventHandlers={{
-            click: () => onAlertClick && onAlertClick(alert)
-          }}>
-          </Marker>
-        )}
-      </MapContainer>
-
-
-    </div>);
-
+      <div ref={containerRef} className="w-full h-full rounded-2xl" />
+    </div>
+  );
 }

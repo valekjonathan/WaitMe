@@ -1,75 +1,33 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
 import { motion } from 'framer-motion';
-import 'leaflet/dist/leaflet.css';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const buyerLocationIcon = L.divIcon({
-  className: 'custom-buyer-icon',
-  html: `
-    <div style="
-      width: 40px; 
-      height: 40px; 
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      border: 3px solid white;
-      border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    ">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-        <path d="M12 2L2 19h20L12 2z"/>
-      </svg>
+function createUserMarkerHtml() {
+  return `
+    <div style="position:relative;width:40px;height:60px;">
+      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:35px;background:#a855f7;"></div>
+      <div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:#a855f7;border-radius:50%;box-shadow:0 0 15px rgba(168,85,247,0.8);animation:pulse-purple 1.5s ease-in-out infinite;"></div>
     </div>
-  `,
-  iconSize: [40, 40],
-  iconAnchor: [20, 20],
-});
+  `;
+}
 
-const userLocationIcon = L.divIcon({
-  className: 'user-location-marker',
-  html: `
-    <style>
-      @keyframes pulse-purple {
-        0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-        50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
-      }
-    </style>
-    <div style="position: relative; width: 40px; height: 60px;">
-      <div style="
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 2px;
-        height: 35px;
-        background: #a855f7;
-      "></div>
-      <div style="
-        position: absolute;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 18px;
-        height: 18px;
-        background: #a855f7;
-        border-radius: 50%;
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-        animation: pulse-purple 1.5s ease-in-out infinite;
-      "></div>
+function createBuyerMarkerHtml() {
+  return `
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:3px solid white;border-radius:50%;box-shadow:0 4px 12px rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 19h20L12 2z"/></svg>
     </div>
-  `,
-  iconSize: [40, 60],
-  iconAnchor: [20, 60]
-});
+  `;
+}
 
 export default function SellerLocationTracker({ alertId, userLocation }) {
   const [alert, setAlert] = useState(null);
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
 
-  // Obtener la alerta
   useEffect(() => {
     if (!alertId) return;
     let cancelled = false;
@@ -79,46 +37,104 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
     return () => { cancelled = true; };
   }, [alertId]);
 
-  // Obtener ubicaciones de compradores que están navegando hacia esta alerta
   const { data: buyerLocations = [] } = useQuery({
     queryKey: ['buyerLocations', alertId],
     queryFn: async () => {
-      const locs = await base44.entities.UserLocation.filter({ 
-        alert_id: alertId, 
-        is_active: true 
+      const locs = await base44.entities.UserLocation.filter({
+        alert_id: alertId,
+        is_active: true,
       });
       return locs;
     },
     enabled: !!alertId,
-    refetchInterval: 5000
+    refetchInterval: 5000,
   });
 
-  // Calcular distancia del comprador más cercano
   const calculateDistance = useCallback((buyerLoc) => {
     if (!userLocation) return null;
-    
     const R = 6371;
-    const dLat = (buyerLoc.latitude - userLocation[0]) * Math.PI / 180;
-    const dLon = (buyerLoc.longitude - userLocation[1]) * Math.PI / 180;
+    const dLat = ((buyerLoc.latitude - userLocation[0]) * Math.PI) / 180;
+    const dLon = ((buyerLoc.longitude - userLocation[1]) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(userLocation[0] * Math.PI / 180) * Math.cos(buyerLoc.latitude * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos((userLocation[0] * Math.PI) / 180) *
+        Math.cos((buyerLoc.latitude * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distanceKm = R * c;
-    
-    if (distanceKm < 1) {
-      return { value: Math.round(distanceKm * 1000), unit: 'm' };
-    }
+    if (distanceKm < 1) return { value: Math.round(distanceKm * 1000), unit: 'm' };
     return { value: distanceKm.toFixed(1), unit: 'km' };
   }, [userLocation]);
 
   const closestBuyer = buyerLocations.length > 0 ? buyerLocations[0] : null;
   const distance = closestBuyer ? calculateDistance(closestBuyer) : null;
 
-  if (!alert || buyerLocations.length === 0) {
-    return null;
-  }
+  useEffect(() => {
+    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!token || token === 'PEGA_AQUI_EL_TOKEN' || !containerRef.current || !alert) return;
+
+    mapboxgl.accessToken = token;
+    const center = userLocation || [alert.latitude, alert.longitude];
+    const map = new mapboxgl.Map({
+      container: containerRef.current,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [center[1], center[0]],
+      zoom: 16,
+      pitch: 45,
+      bearing: 0,
+      attributionControl: false,
+    });
+
+    map.on('load', () => {
+      mapRef.current = map;
+      map.resize();
+    });
+    mapRef.current = map;
+
+    return () => {
+      markersRef.current.forEach((m) => m?.remove?.());
+      markersRef.current = [];
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [alert?.id]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.() || !alert) return;
+
+    markersRef.current.forEach((m) => m?.remove?.());
+    markersRef.current = [];
+
+    const addMarker = (lngLat, html) => {
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      const marker = new mapboxgl.Marker({ element: el.firstElementChild || el })
+        .setLngLat([lngLat[1], lngLat[0]])
+        .addTo(map);
+      markersRef.current.push(marker);
+    };
+
+    if (userLocation) addMarker(userLocation, createUserMarkerHtml());
+    buyerLocations.forEach((loc) => addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml()));
+  }, [alert, userLocation, buyerLocations]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded?.()) return;
+    const center = userLocation || (alert ? [alert.latitude, alert.longitude] : null);
+    if (center) map.flyTo({ center: [center[1], center[0]], zoom: 16, duration: 500 });
+  }, [userLocation, alert]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const t = setTimeout(() => map.resize(), 150);
+    return () => clearTimeout(t);
+  }, [buyerLocations]);
+
+  if (!alert || buyerLocations.length === 0) return null;
 
   return (
     <motion.div
@@ -130,45 +146,20 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
         <p className="text-white font-bold text-lg">¡El comprador viene hacia ti!</p>
         {distance && (
           <p className="text-blue-100 text-sm">
-            Está a {distance.value}{distance.unit} de distancia
+            Está a {distance.value}
+            {distance.unit} de distancia
           </p>
         )}
       </div>
 
-      <div className="h-48 rounded-xl overflow-hidden border-2 border-white/30">
-        <MapContainer
-          center={userLocation || [alert.latitude, alert.longitude]}
-          zoom={16}
-          style={{ height: '100%', width: '100%' }}
-          className="rounded-xl"
-          zoomControl={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-          />
-          
-          {/* Marcador de ubicación del usuario con palito y bolita brillante */}
-          {userLocation && (
-            <Marker 
-              position={userLocation}
-              icon={userLocationIcon}
-            >
-              <Popup>Tu ubicación</Popup>
-            </Marker>
-          )}
-
-          {/* Marcadores de compradores en camino */}
-          {buyerLocations.map((loc) => (
-            <Marker 
-              key={loc.id}
-              position={[loc.latitude, loc.longitude]} 
-              icon={buyerLocationIcon}
-            >
-              <Popup>Usuario en camino</Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+      <div className="h-48 rounded-xl overflow-hidden border-2 border-white/30 relative">
+        <style>{`
+          @keyframes pulse-purple {
+            0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+          }
+        `}</style>
+        <div ref={containerRef} className="w-full h-full" />
       </div>
     </motion.div>
   );
