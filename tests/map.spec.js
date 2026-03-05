@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import percySnapshot from '@percy/playwright';
 
 test.describe('Mapa', () => {
   test('el mapa o la app cargan sin errores de Mapbox', async ({ page }) => {
@@ -8,6 +9,7 @@ test.describe('Mapa', () => {
     await page.waitForTimeout(3000);
     const tokenError = page.getByText(/VITE_MAPBOX_TOKEN|Configura.*MAPBOX/i);
     await expect(tokenError).not.toBeVisible({ timeout: 2000 }).catch(() => {});
+    await percySnapshot(page, 'Mapa - Sin error token');
   });
 
   test('la app no muestra errores de mapa en la UI', async ({ page }) => {

@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import percySnapshot from '@percy/playwright';
 
 test.describe('App', () => {
   test('abre la app y carga correctamente', async ({ page }) => {
@@ -10,6 +11,7 @@ test.describe('App', () => {
     await expect(body).toBeVisible();
     const root = page.locator('#root');
     await expect(root).toBeVisible();
+    await percySnapshot(page, 'App - Inicio');
   });
 
   test('muestra Login o contenido principal', async ({ page }) => {
@@ -17,5 +19,6 @@ test.describe('App', () => {
     await page.waitForLoadState('domcontentloaded');
     const loginOrContent = page.locator('text=WaitMe!').or(page.locator('text=Continuar con Google'));
     await expect(loginOrContent.first()).toBeVisible({ timeout: 10000 });
+    await percySnapshot(page, 'App - Login o Home');
   });
 });

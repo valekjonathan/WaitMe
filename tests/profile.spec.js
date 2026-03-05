@@ -1,5 +1,6 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import percySnapshot from '@percy/playwright';
 
 test.describe('Profile', () => {
   test('al abrir perfil no aparece "Error al guardar"', async ({ page }) => {
@@ -7,6 +8,7 @@ test.describe('Profile', () => {
     await page.waitForLoadState('networkidle');
     const errorText = page.getByText('Error al guardar');
     await expect(errorText).not.toBeVisible({ timeout: 5000 });
+    await percySnapshot(page, 'Profile - Sin error');
   });
 
   test('pantalla perfil carga sin errores visibles', async ({ page }) => {
@@ -15,5 +17,6 @@ test.describe('Profile', () => {
     await page.waitForTimeout(2000);
     const errorAlert = page.locator('[role="alert"]').filter({ hasText: 'Error al guardar' });
     await expect(errorAlert).not.toBeVisible();
+    await percySnapshot(page, 'Profile - Carga');
   });
 });
