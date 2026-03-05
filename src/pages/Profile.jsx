@@ -79,10 +79,30 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user?.id) return;
-    const supabase = getSupabase();
-    if (!supabase) return;
     if (hydratedOnceRef.current) return;
     hydratedOnceRef.current = true;
+
+    // Perfil dev: usar datos del contexto (no existe en Supabase)
+    if (user.id === 'dev-user' && profile) {
+      setFormData({
+        full_name: profile.full_name || 'Dev User',
+        brand: profile.brand || 'Dev',
+        model: profile.model || 'Coche',
+        color: profile.color || 'gris',
+        vehicle_type: profile.vehicle_type || 'car',
+        plate: profile.plate || '0000XXX',
+        avatar_url: profile.avatar_url || '',
+        phone: profile.phone || '000000000',
+        allow_phone_calls: profile.allow_phone_calls || false,
+        notifications_enabled: profile.notifications_enabled !== false,
+        email_notifications: profile.email_notifications !== false,
+      });
+      setHydrated(true);
+      return;
+    }
+
+    const supabase = getSupabase();
+    if (!supabase) return;
     (async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -113,6 +133,11 @@ export default function Profile() {
   }, [user?.id]);
 
   const handleSave = useCallback(async () => {
+    if (user?.id === 'dev-user') {
+      setProfile({ ...profile, ...formData });
+      navigate('/');
+      return;
+    }
     const supabase = getSupabase();
     if (!supabase) return;
     const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -153,7 +178,7 @@ export default function Profile() {
     } finally {
       setSaving(false);
     }
-  }, [formData, navigate, setProfile]);
+  }, [formData, navigate, setProfile, user?.id, profile]);
 
   useEffect(() => {
     setProfileFormData(formData);

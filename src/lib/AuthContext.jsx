@@ -131,18 +131,34 @@ export const AuthProvider = ({ children }) => {
         full_name: 'Dev User',
         display_name: 'Dev',
         photo_url: null,
-        brand: '',
-        model: '',
+        brand: 'Dev',
+        model: 'Coche',
         color: 'gris',
         vehicle_type: 'car',
-        plate: '',
-        phone: null,
+        plate: '0000XXX',
+        phone: '000000000',
+        allow_phone_calls: false,
+        notifications_enabled: true,
+        email_notifications: true,
+      };
+      const devProfile = {
+        id: 'dev-user',
+        display_name: 'Dev',
+        vehicle_type: 'car',
+        brand: 'Dev',
+        model: 'Coche',
+        color: 'gris',
+        plate: '0000XXX',
+        phone: '000000000',
+        full_name: 'Dev User',
+        email: 'dev@waitme.local',
+        avatar_url: null,
         allow_phone_calls: false,
         notifications_enabled: true,
         email_notifications: true,
       };
       setUser(devUser);
-      setProfile(devUser);
+      setProfile(devProfile);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       return;
