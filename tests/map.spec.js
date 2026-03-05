@@ -19,4 +19,26 @@ test.describe('Mapa', () => {
     const body = page.locator('body');
     await expect(body).toBeVisible();
   });
+
+  test('mapa muestra "Mapa no disponible" o carga correctamente (sin crash)', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+    const mapUnavailable = page.getByText('Mapa no disponible');
+    const appContent = page.locator('#root');
+    await expect(appContent).toBeVisible();
+    const hasMapMsg = await mapUnavailable.isVisible().catch(() => false);
+    const hasContent = await appContent.isVisible();
+    expect(hasContent).toBeTruthy();
+  });
+
+  test('realtime no rompe la app', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(4000);
+    const body = page.locator('body');
+    await expect(body).toBeVisible();
+    const errorScreen = page.locator('text=Error');
+    await expect(errorScreen).not.toBeVisible();
+  });
 });

@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
+import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import Home from './pages/Home';
@@ -59,6 +60,7 @@ function LayoutShell() {
 }
 
 export default function Layout() {
+  useRealtimeAlerts();
   return (
     <LayoutProvider>
       <Routes>
