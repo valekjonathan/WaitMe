@@ -1,49 +1,18 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { getVehicleIcon } from '@/lib/vehicleIcons';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 16;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
-const RADIUS_METERS = 800;
-const CAR_COUNT = 12;
-const REFRESH_INTERVAL_MS = 45_000;
 const GPS_TIMEOUT_MS = 2500;
 const ACCURACY_RECENTER_THRESHOLD = 80;
-const CAR_COLORS = [
-  '#FFFFFF', '#1a1a1a', '#6b7280', '#ef4444', '#3b82f6', '#22c55e',
-  '#eab308', '#f97316', '#a855f7', '#92400e'
-];
-
-const ROAD_LAYER_PATTERNS = ['road', 'street', 'secondary', 'primary', 'tertiary', 'motorway', 'trunk'];
-
-function isRoadLayer(layerId) {
-  const id = (layerId || '').toLowerCase();
-  return ROAD_LAYER_PATTERNS.some((p) => id.includes(p));
-}
-
-/**
- * Obtiene puntos sobre calles visibles usando queryRenderedFeatures.
- */
-function getRoadPoints(map, maxPoints = 12) {
-  if (!map?.queryRenderedFeatures) return [];
-  const features = map.queryRenderedFeatures();
-  const points = [];
-  for (const f of features) {
-    if (!isRoadLayer(f.layer?.id)) continue;
-    const geom = f.geometry;
-    if (geom?.type !== 'LineString' || !Array.isArray(geom.coordinates)) continue;
-    const coords = geom.coordinates;
-    const step = Math.max(1, Math.floor(coords.length / 3));
-    for (let i = 0; i < coords.length && points.length < maxPoints; i += step) {
-      points.push(coords[i]);
-    }
-  }
-  return points.slice(0, maxPoints);
-}
 
 export default function MapboxMap({
   className = '',
+  alerts = [],
+  onAlertClick,
   onMapLoad,
   onRecenterRef,
   children,
@@ -52,7 +21,7 @@ export default function MapboxMap({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const mapboxglRef = useRef(null);
-  const refreshTimerRef = useRef(null);
+  const markersRef = useRef([]);
   const centerRef = useRef(OVIEDO_CENTER);
   const accuracyRef = useRef(null);
   const watchIdRef = useRef(null);
@@ -226,12 +195,9 @@ export default function MapboxMap({
 
     return () => {
       cancelled = true;
-      if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
+      markersRef.current.forEach((m) => m?.remove?.());
+      markersRef.current = [];
       if (map) {
-        try {
-          if (map.getLayer('cars-layer')) map.removeLayer('cars-layer');
-          if (map.getSource('cars')) map.removeSource('cars');
-        } catch {}
         try { map.remove(); } catch {}
       }
       mapRef.current = null;
@@ -259,73 +225,45 @@ export default function MapboxMap({
   }, [mapReady, effectiveCenter, location.accuracy, error]);
 
   useEffect(() => {
-    if (!mapReady || !mapRef.current || error) return;
+    if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;
     const map = mapRef.current;
-    const [lng, lat] = effectiveCenter;
+    const mapboxgl = mapboxglRef.current;
 
-    const updateCarsLayer = () => {
-      const roadPoints = getRoadPoints(map, CAR_COUNT);
-      if (roadPoints.length === 0) return;
+    markersRef.current.forEach((m) => m?.remove?.());
+    markersRef.current = [];
 
-      const features = roadPoints.map(([plng, plat], i) => ({
-        type: 'Feature',
-        properties: {
-          id: `car_${i}`,
-          color: CAR_COLORS[i % CAR_COLORS.length],
-        },
-        geometry: { type: 'Point', coordinates: [plng, plat] },
-      }));
+    const list = Array.isArray(alerts) ? alerts : [];
+    list.forEach((alert) => {
+      const lat = alert.latitude ?? alert.lat;
+      const lng = alert.longitude ?? alert.lng;
+      if (lat == null || lng == null) return;
 
-      const geojson = {
-        type: 'FeatureCollection',
-        features,
-      };
+      const type = alert.vehicle_type || 'car';
+      const color = alert.vehicle_color ?? alert.color ?? 'gray';
+      const html = getVehicleIcon(type, color);
 
-      if (map.getSource('cars')) {
-        map.getSource('cars').setData(geojson);
-      } else {
-        map.addSource('cars', { type: 'geojson', data: geojson });
-        map.addLayer({
-          id: 'cars-layer',
-          type: 'circle',
-          source: 'cars',
-          paint: {
-            'circle-radius': 6,
-            'circle-color': ['get', 'color'],
-            'circle-stroke-width': 1.5,
-            'circle-stroke-color': 'rgba(255,255,255,0.7)',
-          },
-        });
+      const el = document.createElement('div');
+      el.innerHTML = html;
+      const markerEl = el.firstElementChild || el;
+      markerEl.className = 'mapboxgl-marker-vehicle';
+
+      const marker = new mapboxgl.Marker({ element: markerEl })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      if (onAlertClick) {
+        markerEl.style.cursor = 'pointer';
+        markerEl.addEventListener('click', () => onAlertClick(alert));
       }
-    };
 
-    const setupCars = () => {
-      updateCarsLayer();
-    };
-
-    if (map.isStyleLoaded && map.isStyleLoaded()) {
-      setupCars();
-    } else {
-      map.once('idle', setupCars);
-    }
-
-    refreshTimerRef.current = setInterval(() => {
-      const roadPoints = getRoadPoints(map, CAR_COUNT);
-      if (roadPoints.length === 0) return;
-      const features = roadPoints.map(([plng, plat], i) => ({
-        type: 'Feature',
-        properties: { id: `car_${i}`, color: CAR_COLORS[i % CAR_COLORS.length] },
-        geometry: { type: 'Point', coordinates: [plng, plat] },
-      }));
-      if (map.getSource('cars')) {
-        map.getSource('cars').setData({ type: 'FeatureCollection', features });
-      }
-    }, REFRESH_INTERVAL_MS);
+      markersRef.current.push(marker);
+    });
 
     return () => {
-      if (refreshTimerRef.current) clearInterval(refreshTimerRef.current);
+      markersRef.current.forEach((m) => m?.remove?.());
+      markersRef.current = [];
     };
-  }, [mapReady, effectiveCenter, error]);
+  }, [mapReady, error, alerts, onAlertClick]);
 
 
   if (error) {

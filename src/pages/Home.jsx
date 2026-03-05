@@ -390,9 +390,9 @@ export default function Home() {
         : Number(userLocation?.longitude ?? userLocation?.lng ?? -5.8489);
       // 3 coches extra bien al sur: aparecen en la zona del botón morado en pantalla
       const extra = [
-        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  color: 'azul',   vehicle_type: 'suv',  status: 'active' },
-        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  color: 'rojo',   vehicle_type: 'van',  status: 'active' },
-        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, color: 'negro',  vehicle_type: 'car',  status: 'active' },
+        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  color: 'azul',   vehicle_color: 'blue',  vehicle_type: 'suv',  status: 'active' },
+        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  color: 'rojo',   vehicle_color: 'red',   vehicle_type: 'van',  status: 'active' },
+        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, color: 'negro',  vehicle_color: 'black', vehicle_type: 'car',  status: 'active' },
       ];
       return [...base, ...extra];
     }
@@ -443,6 +443,8 @@ export default function Home() {
       price: data.price,
       available_in_minutes: data.available_in_minutes,
       wait_until: futureTime.toISOString(),
+      vehicle_type: data.vehicle_type || 'car',
+      vehicle_color: data.vehicle_color || data.color || 'gray',
       metadata: {
         user_name: data.user_name,
         user_photo: data.user_photo,
@@ -655,7 +657,14 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden text-white">
       {/* Mapa como fondo a pantalla completa */}
-      <MapboxMap className="absolute inset-0 z-0 w-full h-full" />
+      <MapboxMap
+        className="absolute inset-0 z-0 w-full h-full"
+        alerts={homeMapAlerts}
+        onAlertClick={(alert) => {
+          setMode('search');
+          setSelectedAlert(alert);
+        }}
+      />
 
       {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
       <div
@@ -907,7 +916,9 @@ export default function Home() {
                         color: currentUser?.color || 'gris',
                         plate: currentUser?.plate || '0000XXX',
                         phone: currentUser?.phone || null,
-                        allow_phone_calls: currentUser?.allow_phone_calls || false
+                        allow_phone_calls: currentUser?.allow_phone_calls || false,
+                        vehicle_type: currentUser?.vehicle_type || profile?.vehicle_type || 'car',
+                        vehicle_color: currentUser?.vehicle_color || profile?.vehicle_color || currentUser?.color || profile?.color || 'gray',
                       };
 
                       // Fast check from cache — same selector as HistorySellerView visibleActiveAlerts

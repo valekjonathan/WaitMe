@@ -30,6 +30,7 @@ function normalizeAlert(row) {
     price,
     price_cents: row.price_cents,
     vehicle_type: row.vehicle_type ?? meta.vehicle_type ?? 'car',
+    vehicle_color: row.vehicle_color ?? meta.vehicle_color ?? meta.color ?? 'gray',
     status: row.status,
     reserved_by: row.reserved_by ?? null,
     reserved_by_id: row.reserved_by ?? meta.reserved_by_id ?? null,
@@ -72,6 +73,10 @@ export async function createAlert(payload) {
 
   const price = priceCents ?? 0;
   const geohash = encode(lat, lng, 7);
+  const vehicleType = payload.vehicle_type ?? metadata.vehicle_type ?? 'car';
+  const vehicleColor = payload.vehicle_color ?? metadata.vehicle_color ?? metadata.color ?? 'gray';
+  if (!metadata.vehicle_type) metadata.vehicle_type = vehicleType;
+  if (!metadata.vehicle_color) metadata.vehicle_color = vehicleColor;
 
   const { data, error } = await supabase
     .from(TABLE)
@@ -85,6 +90,8 @@ export async function createAlert(payload) {
       expires_at: expiresAt ?? null,
       geohash,
       status: payload.status ?? 'active',
+      vehicle_type: vehicleType,
+      vehicle_color: vehicleColor,
       metadata: Object.keys(metadata).length ? metadata : {},
     })
     .select()

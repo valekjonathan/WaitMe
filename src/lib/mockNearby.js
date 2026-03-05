@@ -175,6 +175,7 @@ export function getMockNearbyAlerts(userLocation) {
       phone: u.phone,
 
       vehicle_type: u.vehicle_type,
+      vehicle_color: u.color,
       color: u.color,
 
       address: streets[i] || 'Calle Gran Vía, n1, Oviedo',
