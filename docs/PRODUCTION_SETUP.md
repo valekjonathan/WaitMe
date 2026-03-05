@@ -6,7 +6,8 @@ Configura estos secrets en **Settings → Secrets and variables → Actions**:
 
 | Secret | Uso |
 |--------|-----|
-| `SUPABASE_ACCESS_TOKEN` | Migraciones Supabase (supabase-migrations.yml). Obtener en [Supabase Dashboard](https://supabase.com/dashboard/account/tokens). |
+| `SUPABASE_ACCESS_TOKEN` | Migraciones Supabase. Obtener en [Supabase Dashboard](https://supabase.com/dashboard/account/tokens). |
+| `SUPABASE_PROJECT_REF` | ID del proyecto Supabase (supabase-migrations.yml). En Dashboard → Project Settings → General. |
 | `VITE_SUPABASE_URL` | Tests Playwright (tests.yml). URL del proyecto Supabase. |
 | `VITE_SUPABASE_ANON_KEY` | Tests Playwright (tests.yml). Anon key de Supabase. |
 | `VITE_MAPBOX_TOKEN` | Tests Playwright (tests.yml). Token de Mapbox. |
