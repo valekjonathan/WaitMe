@@ -25,4 +25,4 @@ Alternativa: `npm run ship` para lint:fix → build → add → commit (el push 
 
 ---
 
-**Estado:** Auth y perfil usan Supabase. Alertas, chat y transacciones siguen usando base44 (pendiente migración).
+**Estado:** Auth, perfil, alertas, chat, transacciones y notificaciones usan Supabase. Base44 eliminado por completo.

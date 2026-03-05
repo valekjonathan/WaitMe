@@ -1,31 +1,38 @@
-# One-time: Environment Production (1 pantalla)
+# Configuración única en GitHub — Clics exactos
 
-Si el script `github_hardening.sh` no pudo configurar el environment por API, hazlo manualmente en **1 pantalla**.
+Configuración recomendada para blindar CI/CD y deployments. Hacer una sola vez.
 
----
+## 1. Branch protection (main)
 
-## Pasos (mínimos)
+1. Repo → **Settings** → **Branches**
+2. **Add branch protection rule**
+3. Branch name: `main`
+4. Activar:
+   - ✅ Require a pull request before merging
+   - ✅ Require status checks to pass before merging
+   - Status checks: `ci` (o el nombre del job de CI)
+   - ✅ Require branches to be up to date before merging
+5. **Create**
 
-1. **Abre:** `https://github.com/OWNER/REPO/settings/environments`
-   - Sustituye `OWNER/REPO` por tu repo (ej. `valekjonathan/WaitMe`).
+## 2. Secrets (Settings → Secrets and variables → Actions)
 
-2. **Clic en "New environment"** (o en "production" si ya existe).
+| Secret | Uso |
+|--------|-----|
+| `VITE_SUPABASE_URL` | URL del proyecto Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Anon key de Supabase |
+| `VITE_MAPBOX_TOKEN` | Token Mapbox (para build) |
+| `SUPABASE_ACCESS_TOKEN` | Token de Supabase (Dashboard → Account → Access Tokens) |
+| `SUPABASE_PROJECT_REF` | Project ref (URL: `https://xxx.supabase.co` → ref = `xxx`) |
+| `SUPABASE_DB_PASSWORD` | Contraseña de la base de datos |
 
-3. **Nombre:** `production`
+## 3. Environment: production
 
-4. **Required reviewers:** Añade al menos 1 usuario (tú o un compañero).
+1. **Settings** → **Environments**
+2. Crear environment: `production`
+3. (Opcional) Añadir protection rules o required reviewers para el job `migrate`
 
-5. **Save protection rules.**
+## 4. Vercel (si aplica)
 
----
-
-## Resumen visual
-
-```
-Settings → Environments → New environment
-    └── Name: production
-    └── Required reviewers: [tu usuario]
-    └── [Save]
-```
-
-Listo. El workflow `supabase.yml` usará este environment y esperará aprobación antes de aplicar migrations.
+1. Conectar repo en vercel.com
+2. Añadir las mismas env vars que en GitHub Secrets para el build
+3. Añadir `VITE_SENTRY_DSN` si se usa Sentry
