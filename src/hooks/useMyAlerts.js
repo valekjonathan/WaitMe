@@ -5,6 +5,8 @@
  * and the queryFn. Used by Home.jsx, History.jsx and BottomNav.jsx so all
  * three read from the exact same cache entry with the exact same policy.
  *
+ * Migrated to Supabase: uses alertsSupabase.getMyAlerts + subscribeAlerts.
+ *
  * Policy rationale:
  *   - staleTime: 0  → data is always considered stale; explicit invalidation
  *                      controls when to refetch (no silent staleness window).
@@ -17,8 +19,9 @@
  *                                     re-fetching; no white flashes on navigate.
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { getMyAlerts, getAlertsReservedByMe, subscribeAlerts } from '@/services/alertsSupabase';
 import { useAuth } from '@/lib/AuthContext';
 
 export const MY_ALERTS_QUERY_KEY = ['myAlerts'];
@@ -33,11 +36,35 @@ export const MY_ALERTS_OPTIONS = {
   placeholderData: (prev) => prev,
 };
 
-async function fetchMyAlerts(userId, userEmail) {
-  if (!userId && !userEmail) return [];
-  if (userId) return (await base44.entities.ParkingAlert.filter({ user_id: userId })) || [];
-  if (userEmail) return (await base44.entities.ParkingAlert.filter({ user_email: userEmail })) || [];
-  return [];
+async function fetchMyAlerts(userId) {
+  if (!userId) return [];
+  const [sellerRes, buyerRes] = await Promise.all([
+    getMyAlerts(userId),
+    getAlertsReservedByMe(userId),
+  ]);
+  const asSeller = sellerRes.data ?? [];
+  const asBuyer = buyerRes.data ?? [];
+  const seen = new Set(asSeller.map((a) => a.id));
+  const merged = [...asSeller];
+  for (const a of asBuyer) {
+    if (!seen.has(a.id)) {
+      seen.add(a.id);
+      merged.push(a);
+    }
+  }
+  merged.sort((a, b) => toMs(b.created_at) - toMs(a.created_at));
+  return merged;
+}
+
+function toMs(v) {
+  if (v == null) return 0;
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+  if (typeof v === 'string') {
+    const t = new Date(v).getTime();
+    return Number.isNaN(t) ? 0 : t;
+  }
+  return 0;
 }
 
 /**
@@ -47,11 +74,30 @@ async function fetchMyAlerts(userId, userEmail) {
  */
 export function useMyAlerts() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const userId = user?.id;
 
-  return useQuery({
+  const result = useQuery({
     queryKey: MY_ALERTS_QUERY_KEY,
-    enabled: !!(user?.id || user?.email),
+    enabled: !!userId,
     ...MY_ALERTS_OPTIONS,
-    queryFn: () => fetchMyAlerts(user?.id, user?.email),
+    queryFn: () => fetchMyAlerts(userId),
   });
+
+  useEffect(() => {
+    if (!userId) return;
+    const unsub = subscribeAlerts({
+      onUpsert: (alert) => {
+        if (alert?.seller_id === userId || alert?.user_id === userId) {
+          queryClient.invalidateQueries({ queryKey: MY_ALERTS_QUERY_KEY });
+        }
+      },
+      onDelete: () => {
+        queryClient.invalidateQueries({ queryKey: MY_ALERTS_QUERY_KEY });
+      },
+    });
+    return unsub;
+  }, [userId, queryClient]);
+
+  return result;
 }

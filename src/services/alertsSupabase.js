@@ -16,6 +16,7 @@ function normalizeAlert(row) {
   const sellerId = row.seller_id ?? row.user_id;
   const price = row.price_cents != null ? row.price_cents / 100 : (row.price ?? 0);
   const meta = row.metadata || {};
+  const mins = meta.available_in_minutes ?? row.available_in_minutes;
   return {
     id: row.id,
     user_id: sellerId,
@@ -29,11 +30,15 @@ function normalizeAlert(row) {
     vehicle_type: row.vehicle_type ?? meta.vehicle_type ?? 'car',
     status: row.status,
     reserved_by: row.reserved_by ?? null,
+    reserved_by_id: row.reserved_by ?? meta.reserved_by_id ?? null,
     created_at: row.created_at,
+    created_date: row.created_at,
     expires_at: row.expires_at,
     geohash: row.geohash ?? null,
     address_text: row.address_text,
-    address: row.address_text,
+    address: row.address_text ?? row.address,
+    available_in_minutes: mins ?? null,
+    cancel_reason: meta.cancel_reason ?? row.cancel_reason ?? null,
     metadata: meta,
   };
 }
@@ -99,7 +104,10 @@ export async function updateAlert(alertId, updates) {
   if (updates.addressText != null) row.address_text = updates.addressText;
   if (updates.address != null) row.address_text = updates.address;
   if (updates.metadata != null) row.metadata = updates.metadata;
-  if (updates.cancel_reason != null) row.metadata = { ...(row.metadata || {}), cancel_reason: updates.cancel_reason };
+  if (updates.cancel_reason != null) {
+    const { data: cur } = await supabase.from(TABLE).select('metadata').eq('id', alertId).single();
+    row.metadata = { ...(cur?.metadata || {}), cancel_reason: updates.cancel_reason };
+  }
   if (updates.available_in_minutes != null) {
     const future = new Date(Date.now() + updates.available_in_minutes * 60 * 1000);
     row.expires_at = future.toISOString();
@@ -176,6 +184,39 @@ export async function getMyAlerts(sellerId) {
 
   if (error) return { data: [], error };
   return { data: (data ?? []).map(normalizeAlert), error: null };
+}
+
+/**
+ * Obtiene alertas reservadas por el comprador (tus reservas).
+ * @param {string} buyerId
+ * @returns {{ data: Array, error }}
+ */
+export async function getAlertsReservedByMe(buyerId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  const { data: reservations, error: resError } = await supabase
+    .from('alert_reservations')
+    .select('alert_id')
+    .eq('buyer_id', buyerId)
+    .in('status', ['requested', 'accepted', 'active']);
+
+  if (resError || !reservations?.length) return { data: [], error: resError };
+
+  const alertIds = reservations.map((r) => r.alert_id).filter(Boolean);
+  const { data: alerts, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .in('id', alertIds)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+  const normalized = (alerts ?? []).map((row) => {
+    const a = normalizeAlert(row);
+    a.reserved_by_id = buyerId;
+    return a;
+  });
+  return { data: normalized, error: null };
 }
 
 /**

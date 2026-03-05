@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import * as alertsSupabase from '@/services/alertsSupabase';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -530,7 +531,7 @@ const getCreatedTs = (alert) => {
 
   const deleteAlertSafe = async (id) => {
     try {
-      await base44.entities.ParkingAlert.delete(id);
+      await alertsSupabase.deleteAlert(id);
     } catch (e) {}
   };
 
@@ -622,7 +623,7 @@ const visibleActiveAlerts = useMemo(() => {
 
     Promise.all(
       others.map((a) =>
-        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+        alertsSupabase.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -687,7 +688,7 @@ const myFinalizedAlerts = useMemo(() => {
 
     Promise.all(
       toExpire.map((a) =>
-        base44.entities.ParkingAlert.update(a.id, { status: 'expired' }).catch(() => null)
+        alertsSupabase.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -767,38 +768,21 @@ const myFinalizedAlerts = useMemo(() => {
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      // Cancela la alerta seleccionada
-      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled' });
+      await alertsSupabase.updateAlert(alertId, { status: 'cancelled' });
 
-      // Si por cualquier motivo tienes varias activas, cancelarlas también
-      // (evita que "aparezca otra" automáticamente al cancelar una).
-      try {
-        const uid = user?.id;
-        const email = user?.email;
-
-        let all = [];
-        if (uid) {
-          all = await base44.entities.ParkingAlert.filter({ user_id: uid });
-        } else if (email) {
-          all = await base44.entities.ParkingAlert.filter({ user_email: email });
-        }
-
-        const mine = (all || []).filter((a) => {
-          if (!a) return false;
-          const isMine =
-            (uid && (a.user_id === uid || a.created_by === uid)) ||
-            (email && a.user_email === email);
-          if (!isMine) return false;
-          const st = String(a.status || '').toLowerCase();
-          return st === 'active';
-        });
-
-        await Promise.all(
-          mine
-            .filter((a) => a.id && a.id !== alertId)
-            .map((a) => base44.entities.ParkingAlert.update(a.id, { status: 'cancelled' }).catch(() => null))
-        );
-      } catch {}
+      const uid = user?.id;
+      if (!uid) return;
+      const { data: all } = await alertsSupabase.getMyAlerts(uid);
+      const mine = (all || []).filter((a) => {
+        if (!a) return false;
+        const st = String(a.status || '').toLowerCase();
+        return st === 'active';
+      });
+      await Promise.all(
+        mine
+          .filter((a) => a.id && a.id !== alertId)
+          .map((a) => alertsSupabase.updateAlert(a.id, { status: 'cancelled' }).then(() => null).catch(() => null))
+      );
     },
   onMutate: async (alertId) => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
@@ -822,7 +806,7 @@ const myFinalizedAlerts = useMemo(() => {
 
   const expireAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      await base44.entities.ParkingAlert.update(alertId, { status: 'expired' });
+      await alertsSupabase.updateAlert(alertId, { status: 'expired' });
     },
     onMutate: async (alertId) => {
       // Marcar como expirada en cache (badge se recalcula desde myAlerts)
@@ -842,39 +826,32 @@ const myFinalizedAlerts = useMemo(() => {
     mutationFn: async (alert) => {
       if (!alert) return null;
 
-      // 1) Marca la actual como expirada
-      await base44.entities.ParkingAlert.update(alert.id, { status: 'expired' });
+      await alertsSupabase.updateAlert(alert.id, { status: 'expired' });
 
-      // 2) Crea una nueva con la misma configuración (sin reserva)
       const now = Date.now();
       const minutes = Number(alert.available_in_minutes || 0);
       const futureTime = new Date(now + minutes * 60 * 1000);
 
       const payload = {
-        user_id: alert.user_id,
-        user_email: alert.user_email,
-        user_name: alert.user_name,
-        user_photo: alert.user_photo,
-        latitude: alert.latitude,
-        longitude: alert.longitude,
-        address: alert.address,
+        sellerId: alert.seller_id ?? alert.user_id,
+        latitude: alert.latitude ?? alert.lat,
+        longitude: alert.longitude ?? alert.lng,
+        address: alert.address ?? alert.address_text,
         price: alert.price,
-        available_in_minutes: minutes,
-        brand: alert.brand || '',
-        model: alert.model || '',
-        color: alert.color || '',
-        plate: alert.plate || '',
-        phone: alert.phone || null,
-        allow_phone_calls: !!alert.allow_phone_calls,
         wait_until: futureTime.toISOString(),
-        created_from: 'parked_here',
-        status: 'active',
-        reserved_by_id: null,
-        reserved_by_name: null,
-        reserved_by_email: null
+        metadata: {
+          available_in_minutes: minutes,
+          brand: alert.brand || '',
+          model: alert.model || '',
+          color: alert.color || '',
+          plate: alert.plate || '',
+          phone: alert.phone || null,
+          allow_phone_calls: !!alert.allow_phone_calls,
+        },
       };
 
-      return base44.entities.ParkingAlert.create(payload);
+      const { data } = await alertsSupabase.createAlert(payload);
+      return data;
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
@@ -923,7 +900,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                 setExpiredAlertModalId(null);
                 const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
-                base44.entities.ParkingAlert.update(alert.id, { available_in_minutes: newMins }).then(() => {
+                alertsSupabase.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
                   queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                 });
               }}
@@ -939,7 +916,7 @@ const myFinalizedAlerts = useMemo(() => {
             setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
             setExpiredAlertModalId(null);
             stampFinalizedAt(alert.id);
-            base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+            alertsSupabase.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
               queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
               try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
             });
@@ -1267,7 +1244,7 @@ const myFinalizedAlerts = useMemo(() => {
                         return { ...a, status: 'cancelled', cancel_reason: 'me_fui', finalized_at: now, updated_date: new Date(now).toISOString() };
                       }) : old;
                     });
-                    base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
+                    alertsSupabase.updateAlert(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
                     });
@@ -1523,7 +1500,7 @@ const myFinalizedAlerts = useMemo(() => {
                       setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                       setExpiredAlertModalId(null);
                       const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
-                      base44.entities.ParkingAlert.update(alert.id, { available_in_minutes: newMins }).then(() => {
+                      alertsSupabase.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
                         queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       });
                     }}
@@ -1539,7 +1516,7 @@ const myFinalizedAlerts = useMemo(() => {
                 onClick={() => {
                   setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                   setExpiredAlertModalId(null);
-                  base44.entities.ParkingAlert.update(alert.id, { status: 'cancelled' }).then(() => {
+                  alertsSupabase.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
                     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                     try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
                   });

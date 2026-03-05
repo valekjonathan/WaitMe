@@ -109,22 +109,60 @@ Los valores de status están definidos por CHECK en las tablas. No existe tabla 
 
 ---
 
-## 4. Próximos pasos (sustitución)
+## 4. Migración History.jsx (2025-03-04)
 
-1. Crear `useMyAlertsSupabase` que use `alertsSupabase.getMyAlerts(sellerId)` en lugar de Base44.
-2. Sustituir en cada componente las llamadas a `base44.entities.ParkingAlert` por `alertsSupabase.*`.
-3. Ajustar mapeo de payloads Base44 → Supabase donde haga falta (ej. `user_email` si se usa para usuarios sin auth).
-4. Validar RLS: actualmente solo el seller puede UPDATE/DELETE parking_alerts; si hay flujos donde el buyer actualiza (ej. cancelar reserva), añadir políticas o triggers.
-5. Una vez migrado todo, eliminar imports de Base44 relacionados con ParkingAlert.
+### Cambios realizados
+
+1. **useMyAlerts.js**
+   - Sustituido `base44.entities.ParkingAlert.filter` por `alertsSupabase.getMyAlerts` + `getAlertsReservedByMe`.
+   - Añadida suscripción Realtime con `subscribeAlerts` para invalidar cache al cambiar alertas.
+   - Soporta alertas como vendedor y como comprador (Tus alertas + Tus reservas).
+
+2. **History.jsx**
+   - Sustituidas todas las llamadas a `base44.entities.ParkingAlert` por `alertsSupabase.*`:
+     - `deleteAlertSafe` → `alertsSupabase.deleteAlert`
+     - `cancelAlertMutation` → `updateAlert` + `getMyAlerts`
+     - `expireAlertMutation` → `updateAlert`
+     - `repeatAlertMutation` → `updateAlert` + `createAlert`
+     - Auto-expirar alertas y reservas → `updateAlert`
+     - ExpiredBlock, cancelReservedOpen, expiredAlertModalId → `updateAlert`
+   - Se mantiene `base44.entities.Transaction.list` (no migrado).
+
+3. **HistorySellerView.jsx**
+   - `base44.entities.ParkingAlert.update` → `alertsSupabase.updateAlert`.
+
+4. **HistoryBuyerView.jsx**
+   - `base44.entities.ParkingAlert.update` → `alertsSupabase.updateAlert`.
+   - `base44.entities.ChatMessage.create` se mantiene (chat no migrado).
+
+5. **alertsSupabase.js**
+   - Añadida `getAlertsReservedByMe(buyerId)` para "Tus reservas".
+   - `normalizeAlert` ampliado con `available_in_minutes`, `cancel_reason`, `created_date`, `reserved_by_id`.
+
+### Comportamiento visual
+
+Se mantiene exactamente el mismo: tabs Tus alertas / Tus reservas, cancelar, expirar, repetir, prorrogar, "Me voy".
 
 ---
 
-## 5. Archivos creados/modificados
+## 5. Próximos pasos (resto de componentes)
+
+1. Home.jsx: sustituir create, filter, update (no tocar según instrucciones).
+2. Notifications.jsx, Chats.jsx, Navigate.jsx, IncomingRequestModal, WaitMeRequestScheduler, SellerLocationTracker, ActiveAlertCard.
+3. Una vez migrado todo, eliminar imports de Base44 relacionados con ParkingAlert.
+
+---
+
+## 6. Archivos creados/modificados
 
 | Archivo | Acción |
 |---------|--------|
 | `supabase/migrations/20260305170000_add_geohash_and_reservation_trigger.sql` | Creado |
-| `src/services/alertsSupabase.js` | Creado |
-| `docs/MIGRATION_ALERTS.md` | Creado |
+| `src/services/alertsSupabase.js` | Creado, ampliado |
+| `src/hooks/useMyAlerts.js` | Migrado a Supabase |
+| `src/pages/History.jsx` | Migrado a Supabase |
+| `src/pages/HistorySellerView.jsx` | Migrado a Supabase |
+| `src/pages/HistoryBuyerView.jsx` | Migrado a Supabase (alertas; chat sigue Base44) |
+| `docs/MIGRATION_ALERTS.md` | Actualizado |
 
-**Base44 no se ha eliminado.** La capa Supabase está lista para empezar la sustitución gradual.
+**Base44 no se ha eliminado.** History.jsx usa Supabase para alertas; Transaction y Chat siguen en Base44.
