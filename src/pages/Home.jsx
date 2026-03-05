@@ -576,7 +576,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col w-full text-white min-h-0" style={{ backgroundColor: '#0b0b0b' }}>
+    <div className="flex-1 flex flex-col w-full text-white min-h-0">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
@@ -585,14 +585,11 @@ export default function Home() {
         >
               {showBackgroundMap && (
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                  <MapboxMap
-                    userLocation={userLocation}
-                    className="w-full h-full"
-                  />
+                  <MapboxMap className="w-full h-full" />
                 </div>
               )}
 
-              <div className="absolute inset-0 z-[1] bg-purple-950/30 pointer-events-none" />
+              <div className="absolute inset-0 z-[1] bg-purple-950/20 pointer-events-none" />
 
               <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
                 <img
