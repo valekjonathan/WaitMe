@@ -586,14 +586,17 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — hero centrado entre header (60px) y bottom nav (72px) */}
         <div
-          className="relative overflow-hidden"
+          className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
+            position: 'absolute',
+            top: '60px',
+            left: 0,
+            right: 0,
             height: 'calc(100vh - 60px - 72px)',
-            marginTop: '60px',
           }}
         >
               <div className="relative z-10 flex flex-col items-center justify-center text-center px-6">
