@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as transactions from '@/data/transactions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -452,13 +453,13 @@ export default function Home() {
           reserved_by_plate: buyerPlate,
           reserved_by_vehicle_type: buyerVehicleType
         }),
-        base44.entities.Transaction.create({
+        transactions.createTransaction({
           alert_id: alert.id,
           buyer_id: user?.id,
-          seller_id: alert.user_id || alert.created_by,
+          seller_id: alert.user_id || alert.seller_id || alert.created_by,
           amount: Number(alert.price) || 0,
           status: 'pending'
-        }),
+        }).then((r) => r.error ? Promise.reject(r.error) : r),
         base44.entities.ChatMessage.create({
           conversation_id: `conv_${alert.id}_${user?.id}`,
           alert_id: alert.id,

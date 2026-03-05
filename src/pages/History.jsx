@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
 import * as alerts from '@/data/alerts';
+import * as transactions from '@/data/transactions';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -546,9 +546,9 @@ const {
   isLoading: loadingAlerts
 } = useMyAlerts();
 
-const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
-  queryKey: ['myTransactions', user?.email],
-  enabled: !!user?.email,
+const { data: transactionsData = [], isLoading: loadingTransactions } = useQuery({
+  queryKey: ['myTransactions', user?.id],
+  enabled: !!user?.id,
   staleTime: 5 * 60 * 1000,
   gcTime: 10 * 60 * 1000,
   refetchInterval: false,
@@ -558,10 +558,9 @@ const { data: transactions = [], isLoading: loadingTransactions } = useQuery({
   refetchOnMount: false,
   queryFn: async () => {
     try {
-      const allTx = await base44.entities.Transaction.list('-created_date', 5000);
-      const email = user?.email;
-      if (!email) return [];
-      return (allTx || []).filter((t) => t?.buyer_email === email || t?.seller_email === email || t?.user_email === email);
+      const { data, error } = await transactions.listTransactions(user?.id, { limit: 5000 });
+      if (error) throw error;
+      return data ?? [];
     } catch {
       return [];
     }
@@ -700,8 +699,8 @@ const myFinalizedAlerts = useMemo(() => {
 
   // Sin sort aquí: myFinalizedAll aplica el único sort final
   const myFinalizedAsSellerTx = useMemo(
-    () => transactions.filter((t) => t.seller_id === user?.id),
-    [transactions, user?.id]
+    () => transactionsData.filter((t) => t.seller_id === user?.id),
+    [transactionsData, user?.id]
   );
 
   // Único array ordenado para Finalizadas.
@@ -750,7 +749,7 @@ const myFinalizedAlerts = useMemo(() => {
       created_date: a.created_date,
       data: a
     })),
-  ...transactions
+  ...transactionsData
     .filter((t) => t.buyer_id === user?.id)
     .map((t) => ({
       type: 'transaction',

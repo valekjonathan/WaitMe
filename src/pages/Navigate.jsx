@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
+import * as alerts from '@/data/alerts';
+import * as transactions from '@/data/transactions';
 import { Navigation, ChevronDown, ChevronUp, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ParkingMap from '@/components/map/ParkingMap';
@@ -227,10 +229,22 @@ export default function Navigate() {
       }
       const isDemo = String(alert.id).startsWith('demo_');
       if (!isDemo) {
-        await base44.entities.ParkingAlert.update(alert.id, { status: 'completed' });
+        await alerts.updateAlert(alert.id, { status: 'completed' });
         const sellerEarnings = alert.price * 0.67;
         const platformFee = alert.price * 0.33;
-        await base44.entities.Transaction.create({ alert_id:alert.id, seller_id:alert.user_email||alert.user_id, seller_name:alert.user_name, buyer_id:user.id, buyer_name:user.full_name?.split(' ')[0]||'Usuario', amount:alert.price, seller_earnings:sellerEarnings, platform_fee:platformFee, status:'completed', address:alert.address });
+        const { error: txErr } = await transactions.createTransaction({
+          alert_id: alert.id,
+          seller_id: alert.user_id ?? alert.seller_id,
+          buyer_id: user.id,
+          seller_name: alert.user_name ?? 'Usuario',
+          buyer_name: user.full_name?.split(' ')[0] || 'Usuario',
+          amount: alert.price,
+          seller_earnings: sellerEarnings,
+          platform_fee: platformFee,
+          status: 'completed',
+          address: alert.address ?? alert.address_text,
+        });
+        if (txErr) console.error('Error creando transacción:', txErr);
         await base44.entities.ChatMessage.create({ conversation_id:`${alert.user_id}_${user.id}`, alert_id:alert.id, sender_id:'system', sender_name:'Sistema', receiver_id:alert.user_id, message:`✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`, read:false, message_type:'system' });
       }
       setPaymentReleased(true);
@@ -238,6 +252,7 @@ export default function Navigate() {
       try { window.dispatchEvent(new CustomEvent('waitme:paymentReleased', { detail: { amount: Number(alert?.price ?? 0) } })); } catch {}
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['navigationAlert'] });
+      queryClient.invalidateQueries({ queryKey: ['myTransactions'] });
       setTimeout(() => { window.location.href = createPageUrl('History'); }, 3000);
     };
     releasePayment();
