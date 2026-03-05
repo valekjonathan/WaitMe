@@ -11,6 +11,7 @@ export default function Header({
   showBackButton = false,
   backTo = null,
   onBack,
+  onTitleClick = null,
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
@@ -62,7 +63,15 @@ export default function Header({
     );
   }, [title]);
 
-  const titleNode = (
+  const titleNode = onTitleClick ? (
+    <button
+      type="button"
+      onClick={onTitleClick}
+      className={`${titleClassName} font-semibold select-none w-full truncate text-center cursor-pointer hover:opacity-90 active:opacity-80 transition-opacity`}
+    >
+      {innerTitle}
+    </button>
+  ) : (
     <span className={`${titleClassName} font-semibold select-none w-full truncate text-center`}>
       {innerTitle}
     </span>

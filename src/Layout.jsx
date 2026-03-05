@@ -35,7 +35,7 @@ function LayoutShell() {
   const path = location.pathname;
   const routeConfig = ROUTE_HEADER[path] || ROUTE_HEADER['/'];
   const ctxConfig = useLayoutHeaderConfig();
-  const baseConfig = { title: 'WaitMe!', showBackButton: false, backTo: null, onBack: null, titleClassName: 'text-[24px] leading-[24px]' };
+  const baseConfig = { title: 'WaitMe!', showBackButton: false, backTo: null, onBack: null, onTitleClick: null, titleClassName: 'text-[24px] leading-[24px]' };
   const merged = { ...baseConfig, ...routeConfig, ...ctxConfig };
 
   return (
@@ -45,6 +45,7 @@ function LayoutShell() {
         showBackButton={merged.showBackButton}
         backTo={merged.backTo}
         onBack={merged.onBack}
+        onTitleClick={merged.onTitleClick}
         titleClassName={merged.titleClassName}
       />
       <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24">

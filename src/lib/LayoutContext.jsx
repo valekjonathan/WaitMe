@@ -8,6 +8,7 @@ export function LayoutProvider({ children }) {
     showBackButton: false,
     backTo: null,
     onBack: null,
+    onTitleClick: null,
     titleClassName: 'text-[24px] leading-[24px]',
   });
   const [profileFormData, setProfileFormData] = useState(null);

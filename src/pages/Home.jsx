@@ -544,10 +544,18 @@ export default function Home() {
     resetToLogo({ invalidate: false });
   }, [resetToLogo]);
 
+  const handleTitleClick = useCallback(() => {
+    window.dispatchEvent(new Event('waitme:goLogo'));
+  }, []);
+
   useEffect(() => {
-    setHeader({ showBackButton: !!mode, onBack: mode ? handleBack : null });
-    return () => setHeader({ showBackButton: false, onBack: null });
-  }, [mode, handleBack, setHeader]);
+    setHeader({
+      showBackButton: !!mode,
+      onBack: mode ? handleBack : null,
+      onTitleClick: handleTitleClick,
+    });
+    return () => setHeader({ showBackButton: false, onBack: null, onTitleClick: null });
+  }, [mode, handleBack, handleTitleClick, setHeader]);
 
   const handleMapMove = useCallback((center) => {
     setSelectedPosition({ lat: center[0], lng: center[1] });
@@ -576,14 +584,16 @@ export default function Home() {
           style={{ display: mode ? 'none' : 'flex' }}
         >
               {showBackgroundMap && (
-                <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
-                  <div className="w-full h-full">
-                    <MapboxMap />
-                  </div>
+                <div className="absolute inset-0 z-0 overflow-hidden">
+                  <MapboxMap
+                    showSimulatedCars={true}
+                    simulatedCarCount={12}
+                    className="w-full h-full"
+                  />
                 </div>
               )}
 
-              <div className="absolute inset-0 bg-purple-900/40 pointer-events-none"></div>
+              <div className="absolute inset-0 z-[1] bg-purple-950/30 pointer-events-none" />
 
               <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
                 <img

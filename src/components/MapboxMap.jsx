@@ -1,10 +1,60 @@
-import { useEffect, useRef, useState } from 'react';
-import { useAppStore } from '@/state/appStore';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 
-const OVIEDO_CENTER = [-5.84476, 43.36139];
-const DEFAULT_ZOOM = 15;
-const DEFAULT_PITCH = 45;
+const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat] for Mapbox
+const DEFAULT_ZOOM = 14;
+const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
+
+// Car colors for markers (matches app palette)
+const CAR_COLORS = [
+  '#FFFFFF', '#1a1a1a', '#6b7280', '#ef4444', '#3b82f6', '#22c55e',
+  '#eab308', '#f97316', '#a855f7', '#92400e'
+];
+
+/**
+ * Generate random car positions within 2km of Oviedo.
+ * Uses seeded random for stable positions across re-renders.
+ */
+function generateSimulatedCars(count = 12) {
+  const centerLat = 43.3619;
+  const centerLng = -5.8494;
+  const kmPerDegLat = 111;
+  const kmPerDegLng = 111 * Math.cos((centerLat * Math.PI) / 180);
+
+  const cars = [];
+  let seed = 42;
+  const random = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  for (let i = 0; i < count; i++) {
+    const radiusKm = 2 * Math.sqrt(random());
+    const angle = 2 * Math.PI * random();
+    const dLat = (radiusKm * Math.cos(angle)) / kmPerDegLat;
+    const dLng = (radiusKm * Math.sin(angle)) / kmPerDegLng;
+    cars.push({
+      id: `sim_${i}`,
+      lng: centerLng + dLng,
+      lat: centerLat + dLat,
+      color: CAR_COLORS[Math.floor(random() * CAR_COLORS.length)],
+    });
+  }
+  return cars;
+}
+
+function createCarMarkerHtml(color) {
+  return `
+    <div style="width:28px;height:18px;display:flex;align-items:center;justify-content:center;">
+      <svg width="28" height="18" viewBox="0 0 48 24" fill="none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5))">
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${color}" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+        <circle cx="14" cy="18" r="3" fill="#333"/>
+        <circle cx="36" cy="18" r="3" fill="#333"/>
+      </svg>
+    </div>
+  `;
+}
 
 export default function MapboxMap({
   center = OVIEDO_CENTER,
@@ -13,18 +63,50 @@ export default function MapboxMap({
   bearing = 0,
   className = '',
   style: mapStyle = DARK_STYLE,
+  showSimulatedCars = true,
+  simulatedCarCount = 12,
   onMapLoad,
+  onRecenterRef,
   children,
   ...rest
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const mapboxglRef = useRef(null);
-  const userMarkerRef = useRef(null);
+  const markersRef = useRef([]);
   const [error, setError] = useState(null);
   const [mapboxLoaded, setMapboxLoaded] = useState(false);
-  const alerts = useAppStore((s) => s.alerts.items);
-  const location = useAppStore((s) => s.location);
+
+  const simulatedCars = useMemo(
+    () => (showSimulatedCars ? generateSimulatedCars(simulatedCarCount) : []),
+    [showSimulatedCars, simulatedCarCount]
+  );
+
+  const flyToCenter = useCallback(() => {
+    const map = mapRef.current;
+    if (!map?.flyTo) return;
+    map.flyTo({
+      center: Array.isArray(center) ? center : OVIEDO_CENTER,
+      zoom: zoom ?? DEFAULT_ZOOM,
+      pitch: pitch ?? DEFAULT_PITCH,
+      bearing: bearing ?? 0,
+      duration: 800,
+      essential: true,
+    });
+  }, [center, zoom, pitch, bearing]);
+
+  useEffect(() => {
+    if (onRecenterRef) onRecenterRef.current = flyToCenter;
+    return () => {
+      if (onRecenterRef) onRecenterRef.current = null;
+    };
+  }, [onRecenterRef, flyToCenter]);
+
+  useEffect(() => {
+    const handler = () => flyToCenter();
+    window.addEventListener('waitme:goLogo', handler);
+    return () => window.removeEventListener('waitme:goLogo', handler);
+  }, [flyToCenter]);
 
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -55,8 +137,6 @@ export default function MapboxMap({
           attributionControl: false,
         });
 
-        map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-left');
-
         map.on('load', () => {
           if (cancelled) return;
           mapRef.current = map;
@@ -72,10 +152,10 @@ export default function MapboxMap({
 
     return () => {
       cancelled = true;
-      if (userMarkerRef.current) {
-        try { userMarkerRef.current.remove(); } catch {}
-        userMarkerRef.current = null;
-      }
+      markersRef.current.forEach((m) => {
+        try { m?.remove?.(); } catch {}
+      });
+      markersRef.current = [];
       if (map) {
         try { map.remove(); } catch {}
       }
@@ -89,114 +169,27 @@ export default function MapboxMap({
     if (!mapboxLoaded || !mapRef.current || !mapboxglRef.current || error) return;
     const map = mapRef.current;
     const mapboxgl = mapboxglRef.current;
-    const lat = location.lat;
-    const lng = location.lng;
-    if (typeof lat === 'number' && typeof lng === 'number') {
-      if (userMarkerRef.current) {
-        try { userMarkerRef.current.remove(); } catch {}
-      }
+
+    markersRef.current.forEach((m) => {
+      try { m?.remove?.(); } catch {}
+    });
+    markersRef.current = [];
+
+    simulatedCars.forEach((car) => {
       const el = document.createElement('div');
-      el.style.cssText =
-        'width:20px;height:20px;background:#a855f7;border-radius:50%;box-shadow:0 0 12px rgba(168,85,247,0.8);border:3px solid white;';
-      userMarkerRef.current = new mapboxgl.Marker({ element: el })
-        .setLngLat([lng, lat])
+      el.innerHTML = createCarMarkerHtml(car.color);
+      el.className = 'mapbox-marker';
+      const marker = new mapboxgl.Marker({ element: el.firstElementChild || el })
+        .setLngLat([car.lng, car.lat])
         .addTo(map);
-    }
-  }, [mapboxLoaded, location.lat, location.lng, error]);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        useAppStore.getState().setLocation(latitude, longitude, accuracy);
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 10000 }
-    );
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
-
-  useEffect(() => {
-    if (!mapboxLoaded || !mapRef.current || error) return;
-    const map = mapRef.current;
-
-    const features = alerts
-      .filter((a) => a.lat != null && a.lng != null)
-      .map((a) => ({
-        type: 'Feature',
-        properties: {
-          id: a.id,
-          price: Number(a.price) || 0,
-          vehicle_type: a.vehicle_type || 'car',
-        },
-        geometry: {
-          type: 'Point',
-          coordinates: [Number(a.lng), Number(a.lat)],
-        },
-      }));
-
-    const geojson = { type: 'FeatureCollection', features };
-
-    if (!map.getSource('alerts')) {
-      map.addSource('alerts', { type: 'geojson', data: geojson, cluster: true, clusterMaxZoom: 14, clusterRadius: 50 });
-      map.addLayer({
-        id: 'alerts-clusters',
-        type: 'circle',
-        source: 'alerts',
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': '#a855f7',
-          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 50, 40],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
-        },
-      });
-      map.addLayer({
-        id: 'alerts-cluster-count',
-        type: 'symbol',
-        source: 'alerts',
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': ['get', 'point_count_abbreviated'],
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 14,
-        },
-        paint: { 'text-color': '#fff' },
-      });
-      map.addLayer({
-        id: 'alerts-unclustered',
-        type: 'circle',
-        source: 'alerts',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': '#a855f7',
-          'circle-radius': 12,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
-        },
-      });
-      map.addLayer({
-        id: 'alerts-price',
-        type: 'symbol',
-        source: 'alerts',
-        filter: ['!', ['has', 'point_count']],
-        layout: {
-          'text-field': ['concat', ['to-string', ['get', 'price']], '€'],
-          'text-size': 11,
-          'text-offset': [0, 0],
-        },
-        paint: { 'text-color': '#fff' },
-      });
-    } else {
-      map.getSource('alerts').setData(geojson);
-    }
-  }, [mapboxLoaded, alerts, error]);
+      markersRef.current.push(marker);
+    });
+  }, [mapboxLoaded, simulatedCars, error]);
 
   if (error) {
     return (
       <div
-        className={`flex items-center justify-center bg-[#1a1a1a] text-gray-500 text-sm ${className}`}
+        className={`flex items-center justify-center bg-[#0B0B0F] text-gray-500 text-sm ${className}`}
         style={{ width: '100%', height: '100%' }}
       >
         Mapa no disponible
