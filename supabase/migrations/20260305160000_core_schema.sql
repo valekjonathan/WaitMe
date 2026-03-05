@@ -1,44 +1,13 @@
 -- =============================================================================
--- WaitMe Core Schema - Migración profesional
--- Requiere: public.profiles y auth.users existentes
+-- WaitMe Core Schema - Migración profesional (idempotente, sin borrado de tablas)
+-- Requiere: public.profiles, auth.users, public.parking_alerts (de migraciones previas)
 --
 -- Si ALTER PUBLICATION falla con "already member", añadir tablas en Dashboard:
 --   Database → Replication → supabase_realtime
 -- =============================================================================
 
--- Drop tablas antiguas/incompatibles antes de recrear (orden por dependencias)
-DROP TABLE IF EXISTS public.messages CASCADE;
-DROP TABLE IF EXISTS public.conversations CASCADE;
-DROP TABLE IF EXISTS public.alert_reservations CASCADE;
-DROP TABLE IF EXISTS public.parking_alerts CASCADE;
-
--- 1) parking_alerts
-CREATE TABLE public.parking_alerts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  seller_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','reserved','expired','completed','cancelled')),
-  lat double precision NOT NULL,
-  lng double precision NOT NULL,
-  address_text text,
-  price_cents int NOT NULL,
-  currency text NOT NULL DEFAULT 'EUR',
-  expires_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
-);
-
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_status ON public.parking_alerts(status);
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_seller_id ON public.parking_alerts(seller_id);
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_expires_at ON public.parking_alerts(expires_at);
-
-ALTER TABLE public.parking_alerts ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "parking_alerts_select_all" ON public.parking_alerts FOR SELECT USING (true);
-CREATE POLICY "parking_alerts_insert_own" ON public.parking_alerts FOR INSERT WITH CHECK (seller_id = auth.uid());
-CREATE POLICY "parking_alerts_update_own" ON public.parking_alerts FOR UPDATE USING (seller_id = auth.uid());
-CREATE POLICY "parking_alerts_delete_own" ON public.parking_alerts FOR DELETE USING (seller_id = auth.uid());
-
+-- 1) parking_alerts: ya existe de 20260304150000, migrado por 20260305155000
+--    Solo aseguramos trigger updated_at
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -53,7 +22,7 @@ CREATE TRIGGER parking_alerts_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- 2) alert_reservations
-CREATE TABLE public.alert_reservations (
+CREATE TABLE IF NOT EXISTS public.alert_reservations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   alert_id uuid NOT NULL REFERENCES public.parking_alerts(id) ON DELETE CASCADE,
   buyer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -70,17 +39,20 @@ CREATE INDEX IF NOT EXISTS idx_alert_reservations_status ON public.alert_reserva
 
 ALTER TABLE public.alert_reservations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "alert_reservations_select" ON public.alert_reservations;
+DROP POLICY IF EXISTS "alert_reservations_insert" ON public.alert_reservations;
+DROP POLICY IF EXISTS "alert_reservations_update" ON public.alert_reservations;
 CREATE POLICY "alert_reservations_select" ON public.alert_reservations FOR SELECT
   USING (
     buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND pa.seller_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND (pa.seller_id = auth.uid() OR pa.user_id = auth.uid()))
   );
 CREATE POLICY "alert_reservations_insert" ON public.alert_reservations FOR INSERT
   WITH CHECK (buyer_id = auth.uid());
 CREATE POLICY "alert_reservations_update" ON public.alert_reservations FOR UPDATE
   USING (
     buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND pa.seller_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND (pa.seller_id = auth.uid() OR pa.user_id = auth.uid()))
   );
 
 DROP TRIGGER IF EXISTS alert_reservations_updated_at ON public.alert_reservations;
@@ -89,7 +61,7 @@ CREATE TRIGGER alert_reservations_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- 3) conversations
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   alert_id uuid REFERENCES public.parking_alerts(id) ON DELETE SET NULL,
   buyer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -103,6 +75,9 @@ CREATE INDEX IF NOT EXISTS idx_conversations_seller_id ON public.conversations(s
 
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "conversations_select" ON public.conversations;
+DROP POLICY IF EXISTS "conversations_insert" ON public.conversations;
+DROP POLICY IF EXISTS "conversations_update" ON public.conversations;
 CREATE POLICY "conversations_select" ON public.conversations FOR SELECT
   USING (buyer_id = auth.uid() OR seller_id = auth.uid());
 CREATE POLICY "conversations_insert" ON public.conversations FOR INSERT
@@ -111,7 +86,7 @@ CREATE POLICY "conversations_update" ON public.conversations FOR UPDATE
   USING (buyer_id = auth.uid() OR seller_id = auth.uid());
 
 -- 4) messages
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -123,6 +98,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_conversation_created ON public.messages(
 
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "messages_select" ON public.messages;
+DROP POLICY IF EXISTS "messages_insert" ON public.messages;
 CREATE POLICY "messages_select" ON public.messages FOR SELECT
   USING (
     EXISTS (
@@ -140,7 +117,7 @@ CREATE POLICY "messages_insert" ON public.messages FOR INSERT
   );
 
 -- 5) user_locations
-CREATE TABLE public.user_locations (
+CREATE TABLE IF NOT EXISTS public.user_locations (
   user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   lat double precision NOT NULL,
   lng double precision NOT NULL,
@@ -154,12 +131,31 @@ CREATE INDEX IF NOT EXISTS idx_user_locations_updated_at ON public.user_location
 
 ALTER TABLE public.user_locations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "user_locations_select_all" ON public.user_locations;
+DROP POLICY IF EXISTS "user_locations_insert_own" ON public.user_locations;
+DROP POLICY IF EXISTS "user_locations_update_own" ON public.user_locations;
 CREATE POLICY "user_locations_select_all" ON public.user_locations FOR SELECT USING (true);
 CREATE POLICY "user_locations_insert_own" ON public.user_locations FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "user_locations_update_own" ON public.user_locations FOR UPDATE USING (user_id = auth.uid());
 
--- Realtime: añadir tablas a la publicación (ejecutar en Dashboard si falla)
-ALTER PUBLICATION supabase_realtime ADD TABLE public.parking_alerts;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.alert_reservations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.user_locations;
+-- Realtime: añadir tablas a la publicación (ignorar si ya están)
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.parking_alerts;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.alert_reservations;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.user_locations;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

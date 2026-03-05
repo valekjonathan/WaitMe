@@ -20,10 +20,48 @@ env:
   SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
 jobs:
+  migrations_test:
+    name: Verificar migrations desde cero
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local stack
+        run: supabase start
+
+      - name: Apply all migrations from scratch
+        run: supabase db reset --no-seed
+
+      - name: Verify expected tables exist
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client > /dev/null
+          TABLES=$(PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -t -A -c "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;" 2>/dev/null || true)
+          echo "Tablas en public:"
+          echo "$TABLES"
+          for t in profiles parking_alerts alert_reservations conversations messages transactions user_locations; do
+            if ! echo "$TABLES" | grep -qx "$t"; then
+              echo "::error::Tabla esperada no encontrada: $t"
+              exit 1
+            fi
+          done
+          echo "OK: todas las tablas esperadas existen"
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
+
   migrate:
     name: Push migrations
+    needs: [migrations_test]
     runs-on: ubuntu-22.04
-    # Solo ejecutar si CI pasó (o es manual)
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     environment: production
 
