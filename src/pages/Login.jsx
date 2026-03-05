@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
-const OAUTH_REDIRECT = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
+const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
+const OAUTH_REDIRECT_CAPACITOR = 'capacitor://localhost';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -17,10 +20,28 @@ export default function Login() {
         setError('Supabase no configurado. Revisa .env');
         return;
       }
-      await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: OAUTH_REDIRECT },
-      });
+      const isNative = Capacitor.isNativePlatform();
+
+      if (isNative) {
+        const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: OAUTH_REDIRECT_CAPACITOR,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (oauthError) throw oauthError;
+        if (data?.url) {
+          await Browser.open({ url: data.url });
+        } else {
+          setError('No se pudo obtener la URL de login');
+        }
+      } else {
+        await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: OAUTH_REDIRECT_WEB },
+        });
+      }
     } catch (err) {
       if (provider === 'apple') {
         alert('Apple no está configurado todavía.');
