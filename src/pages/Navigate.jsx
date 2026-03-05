@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { useQueryClient } from '@tanstack/react-query';
 import * as alerts from '@/data/alerts';
+import * as chat from '@/data/chat';
+import { useAuth } from '@/lib/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import * as transactions from '@/data/transactions';
 import { Navigation, ChevronDown, ChevronUp, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -89,17 +90,10 @@ export default function Navigate() {
     setRouteDurationSec(durationSec);
   }, []);
 
+  const authUser = useAuth().user;
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('Error:', error);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (authUser) setUser(authUser);
+  }, [authUser]);
 
   const [alert, setAlert] = useState(null);
 
@@ -110,8 +104,8 @@ export default function Navigate() {
     }
     const fetchAlert = async () => {
       try {
-        const alerts = await base44.entities.ParkingAlert.filter({ id: alertId });
-        if (alerts.length > 0) setAlert(alerts[0]);
+        const { data } = await alerts.getAlert(alertId);
+        if (data) setAlert(data);
       } catch (err) {
         console.error('Error fetching alert:', err);
       }
@@ -245,7 +239,18 @@ export default function Navigate() {
           address: alert.address ?? alert.address_text,
         });
         if (txErr) console.error('Error creando transacción:', txErr);
-        await base44.entities.ChatMessage.create({ conversation_id:`${alert.user_id}_${user.id}`, alert_id:alert.id, sender_id:'system', sender_name:'Sistema', receiver_id:alert.user_id, message:`✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`, read:false, message_type:'system' });
+        const { data: conv } = await chat.createConversation({
+          buyerId: user.id,
+          sellerId: alert.user_id || alert.seller_id,
+          alertId: alert.id
+        });
+        if (conv?.id) {
+          await chat.sendMessage({
+            conversationId: conv.id,
+            senderId: user.id,
+            body: `✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`
+          });
+        }
       }
       setPaymentReleased(true);
       setShowPaymentSuccess(true);
@@ -401,7 +406,7 @@ export default function Navigate() {
                   </Button>
                   <Button
                     onClick={async () => {
-                      await base44.entities.ParkingAlert.update(displayAlert.id, { status: 'cancelled', cancel_reason: 'user_cancelled' });
+                      await alerts.updateAlert(displayAlert.id, { status: 'cancelled', cancel_reason: 'user_cancelled' });
                       setShowCancelWarning(false);
                       setTimeout(() => { window.location.href = createPageUrl('Home'); }, 500);
                     }}

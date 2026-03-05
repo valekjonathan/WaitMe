@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { setWaitMeRequestStatus } from '@/lib/waitmeRequests';
-import { base44 } from '@/api/base44Client';
+import * as alerts from '@/data/alerts';
+import * as chat from '@/data/chat';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation, X, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -57,6 +59,7 @@ function PlateProfile({plate}){
 export default function IncomingRequestModal(){
   const navigate=useNavigate();
   const queryClient=useQueryClient();
+  const { user: currentUser }=useAuth();
 
   const[open,setOpen]=useState(false);
   const[request,setRequest]=useState(null);
@@ -149,42 +152,25 @@ export default function IncomingRequestModal(){
     } catch {}
 
     try{
-      await base44.entities.ParkingAlert.update(request.alertId,payload);
+      const { error: updateErr } = await alerts.updateAlert(request.alertId, payload);
+      if (updateErr) throw updateErr;
       queryClient.invalidateQueries({queryKey:['alerts']});
       queryClient.invalidateQueries({queryKey:['myAlerts']});
 
-      // Crear conversación y mensaje inicial de Sofia automáticamente
-      const currentUser = await base44.auth.me().catch(()=>null);
-      if(currentUser){
-        // Buscar si ya existe la conversación
-        const existingConvs = await base44.entities.Conversation.filter({alert_id: request.alertId}).catch(()=>[]);
-        let conv = existingConvs?.[0];
-        if(!conv){
-          conv = await base44.entities.Conversation.create({
-            participant1_id: buyer?.id||'buyer',
-            participant1_name: buyer?.name||'Usuario',
-            participant1_photo: buyer?.photo||null,
-            participant2_id: currentUser.id||currentUser.email,
-            participant2_name: currentUser.full_name||currentUser.email||'Yo',
-            participant2_photo: currentUser.photo_url||null,
-            alert_id: request.alertId,
-            last_message_text: 'ey ! te he enviado un waitme',
-            last_message_at: new Date().toISOString(),
-            unread_count_p2: 1,
-          }).catch(()=>null);
-        }
-        if(conv){
-          await base44.entities.ChatMessage.create({
-            conversation_id: conv.id,
-            alert_id: request.alertId,
-            sender_id: buyer?.id||'buyer',
-            sender_name: (buyer?.name||'Usuario').split(' ')[0],
-            sender_photo: buyer?.photo||null,
-            receiver_id: currentUser.id||currentUser.email,
-            message: 'ey ! te he enviado un waitme',
-            read: false,
-            message_type: 'user',
-          }).catch(()=>null);
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if(currentUser?.id && buyer?.id && uuidRegex.test(buyer.id)){
+        const convRes = await chat.createConversation({
+          buyerId: buyer.id,
+          sellerId: currentUser.id,
+          alertId: request.alertId
+        }).catch(()=>({}));
+        const conv = convRes?.data;
+        if(conv?.id){
+          await chat.sendMessage({
+            conversationId: conv.id,
+            senderId: buyer.id,
+            body: 'ey ! te he enviado un waitme'
+          }).catch(()=>{});
         }
       }
     }catch{setLoading(false);}

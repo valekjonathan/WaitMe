@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as alerts from '@/data/alerts';
 import { useQueryClient } from '@tanstack/react-query';
 import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ function ActiveAlertCard({ userLocation, onRefresh }) {
 
   const handleCancel = useCallback(async (alertId) => {
     try {
-      await base44.entities.ParkingAlert.update(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
+      await alerts.updateAlert(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       if (onRefresh) onRefresh();
     } catch (e) {

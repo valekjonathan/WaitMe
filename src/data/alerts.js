@@ -8,6 +8,7 @@
  */
 import * as provider from '@/services/alertsSupabase';
 
+export const getAlert = provider.getAlert;
 export const getMyAlerts = provider.getMyAlerts;
 export const getAlertsReservedByMe = provider.getAlertsReservedByMe;
 export const getAlertsForChats = provider.getAlertsForChats;

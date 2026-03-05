@@ -1,4 +1,4 @@
-export default async function searchGooglePlaces({ query }, { base44 }) {
+export default async function searchGooglePlaces({ query }) {
   try {
     const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
     

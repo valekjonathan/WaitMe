@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { upsertWaitMeRequest } from '@/lib/waitmeRequests';
 import { MOCK_USERS } from '@/lib/mockNearby';
 import { addDemoAlert, addIncomingWaitMeConversation } from '@/components/DemoFlowManager';
-import { base44 } from '@/api/base44Client';
+import * as alerts from '@/data/alerts';
 
 // Dispara la petición demo SOLO 30 segundos después de que el usuario publique una alerta.
 export default function WaitMeRequestScheduler() {
@@ -23,7 +23,7 @@ export default function WaitMeRequestScheduler() {
         // Guard: only fire if the published alert is still active
         if (publishedAlertId) {
           try {
-            const a = await base44.entities.ParkingAlert.get(publishedAlertId);
+            const { data: a } = await alerts.getAlert(publishedAlertId);
             const st = String(a?.status || '').toLowerCase();
             if (st !== 'active' && st !== 'reserved') return; // alert was cancelled/expired
           } catch {}
@@ -38,7 +38,7 @@ export default function WaitMeRequestScheduler() {
           let alertData = null;
           if (publishedAlertId) {
             try {
-              alertData = await base44.entities.ParkingAlert.get(publishedAlertId);
+              alertData = (await alerts.getAlert(publishedAlertId)).data;
             } catch {}
           }
 

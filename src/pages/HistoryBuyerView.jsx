@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 import * as alerts from '@/data/alerts';
+import * as chat from '@/data/chat';
 
 export default function HistoryBuyerView({
   noScrollBar,
@@ -129,15 +129,18 @@ export default function HistoryBuyerView({
                                     if (isMock) return;
 
                                     await alerts.updateAlert(alert.id, { status: 'cancelled' });
-                                    await base44.entities.ChatMessage.create({
-                                      alert_id: alert.id,
-                                      sender_id: user?.email || user?.id,
-                                      sender_name:
-                                        user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-                                      receiver_id: alert.user_email || alert.user_id,
-                                      message: `He cancelado mi reserva de ${Math.trunc(alert.price ?? 0)} €`,
-                                      read: false
+                                    const { data: conv } = await chat.createConversation({
+                                      buyerId: user?.id,
+                                      sellerId: alert.user_id || alert.seller_id,
+                                      alertId: alert.id
                                     });
+                                    if (conv?.id) {
+                                      await chat.sendMessage({
+                                        conversationId: conv.id,
+                                        senderId: user?.id,
+                                        body: `He cancelado mi reserva de ${Math.trunc(alert.price ?? 0)} €`
+                                      });
+                                    }
 
                                     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                                   }}

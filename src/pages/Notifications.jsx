@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import * as alerts from '@/data/alerts';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
 import {
@@ -80,7 +80,7 @@ export default function Notifications() {
         const pairs = await Promise.all(
           ids.map(async (id) => {
             try {
-              const a = await base44.entities.ParkingAlert.get(id);
+              const { data: a } = await alerts.getAlert(id);
               return [id, a];
             } catch {
               return [id, null];
@@ -114,7 +114,7 @@ export default function Notifications() {
 
       const buyer = req?.buyer || {};
 
-      await base44.entities.ParkingAlert.update(alertId, {
+      await alerts.updateAlert(alertId, {
         status: 'reserved',
         reserved_by_id: buyer?.id || 'buyer',
         reserved_by_email: null,

@@ -38,6 +38,19 @@ describe('chat contract', () => {
     expect(Array.isArray(result.data) || result.data === null).toBe(true)
   })
 
+  it('exports createConversation', () => {
+    expect(typeof chat.createConversation).toBe('function')
+  })
+
+  it('createConversation returns { data, error }', async () => {
+    const result = await chat.createConversation({
+      buyerId: 'test-buyer-id',
+      sellerId: 'test-seller-id',
+      alertId: 'test-alert-id',
+    })
+    expect(hasDataErrorShape(result)).toBe(true)
+  })
+
   it('getConversation returns { data, error }', async () => {
     const result = await chat.getConversation('test-conv-id', 'test-user-id')
     expect(hasDataErrorShape(result)).toBe(true)

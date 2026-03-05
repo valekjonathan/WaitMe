@@ -10,6 +10,7 @@ import * as provider from '@/services/chatSupabase';
 
 export const getConversations = provider.getConversations;
 export const getConversation = provider.getConversation;
+export const createConversation = provider.createConversation;
 export const getMessages = provider.getMessages;
 export const sendMessage = provider.sendMessage;
 export const subscribeMessages = provider.subscribeMessages;

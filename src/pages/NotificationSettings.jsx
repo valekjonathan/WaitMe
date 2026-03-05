@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import * as profiles from '@/data/profiles';
 import { Bell, CreditCard, MapPin, Megaphone } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
@@ -35,7 +35,7 @@ export default function NotificationSettings() {
   const updateMasterToggle = async (value) => {
     setMasterToggle(value);
     try {
-      await base44.auth.updateMe({ notifications_enabled: value });
+      if (user?.id) await profiles.updateProfile(user.id, { notifications_enabled: value });
     } catch (error) {
       console.log('Error guardando preferencia:', error);
     }
@@ -44,7 +44,7 @@ export default function NotificationSettings() {
   const updateSetting = async (key, value) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
     try {
-      await base44.auth.updateMe({ [key]: value });
+      if (user?.id) await profiles.updateProfile(user.id, { [key]: value });
     } catch (error) {
       console.log('Error guardando preferencia:', error);
     }

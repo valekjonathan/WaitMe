@@ -153,6 +153,36 @@ export async function getMessages(conversationId, userId) {
 }
 
 /**
+ * Crea o obtiene una conversación para buyer+seller+alert.
+ * @param {Object} payload - { buyerId, sellerId, alertId }
+ * @returns {{ data, error }}
+ */
+export async function createConversation(payload) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { buyerId, sellerId, alertId } = payload;
+  const { data: existing } = await supabase
+    .from('conversations')
+    .select('id')
+    .eq('alert_id', alertId)
+    .eq('buyer_id', buyerId)
+    .eq('seller_id', sellerId)
+    .maybeSingle();
+
+  if (existing) return { data: existing, error: null };
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .insert({ buyer_id: buyerId, seller_id: sellerId, alert_id: alertId })
+    .select('id')
+    .single();
+
+  if (error) return { data: null, error };
+  return { data, error: null };
+}
+
+/**
  * Envía un mensaje.
  * @param {Object} payload - { conversationId, senderId, body }
  * @returns {{ data, error }}

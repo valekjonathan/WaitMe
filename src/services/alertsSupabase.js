@@ -84,6 +84,7 @@ export async function createAlert(payload) {
       currency: 'EUR',
       expires_at: expiresAt ?? null,
       geohash,
+      status: payload.status ?? 'active',
       metadata: Object.keys(metadata).length ? metadata : {},
     })
     .select()
@@ -105,15 +106,26 @@ export async function updateAlert(alertId, updates) {
 
   const row = {};
   if (updates.status != null) row.status = updates.status;
+  if (updates.reserved_by != null) row.reserved_by = updates.reserved_by;
+  if (updates.reserved_by_id != null) row.reserved_by = updates.reserved_by_id;
   if (updates.priceCents != null) row.price_cents = updates.priceCents;
   else if (updates.price != null) row.price_cents = Math.round(updates.price * 100);
   if (updates.expiresAt != null) row.expires_at = updates.expiresAt;
   if (updates.addressText != null) row.address_text = updates.addressText;
   if (updates.address != null) row.address_text = updates.address;
   if (updates.metadata != null) row.metadata = updates.metadata;
-  if (updates.cancel_reason != null) {
+  const needsMeta = updates.reserved_by_name != null || updates.reserved_by_car != null ||
+    updates.reserved_by_plate != null || updates.cancel_reason != null;
+  if (needsMeta) {
     const { data: cur } = await supabase.from(TABLE).select('metadata').eq('id', alertId).single();
-    row.metadata = { ...(cur?.metadata || {}), cancel_reason: updates.cancel_reason };
+    const meta = { ...(cur?.metadata || {}) };
+    if (updates.reserved_by_name != null) meta.reserved_by_name = updates.reserved_by_name;
+    if (updates.reserved_by_car != null) meta.reserved_by_car = updates.reserved_by_car;
+    if (updates.reserved_by_plate != null) meta.reserved_by_plate = updates.reserved_by_plate;
+    if (updates.reserved_by_car_color != null) meta.reserved_by_car_color = updates.reserved_by_car_color;
+    if (updates.reserved_by_vehicle_type != null) meta.reserved_by_vehicle_type = updates.reserved_by_vehicle_type;
+    if (updates.cancel_reason != null) meta.cancel_reason = updates.cancel_reason;
+    row.metadata = meta;
   }
   if (updates.available_in_minutes != null) {
     const future = new Date(Date.now() + updates.available_in_minutes * 60 * 1000);

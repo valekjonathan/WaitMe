@@ -1,5 +1,5 @@
 {
-  "name": "base44-app",
+  "name": "waitme-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -29,8 +29,6 @@
     "db:migrate:print": "node -e \"const fs=require('fs');const p='supabase/migrations';const files=fs.readdirSync(p).filter(f=>f.endsWith('.sql')).sort().reverse();const last=files[0];console.log(fs.readFileSync(p+'/'+last,'utf8'));\""
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.3",
-    "@base44/vite-plugin": "^0.2.5",
     "@capacitor/app": "^8.0.1",
     "@capacitor/browser": "^8.0.1",
     "@capacitor/cli": "^8.1.0",

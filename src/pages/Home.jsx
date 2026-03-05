@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import * as alerts from '@/data/alerts';
+import * as chat from '@/data/chat';
 import * as notifications from '@/data/notifications';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as transactions from '@/data/transactions';
@@ -325,9 +326,9 @@ export default function Home() {
     const email = user?.email;
 
     if (uid || email) {
-      const mine = uid
-        ? await base44.entities.ParkingAlert.filter({ user_id: uid })
-        : await base44.entities.ParkingAlert.filter({ user_email: email });
+      const { data: mine = [] } = uid
+        ? await alerts.getMyAlerts(uid)
+        : { data: [] };
 
       const hiddenKeys = readHiddenKeys();
       const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
@@ -349,26 +350,29 @@ export default function Home() {
     const now = Date.now();
     const futureTime = new Date(now + data.available_in_minutes * 60 * 1000);
 
-    return base44.entities.ParkingAlert.create({
+    const { data: newAlert, error } = await alerts.createAlert({
       user_id: user?.id,
-      user_email: user?.email,
-      user_name: data.user_name,
-      user_photo: data.user_photo,
+      sellerId: user?.id,
       latitude: data.latitude,
       longitude: data.longitude,
       address: data.address,
       price: data.price,
       available_in_minutes: data.available_in_minutes,
-      brand: data.brand || '',
-      model: data.model || '',
-      color: data.color || '',
-      plate: data.plate || '',
-      phone: data.phone,
-      allow_phone_calls: data.allow_phone_calls,
       wait_until: futureTime.toISOString(),
-      created_from: 'parked_here',
-      status: 'active'
+      metadata: {
+        user_name: data.user_name,
+        user_photo: data.user_photo,
+        brand: data.brand || '',
+        model: data.model || '',
+        color: data.color || '',
+        plate: data.plate || '',
+        phone: data.phone,
+        allow_phone_calls: data.allow_phone_calls,
+        created_from: 'parked_here',
+      },
     });
+    if (error) throw error;
+    return newAlert;
   },
 
   onMutate: async (data) => {
@@ -448,33 +452,39 @@ export default function Home() {
       const buyerPlate = user?.plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
-      return Promise.all([
-        base44.entities.ParkingAlert.update(alert.id, {
-          status: 'reserved',
-          reserved_by_id: user?.id,
-          reserved_by_email: user?.email,
-          reserved_by_name: buyerName,
-          reserved_by_car: `${buyerCarBrand} ${buyerCarModel}`.trim(),
-          reserved_by_car_color: buyerCarColor,
-          reserved_by_plate: buyerPlate,
-          reserved_by_vehicle_type: buyerVehicleType
-        }),
-        transactions.createTransaction({
-          alert_id: alert.id,
-          buyer_id: user?.id,
-          seller_id: alert.user_id || alert.seller_id || alert.created_by,
-          amount: Number(alert.price) || 0,
-          status: 'pending'
-        }).then((r) => r.error ? Promise.reject(r.error) : r),
-        base44.entities.ChatMessage.create({
-          conversation_id: `conv_${alert.id}_${user?.id}`,
-          alert_id: alert.id,
-          sender_id: user?.id,
-          receiver_id: alert.user_id || alert.created_by,
-          message: `Ey! Te he enviado un WaitMe!`,
-          read: false
-        })
-      ]);
+      const { error: updateErr } = await alerts.updateAlert(alert.id, {
+        status: 'reserved',
+        reserved_by_id: user?.id,
+        reserved_by_name: buyerName,
+        reserved_by_car: `${buyerCarBrand} ${buyerCarModel}`.trim(),
+        reserved_by_car_color: buyerCarColor,
+        reserved_by_plate: buyerPlate,
+        reserved_by_vehicle_type: buyerVehicleType
+      });
+      if (updateErr) throw updateErr;
+
+      const txRes = await transactions.createTransaction({
+        alert_id: alert.id,
+        buyer_id: user?.id,
+        seller_id: alert.user_id || alert.seller_id || alert.created_by,
+        amount: Number(alert.price) || 0,
+        status: 'pending'
+      });
+      if (txRes.error) throw txRes.error;
+
+      const { data: conv } = await chat.createConversation({
+        buyerId: user?.id,
+        sellerId: alert.user_id || alert.seller_id || alert.created_by,
+        alertId: alert.id
+      });
+      if (conv?.id) {
+        await chat.sendMessage({
+          conversationId: conv.id,
+          senderId: user?.id,
+          body: 'Ey! Te he enviado un WaitMe!'
+        });
+      }
+      return { ...alert, status: 'reserved', reserved_by_id: user?.id };
     },
     onMutate: async (alert) => {
       setConfirmDialog({ open: false, alert: null });
@@ -789,9 +799,9 @@ export default function Home() {
                         const uid = user?.id;
                         const email = user?.email;
                         if (uid || email) {
-                          const mine = uid
-                            ? await base44.entities.ParkingAlert.filter({ user_id: uid })
-                            : await base44.entities.ParkingAlert.filter({ user_email: email });
+                          const { data: mine = [] } = uid
+                            ? await alerts.getMyAlerts(uid)
+                            : { data: [] };
                           const hiddenKeys = readHiddenKeys();
                           const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
                           if (import.meta.env.DEV) {

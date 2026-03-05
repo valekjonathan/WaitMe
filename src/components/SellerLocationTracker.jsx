@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import * as alerts from '@/data/alerts';
+import * as userLocations from '@/data/userLocations';
 import { motion } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -31,8 +32,8 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
   useEffect(() => {
     if (!alertId) return;
     let cancelled = false;
-    base44.entities.ParkingAlert.filter({ id: alertId }).then((alerts) => {
-      if (!cancelled && alerts.length > 0) setAlert(alerts[0]);
+    alerts.getAlert(alertId).then(({ data }) => {
+      if (!cancelled && data) setAlert(data);
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [alertId]);
@@ -40,11 +41,7 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
   const { data: buyerLocations = [] } = useQuery({
     queryKey: ['buyerLocations', alertId],
     queryFn: async () => {
-      const locs = await base44.entities.UserLocation.filter({
-        alert_id: alertId,
-        is_active: true,
-      });
-      return locs;
+      return await userLocations.getLocationsByAlert(alertId);
     },
     enabled: !!alertId,
     refetchInterval: 5000,
