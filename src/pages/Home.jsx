@@ -603,26 +603,25 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* CONTENT_AREA: espacio exacto entre header y bottom nav (alturas medidas en tiempo real) */}
+        {/* HERO_CENTER_AREA: centrado exacto entre header y bottom nav (grid place-items) */}
         <div
           className="overflow-hidden"
           style={{
-            display: mode ? 'none' : 'flex',
+            display: mode ? 'none' : 'grid',
+            placeItems: 'center',
             position: 'absolute',
             top: headerHeight,
             bottom: navHeight,
             left: 0,
             right: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
             pointerEvents: 'none',
           }}
         >
-              {/* HERO: logo + frase + pin + botones — centrado sin márgenes ni padding */}
-              <div
-                className="relative z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-auto"
-                style={{ position: 'relative', zIndex: 10, transform: 'translateY(-40px)' }}
-              >
+          {/* HERO_BLOCK: logo + frase + pin + botones */}
+          <div
+            className="hero-block relative flex flex-col items-center text-center px-6 pointer-events-auto"
+            style={{ position: 'relative', zIndex: 10 }}
+          >
                 <img
                   loading="eager"
                   decoding="async"
@@ -669,7 +668,7 @@ export default function Home() {
                     </Button>
                   </div>
                 </div>
-              </div>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
