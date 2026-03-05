@@ -568,17 +568,21 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative flex-1 flex flex-col w-full text-white min-h-screen">
+    <div className="relative w-full min-h-screen overflow-hidden text-white">
       {/* Mapa como fondo a pantalla completa */}
-      <div className="absolute inset-0 z-0" style={{ minHeight: '100vh' }}>
-        <MapboxMap className="w-full h-full" />
-      </div>
+      <MapboxMap className="absolute inset-0 w-full h-full" />
 
-      {/* Overlay transparente (no sólido) */}
-      <div className="absolute inset-0 z-[1] bg-purple-950/20 pointer-events-none" />
+      {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none
+          bg-gradient-to-b
+          from-[#1a0b2e]/80
+          via-[#1a0b2e]/55
+          to-[#0b0618]/90"
+      />
 
-      {/* Contenido por encima del mapa */}
-      <div className="relative z-10 flex-1 flex flex-col min-h-0">
+      {/* Contenido UI por encima del mapa */}
+      <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
         {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
         <div
