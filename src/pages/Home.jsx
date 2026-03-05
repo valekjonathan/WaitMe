@@ -39,8 +39,6 @@ import { haversineKm } from '@/utils/carUtils';
 // ======================
 const FALLBACK_LAT = 43.3623; // Oviedo
 const FALLBACK_LNG = -5.8489; // Oviedo
-const HEADER_H = 60;
-const NAV_H = 72;
 
 
 const CarIconProfile = ({ color, size = "w-16 h-10" }) =>
@@ -99,6 +97,25 @@ export default function Home() {
     maxMinutes: 30,
     maxDistance: 10
   });
+
+  const [headerHeight, setHeaderHeight] = useState(60);
+  const [navHeight, setNavHeight] = useState(72);
+
+  useEffect(() => {
+    const measure = () => {
+      const headerEl = document.querySelector('[data-waitme-header]');
+      const navEl = document.querySelector('[data-waitme-nav]');
+      if (headerEl) setHeaderHeight(headerEl.offsetHeight);
+      if (navEl) setNavHeight(navEl.offsetHeight);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    const headerEl = document.querySelector('[data-waitme-header]');
+    const navEl = document.querySelector('[data-waitme-nav]');
+    if (headerEl) ro.observe(headerEl);
+    if (navEl) ro.observe(navEl);
+    return () => ro.disconnect();
+  }, []);
 
   const locationKey = useMemo(() => {
     if (!userLocation) return null;
@@ -586,14 +603,14 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* CONTENT_AREA: espacio exacto entre header y bottom nav */}
+        {/* CONTENT_AREA: espacio exacto entre header y bottom nav (alturas medidas en tiempo real) */}
         <div
           className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'flex',
             position: 'absolute',
-            top: HEADER_H,
-            bottom: NAV_H,
+            top: headerHeight,
+            bottom: navHeight,
             left: 0,
             right: 0,
             alignItems: 'center',
