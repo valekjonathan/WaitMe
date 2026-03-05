@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
+import { base44 } from '@/api/base44Client';
+import * as chat from '@/data/chat';
 import { format } from 'date-fns';
 import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +17,7 @@ import {
 } from '@/components/DemoFlowManager';
 
 export default function Chat() {
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { search: locationSearch } = useLocation();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
@@ -85,51 +87,39 @@ export default function Chat() {
   }, [isDemo, demoConversationId]);
 
   // ======================
-  // REAL (Base44)
+  // REAL (data/chat adapter → Supabase)
   // ======================
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 60000,
-    enabled: !isDemo
-  });
-
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
-    enabled: !!conversationId && !isDemo,
+    enabled: !!conversationId && !!user?.id && !isDemo,
     queryFn: async () => {
-      const conv = await base44.entities.Conversation.filter({ id: conversationId });
-      return conv?.[0] || null;
+      const { data, error } = await chat.getConversation(conversationId, user?.id);
+      if (error) throw error;
+      return data ?? null;
     },
     staleTime: 30000
   });
 
   const { data: messages = [] } = useQuery({
-    queryKey: ['chatMessages', conversationId],
-    enabled: !!conversationId && !isDemo,
+    queryKey: ['chatMessages', conversationId, user?.id],
+    enabled: !!conversationId && !!user?.id && !isDemo,
     queryFn: async () => {
-      const msgs = await base44.entities.ChatMessage.filter({
-        conversation_id: conversationId
-      });
-      return (msgs || []).sort(
-        (a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()
-      );
+      const { data, error } = await chat.getMessages(conversationId, user?.id);
+      if (error) throw error;
+      return data ?? [];
     },
     staleTime: 10000
   });
 
-  // Suscripción en tiempo real
+  // Suscripción Realtime a mensajes
   useEffect(() => {
-    if (!conversationId || isDemo) return;
+    if (!conversationId || isDemo || !user?.id) return;
 
-    const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.conversation_id === conversationId) {
-        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
-      }
+    const unsub = chat.subscribeMessages(conversationId, () => {
+      queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId, user?.id] });
     });
-
-    return () => unsubscribe?.();
-  }, [conversationId, isDemo, queryClient]);
+    return () => unsub?.();
+  }, [conversationId, isDemo, user?.id, queryClient]);
 
   // Mensajes demo desde localStorage (para chats de WaitMe aceptados que vienen de Chats page)
   const [localDemoMessages, setLocalDemoMessages] = useState(() => {
@@ -340,28 +330,12 @@ export default function Chat() {
         return;
       }
 
-      const otherUserId =
-        conversation?.participant1_id === user?.id
-          ? conversation?.participant2_id
-          : conversation?.participant1_id;
-
-      await base44.entities.ChatMessage.create({
-        conversation_id: conversationId,
-        alert_id: alertId,
-        sender_id: user?.id,
-        sender_name: user?.display_name || user?.full_name?.split(' ')[0] || 'Usuario',
-        sender_photo: user?.photo_url,
-        receiver_id: otherUserId,
-        message: clean,
-        read: false,
-        message_type: 'user',
-        attachments: attachments.length ? JSON.stringify(attachments) : null
+      const { error } = await chat.sendMessage({
+        conversationId,
+        senderId: user?.id,
+        body: clean
       });
-
-      await base44.entities.Conversation.update(conversation.id, {
-        last_message_text: clean,
-        last_message_at: new Date().toISOString()
-      });
+      if (error) throw error;
     },
     onSuccess: () => {
       setMessage('');
@@ -369,8 +343,8 @@ export default function Chat() {
       setShowAttachMenu(false);
 
       if (!isDemo) {
-        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId] });
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId, user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
       }
     }
   });

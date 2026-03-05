@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import * as chat from '@/data/chat';
+import * as alerts from '@/data/alerts';
 import { Search, X, Navigation, TrendingUp, TrendingDown, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -245,47 +247,43 @@ export default function Chats() {
     queryKey: ['conversations', user?.id ?? 'none'],
     queryFn: async () => {
       if (!user?.id) return [];
-      const data = await base44.entities.Conversation.list({
-        filter: { or: [{ participant1_id: user.id }, { participant2_id: user.id }] }
-      });
-      return data || [];
+      const { data, error } = await chat.getConversations(user.id);
+      if (error) throw error;
+      return data ?? [];
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-placeholderData: (prev) => prev,
+    placeholderData: (prev) => prev,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    
     refetchInterval: false
   });
 
-  const { data: alerts = [] } = useQuery({
+  const { data: alertsData = [] } = useQuery({
     queryKey: ['alertsForChats', user?.id ?? 'none'],
     queryFn: async () => {
       if (!user?.id) return [];
-      const data = await base44.entities.ParkingAlert.list({
-        filter: { or: [{ user_id: user.id }, { reserved_by_id: user.id }] }
-      });
-      return data || [];
+      const { data, error } = await alerts.getAlertsForChats(user.id);
+      if (error) throw error;
+      return data ?? [];
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-placeholderData: (prev) => prev,
+    placeholderData: (prev) => prev,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    
     refetchInterval: false
   });
 
   const alertsMap = useMemo(() => {
     const map = new Map();
-    alerts.forEach((a) => map.set(a.id, a));
+    alertsData.forEach((a) => map.set(a.id, a));
     return map;
-  }, [alerts]);
+  }, [alertsData]);
 
   const totalUnread = useMemo(() => {
     return conversations.reduce((sum, conv) => {

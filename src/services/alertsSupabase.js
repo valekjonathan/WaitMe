@@ -17,6 +17,8 @@ function normalizeAlert(row) {
   const price = row.price_cents != null ? row.price_cents / 100 : (row.price ?? 0);
   const meta = row.metadata || {};
   const mins = meta.available_in_minutes ?? row.available_in_minutes;
+  const reservedByCar = meta.reserved_by_car ?? '';
+  const carParts = String(reservedByCar).trim().split(/\s+/).filter(Boolean);
   return {
     id: row.id,
     user_id: sellerId,
@@ -31,12 +33,17 @@ function normalizeAlert(row) {
     status: row.status,
     reserved_by: row.reserved_by ?? null,
     reserved_by_id: row.reserved_by ?? meta.reserved_by_id ?? null,
+    brand: meta.brand ?? row.brand ?? (carParts[0] || ''),
+    model: meta.model ?? row.model ?? (carParts.slice(1).join(' ') || ''),
+    plate: meta.plate ?? meta.reserved_by_plate ?? row.plate ?? null,
+    color: meta.color ?? row.color ?? null,
+    address: row.address_text ?? meta.address ?? row.address ?? null,
+    target_time: meta.target_time ?? row.target_time ?? null,
     created_at: row.created_at,
     created_date: row.created_at,
     expires_at: row.expires_at,
     geohash: row.geohash ?? null,
     address_text: row.address_text,
-    address: row.address_text ?? row.address,
     available_in_minutes: mins ?? null,
     cancel_reason: meta.cancel_reason ?? row.cancel_reason ?? null,
     metadata: meta,
@@ -217,6 +224,29 @@ export async function getAlertsReservedByMe(buyerId) {
     return a;
   });
   return { data: normalized, error: null };
+}
+
+/**
+ * Obtiene alertas para la lista de Chats (donde el usuario es seller o buyer).
+ * @param {string} userId
+ * @returns {{ data: Array, error }}
+ */
+export async function getAlertsForChats(userId) {
+  const [mine, reserved] = await Promise.all([
+    getMyAlerts(userId),
+    getAlertsReservedByMe(userId),
+  ]);
+  const err = mine.error || reserved.error;
+  if (err) return { data: [], error: err };
+  const seen = new Set();
+  const merged = [];
+  for (const a of [...(mine.data ?? []), ...(reserved.data ?? [])]) {
+    if (a?.id && !seen.has(a.id)) {
+      seen.add(a.id);
+      merged.push(a);
+    }
+  }
+  return { data: merged, error: null };
 }
 
 /**
