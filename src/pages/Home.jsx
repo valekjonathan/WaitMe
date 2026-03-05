@@ -98,51 +98,90 @@ export default function Home() {
     maxDistance: 10
   });
 
-  const [headerHeight, setHeaderHeight] = useState(60);
-  const [navHeight, setNavHeight] = useState(72);
   const heroRef = useRef(null);
-
-  useEffect(() => {
-    const measure = () => {
-      const headerEl = document.querySelector('[data-waitme-header]');
-      const navEl = document.querySelector('[data-waitme-nav]');
-      if (headerEl) setHeaderHeight(headerEl.offsetHeight);
-      if (navEl) setNavHeight(navEl.offsetHeight);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    const headerEl = document.querySelector('[data-waitme-header]');
-    const navEl = document.querySelector('[data-waitme-nav]');
-    if (headerEl) ro.observe(headerEl);
-    if (navEl) ro.observe(navEl);
-    return () => ro.disconnect();
-  }, []);
+  const [contentArea, setContentArea] = useState({ top: 0, height: 0 });
+  const [debugData, setDebugData] = useState(null);
+  const isDev = import.meta.env.DEV;
 
   useEffect(() => {
     if (mode) return;
-    const hero = heroRef.current;
-    const container = document.querySelector('[data-home-content]');
-    if (!hero || !container) return;
+    const measure = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const header = document.querySelector('[data-waitme-header]');
+          const nav = document.querySelector('[data-waitme-nav]');
+          if (!header || !nav) return;
 
-    const centerHero = () => {
-      const containerHeight = container.offsetHeight;
-      const heroHeight = hero.offsetHeight;
-      const offset = (containerHeight - heroHeight) / 2;
-      hero.style.position = 'absolute';
-      hero.style.top = `${offset}px`;
-      hero.style.left = '50%';
-      hero.style.transform = 'translateX(-50%)';
+          const headerRect = header.getBoundingClientRect();
+          const navRect = nav.getBoundingClientRect();
+          const headerBottom = headerRect.bottom;
+          const navTop = navRect.top;
+          const gapHeight = navTop - headerBottom;
+
+          setContentArea({ top: headerBottom, height: gapHeight });
+        });
+      });
     };
 
-    centerHero();
-    window.addEventListener('resize', centerHero);
-    const ro = new ResizeObserver(centerHero);
-    ro.observe(container);
-    return () => {
-      window.removeEventListener('resize', centerHero);
-      ro.disconnect();
-    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
   }, [mode]);
+
+  useEffect(() => {
+    if (!isDev || mode || contentArea.height <= 0) return;
+    const measureDebug = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const header = document.querySelector('[data-waitme-header]');
+          const nav = document.querySelector('[data-waitme-nav]');
+          const hero = heroRef.current;
+          if (!header || !nav || !hero) return;
+
+          const headerRect = header.getBoundingClientRect();
+          const navRect = nav.getBoundingClientRect();
+          const headerBottom = headerRect.bottom;
+          const navTop = navRect.top;
+          const gapHeight = navTop - headerBottom;
+          const centerY = headerBottom + gapHeight / 2;
+
+          const heroRect = hero.getBoundingClientRect();
+          const heroTop = heroRect.top;
+          const heroBottom = heroRect.bottom;
+          const heroLeft = heroRect.left;
+          const heroWidth = heroRect.width;
+          const heroHeight = heroRect.height;
+          const spaceTop = heroTop - headerBottom;
+          const spaceBottom = navTop - heroBottom;
+          const delta = spaceTop - spaceBottom;
+
+          const data = {
+            headerBottom,
+            navTop,
+            gapHeight,
+            centerY,
+            heroTop,
+            heroBottom,
+            heroLeft,
+            heroWidth,
+            heroHeight,
+            spaceTop,
+            spaceBottom,
+            delta
+          };
+          setDebugData(data);
+          console.log('[Home centering]', data);
+          if (Math.abs(delta) > 2) {
+            console.error('[Home centering] delta > 2px — desalineado:', data);
+          }
+        });
+      });
+    };
+
+    measureDebug();
+    window.addEventListener('resize', measureDebug);
+    return () => window.removeEventListener('resize', measureDebug);
+  }, [isDev, mode, contentArea]);
 
   const locationKey = useMemo(() => {
     if (!userLocation) return null;
@@ -627,18 +666,37 @@ export default function Home() {
           to-[#0b0618]/90"
       />
 
+      {/* Debug overlay — solo DEV, desactivar con isDev=false */}
+      {isDev && debugData && (
+        <div className="fixed inset-0 z-[9999] pointer-events-none" aria-hidden="true">
+          <div
+            className="absolute left-0 right-0 h-0.5 bg-red-500"
+            style={{ top: debugData.centerY }}
+          />
+          <div
+            className="absolute border-2 border-red-500"
+            style={{
+              top: debugData.heroTop,
+              left: debugData.heroLeft,
+              width: debugData.heroWidth,
+              height: debugData.heroHeight,
+            }}
+          />
+        </div>
+      )}
+
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* MAIN_CONTENT: bloque completo centrado entre header y bottom nav */}
+        {/* CONTENT_AREA: hueco real entre header y bottom nav */}
         <div
           data-home-content
           className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'block',
-            position: 'absolute',
-            top: headerHeight,
-            bottom: navHeight,
+            position: 'fixed',
+            top: contentArea.top,
+            height: contentArea.height,
             left: 0,
             right: 0,
             pointerEvents: 'none',
@@ -646,7 +704,7 @@ export default function Home() {
         >
           <div
             ref={heroRef}
-            className="hero-block relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto"
+            className="hero-block absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center px-6 pointer-events-auto"
           >
             <img
               loading="eager"
