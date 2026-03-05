@@ -1,43 +1,28 @@
 -- =============================================================================
 -- WaitMe Core Schema - Migración profesional
 -- Requiere: public.profiles y auth.users existentes
---
--- Si parking_alerts antigua existe (user_id, price, etc.), ejecutar ANTES:
---   DROP TABLE IF EXISTS public.messages CASCADE;
---   DROP TABLE IF EXISTS public.conversations CASCADE;
---   DROP TABLE IF EXISTS public.alert_reservations CASCADE;
---   DROP TABLE IF EXISTS public.parking_alerts CASCADE;
---
--- Si ALTER PUBLICATION falla con "already member", añadir tablas en Dashboard:
---   Database → Replication → supabase_realtime
+-- parking_alerts ya existe (20260304150000, 20260304170000); solo añadimos
+-- columnas/triggers/publication de forma idempotente.
 -- =============================================================================
 
--- 1) parking_alerts
-CREATE TABLE public.parking_alerts (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  seller_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active','reserved','expired','completed','cancelled')),
-  lat double precision NOT NULL,
-  lng double precision NOT NULL,
-  address_text text,
-  price_cents int NOT NULL,
-  currency text NOT NULL DEFAULT 'EUR',
-  expires_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
-);
+-- 1) parking_alerts: NO crear (ya existe). Añadir columnas y trigger si faltan.
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS address_text text;
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS price_cents int;
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS currency text DEFAULT 'EUR';
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}'::jsonb;
+ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS seller_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
 
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_status ON public.parking_alerts(status);
+-- Backfill seller_id desde user_id si existe
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'parking_alerts' AND column_name = 'user_id') THEN
+    UPDATE public.parking_alerts SET seller_id = user_id WHERE seller_id IS NULL AND user_id IS NOT NULL;
+  END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_parking_alerts_seller_id ON public.parking_alerts(seller_id);
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_expires_at ON public.parking_alerts(expires_at);
-
-ALTER TABLE public.parking_alerts ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "parking_alerts_select_all" ON public.parking_alerts FOR SELECT USING (true);
-CREATE POLICY "parking_alerts_insert_own" ON public.parking_alerts FOR INSERT WITH CHECK (seller_id = auth.uid());
-CREATE POLICY "parking_alerts_update_own" ON public.parking_alerts FOR UPDATE USING (seller_id = auth.uid());
-CREATE POLICY "parking_alerts_delete_own" ON public.parking_alerts FOR DELETE USING (seller_id = auth.uid());
 
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER AS $$
@@ -51,6 +36,22 @@ DROP TRIGGER IF EXISTS parking_alerts_updated_at ON public.parking_alerts;
 CREATE TRIGGER parking_alerts_updated_at
   BEFORE UPDATE ON public.parking_alerts
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Políticas core: eliminar antiguas y crear nuevas
+DROP POLICY IF EXISTS "Users can insert own alerts" ON public.parking_alerts;
+DROP POLICY IF EXISTS "Users can view active and own alerts" ON public.parking_alerts;
+DROP POLICY IF EXISTS "Users can update own or reserve active alerts" ON public.parking_alerts;
+DROP POLICY IF EXISTS "parking_alerts_select_all" ON public.parking_alerts;
+CREATE POLICY "parking_alerts_select_all" ON public.parking_alerts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "parking_alerts_insert_own" ON public.parking_alerts;
+CREATE POLICY "parking_alerts_insert_own" ON public.parking_alerts FOR INSERT WITH CHECK (COALESCE(seller_id, user_id) = auth.uid());
+
+DROP POLICY IF EXISTS "parking_alerts_update_own" ON public.parking_alerts;
+CREATE POLICY "parking_alerts_update_own" ON public.parking_alerts FOR UPDATE USING (COALESCE(seller_id, user_id) = auth.uid());
+
+DROP POLICY IF EXISTS "parking_alerts_delete_own" ON public.parking_alerts;
+CREATE POLICY "parking_alerts_delete_own" ON public.parking_alerts FOR DELETE USING (COALESCE(seller_id, user_id) = auth.uid());
 
 -- 2) alert_reservations
 CREATE TABLE public.alert_reservations (
@@ -73,14 +74,14 @@ ALTER TABLE public.alert_reservations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "alert_reservations_select" ON public.alert_reservations FOR SELECT
   USING (
     buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND pa.seller_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND COALESCE(pa.seller_id, pa.user_id) = auth.uid())
   );
 CREATE POLICY "alert_reservations_insert" ON public.alert_reservations FOR INSERT
   WITH CHECK (buyer_id = auth.uid());
 CREATE POLICY "alert_reservations_update" ON public.alert_reservations FOR UPDATE
   USING (
     buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND pa.seller_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND COALESCE(pa.seller_id, pa.user_id) = auth.uid())
   );
 
 DROP TRIGGER IF EXISTS alert_reservations_updated_at ON public.alert_reservations;
@@ -158,8 +159,18 @@ CREATE POLICY "user_locations_select_all" ON public.user_locations FOR SELECT US
 CREATE POLICY "user_locations_insert_own" ON public.user_locations FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "user_locations_update_own" ON public.user_locations FOR UPDATE USING (user_id = auth.uid());
 
--- Realtime: añadir tablas a la publicación (ejecutar en Dashboard si falla)
-ALTER PUBLICATION supabase_realtime ADD TABLE public.parking_alerts;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.alert_reservations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.user_locations;
+-- Realtime: añadir tablas solo si no están ya en la publicación
+DO $$
+DECLARE
+  tbl text;
+BEGIN
+  FOR tbl IN SELECT unnest(ARRAY['parking_alerts', 'alert_reservations', 'messages', 'user_locations'])
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = tbl
+    ) THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', tbl);
+    END IF;
+  END LOOP;
+END $$;

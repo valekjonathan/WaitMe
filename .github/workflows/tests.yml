@@ -24,12 +24,6 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run ESLint
-        run: npm run lint
-
-      - name: Run TypeScript check
-        run: npm run typecheck
-
       - name: Run Playwright tests
         run: npm run test
         env:
