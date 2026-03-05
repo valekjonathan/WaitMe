@@ -1,0 +1,51 @@
+# Supabase — Drift check + migrations SOLO en main
+# Corre tras CI exitoso (workflow_run) o manual (workflow_dispatch)
+name: Supabase
+
+concurrency:
+  group: supabase-main
+  cancel-in-progress: false
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+  SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+jobs:
+  migrate:
+    name: Drift check + Push migrations
+    runs-on: ubuntu-22.04
+    # Solo ejecutar si CI pasó (o es manual)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Check for schema drift
+        run: |
+          drift_output=$(supabase db diff --schema public 2>&1 || true)
+          if echo "$drift_output" | grep -qE "^(CREATE|ALTER|DROP)"; then
+            echo ":::error::Schema drift detected - remote DB has changes not in migrations"
+            echo "$drift_output"
+            exit 1
+          fi
+
+      - name: Push migrations
+        run: supabase db push
