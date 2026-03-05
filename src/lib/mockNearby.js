@@ -127,19 +127,6 @@ export function getMockNearbyAlerts(userLocation) {
   const lng0 = Number.isFinite(baseLng) ? baseLng : OVIEDO_LNG;
 
   // offsets fijos (no aleatorios) para que siempre estén “cerca alrededor”
-  const offsets = [
-    [ 0.0010,  0.0015],
-    [ 0.0018, -0.0008],
-    [-0.0012,  0.0011],
-    [-0.0020, -0.0016],
-    [ 0.0006, -0.0022],
-    [ 0.0024,  0.0009],
-    [-0.0007,  0.0026],
-    [-0.0026,  0.0004],
-    [ 0.0013, -0.0019],
-    [-0.0016, -0.0003]
-  ];
-
   const now = Date.now();
   const streets = [
     'Calle Uría, n18, Oviedo',
@@ -151,19 +138,29 @@ export function getMockNearbyAlerts(userLocation) {
     'Calle Milicias Nacionales, n5, Oviedo',
     'Calle San Francisco, n14, Oviedo',
     'Calle Martínez Marina, n6, Oviedo',
-    'Calle Independencia, n11, Oviedo'
+    'Calle Independencia, n11, Oviedo',
+    'Calle Fruela, n4, Oviedo', 'Calle Mon, n15, Oviedo', 'Calle Toreno, n8, Oviedo',
+    'Calle Asturias, n22, Oviedo', 'Plaza Escandalera, Oviedo', 'Calle Gil de Jaz, n12, Oviedo'
   ];
 
-  const minutes = [8, 12, 15, 18, 10, 22, 14, 9, 16, 20];
-  const prices  = [6, 8, 7, 9, 5, 10, 6, 7, 8, 9];
+  const minutes = [8, 12, 15, 18, 10, 22, 14, 9, 16, 20, 11, 13, 17, 19, 6, 21];
+  const prices = [6, 8, 7, 9, 5, 10, 6, 7, 8, 9, 4, 11, 6, 7, 5, 10, 8];
 
-  return MOCK_USERS.map((u, i) => {
-    const [dLat, dLng] = offsets[i] || [0, 0];
-    const available = minutes[i] || 15;
+  const count = 12 + Math.floor(Math.random() * 9);
+  const result = [];
+  const randomOffset = () => {
+    const angle = Math.random() * 2 * Math.PI;
+    const r = 0.0022 * (0.3 + Math.random() * 0.7);
+    return [r * Math.cos(angle), r * Math.sin(angle)];
+  };
+  for (let i = 0; i < count; i++) {
+    const u = MOCK_USERS[i % MOCK_USERS.length];
+    const [dLat, dLng] = randomOffset();
+    const available = minutes[i % minutes.length] || 15;
     const created = now - (i + 1) * 60 * 1000;
 
-    return {
-      id: `mock_alert_${u.id}`,
+    result.push({
+      id: `mock_alert_${u.id}_${i}`,
       user_id: u.id,
       user_name: u.name,
       user_photo: u.photo,
@@ -178,16 +175,17 @@ export function getMockNearbyAlerts(userLocation) {
       vehicle_color: u.color,
       color: u.color,
 
-      address: streets[i] || 'Calle Gran Vía, n1, Oviedo',
+      address: streets[i % streets.length] || 'Calle Gran Vía, n1, Oviedo',
 
       latitude: lat0 + dLat,
       longitude: lng0 + dLng,
 
-      price: prices[i] || 8,
+      price: prices[i % prices.length] || 8,
       available_in_minutes: available,
       created_date: created,
       wait_until: created + available * 60 * 1000,
       status: 'active'
-    };
-  });
+    });
+  }
+  return result;
 }

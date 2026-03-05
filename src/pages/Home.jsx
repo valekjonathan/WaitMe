@@ -611,7 +611,8 @@ export default function Home() {
         >
           <div
             ref={heroRef}
-            className="hero-block absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center px-6 pointer-events-auto"
+            className="hero-block absolute left-1/2 z-10 flex -translate-x-1/2 flex-col items-center text-center px-6 pointer-events-auto"
+            style={{ top: 30 }}
           >
             <img
               loading="eager"

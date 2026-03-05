@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { getCarIconHtml } from '@/lib/vehicleIcons';
+import { getCarIconHtml, getCarWithPriceHtml } from '@/lib/vehicleIcons';
 
 function createUserLocationHtml() {
   return `
@@ -173,10 +173,12 @@ export default function ParkingMap({
     }
 
     alerts.forEach((alert) => {
+      const type = alert.vehicle_type || 'car';
       const color = alert.vehicle_color ?? alert.color ?? 'gray';
+      const price = alert.price ?? 0;
       addMarker(
         [alert.latitude, alert.longitude],
-        getCarIconHtml(color),
+        getCarWithPriceHtml(type, color, price),
         () => onAlertClick?.(alert)
       );
     });

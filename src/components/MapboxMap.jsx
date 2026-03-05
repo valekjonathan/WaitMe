@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getCarIconHtml } from '@/lib/vehicleIcons';
+import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
-const DEFAULT_ZOOM = 16.5;
+const DEFAULT_ZOOM = 17.5;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
 const GPS_TIMEOUT_MS = 2500;
@@ -51,6 +51,7 @@ export default function MapboxMap({
       pitch: DEFAULT_PITCH,
       duration: 800,
       essential: true,
+      speed: 0.8,
     });
   }, [location.lat, location.lng]);
 
@@ -218,9 +219,9 @@ export default function MapboxMap({
     const shouldRecenter = accuracy <= ACCURACY_RECENTER_THRESHOLD && lat !== 43.3619 && lng !== -5.8494;
     if (shouldRecenter && !hasFlownToUserRef.current) {
       hasFlownToUserRef.current = true;
-      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 600 });
+      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 600, speed: 0.8 });
     } else if (shouldRecenter) {
-      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 400 });
+      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 400, speed: 0.8 });
     }
   }, [mapReady, effectiveCenter, location.accuracy, error]);
 
@@ -254,8 +255,10 @@ export default function MapboxMap({
       const lng = alert.longitude ?? alert.lng;
       if (lat == null || lng == null) return;
 
+      const type = alert.vehicle_type || 'car';
       const color = alert.vehicle_color ?? alert.color ?? 'gray';
-      const html = getCarIconHtml(color);
+      const price = alert.price ?? 0;
+      const html = getCarWithPriceHtml(type, color, price);
 
       const el = document.createElement('div');
       el.innerHTML = html;
