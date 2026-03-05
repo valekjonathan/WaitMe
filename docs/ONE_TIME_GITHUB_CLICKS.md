@@ -1,38 +1,26 @@
-# Configuración única en GitHub — Clics exactos
+# GitHub blindado — 8 clics
 
-Configuración recomendada para blindar CI/CD y deployments. Hacer una sola vez.
+**Una sola vez.** Repo → Settings.
 
-## 1. Branch protection (main)
+## 1. Branch protection (4 clics)
 
-1. Repo → **Settings** → **Branches**
-2. **Add branch protection rule**
-3. Branch name: `main`
-4. Activar:
-   - ✅ Require a pull request before merging
-   - ✅ Require status checks to pass before merging
-   - Status checks: `ci` (o el nombre del job de CI)
-   - ✅ Require branches to be up to date before merging
-5. **Create**
+Settings → Branches → Add rule → Branch name: `main`
 
-## 2. Secrets (Settings → Secrets and variables → Actions)
+- ✅ Require a pull request
+- ✅ Require status checks: `ci` (aparece tras el primer run)
+- ✅ Require branches to be up to date
+- ✅ Require linear history
+- ✅ Do not allow force pushes
 
-| Secret | Uso |
-|--------|-----|
-| `VITE_SUPABASE_URL` | URL del proyecto Supabase |
-| `VITE_SUPABASE_ANON_KEY` | Anon key de Supabase |
-| `VITE_MAPBOX_TOKEN` | Token Mapbox (para build) |
-| `SUPABASE_ACCESS_TOKEN` | Token de Supabase (Dashboard → Account → Access Tokens) |
-| `SUPABASE_PROJECT_REF` | Project ref (URL: `https://xxx.supabase.co` → ref = `xxx`) |
-| `SUPABASE_DB_PASSWORD` | Contraseña de la base de datos |
+→ Create
 
-## 3. Environment: production
+## 2. Environment production (4 clics)
 
-1. **Settings** → **Environments**
-2. Crear environment: `production`
-3. (Opcional) Añadir protection rules o required reviewers para el job `migrate`
+Settings → Environments → New environment → `production`
 
-## 4. Vercel (si aplica)
+- ✅ Required reviewers: añadir 1+ persona
+- Save protection rules
 
-1. Conectar repo en vercel.com
-2. Añadir las mismas env vars que en GitHub Secrets para el build
-3. Añadir `VITE_SENTRY_DSN` si se usa Sentry
+---
+
+**Secrets** (Settings → Secrets and variables → Actions): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_MAPBOX_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`
