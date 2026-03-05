@@ -96,22 +96,38 @@ export default function Profile() {
     setHydrated(true);
   }, [profile]);
 
-  const saveProfile = useCallback(
-    async (payload) => {
-      if (!user?.id) return null;
-      const supabase = getSupabase();
-      if (!supabase) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(payload)
-        .eq('id', user.id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    [user?.id]
-  );
+  const saveProfile = useCallback(async (payload) => {
+    const supabase = getSupabase();
+    if (!supabase) return null;
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser?.id) return null;
+    const fullPayload = {
+      id: authUser.id,
+      email: authUser.email ?? '',
+      full_name: payload.full_name,
+      display_name: (payload.full_name || '').split(' ')[0] || payload.full_name || '',
+      avatar_url: payload.avatar_url ?? '',
+      brand: payload.brand ?? '',
+      model: payload.model ?? '',
+      color: payload.color ?? 'gris',
+      vehicle_type: payload.vehicle_type ?? 'car',
+      plate: payload.plate ?? '',
+      phone: payload.phone ?? '',
+      allow_phone_calls: payload.allow_phone_calls ?? false,
+      notifications_enabled: payload.notifications_enabled !== false,
+      email_notifications: payload.email_notifications !== false,
+    };
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(fullPayload, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) {
+      console.error('Error guardando perfil:', error);
+      throw error;
+    }
+    return data;
+  }, []);
 
   useDebouncedSave({
     enabled: !!hydrated && !!user?.id,
@@ -155,18 +171,37 @@ export default function Profile() {
   };
 
   const handleBack = useCallback(async () => {
-    if (!user?.id) return;
     const supabase = getSupabase();
     if (!supabase) return;
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser?.id) return;
     try {
       const payload = toProfilePayload(formData);
+      const fullPayload = {
+        id: authUser.id,
+        email: authUser.email ?? '',
+        full_name: payload.full_name,
+        display_name: (payload.full_name || '').split(' ')[0] || payload.full_name || '',
+        avatar_url: payload.avatar_url ?? '',
+        brand: payload.brand ?? '',
+        model: payload.model ?? '',
+        color: payload.color ?? 'gris',
+        vehicle_type: payload.vehicle_type ?? 'car',
+        plate: payload.plate ?? '',
+        phone: payload.phone ?? '',
+        allow_phone_calls: payload.allow_phone_calls ?? false,
+        notifications_enabled: payload.notifications_enabled !== false,
+        email_notifications: payload.email_notifications !== false,
+      };
       const { data, error } = await supabase
         .from('profiles')
-        .update(payload)
-        .eq('id', user.id)
+        .upsert(fullPayload, { onConflict: 'id' })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        console.error('Error guardando perfil:', error);
+        throw error;
+      }
       if (data) {
         setProfile(data);
         navigate('/');
@@ -175,7 +210,7 @@ export default function Profile() {
       console.error('Error guardando:', error);
       alert('Error al guardar. Intenta de nuevo.');
     }
-  }, [formData, user?.id, navigate, setProfile]);
+  }, [formData, navigate, setProfile]);
 
   useEffect(() => {
     setHeader({ showBackButton: true, onBack: handleBack });
