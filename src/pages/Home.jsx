@@ -586,8 +586,7 @@ export default function Home() {
               {showBackgroundMap && (
                 <div className="absolute inset-0 z-0 overflow-hidden">
                   <MapboxMap
-                    showSimulatedCars={true}
-                    simulatedCarCount={12}
+                    userLocation={userLocation}
                     className="w-full h-full"
                   />
                 </div>
