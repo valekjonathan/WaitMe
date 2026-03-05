@@ -1,32 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-const carColors = {
-  negro: '#1a1a1a',
-  blanco: '#f5f5f5',
-  gris: '#6b7280',
-  rojo: '#ef4444',
-  azul: '#3b82f6',
-  verde: '#22c55e',
-  amarillo: '#eab308',
-  naranja: '#f97316',
-  morado: '#a855f7',
-  marron: '#92400e',
-};
-
-function createCarMarkerHtml(color, price, vehicleType = 'car') {
-  const carColor = carColors[color] || '#6b7280';
-  let vehicleSVG = '';
-  if (vehicleType === 'van') {
-    vehicleSVG = `<path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="3" fill="#333"/><circle cx="34" cy="24" r="3" fill="#333"/><text x="24" y="20" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
-  } else if (vehicleType === 'suv') {
-    vehicleSVG = `<path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/><text x="24" y="18" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
-  } else {
-    vehicleSVG = `<path d="M8 20 L10 14 L16 12 L32 12 L38 14 L42 18 L42 24 L8 24 Z" fill="${carColor}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/><text x="24" y="19" text-anchor="middle" fill="white" font-size="9" font-weight="bold">${Math.round(price)}€</text>`;
-  }
-  return `<div style="width:80px;height:50px;"><svg width="80" height="50" viewBox="0 0 48 30" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">${vehicleSVG}</svg></div>`;
-}
+import { getCarIconHtml } from '@/lib/vehicleIcons';
 
 function createUserLocationHtml() {
   return `
@@ -180,7 +155,7 @@ export default function ParkingMap({
       const html = userPhotoHtml
         ? `<div style="width:44px;height:44px;overflow:hidden;">${userPhotoHtml}</div>`
         : userAsCar
-          ? createCarMarkerHtml(userCarColor, userCarPrice, 'car')
+          ? getCarIconHtml(userCarColor)
           : createUserLocationHtml();
       addMarker(normalizedUserLocation, html);
     }
@@ -198,9 +173,10 @@ export default function ParkingMap({
     }
 
     alerts.forEach((alert) => {
+      const color = alert.vehicle_color ?? alert.color ?? 'gray';
       addMarker(
         [alert.latitude, alert.longitude],
-        createCarMarkerHtml(alert.color, alert.price, alert.vehicle_type),
+        getCarIconHtml(color),
         () => onAlertClick?.(alert)
       );
     });

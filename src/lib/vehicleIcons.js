@@ -1,7 +1,6 @@
 /**
- * Iconos de vehículo para el mapa.
- * Tipos: car, suv, van
- * Colores: white, black, blue, red, green, yellow, purple, orange
+ * Icono de coche — MISMO que el botón "¡Estoy aparcado aquí!" (CarIconProfile).
+ * Reutilizado en mapa, tarjetas y botón publicar.
  */
 
 const COLOR_MAP = {
@@ -32,24 +31,19 @@ function toHexColor(color) {
 }
 
 /**
- * Devuelve el SVG del coche con el tipo y color indicados.
- * @param {string} type - car | suv | van
- * @param {string} color - white | black | blue | red | green | yellow | purple | orange (o español)
- * @returns {string} HTML del marcador (div con SVG)
+ * SVG idéntico a CarIconProfile (botón "¡Estoy aparcado aquí!").
+ * @param {string} color - white | black | blue | red | ... (o español)
+ * @returns {string} HTML del marcador
  */
-export function getVehicleIcon(type = 'car', color = 'gray') {
+export function getCarIconHtml(color = 'gray') {
   const hex = toHexColor(color);
-  const t = String(type || 'car').toLowerCase();
-
-  let path = '';
-  if (t === 'van') {
-    path = `<path d="M6 12 L6 24 L42 24 L42 14 L38 12 Z" fill="${hex}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="3" fill="#333"/><circle cx="34" cy="24" r="3" fill="#333"/>`;
-  } else if (t === 'suv') {
-    path = `<path d="M8 18 L10 10 L16 8 L32 8 L38 10 L42 16 L42 24 L8 24 Z" fill="${hex}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/>`;
-  } else {
-    path = `<path d="M8 20 L10 14 L16 12 L32 12 L38 14 L42 18 L42 24 L8 24 Z" fill="${hex}" stroke="white" stroke-width="1.5"/><circle cx="14" cy="24" r="4" fill="#333"/><circle cx="36" cy="24" r="4" fill="#333"/>`;
-  }
-
-  const svg = `<svg width="48" height="30" viewBox="0 0 48 30" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">${path}</svg>`;
-  return `<div style="width:48px;height:30px;cursor:pointer;">${svg}</div>`;
+  const svg = `<svg width="48" height="24" viewBox="0 0 48 24" fill="none">
+    <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${hex}" stroke="white" stroke-width="1.5"/>
+    <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
+    <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+    <circle cx="14" cy="18" r="2" fill="#666"/>
+    <circle cx="36" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
+    <circle cx="36" cy="18" r="2" fill="#666"/>
+  </svg>`;
+  return `<div style="width:48px;height:24px;cursor:pointer;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">${svg}</div>`;
 }

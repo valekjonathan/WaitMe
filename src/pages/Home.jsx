@@ -100,8 +100,6 @@ export default function Home() {
 
   const heroRef = useRef(null);
   const [contentArea, setContentArea] = useState({ top: 0, height: 0 });
-  const [debugData, setDebugData] = useState(null);
-  const isDev = import.meta.env.DEV;
 
   useEffect(() => {
     if (mode) return;
@@ -127,61 +125,6 @@ export default function Home() {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, [mode]);
-
-  useEffect(() => {
-    if (!isDev || mode || contentArea.height <= 0) return;
-    const measureDebug = () => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const header = document.querySelector('[data-waitme-header]');
-          const nav = document.querySelector('[data-waitme-nav]');
-          const hero = heroRef.current;
-          if (!header || !nav || !hero) return;
-
-          const headerRect = header.getBoundingClientRect();
-          const navRect = nav.getBoundingClientRect();
-          const headerBottom = headerRect.bottom;
-          const navTop = navRect.top;
-          const gapHeight = navTop - headerBottom;
-          const centerY = headerBottom + gapHeight / 2;
-
-          const heroRect = hero.getBoundingClientRect();
-          const heroTop = heroRect.top;
-          const heroBottom = heroRect.bottom;
-          const heroLeft = heroRect.left;
-          const heroWidth = heroRect.width;
-          const heroHeight = heroRect.height;
-          const spaceTop = heroTop - headerBottom;
-          const spaceBottom = navTop - heroBottom;
-          const delta = spaceTop - spaceBottom;
-
-          const data = {
-            headerBottom,
-            navTop,
-            gapHeight,
-            centerY,
-            heroTop,
-            heroBottom,
-            heroLeft,
-            heroWidth,
-            heroHeight,
-            spaceTop,
-            spaceBottom,
-            delta
-          };
-          setDebugData(data);
-          console.log('[Home centering]', data);
-          if (Math.abs(delta) > 2) {
-            console.error('[Home centering] delta > 2px — desalineado:', data);
-          }
-        });
-      });
-    };
-
-    measureDebug();
-    window.addEventListener('resize', measureDebug);
-    return () => window.removeEventListener('resize', measureDebug);
-  }, [isDev, mode, contentArea]);
 
   const locationKey = useMemo(() => {
     if (!userLocation) return null;
@@ -253,16 +196,7 @@ export default function Home() {
 
   const myActiveAlerts = useMemo(() => {
     const hiddenKeys = readHiddenKeys();
-    const visible = getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys);
-    if (import.meta.env.DEV) {
-      const total = (myAlerts || []).length;
-      const activeReserved = (myAlerts || []).filter((a) =>
-        ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
-      ).length;
-      const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
-      console.debug('[alert-check] cache', { total, activeReserved, hidden, visible: visible.length });
-    }
-    return visible;
+    return getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys);
   }, [myAlerts, user?.id, user?.email]);
 
   useEffect(() => {
@@ -417,15 +351,6 @@ export default function Home() {
       const hiddenKeys = readHiddenKeys();
       const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
 
-      if (import.meta.env.DEV) {
-        const total = (mine || []).length;
-        const activeReserved = (mine || []).filter((a) =>
-          ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
-        ).length;
-        const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
-        console.debug('[alert-check] mutation fresh-DB', { total, activeReserved, hidden, visible: visibleFresh.length });
-      }
-
       if (visibleFresh.length > 0) {
         throw new Error('ALREADY_HAS_ALERT');
       }
@@ -495,10 +420,6 @@ export default function Home() {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
-
-    if (import.meta.env.DEV) {
-      console.debug('[alertsKey] createAlertMutation.onSuccess → setQueryData', alertsKey(mode, locationKey));
-    }
 
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
@@ -587,10 +508,6 @@ export default function Home() {
         return list.map(a => a.id === alert.id ? { ...a, status: 'reserved', reserved_by_id: user?.id } : a);
       });
 
-      if (import.meta.env.DEV) {
-        console.debug('[P1] buyAlertMutation.onMutate → optimistic update on', activeKey);
-      }
-
       return { previousAlerts, activeKey };
     },
     onError: (err, alert, context) => {
@@ -674,25 +591,6 @@ export default function Home() {
           via-[#1a0b2e]/55
           to-[#0b0618]/90"
       />
-
-      {/* Debug overlay — solo DEV, desactivar con isDev=false */}
-      {isDev && debugData && (
-        <div className="fixed inset-0 z-[9999] pointer-events-none" aria-hidden="true">
-          <div
-            className="absolute left-0 right-0 h-0.5 bg-red-500"
-            style={{ top: debugData.centerY }}
-          />
-          <div
-            className="absolute border-2 border-red-500"
-            style={{
-              top: debugData.heroTop,
-              left: debugData.heroLeft,
-              width: debugData.heroWidth,
-              height: debugData.heroHeight,
-            }}
-          />
-        </div>
-      )}
 
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -935,14 +833,6 @@ export default function Home() {
                             : { data: [] };
                           const hiddenKeys = readHiddenKeys();
                           const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
-                          if (import.meta.env.DEV) {
-                            const total = (mine || []).length;
-                            const activeReserved = (mine || []).filter((a) =>
-                              ['active', 'reserved'].includes(String(a?.status || '').toLowerCase())
-                            ).length;
-                            const hidden = Array.from(hiddenKeys).filter((k) => k.startsWith('active-')).length;
-                            console.debug('[alert-check] button fresh-DB', { total, activeReserved, hidden, visible: visibleFresh.length });
-                          }
                           if (visibleFresh.length > 0) {
                             setOneActiveAlertOpen(true);
                             return;
