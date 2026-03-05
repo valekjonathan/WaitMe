@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import * as alertsSupabase from '@/services/alertsSupabase';
+import * as alerts from '@/data/alerts';
 
 export default function HistoryBuyerView({
   noScrollBar,
@@ -128,7 +128,7 @@ export default function HistoryBuyerView({
                                     hideKey(key);
                                     if (isMock) return;
 
-                                    await alertsSupabase.updateAlert(alert.id, { status: 'cancelled' });
+                                    await alerts.updateAlert(alert.id, { status: 'cancelled' });
                                     await base44.entities.ChatMessage.create({
                                       alert_id: alert.id,
                                       sender_id: user?.email || user?.id,

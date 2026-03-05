@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { createPageUrl } from '@/utils';
-import * as alertsSupabase from '@/services/alertsSupabase';
+import * as alerts from '@/data/alerts';
 import { getBestFinalizedTs } from '@/lib/alertSelectors';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -127,7 +127,7 @@ function HistorySellerView({ sellerContext = {} }) {
                         queryClient.setQueryData(['myAlerts'], (old = []) =>
                           old.map(a => a.id === req.alertId ? { ...a, ...payload } : a)
                         );
-                        alertsSupabase.updateAlert(req.alertId, payload).then(() => {
+                        alerts.updateAlert(req.alertId, payload).then(() => {
                           queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                         });
                       };

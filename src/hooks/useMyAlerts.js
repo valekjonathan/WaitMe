@@ -5,7 +5,7 @@
  * and the queryFn. Used by Home.jsx, History.jsx and BottomNav.jsx so all
  * three read from the exact same cache entry with the exact same policy.
  *
- * Migrated to Supabase: uses alertsSupabase.getMyAlerts + subscribeAlerts.
+ * Usa data layer: import * as alerts from '@/data/alerts'.
  *
  * Policy rationale:
  *   - staleTime: 0  → data is always considered stale; explicit invalidation
@@ -21,7 +21,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { getMyAlerts, getAlertsReservedByMe, subscribeAlerts } from '@/services/alertsSupabase';
+import * as alerts from '@/data/alerts';
 import { useAuth } from '@/lib/AuthContext';
 
 export const MY_ALERTS_QUERY_KEY = ['myAlerts'];
@@ -39,8 +39,8 @@ export const MY_ALERTS_OPTIONS = {
 async function fetchMyAlerts(userId) {
   if (!userId) return [];
   const [sellerRes, buyerRes] = await Promise.all([
-    getMyAlerts(userId),
-    getAlertsReservedByMe(userId),
+    alerts.getMyAlerts(userId),
+    alerts.getAlertsReservedByMe(userId),
   ]);
   const asSeller = sellerRes.data ?? [];
   const asBuyer = buyerRes.data ?? [];
@@ -86,7 +86,7 @@ export function useMyAlerts() {
 
   useEffect(() => {
     if (!userId) return;
-    const unsub = subscribeAlerts({
+    const unsub = alerts.subscribeAlerts({
       onUpsert: (alert) => {
         if (alert?.seller_id === userId || alert?.user_id === userId) {
           queryClient.invalidateQueries({ queryKey: MY_ALERTS_QUERY_KEY });

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import * as alertsSupabase from '@/services/alertsSupabase';
+import * as alerts from '@/data/alerts';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -531,7 +531,7 @@ const getCreatedTs = (alert) => {
 
   const deleteAlertSafe = async (id) => {
     try {
-      await alertsSupabase.deleteAlert(id);
+      await alerts.deleteAlert(id);
     } catch (e) {}
   };
 
@@ -623,7 +623,7 @@ const visibleActiveAlerts = useMemo(() => {
 
     Promise.all(
       others.map((a) =>
-        alertsSupabase.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
+        alerts.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -688,7 +688,7 @@ const myFinalizedAlerts = useMemo(() => {
 
     Promise.all(
       toExpire.map((a) =>
-        alertsSupabase.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
+        alerts.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -768,11 +768,11 @@ const myFinalizedAlerts = useMemo(() => {
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      await alertsSupabase.updateAlert(alertId, { status: 'cancelled' });
+      await alerts.updateAlert(alertId, { status: 'cancelled' });
 
       const uid = user?.id;
       if (!uid) return;
-      const { data: all } = await alertsSupabase.getMyAlerts(uid);
+      const { data: all } = await alerts.getMyAlerts(uid);
       const mine = (all || []).filter((a) => {
         if (!a) return false;
         const st = String(a.status || '').toLowerCase();
@@ -781,7 +781,7 @@ const myFinalizedAlerts = useMemo(() => {
       await Promise.all(
         mine
           .filter((a) => a.id && a.id !== alertId)
-          .map((a) => alertsSupabase.updateAlert(a.id, { status: 'cancelled' }).then(() => null).catch(() => null))
+          .map((a) => alerts.updateAlert(a.id, { status: 'cancelled' }).then(() => null).catch(() => null))
       );
     },
   onMutate: async (alertId) => {
@@ -806,7 +806,7 @@ const myFinalizedAlerts = useMemo(() => {
 
   const expireAlertMutation = useMutation({
     mutationFn: async (alertId) => {
-      await alertsSupabase.updateAlert(alertId, { status: 'expired' });
+      await alerts.updateAlert(alertId, { status: 'expired' });
     },
     onMutate: async (alertId) => {
       // Marcar como expirada en cache (badge se recalcula desde myAlerts)
@@ -826,7 +826,7 @@ const myFinalizedAlerts = useMemo(() => {
     mutationFn: async (alert) => {
       if (!alert) return null;
 
-      await alertsSupabase.updateAlert(alert.id, { status: 'expired' });
+      await alerts.updateAlert(alert.id, { status: 'expired' });
 
       const now = Date.now();
       const minutes = Number(alert.available_in_minutes || 0);
@@ -850,7 +850,7 @@ const myFinalizedAlerts = useMemo(() => {
         },
       };
 
-      const { data } = await alertsSupabase.createAlert(payload);
+      const { data } = await alerts.createAlert(payload);
       return data;
     },
     onSuccess: () => {
@@ -900,7 +900,7 @@ const myFinalizedAlerts = useMemo(() => {
                 setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                 setExpiredAlertModalId(null);
                 const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
-                alertsSupabase.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
+                alerts.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
                   queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                 });
               }}
@@ -916,7 +916,7 @@ const myFinalizedAlerts = useMemo(() => {
             setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
             setExpiredAlertModalId(null);
             stampFinalizedAt(alert.id);
-            alertsSupabase.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
+            alerts.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
               queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
               try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
             });
@@ -1244,7 +1244,7 @@ const myFinalizedAlerts = useMemo(() => {
                         return { ...a, status: 'cancelled', cancel_reason: 'me_fui', finalized_at: now, updated_date: new Date(now).toISOString() };
                       }) : old;
                     });
-                    alertsSupabase.updateAlert(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
+                    alerts.updateAlert(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
                     });
@@ -1500,7 +1500,7 @@ const myFinalizedAlerts = useMemo(() => {
                       setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                       setExpiredAlertModalId(null);
                       const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
-                      alertsSupabase.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
+                      alerts.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
                         queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       });
                     }}
@@ -1516,7 +1516,7 @@ const myFinalizedAlerts = useMemo(() => {
                 onClick={() => {
                   setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
                   setExpiredAlertModalId(null);
-                  alertsSupabase.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
+                  alerts.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
                     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                     try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
                   });
