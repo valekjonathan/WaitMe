@@ -586,20 +586,22 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* HOME PRINCIPAL — hero centrado entre header y bottom nav (safe area incluida) */}
+        {/* CONTENT_AREA: espacio exacto entre header y bottom nav */}
         <div
           className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'flex',
+            position: 'absolute',
+            top: HEADER_H,
+            bottom: NAV_H,
+            left: 0,
+            right: 0,
             alignItems: 'center',
             justifyContent: 'center',
-            position: 'absolute',
-            inset: 0,
-            paddingTop: `calc(${HEADER_H}px + env(safe-area-inset-top, 0px))`,
-            paddingBottom: `calc(${NAV_H}px + env(safe-area-inset-bottom, 0px))`,
             pointerEvents: 'none',
           }}
         >
+              {/* HERO: logo + frase + pin + botones — centrado sin márgenes ni padding */}
               <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 pointer-events-auto">
                 <img
                   loading="eager"
