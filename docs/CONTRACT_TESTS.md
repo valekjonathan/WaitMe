@@ -10,7 +10,8 @@ Validar que la capa de datos (`src/data/*`) mantiene el contrato esperado por lo
 tests/contracts/
 ├── alerts.test.js
 ├── chat.test.js
-└── transactions.test.js
+├── transactions.test.js
+└── uploads.test.js
 ```
 
 ## Funciones validadas
@@ -20,6 +21,7 @@ tests/contracts/
 | **alerts** | createAlert, getMyAlerts, getAlertsReservedByMe, updateAlert, deleteAlert, subscribeAlerts |
 | **chat** | sendMessage, getMessages, getConversations, getConversation, subscribeMessages |
 | **transactions** | createTransaction, listTransactions |
+| **uploads** | uploadFile, getPublicUrl, deleteFile |
 
 ## Contrato
 

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-import { base44 } from '@/api/base44Client';
 import * as chat from '@/data/chat';
+import * as uploads from '@/data/uploads';
 import { format } from 'date-fns';
 import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -370,8 +370,15 @@ export default function Chat() {
             { url: URL.createObjectURL(file), type: file.type, name: file.name }
           ]);
         } else {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-          setAttachments((prev) => [...prev, { url: file_url, type: file.type, name: file.name }]);
+          const ext = file.name.split('.').pop() || 'bin';
+          const safeName = (file.name || 'file').replace(/[^a-zA-Z0-9.-]/g, '_').slice(0, 50);
+          const path = `chat/${user?.id || 'anon'}/${Date.now()}_${safeName}`;
+          const { file_url, url, error } = await uploads.uploadFile(file, path);
+          if (error) throw error;
+          const attachmentUrl = file_url || url;
+          if (attachmentUrl) {
+            setAttachments((prev) => [...prev, { url: attachmentUrl, type: file.type, name: file.name }]);
+          }
         }
       } catch (err) {
         console.error('Error subiendo archivo:', err);
