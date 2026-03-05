@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
@@ -14,12 +14,11 @@ export default function Header({
   titleClassName = 'text-[24px] leading-[24px]',
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
 
   const [balance, setBalance] = useState(() => getBalance(user?.id));
-  const [bannerReq, setBannerReq] = useState(null);
-  const [showBanner, setShowBanner] = useState(false);
+  const [, setBannerReq] = useState(null);
+  const [, setShowBanner] = useState(false);
   const [creditsPulse, setCreditsPulse] = useState(null);
   const bannerTimerRef = useRef(null);
   const pulseTimerRef = useRef(null);

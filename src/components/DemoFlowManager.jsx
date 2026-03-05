@@ -31,13 +31,6 @@ function statusToTitle(status) {
   return 'ACTUALIZACIÓN';
 }
 
-const BASE_LAT = 43.3623;   // Oviedo aprox
-const BASE_LNG = -5.8489;
-
-function rnd(min, max) { return Math.random() * (max - min) + min; }
-function nearLat() { return BASE_LAT + rnd(-0.0045, 0.0045); }
-function nearLng() { return BASE_LNG + rnd(-0.0060, 0.0060); }
-
 /* ======================================================
    ESTADO DEMO (ÚNICA FUENTE DE VERDAD)
 ====================================================== */

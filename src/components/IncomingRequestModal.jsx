@@ -29,33 +29,6 @@ function getCarFill(color){
   return CAR_COLOR_MAP_MODAL[key]||'#9ca3af';
 }
 
-function CarIconProfile({color,size='w-16 h-10'}){
-  return(
-    <svg className={size} viewBox="0 0 64 40" fill="none">
-      <rect x="8" y="16" width="48" height="18" rx="4" fill={color}/>
-      <rect x="14" y="8" width="36" height="14" rx="3" fill={color} opacity="0.85"/>
-      <rect x="17" y="10" width="13" height="9" rx="2" fill="#93c5fd" opacity="0.7"/>
-      <rect x="34" y="10" width="13" height="9" rx="2" fill="#93c5fd" opacity="0.7"/>
-      <circle cx="18" cy="34" r="5" fill="#1f2937"/>
-      <circle cx="18" cy="34" r="3" fill="#374151"/>
-      <circle cx="46" cy="34" r="5" fill="#1f2937"/>
-      <circle cx="46" cy="34" r="3" fill="#374151"/>
-    </svg>
-  );
-}
-
-function PlateProfile({plate}){
-  if(!plate)return null;
-  return(
-    <div className="bg-white rounded px-1.5 py-0.5 flex items-center gap-1">
-      <div className="bg-blue-700 rounded-sm w-3 h-full flex items-center justify-center">
-        <span className="text-white text-[7px] font-bold leading-none">E</span>
-      </div>
-      <span className="text-gray-900 text-[10px] font-bold tracking-wide">{plate}</span>
-    </div>
-  );
-}
-
 export default function IncomingRequestModal(){
   const navigate=useNavigate();
   const queryClient=useQueryClient();

@@ -5,7 +5,7 @@ import { MapPin, Clock, X, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 
-function ActiveAlertCard({ userLocation, onRefresh }) {
+function ActiveAlertCard({ onRefresh }) {
   const queryClient = useQueryClient();
   const { data: myAlerts = [] } = useMyAlerts();
   const myActiveAlerts = myAlerts.filter(a => a.status === 'active');
