@@ -92,12 +92,15 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(appUser);
 
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
-        .single();
+        .maybeSingle();
 
+      if (profileError) {
+        console.error("PROFILE LOAD ERROR:", profileError);
+      }
       if (profileData) {
         setProfile(profileData);
       } else {
@@ -147,11 +150,12 @@ export const AuthProvider = ({ children }) => {
           const appUser = await ensureUserInDb(session.user);
           if (appUser?.id) {
             setUser(appUser);
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .single();
+              .maybeSingle();
+            if (profileError) console.error("PROFILE LOAD ERROR:", profileError);
             if (profileData) setProfile(profileData);
             else setProfile({});
             setIsAuthenticated(true);

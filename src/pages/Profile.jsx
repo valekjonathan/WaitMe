@@ -78,23 +78,39 @@ export default function Profile() {
   const initial = (nameForInitial ? nameForInitial[0] : "?").toUpperCase();
 
   useEffect(() => {
-    if (!profile || hydratedOnceRef.current) return;
+    if (!user?.id) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
+    if (hydratedOnceRef.current) return;
     hydratedOnceRef.current = true;
-    setFormData({
-      full_name: profile.full_name || '',
-      brand: profile.brand || '',
-      model: profile.model || '',
-      color: profile.color || 'gris',
-      vehicle_type: profile.vehicle_type || 'car',
-      plate: profile.plate || '',
-      avatar_url: profile.avatar_url || '',
-      phone: profile.phone || '',
-      allow_phone_calls: profile.allow_phone_calls || false,
-      notifications_enabled: profile.notifications_enabled !== false,
-      email_notifications: profile.email_notifications !== false,
-    });
-    setHydrated(true);
-  }, [profile]);
+    (async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("PROFILE LOAD ERROR:", error);
+        return;
+      }
+      if (data) {
+        setFormData({
+          full_name: data.full_name || '',
+          brand: data.brand || '',
+          model: data.model || '',
+          color: data.color || 'gris',
+          vehicle_type: data.vehicle_type || 'car',
+          plate: data.plate || '',
+          avatar_url: data.avatar_url || '',
+          phone: data.phone || '',
+          allow_phone_calls: data.allow_phone_calls || false,
+          notifications_enabled: data.notifications_enabled !== false,
+          email_notifications: data.email_notifications !== false,
+        });
+      }
+      setHydrated(true);
+    })();
+  }, [user?.id]);
 
   const handleSave = useCallback(async () => {
     const supabase = getSupabase();
