@@ -58,3 +58,18 @@ export function getSupabase() {
     return null;
   }
 }
+
+/**
+ * Borra las claves de sesión de Supabase en Preferences (Capacitor).
+ * Usar tras signOut para asegurar logout completo.
+ */
+export async function clearSupabaseAuthStorage() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const { keys } = await Preferences.keys();
+    const supabaseKeys = (keys || []).filter((k) => k.startsWith("sb-"));
+    await Promise.all(supabaseKeys.map((key) => Preferences.remove({ key })));
+  } catch {
+    /* no-op */
+  }
+}

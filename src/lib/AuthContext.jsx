@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
-import { getSupabase } from '@/lib/supabaseClient';
+import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -203,8 +203,9 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     const supabase = getSupabase();
     if (supabase) await supabase.auth.signOut();
+    await clearSupabaseAuthStorage();
     if (shouldRedirect) {
-      window.location.href = window.location.origin;
+      window.location.href = window.location.origin + '/';
     }
   }, []);
 
