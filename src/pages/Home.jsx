@@ -603,12 +603,11 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* HERO_TOP: centrado — logo + texto + pin + botón "¿Dónde quieres aparcar?" */}
+        {/* MAIN_CONTENT: bloque completo centrado entre header y bottom nav */}
         <div
           className="overflow-hidden"
           style={{
             display: mode ? 'none' : 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             position: 'absolute',
@@ -619,9 +618,7 @@ export default function Home() {
             pointerEvents: 'none',
           }}
         >
-          <div
-            className="relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto"
-          >
+          <div className="hero-block relative z-10 flex flex-col items-center text-center px-6 pointer-events-auto">
             <img
               loading="eager"
               decoding="async"
@@ -647,7 +644,7 @@ export default function Home() {
                 <div className="w-[2px] h-8 bg-purple-500" />
               </div>
 
-              <div className="w-full mt-4">
+              <div className="w-full space-y-4 mt-4">
                 <Button
                   onClick={() => setMode('search')}
                   className="w-full h-20 bg-gray-900 hover:bg-gray-800 border border-gray-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-10 [&_svg]:!h-10"
@@ -655,35 +652,19 @@ export default function Home() {
                   <MagnifierIconProfile color="#8b5cf6" size="w-14 h-14" />
                   ¿ Dónde quieres aparcar ?
                 </Button>
+
+                <Button
+                  onClick={() => guard(() => {
+                    getCurrentLocation();
+                    setMode('create');
+                  })}
+                  className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
+                >
+                  <CarIconProfile color="#000000" size="w-20 h-14" />
+                  ¡ Estoy aparcado aquí !
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* HERO_BOTTOM: botón morado encima del bottom nav */}
-        <div
-          className="overflow-hidden"
-          style={{
-            display: mode ? 'none' : 'flex',
-            justifyContent: 'center',
-            position: 'absolute',
-            bottom: `calc(${navHeight}px + 16px)`,
-            left: 0,
-            right: 0,
-            pointerEvents: 'none',
-          }}
-        >
-          <div className="w-full max-w-sm px-6 pointer-events-auto">
-            <Button
-              onClick={() => guard(() => {
-                getCurrentLocation();
-                setMode('create');
-              })}
-              className="w-full h-20 bg-purple-600 hover:bg-purple-700 text-white text-lg font-medium rounded-2xl flex items-center justify-center gap-4 [&_svg]:!w-20 [&_svg]:!h-14"
-            >
-              <CarIconProfile color="#000000" size="w-20 h-14" />
-              ¡ Estoy aparcado aquí !
-            </Button>
           </div>
         </div>
 
