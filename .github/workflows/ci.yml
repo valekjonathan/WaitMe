@@ -2,11 +2,9 @@
 # Gate único: todo debe pasar antes de migrations
 name: CI
 
+# Desactivado temporalmente: solo manual (workflow_dispatch)
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
