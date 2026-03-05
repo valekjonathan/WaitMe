@@ -584,12 +584,19 @@ export default function Home() {
       {/* Contenido UI por encima del mapa */}
       <div className="relative z-10 flex flex-col min-h-screen">
       <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
-        {/* HOME PRINCIPAL — always mounted; CSS display prevents logo re-mount/reload */}
+        {/* HOME PRINCIPAL — hero centrado entre header (60px) y bottom nav (72px) */}
         <div
-          className="flex-1 flex flex-col relative overflow-hidden min-h-0 pt-[60px] pb-[72px]"
-          style={{ display: mode ? 'none' : 'flex' }}
+          className="relative overflow-hidden"
+          style={{
+            display: mode ? 'none' : 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 'calc(100vh - 60px - 72px)',
+            marginTop: '60px',
+          }}
         >
-              <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
+              <div className="relative z-10 flex flex-col items-center justify-center text-center px-6">
                 <img
                   loading="eager"
                   decoding="async"
