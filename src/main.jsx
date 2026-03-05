@@ -1,187 +1,86 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./lib/AuthContext";
-import { getSupabaseConfig } from "./lib/supabaseClient";
-import AppProbe from "./diagnostics/AppProbe";
-import MissingEnvScreen from "./diagnostics/MissingEnvScreen";
-import "./globals.css";
-import "./styles/no-zoom.css";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60_000,
-      gcTime: 30 * 60_000,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      retry: 1,
-    },
-  },
-});
+function ErrorBoundary({ children }) {
+  const [error, setError] = React.useState(null);
 
-function bootOverlayAdd(line) {
-  const overlay = window.__bootOverlay;
-  if (!overlay) return;
-  const cur = overlay.textContent || "";
-  overlay.textContent = cur + (cur ? "\n" : "") + line;
-  overlay.style.display = "block";
-}
-
-function bootOverlayUpdate(title, detail) {
-  if (typeof window.__bootUpdate === "function") {
-    window.__bootUpdate(title, detail);
+  if (error) {
+    return (
+      <div
+        style={{
+          background: "white",
+          color: "red",
+          fontSize: 18,
+          padding: 40,
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        REACT ERROR
+        {"\n\n"}
+        {String(error)}
+      </div>
+    );
   }
-}
 
-function bootOverlayHide() {
-  if (typeof window.__bootHide === "function") {
-    window.__bootHide();
-  }
-}
-
-const STEP_LABELS = {
-  A: "HashRouter",
-  B: "AuthProvider",
-  C: "QueryClientProvider+AuthProvider",
-};
-
-function BootErrorFallback({ error, step }) {
-  const msg = `FALLA EN PASO ${step} (${STEP_LABELS[step]})\n\n${String(error)}${error?.stack ? "\n\n" + error.stack : ""}`;
-  useEffect(() => {
-    bootOverlayUpdate(`FALLA EN PASO ${step} (${STEP_LABELS[step]})`, String(error) + (error?.stack ? "\n\n" + error.stack : ""));
-  }, [error, step]);
   return (
-    <div
-      style={{
-        background: "#1a0000",
-        color: "#fca5a5",
-        padding: 20,
-        fontFamily: "monospace",
-        whiteSpace: "pre-wrap",
-        minHeight: "100vh",
-      }}
-    >
-      {msg}
-    </div>
+    <React.Suspense fallback={<div style={{ padding: 40 }}>Cargando...</div>}>
+      <Inner setError={setError}>{children}</Inner>
+    </React.Suspense>
   );
 }
 
-class BootErrorBoundary extends React.Component {
+class Inner extends React.Component {
   state = { error: null };
 
   static getDerivedStateFromError(error) {
     return { error };
   }
 
-  componentDidCatch(error, info) {
-    this.props.onError?.(error, this.props.step);
+  componentDidCatch(error) {
+    this.props.setError(error);
   }
 
   render() {
     if (this.state.error) {
-      return <BootErrorFallback error={this.state.error} step={this.props.step} />;
+      return (
+        <div
+          style={{
+            background: "white",
+            color: "red",
+            fontSize: 18,
+            padding: 40,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          REACT ERROR
+          {"\n\n"}
+          {String(this.state.error)}
+        </div>
+      );
     }
     return this.props.children;
   }
 }
 
-function MountWatcher({ children, onMounted }) {
-  const mountedRef = useRef(false);
-  useEffect(() => {
-    if (mountedRef.current) return;
-    mountedRef.current = true;
-    const t = setTimeout(() => {
-      const root = document.getElementById("root");
-      const hasContent = root?.children?.length > 0;
-      if (hasContent) {
-        bootOverlayAdd("BOOT 3: React mounted OK");
-        bootOverlayHide();
-        onMounted?.();
-      }
-    }, 300);
-    return () => clearTimeout(t);
-  }, [onMounted]);
-  return children;
-}
-
-function renderStep(step) {
-  switch (step) {
-    case "A":
-      return (
-        <HashRouter>
-          <MountWatcher>
-            <AppProbe />
-          </MountWatcher>
-        </HashRouter>
-      );
-    case "B":
-      return (
-        <HashRouter>
-          <AuthProvider>
-            <MountWatcher>
-              <AppProbe />
-            </MountWatcher>
-          </AuthProvider>
-        </HashRouter>
-      );
-    case "C":
-      return (
-        <HashRouter>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <MountWatcher>
-                <AppProbe />
-              </MountWatcher>
-            </AuthProvider>
-          </QueryClientProvider>
-        </HashRouter>
-      );
-    default:
-      return null;
-  }
-}
-
-function BootRoot() {
-  const [step, setStep] = useState("A");
-  const [lastError, setLastError] = useState(null);
-
-  const handleError = (err, stepName) => {
-    setLastError(err);
-    if (stepName === "A") setStep("B");
-    else if (stepName === "B") setStep("C");
-    else setStep("failed");
-  };
-
-  if (step === "failed") {
-    return (
-      <BootErrorFallback
-        error={lastError || new Error("Unknown")}
-        step="C"
-      />
-    );
-  }
-
+function TestApp() {
   return (
-    <BootErrorBoundary key={step} step={step} onError={handleError}>
-      {renderStep(step)}
-    </BootErrorBoundary>
+    <div
+      style={{
+        background: "white",
+        color: "black",
+        fontSize: 40,
+        padding: 40,
+      }}
+    >
+      REACT ARRANCÓ
+    </div>
   );
 }
 
-const rootEl = document.getElementById("root");
-if (rootEl) {
-  bootOverlayAdd("BOOT 2: main.jsx ejecutado");
-  const config = getSupabaseConfig();
-  if (!config.ok) {
-    ReactDOM.createRoot(rootEl).render(
-      <HashRouter>
-        <MissingEnvScreen missing={config.missing} />
-      </HashRouter>
-    );
-  } else {
-    ReactDOM.createRoot(rootEl).render(<BootRoot />);
-  }
-}
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+root.render(
+  <ErrorBoundary>
+    <TestApp />
+  </ErrorBoundary>
+);
