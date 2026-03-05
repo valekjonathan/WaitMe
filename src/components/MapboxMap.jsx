@@ -3,7 +3,7 @@ import { getCarIconHtml } from '@/lib/vehicleIcons';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
-const DEFAULT_ZOOM = 16;
+const DEFAULT_ZOOM = 16.5;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
 const GPS_TIMEOUT_MS = 2500;
@@ -237,7 +237,7 @@ export default function MapboxMap({
     if (userLat != null && userLng != null) {
       const userPinHtml = `<div style="position:relative;width:40px;height:100px;">
         <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
-        <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;box-shadow:0 0 18px rgba(168,85,247,0.9);"></div>
+        <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;"></div>
       </div>`;
       const userEl = document.createElement('div');
       userEl.innerHTML = userPinHtml;
