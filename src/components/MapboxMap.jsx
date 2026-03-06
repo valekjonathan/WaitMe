@@ -185,6 +185,7 @@ export default function MapboxMap({
         mapboxgl.accessToken = token;
 
         try {
+          if (!containerRef.current) return;
           map = new mapboxgl.Map({
             container: container,
             style: DARK_STYLE,
@@ -247,11 +248,13 @@ export default function MapboxMap({
             if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) setError('no_token');
           });
         } catch (err) {
-          setError('no_token');
+          console.error('Mapbox init error', err);
+          setError('init_failed');
         }
       })
-      .catch(() => {
-        setError('no_token');
+      .catch((err) => {
+        console.error('Mapbox init error', err);
+        setError('init_failed');
       });
 
     return () => {
@@ -426,13 +429,19 @@ export default function MapboxMap({
   if (error) {
     RENDER_LOG('MapboxMap RETURNS error state', error);
     return (
-      <div className="relative w-full h-full min-h-[200px]" style={{ minHeight: '100vh' }}>
-        <div
-          className={`flex items-center justify-center bg-[#0B0B0F] text-gray-500 text-sm ${className}`}
-          style={{ width: '100%', height: '100%', minHeight: '100vh' }}
-        >
-          Mapa no disponible
-        </div>
+      <div
+        style={{
+          background: '#0B0B0F',
+          height: '100%',
+          width: '100%',
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+        }}
+      >
+        Map loading...
       </div>
     );
   }
