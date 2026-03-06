@@ -183,6 +183,8 @@ export default function MapboxMap({
             bearing: 0,
             antialias: true,
             attributionControl: false,
+            dragPan: true,
+            touchZoomRotate: true,
           });
 
           map.on('load', () => {
