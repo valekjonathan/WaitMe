@@ -20,29 +20,55 @@ export default function CreateAlertCard({
     onCreateAlert({ price, minutes });
   };
 
+  const flyToCoords = (lng, lat) => {
+    if (!mapRef?.current) return;
+    mapRef.current.flyTo({
+      center: [lng, lat],
+      zoom: 17,
+      duration: 1200,
+      essential: true,
+      padding: { top: 0, bottom: 120, left: 0, right: 0 },
+    });
+  };
+
   const handleUbicite = () => {
+    if (!mapRef?.current) return;
     if (!navigator.geolocation) {
-      console.warn('[Ubícate] Geolocation no disponible');
+      const center = mapRef.current.getCenter();
+      if (center) {
+        onRecenter?.({ lat: center.lat, lng: center.lng });
+        flyToCoords(center.lng, center.lat);
+      }
       return;
     }
+
+    const onSuccess = (pos) => {
+      const { latitude, longitude } = pos.coords;
+      onRecenter?.({ lat: latitude, lng: longitude });
+      flyToCoords(longitude, latitude);
+    };
+
+    const onError = (err) => {
+      console.warn('[Ubícate] Intento fallido:', err?.message || err);
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        (err2) => {
+          console.warn('[Ubícate] Segundo intento fallido:', err2?.message || err2);
+          if (!mapRef?.current) return;
+          const center = mapRef.current.getCenter();
+          if (center) {
+            onRecenter?.({ lat: center.lat, lng: center.lng });
+            flyToCoords(center.lng, center.lat);
+          }
+        },
+        { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
+      );
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const coords = { lat: latitude, lng: longitude };
-        onRecenter?.(coords);
-        if (mapRef?.current?.flyTo) {
-          mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: 17,
-            essential: true,
-            padding: { top: 0, bottom: 120, left: 0, right: 0 },
-          });
-        }
-      },
-      (err) => {
-        console.warn('[Ubícate] Permisos denegados o error:', err?.message || err);
-      },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      onSuccess,
+      onError,
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
