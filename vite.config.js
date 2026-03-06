@@ -31,6 +31,10 @@ export default defineConfig({
     include: ['react', 'react-dom'],
   },
   base: "./",
+  preview: {
+    host: true,
+    port: 4173,
+  },
   build: {
     outDir: "dist",
     assetsInlineLimit: 200000,

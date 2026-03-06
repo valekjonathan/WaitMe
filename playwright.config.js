@@ -4,6 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
 const port = process.env.PLAYWRIGHT_PORT || 5174;
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`;
 
+/** Geolocation Oviedo (configurable con PLAYWRIGHT_GEOLOCATION) */
+const geolocation = process.env.PLAYWRIGHT_GEOLOCATION
+  ? JSON.parse(process.env.PLAYWRIGHT_GEOLOCATION)
+  : { latitude: 43.3619, longitude: -5.8494 };
+
 export default defineConfig({
   testDir: './tests',
   testIgnore: ['**/contracts/**'],
@@ -16,13 +21,14 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    geolocation,
+    permissions: ['geolocation'],
   },
   projects: process.env.CI
-    ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]
+    ? [{ name: 'webkit-mobile', use: { ...devices['iPhone 14'], browserName: 'webkit' } }]
     : [
+        { name: 'webkit-mobile', use: { ...devices['iPhone 14'], browserName: 'webkit' } },
         { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-        { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-        { name: 'webkit', use: { ...devices['Desktop Safari'] } },
       ],
   webServer: {
     command: `npx vite --host --port ${port}`,
