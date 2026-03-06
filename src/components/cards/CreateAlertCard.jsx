@@ -32,6 +32,7 @@ export default function CreateAlertCard({
   };
 
   const handleUbicite = () => {
+    console.log('[Ubícate] handleUbicite ejecutado');
     if (!mapRef?.current) return;
     if (!navigator.geolocation) {
       const center = mapRef.current.getCenter();
@@ -74,7 +75,7 @@ export default function CreateAlertCard({
 
   return (
     <div
-      className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
+      className="pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
         boxShadow:
           '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
@@ -94,7 +95,7 @@ export default function CreateAlertCard({
           />
 
           <Button
-            className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
+            className="pointer-events-auto h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
             onClick={handleUbicite}
             type="button"
           >
