@@ -63,7 +63,10 @@ En esos casos: `npm run ios:run` o abrir Xcode y Run.
    `npm run ios:sync:dev` si cambias config de Capacitor.
 
 4. **Probar en iPhone real:**  
-   Conectar dispositivo, seleccionar en Xcode, Run.
+   - Web y Simulator usan el mismo servidor Vite (`npm run dev`).
+   - Para iPhone físico en la misma red: `CAPACITOR_DEV_SERVER_URL=http://TU_IP:5173 npm run dev:ios`
+   - Sustituir `TU_IP` por la IP de tu Mac (ej. `192.168.0.11`).
+   - Conectar dispositivo, seleccionar en Xcode, Run.
 
 ---
 

@@ -1,10 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const useDevServer = process.env.CAPACITOR_USE_DEV_SERVER === 'true';
+const serverUrl = process.env.CAPACITOR_DEV_SERVER_URL || 'http://localhost:5173';
+
 const config: CapacitorConfig = {
   appId: 'com.waitme.app',
   appName: 'WaitMe',
   webDir: 'dist',
   bundledWebRuntime: false,
+  ...(useDevServer && {
+    server: {
+      url: serverUrl,
+      cleartext: true,
+    },
+  }),
 };
 
 export default config;
