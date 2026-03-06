@@ -5,7 +5,7 @@ const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 17.5;
 const DEFAULT_PITCH = 30;
-const DARK_STYLE = 'mapbox://styles/mapbox/standard';
+const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
 const GPS_TIMEOUT_MS = 2500;
 const ACCURACY_RECENTER_THRESHOLD = 80;
 
@@ -179,6 +179,21 @@ export default function MapboxMap({
           map.on('load', () => {
             if (cancelled) return;
             mapRef.current = map;
+
+            // Estilo Uber/Bolt nocturno: desactivar relieve y árboles
+            try {
+              if (map.getTerrain()) map.setTerrain(null);
+            } catch {}
+            const style = map.getStyle();
+            if (style?.layers) {
+              for (const layer of style.layers) {
+                const id = (layer.id || '').toLowerCase();
+                if (id.includes('tree') || id.includes('park') || id.includes('landcover') || id.includes('land-use')) {
+                  try { map.setLayoutProperty(layer.id, 'visibility', 'none'); } catch {}
+                }
+              }
+            }
+
             map.resize();
             setMapReady(true);
             onMapLoad?.(map);

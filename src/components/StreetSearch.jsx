@@ -7,6 +7,22 @@ const OVIEDO_PROXIMITY = '-5.8494,43.3619';
 const LIMIT = 6;
 
 /**
+ * Formatea place_name de Mapbox a formato corto.
+ * "Calle Campoamor, Asturias, Spain" → "C/ Campoamor, Oviedo"
+ * "Calle Campoamor 13, Asturias, Spain" → "C/ Campoamor 13, Oviedo"
+ */
+function formatStreetName(placeName) {
+  if (!placeName || typeof placeName !== 'string') return placeName || '';
+  const parts = placeName.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length === 0) return placeName;
+
+  let street = parts[0] || '';
+  street = street.replace(/^Calle\s+/i, 'C/ ').replace(/^Avenida\s+/i, 'Av. ').replace(/^Plaza\s+/i, 'Pl. ');
+
+  return `${street}, Oviedo`;
+}
+
+/**
  * Buscador de calles con Mapbox Geocoding.
  * - Al escribir → sugerencias automáticas
  * - Al seleccionar → centrar mapa (callback con [lng, lat])
@@ -85,10 +101,11 @@ export default function StreetSearch({ onSelect, placeholder = 'Buscar calle o d
     const center = feature?.geometry?.coordinates;
     if (Array.isArray(center) && center.length >= 2) {
       const [lng, lat] = center;
-      setQuery(feature.place_name || feature.text || '');
+      const formatted = formatStreetName(feature.place_name || feature.text || '');
+      setQuery(formatted);
       setSuggestions([]);
       setOpen(false);
-      onSelect?.({ lng, lat, place_name: feature.place_name });
+      onSelect?.({ lng, lat, place_name: formatted });
     }
   };
 
@@ -125,7 +142,7 @@ export default function StreetSearch({ onSelect, placeholder = 'Buscar calle o d
               onClick={() => handleSelect(f)}
               onKeyDown={(e) => e.key === 'Enter' && handleSelect(f)}
             >
-              {f.place_name || f.text || ''}
+              {formatStreetName(f.place_name || f.text || '')}
             </li>
           ))}
         </ul>

@@ -1,6 +1,6 @@
 /**
  * Dataset mock temporal para probar UI en Oviedo.
- * ~50 alertas distribuidas alrededor del usuario y por Oviedo.
+ * 30 coches dentro de 600m del usuario + 20 repartidos por Oviedo.
  * Solo se usa cuando la base de datos devuelve pocas alertas.
  */
 
@@ -19,12 +19,8 @@ const STREETS = [
 
 const NAMES = ['Sofía', 'Hugo', 'Nuria', 'Iván', 'Marco', 'Laura', 'Dani', 'Paula', 'Álvaro', 'Claudia', 'Carlos', 'Elena', 'Miguel', 'Ana', 'Pablo'];
 
-function randomInRange(min, max) {
-  return min + Math.random() * (max - min);
-}
-
 function randomInt(min, max) {
-  return Math.floor(randomInRange(min, max + 1));
+  return Math.floor(min + Math.random() * (max - min + 1));
 }
 
 function pick(arr) {
@@ -32,7 +28,7 @@ function pick(arr) {
 }
 
 /**
- * Genera ~50 alertas mock en Oviedo.
+ * Genera 50 alertas mock: 30 cerca del usuario (radio ~600m), 20 repartidas por Oviedo.
  * @param {Object} userLocation - { lat, lng } o [lat, lng]
  * @returns {Array} alertas con estructura compatible con MapboxMap
  */
@@ -42,24 +38,60 @@ export function getMockOviedoAlerts(userLocation) {
 
   const now = Date.now();
   const result = [];
-  const count = 50;
 
-  // Offsets para distribuir: algunos cerca del usuario, otros repartidos por Oviedo
-  const offsets = [];
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * 2 * Math.PI * 3 + Math.random() * 0.5;
-    const r = 0.0015 * (0.2 + (i % 5) * 0.2) + Math.random() * 0.003;
-    offsets.push([r * Math.cos(angle), r * Math.sin(angle)]);
-  }
-
-  for (let i = 0; i < count; i++) {
-    const [dLat, dLng] = offsets[i];
+  // 30 coches dentro de radio 600m del usuario (lat ± 0.005, lng ± 0.005 ≈ 550m)
+  const NEARBY_R = 0.005;
+  for (let i = 0; i < 30; i++) {
+    const dLat = (Math.random() * 2 - 1) * NEARBY_R;
+    const dLng = (Math.random() * 2 - 1) * NEARBY_R;
     const lat = baseLat + dLat;
     const lng = baseLng + dLng;
 
     const price = randomInt(2, 10);
     const available_in_minutes = [5, 10, 15, 20, 25, 30][i % 6];
     const created = now - (i + 1) * 45 * 1000;
+
+    result.push({
+      id: `mock_near_${i}_${Date.now()}`,
+      user_id: `mock_u${(i % 10) + 1}`,
+      user_name: pick(NAMES),
+      user_photo: null,
+
+      vehicle_type: pick(VEHICLE_TYPES),
+      vehicle_color: pick(COLORS),
+      color: pick(COLORS),
+
+      address: `${pick(STREETS)}, ${randomInt(1, 50)}, Oviedo`,
+
+      latitude: lat,
+      longitude: lng,
+      lat,
+      lng,
+
+      price,
+      available_in_minutes,
+      availableInMinutes: available_in_minutes,
+      created_date: created,
+      wait_until: new Date(created + available_in_minutes * 60 * 1000).toISOString(),
+      status: 'active',
+
+      is_mock: true,
+    });
+  }
+
+  // 20 coches repartidos por Oviedo (offsets mayores)
+  const OVIEDO_R = 0.008;
+  for (let i = 0; i < 20; i++) {
+    const angle = (i / 20) * 2 * Math.PI * 2 + Math.random() * 0.5;
+    const r = OVIEDO_R * (0.3 + Math.random() * 0.7);
+    const dLat = r * Math.cos(angle);
+    const dLng = r * Math.sin(angle);
+    const lat = OVIEDO_CENTER.lat + dLat;
+    const lng = OVIEDO_CENTER.lng + dLng;
+
+    const price = randomInt(2, 10);
+    const available_in_minutes = [5, 10, 15, 20, 25, 30][i % 6];
+    const created = now - (30 + i + 1) * 45 * 1000;
 
     result.push({
       id: `mock_oviedo_${i}_${Date.now()}`,
