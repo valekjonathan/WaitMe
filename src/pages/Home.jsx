@@ -228,7 +228,7 @@ export default function Home() {
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }, [user?.id, user?.email, queryClient]);
 
-  // Reverse geocoding (estable, sin deps cambiantes)
+  // Reverse geocoding — solo actualiza si hay resultado válido; mantiene última dirección en fallo
   const reverseGeocode = useCallback((lat, lng) => {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=19&addressdetails=1`)
       .then((res) => res.json())
@@ -237,7 +237,8 @@ export default function Home() {
           const a = data.address;
           const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
           const number = a.house_number || '';
-          setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
+          const result = number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '';
+          if (result) setAddress(result);
         }
       })
       .catch(() => {});
@@ -607,6 +608,20 @@ export default function Home() {
     setUserLocation([lat, lng]);
   }, []);
 
+  const handleRecenter = useCallback((coords) => {
+    if (coords?.lat == null || coords?.lng == null) return;
+    const { lat, lng } = coords;
+    setSelectedPosition({ lat, lng });
+    reverseGeocode(lat, lng);
+    mapRef.current?.flyTo({
+      center: [lng, lat],
+      zoom: 16.5,
+      pitch: 30,
+      duration: 800,
+      padding: { top: 0, bottom: 120, left: 0, right: 0 },
+    });
+  }, [reverseGeocode]);
+
   const handleStreetSelect = useCallback((result) => {
     if (result?.lng == null || result?.lat == null) return;
     const { lng, lat, place_name } = result;
@@ -638,7 +653,110 @@ export default function Home() {
         onMapLoad={(map) => { mapRef.current = map; }}
         onMapMove={mode === 'create' ? handleMapMove : mode === 'search' ? handleMapMoveSearch : undefined}
         onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
-      />
+      >
+        {mode === 'create' && (
+          <CreateMapOverlay
+            address={address}
+            onAddressChange={setAddress}
+            onUseCurrentLocation={getCurrentLocation}
+            onRecenter={handleRecenter}
+            mapRef={mapRef}
+            onCreateAlert={async (data) => {
+              if (!selectedPosition || !address) {
+                alert('Por favor, selecciona una ubicación en el mapa');
+                return;
+              }
+              const currentUser = user;
+              const payload = {
+                latitude: selectedPosition.lat,
+                longitude: selectedPosition.lng,
+                address: address,
+                price: data.price,
+                available_in_minutes: data.minutes,
+                user_name: currentUser?.full_name?.split(' ')[0] || currentUser?.display_name || 'Usuario',
+                user_photo: currentUser?.photo_url || null,
+                brand: currentUser?.brand || 'Sin marca',
+                model: currentUser?.model || 'Sin modelo',
+                color: currentUser?.color || 'gris',
+                plate: currentUser?.plate || '0000XXX',
+                phone: currentUser?.phone || null,
+                allow_phone_calls: currentUser?.allow_phone_calls || false,
+                vehicle_type: currentUser?.vehicle_type || profile?.vehicle_type || 'car',
+                vehicle_color: currentUser?.vehicle_color || profile?.vehicle_color || currentUser?.color || profile?.color || 'gray',
+              };
+              if (myActiveAlerts && myActiveAlerts.length > 0) {
+                setOneActiveAlertOpen(true);
+                return;
+              }
+              try {
+                const uid = user?.id;
+                const email = user?.email;
+                if (uid || email) {
+                  const { data: mine = [] } = uid ? await alerts.getMyAlerts(uid) : { data: [] };
+                  const hiddenKeys = readHiddenKeys();
+                  const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
+                  if (visibleFresh.length > 0) {
+                    setOneActiveAlertOpen(true);
+                    return;
+                  }
+                }
+              } catch {}
+              setPendingPublishPayload(payload);
+              setConfirmPublishOpen(true);
+            }}
+            isLoading={createAlertMutation.isPending}
+          />
+        )}
+        {mode === 'search' && (
+          <SearchMapOverlay
+            onStreetSelect={handleStreetSelect}
+            mapRef={mapRef}
+            filtersButton={
+              !showFilters && (
+                <Button
+                  onClick={() => setShowFilters(true)}
+                  className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                  size="icon"
+                >
+                  <SlidersHorizontal className="w-5 h-5" />
+                </Button>
+              )
+            }
+            filtersContent={
+              <AnimatePresence>
+                {showFilters && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowFilters(false)}
+                      className="fixed inset-0 z-[999] bg-black/40"
+                    />
+                    <MapFilters
+                      filters={filters}
+                      onFilterChange={setFilters}
+                      onClose={() => setShowFilters(false)}
+                      alertsCount={searchAlerts.length}
+                    />
+                  </>
+                )}
+              </AnimatePresence>
+            }
+            alertCard={
+              <UserAlertCard
+                alert={selectedAlert}
+                isEmpty={!selectedAlert}
+                onBuyAlert={handleBuyAlert}
+                onChat={handleChat}
+                onCall={handleCall}
+                isLoading={buyAlertMutation.isPending}
+                userLocation={userLocation}
+              />
+            }
+          />
+        )}
+      </MapboxMap>
 
       {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
       <div
@@ -721,130 +839,7 @@ export default function Home() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* DÓNDE QUIERES APARCAR (SIN SCROLL) */}
-          {mode === 'search' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="contents"
-            >
-              <SearchMapOverlay
-                onStreetSelect={handleStreetSelect}
-                mapRef={mapRef}
-                filtersButton={
-                  !showFilters && (
-                    <Button
-                      onClick={() => setShowFilters(true)}
-                      className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                      size="icon"
-                    >
-                      <SlidersHorizontal className="w-5 h-5" />
-                    </Button>
-                  )
-                }
-                filtersContent={
-                  <AnimatePresence>
-                    {showFilters && (
-                      <>
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          onClick={() => setShowFilters(false)}
-                          className="fixed inset-0 z-[999] bg-black/40"
-                        />
-                        <MapFilters
-                          filters={filters}
-                          onFilterChange={setFilters}
-                          onClose={() => setShowFilters(false)}
-                          alertsCount={searchAlerts.length}
-                        />
-                      </>
-                    )}
-                  </AnimatePresence>
-                }
-                alertCard={
-                  <UserAlertCard
-                    alert={selectedAlert}
-                    isEmpty={!selectedAlert}
-                    onBuyAlert={handleBuyAlert}
-                    onChat={handleChat}
-                    onCall={handleCall}
-                    isLoading={buyAlertMutation.isPending}
-                    userLocation={userLocation}
-                  />
-                }
-              />
-            </motion.div>
-          )}
-
-          {/* ESTOY APARCADO AQUÍ (sin scroll) */}
-          {mode === 'create' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="contents"
-            >
-              <CreateMapOverlay
-                address={address}
-                onAddressChange={setAddress}
-                onUseCurrentLocation={getCurrentLocation}
-                mapRef={mapRef}
-                onCreateAlert={async (data) => {
-                      if (!selectedPosition || !address) {
-                        alert('Por favor, selecciona una ubicación en el mapa');
-                        return;
-                      }
-
-                      const currentUser = user;
-                      const payload = {
-                        latitude: selectedPosition.lat,
-                        longitude: selectedPosition.lng,
-                        address: address,
-                        price: data.price,
-                        available_in_minutes: data.minutes,
-                        user_name: currentUser?.full_name?.split(' ')[0] || currentUser?.display_name || 'Usuario',
-                        user_photo: currentUser?.photo_url || null,
-                        brand: currentUser?.brand || 'Sin marca',
-                        model: currentUser?.model || 'Sin modelo',
-                        color: currentUser?.color || 'gris',
-                        plate: currentUser?.plate || '0000XXX',
-                        phone: currentUser?.phone || null,
-                        allow_phone_calls: currentUser?.allow_phone_calls || false,
-                        vehicle_type: currentUser?.vehicle_type || profile?.vehicle_type || 'car',
-                        vehicle_color: currentUser?.vehicle_color || profile?.vehicle_color || currentUser?.color || profile?.color || 'gray',
-                      };
-
-                      // Fast check from cache — same selector as HistorySellerView visibleActiveAlerts
-                      if (myActiveAlerts && myActiveAlerts.length > 0) {
-                        setOneActiveAlertOpen(true);
-                        return;
-                      }
-                      try {
-                        const uid = user?.id;
-                        const email = user?.email;
-                        if (uid || email) {
-                          const { data: mine = [] } = uid
-                            ? await alerts.getMyAlerts(uid)
-                            : { data: [] };
-                          const hiddenKeys = readHiddenKeys();
-                          const visibleFresh = getVisibleActiveSellerAlerts(mine, uid, email, hiddenKeys);
-                          if (visibleFresh.length > 0) {
-                            setOneActiveAlertOpen(true);
-                            return;
-                          }
-                        }
-                      } catch {}
-
-                      setPendingPublishPayload(payload);
-                      setConfirmPublishOpen(true);
-                    }}
-                isLoading={createAlertMutation.isPending}
-              />
-            </motion.div>
-          )}
+          {/* Overlays create/search están dentro de MapboxMap para que el mapa reciba gestos */}
         </AnimatePresence>
       </main>
 

@@ -8,6 +8,7 @@ import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
 
 const PIN_HEIGHT = 54;
+const HEADER_BOTTOM = 60;
 
 export default function SearchMapOverlay({
   onStreetSelect,
@@ -35,7 +36,7 @@ export default function SearchMapOverlay({
       const cardTop = cardRect.top;
       const midPoint = (searchBottom + cardTop) / 2;
       const pinTopFromOverlay = midPoint - overlayRect.top - PIN_HEIGHT;
-      setPinTop(pinTopFromOverlay);
+      setPinTop(Math.max(0, pinTopFromOverlay));
     };
 
     updatePinPosition();

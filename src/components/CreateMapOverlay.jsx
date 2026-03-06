@@ -8,12 +8,13 @@ import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
 
 const PIN_HEIGHT = 54; // círculo 18px + línea 36px — punta abajo
+const HEADER_BOTTOM = 60; // borde inferior de la barra superior
 
 export default function CreateMapOverlay({
   address,
   onAddressChange,
   onUseCurrentLocation,
-  onRecenterTo,
+  onRecenter,
   onCreateAlert,
   isLoading,
   mapRef,
@@ -28,10 +29,9 @@ export default function CreateMapOverlay({
     if (!overlay || !card) return;
 
     const updatePinPosition = () => {
-      const overlayRect = overlay.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
-      const midPoint = (overlayRect.top + cardRect.top) / 2;
-      const pinTopFromOverlay = midPoint - overlayRect.top - PIN_HEIGHT;
+      const midPoint = (HEADER_BOTTOM + cardRect.top) / 2;
+      const pinTopFromOverlay = midPoint - HEADER_BOTTOM - PIN_HEIGHT;
       setPinTop(pinTopFromOverlay);
     };
 
@@ -58,7 +58,7 @@ export default function CreateMapOverlay({
           address={address}
           onAddressChange={onAddressChange}
           onUseCurrentLocation={onUseCurrentLocation}
-          onRecenterTo={onRecenterTo}
+          onRecenter={onRecenter}
           useCurrentLocationLabel="Ubicación actual"
           onCreateAlert={onCreateAlert}
           isLoading={isLoading}
@@ -68,7 +68,7 @@ export default function CreateMapOverlay({
       {/* Pin fijo — pointer-events-none */}
       {pinTop != null && <CenterPin top={pinTop} />}
 
-      {/* Zoom controls — izquierda */}
+      {/* Zoom controls — arriba izquierda, 10px del borde */}
       <MapZoomControls mapRef={mapRef} />
     </div>
   );

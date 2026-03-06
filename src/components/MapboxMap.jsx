@@ -81,19 +81,6 @@ export default function MapboxMap({
   }, [flyToUser]);
 
   useEffect(() => {
-    const handler = (e) => {
-      const detail = e?.detail;
-      if (detail?.lat != null && detail?.lng != null) {
-        flyToUser(detail);
-      } else {
-        flyToUser();
-      }
-    };
-    window.addEventListener('waitme:recenterMap', handler);
-    return () => window.removeEventListener('waitme:recenterMap', handler);
-  }, [flyToUser]);
-
-  useEffect(() => {
     if (!navigator.geolocation) {
       setLocation({ lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() });
       return;

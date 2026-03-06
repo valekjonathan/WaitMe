@@ -9,7 +9,7 @@ export default function CreateAlertCard({
   address,
   onAddressChange,
   onUseCurrentLocation,
-  onRecenterTo,
+  onRecenter,
   onCreateAlert,
   isLoading = false,
 }) {
@@ -42,15 +42,9 @@ export default function CreateAlertCard({
           />
 
           <Button
-            className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center"
+            className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
             onClick={() => {
-              const onReady = (coords) => {
-                onRecenterTo?.(coords);
-                try {
-                  window.dispatchEvent(new CustomEvent('waitme:recenterMap', { detail: coords }));
-                } catch {}
-              };
-              onUseCurrentLocation?.(onReady);
+              onUseCurrentLocation?.((coords) => onRecenter?.(coords));
             }}
             type="button"
           >
