@@ -46,10 +46,12 @@ const DEV_MOCK_PROFILE = {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  // En DEV: estado inicial ya con usuario mock — sin esperar Supabase
+  const isDev = isDevAutoLogin();
+  const [user, setUser] = useState(() => (isDev ? DEV_MOCK_USER : null));
+  const [profile, setProfile] = useState(() => (isDev ? DEV_MOCK_PROFILE : null));
+  const [isAuthenticated, setIsAuthenticated] = useState(isDev);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(!isDev);
   const [authError, setAuthError] = useState(null);
   const authInFlightRef = useRef(false);
 
@@ -161,18 +163,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, [ensureUserInDb]);
 
-  const autoLoginDevUser = useCallback(() => {
-    if (!isDevAutoLogin()) return;
-    setUser(DEV_MOCK_USER);
-    setProfile(DEV_MOCK_PROFILE);
-    setIsAuthenticated(true);
-    setIsLoadingAuth(false);
-  }, []);
-
   useEffect(() => {
-    // DEV AUTO LOGIN — Only active during local development
+    // DEV AUTO LOGIN — No tocar Supabase; estado inicial ya tiene user/isLoadingAuth
     if (isDevAutoLogin()) {
-      autoLoginDevUser();
       return;
     }
 
@@ -249,7 +242,7 @@ export const AuthProvider = ({ children }) => {
     resolveSession();
 
     return () => subscription.unsubscribe();
-  }, [resolveSession, ensureUserInDb, autoLoginDevUser]);
+  }, [resolveSession, ensureUserInDb]);
 
   const checkUserAuth = useCallback(async () => {
     await resolveSession();
