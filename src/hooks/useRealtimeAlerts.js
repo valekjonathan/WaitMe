@@ -3,10 +3,6 @@
  * Actualiza el Zustand store.
  * Soporta esquema nuevo (seller_id, price_cents) y legacy (user_id, price).
  * No explota si la tabla no existe: setError en store.
- *
- * FIX: usa useAppStore.getState() en vez del hook para evitar
- * "dispatcher.useCallback" null en iOS/WebKit (Zustand hook invocado
- * antes de que React dispatcher esté listo).
  */
 import { useEffect } from 'react';
 import { getSupabase } from '@/lib/supabaseClient';
@@ -38,10 +34,14 @@ function normalizeRow(r) {
 }
 
 export function useRealtimeAlerts() {
-  useEffect(() => {
-    const { setAlerts, setAlertsLoading, upsertAlert, removeAlert, setError, clearError } =
-      useAppStore.getState();
+  const setAlerts = useAppStore((state) => state.setAlerts);
+  const setAlertsLoading = useAppStore((state) => state.setAlertsLoading);
+  const upsertAlert = useAppStore((state) => state.upsertAlert);
+  const removeAlert = useAppStore((state) => state.removeAlert);
+  const setError = useAppStore((state) => state.setError);
+  const clearError = useAppStore((state) => state.clearError);
 
+  useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) return;
 
@@ -53,34 +53,29 @@ export function useRealtimeAlerts() {
       .select('*')
       .eq('status', 'active')
       .then(({ data, error }) => {
-        const store = useAppStore.getState();
-        store.setAlertsLoading(false);
+        setAlertsLoading(false);
         if (error) {
           console.error('Realtime alerts load error:', error);
-          store.setError('realtime_error');
+          setError('realtime_error');
           return;
         }
         const items = (data || []).map(normalizeRow);
-        store.setAlerts(items);
+        setAlerts(items);
       })
       .catch((err) => {
-        const store = useAppStore.getState();
-        store.setAlertsLoading(false);
+        setAlertsLoading(false);
         console.error('Realtime alerts load error:', err);
-        store.setError('realtime_error');
+        setError('realtime_error');
       });
 
     const unsub = subscribeActiveAlerts({
       onUpsert: (alert) => {
-        const store = useAppStore.getState();
-        if (alert.status === 'active') store.upsertAlert(alert);
-        else store.removeAlert(alert.id);
+        if (alert.status === 'active') upsertAlert(alert);
+        else removeAlert(alert.id);
       },
-      onDelete: (id) => {
-        useAppStore.getState().removeAlert(id);
-      },
+      onDelete: removeAlert,
     });
 
     return () => unsub();
-  }, []);
+  }, [setAlerts, setAlertsLoading, upsertAlert, removeAlert, setError, clearError]);
 }
