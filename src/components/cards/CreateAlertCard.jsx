@@ -1,24 +1,9 @@
 import { useState } from 'react';
-import { MapPin, Clock, Euro } from 'lucide-react';
+import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-
-function SimplePinDotIcon() {
-  return (
-    <span className="relative w-[12px] h-[20px] inline-block">
-      <span
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] rounded-full"
-        style={{ background: '#ffffff', height: '8px' }}
-      />
-      <span
-        className="absolute bottom-[8px] left-1/2 -translate-x-1/2 w-[10px] h-[10px] rounded-full"
-        style={{ background: '#ef4444' }}
-      />
-    </span>
-  );
-}
 
 export default function CreateAlertCard({
   address,
@@ -56,12 +41,11 @@ export default function CreateAlertCard({
           />
 
           <Button
-            className="h-8 min-h-[32px] px-[6.5px] text-[11px] font-semibold whitespace-nowrap border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center gap-1"
+            className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center"
             onClick={onUseCurrentLocation}
             type="button"
           >
-            <SimplePinDotIcon />
-            <span className="leading-none">Ubicate</span>
+            <LocateFixed className="w-5 h-5" />
           </Button>
         </div>
 

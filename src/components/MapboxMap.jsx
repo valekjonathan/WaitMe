@@ -3,7 +3,7 @@ import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
-const DEFAULT_ZOOM = 17.5;
+const DEFAULT_ZOOM = 16.5;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
 const GPS_TIMEOUT_MS = 2500;
@@ -249,7 +249,7 @@ export default function MapboxMap({
 
     if (useCenterPin) {
       const padding = centerPaddingBottom > 0
-        ? { top: 160, bottom: 240, left: 0, right: 0 }
+        ? { top: 220, bottom: 200, left: 0, right: 0 }
         : undefined;
       map.flyTo({
         center: [lng, lat],
@@ -333,7 +333,7 @@ export default function MapboxMap({
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
     if (centerPaddingBottom > 0) {
-      map.setPadding({ top: 160, bottom: 240, left: 0, right: 0 });
+      map.setPadding({ top: 220, bottom: 200, left: 0, right: 0 });
     } else {
       map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     }
@@ -352,6 +352,8 @@ export default function MapboxMap({
         try {
           map.setPaintProperty(layer.id, 'line-color', ROAD_COLOR);
           map.setPaintProperty(layer.id, 'line-opacity', 1);
+          const w = map.getPaintProperty(layer.id, 'line-width');
+          if (typeof w === 'number') map.setPaintProperty(layer.id, 'line-width', w + 0.5);
         } catch {}
       }
     }
