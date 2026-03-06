@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "rm -rf ios/App/App/public/assets 2>/dev/null || true",
     "dev": "vite --host --port 5173",
+    "dev:auto": "vite --host --port 5173",
     "build": "vite build",
     "lint": "eslint . --max-warnings=9999",
     "lint:fix": "eslint . --fix",
@@ -23,7 +24,7 @@
     "ship": "bash scripts/ship.sh",
     "prepare": "husky",
     "preview": "vite preview --host --port 4173",
-    "dev:ios": "concurrently \"npm run dev\" \"CAPACITOR_USE_DEV_SERVER=true npx cap run ios\"",
+    "dev:ios": "bash scripts/dev-ios.sh",
     "ios:dev": "npm run dev:ios",
     "ios:sync:dev": "npm run build && CAPACITOR_USE_DEV_SERVER=true npx cap sync ios",
     "ios:sync": "npm run build && npx cap sync ios",

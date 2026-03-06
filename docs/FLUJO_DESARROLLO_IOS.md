@@ -1,6 +1,6 @@
 # Flujo de desarrollo iOS — WaitMe
 
-**Objetivo:** Ver cambios de React/CSS/JS en iOS Simulator sin pulsar Run en Xcode cada vez.
+**Objetivo:** Web, iOS Simulator e iPhone real usan el mismo servidor Vite sin pasos manuales.
 
 ---
 
@@ -10,9 +10,15 @@
 npm run dev:ios
 ```
 
-Esto ejecuta en paralelo:
-- `npm run dev` (Vite en http://localhost:5173)
-- `CAPACITOR_USE_DEV_SERVER=true npx cap run ios` (Simulator con live reload)
+Esto ejecuta automáticamente:
+- Detecta la IP local (`scripts/get-ip.js`)
+- Inicia Vite en `http://0.0.0.0:5173` (accesible por localhost e IP)
+- Lanza Capacitor con live reload apuntando a `http://IP:5173`
+
+**Mismo servidor para:**
+- Web: `http://localhost:5173`
+- iOS Simulator: `http://localhost:5173` (o IP)
+- iPhone real: `http://IP:5173` (misma red WiFi)
 
 **Requisito:** Tener Xcode instalado y al menos un simulador disponible.
 
@@ -63,10 +69,10 @@ En esos casos: `npm run ios:run` o abrir Xcode y Run.
    `npm run ios:sync:dev` si cambias config de Capacitor.
 
 4. **Probar en iPhone real:**  
-   - Web y Simulator usan el mismo servidor Vite (`npm run dev`).
-   - Para iPhone físico en la misma red: `CAPACITOR_DEV_SERVER_URL=http://TU_IP:5173 npm run dev:ios`
-   - Sustituir `TU_IP` por la IP de tu Mac (ej. `192.168.0.11`).
+   - `npm run dev:ios` detecta la IP automáticamente.
+   - iPhone y Mac en la misma red WiFi.
    - Conectar dispositivo, seleccionar en Xcode, Run.
+   - Sin pasos manuales.
 
 ---
 
