@@ -83,6 +83,8 @@ body { min-height: 100dvh; background: #0B0B0F; }
   --safe-right:  env(safe-area-inset-right,  0px);
   /* Altura total BottomNav para que las páginas no queden tapadas */
   --bottom-nav-h: calc(64px + env(safe-area-inset-bottom, 0px));
+  /* Altura header (Layout pt-[69px]) para overlays de mapa */
+  --header-h: 69px;
 }
 
 /* Utilidades globales para safe-area (usable con className="pb-safe") */

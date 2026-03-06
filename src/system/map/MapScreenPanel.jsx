@@ -2,6 +2,8 @@
  * FUENTE ÚNICA DE VERDAD para posicionamiento de paneles flotantes.
  * Controla: anchura, separación respecto al menú inferior, safe area.
  * Usado por CreateAlertCard y UserAlertCard (search).
+ *
+ * paddingBottom = nav height + gap. 150px cubre --bottom-nav-h (~64-98px) + margen.
  */
 export default function MapScreenPanel({ children, className = '', style = {}, ...rest }) {
   return (

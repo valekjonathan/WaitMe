@@ -446,13 +446,12 @@ export default function MapboxMap({
     );
   }
 
-  const isZeroSize = false;
   const containerStyle = {
     position: 'absolute',
     inset: 0,
     width: '100%',
     height: '100%',
-    minHeight: isZeroSize ? '100vh' : '100dvh',
+    minHeight: '100dvh',
     minWidth: '100%',
     touchAction: 'manipulation',
   };

@@ -1,14 +1,17 @@
 /**
  * Overlay "¿Dónde quieres aparcar?" — CON StreetSearch arriba.
  * Pin fijo entre buscador y tarjeta. Mapa arrastrable. Zoom controls.
+ *
+ * Usa MapScreenPanel (fuente única de verdad) para la tarjeta UserAlertCard.
+ * Misma geometría que CreateMapOverlay para consistencia web/iOS.
  */
 import { useEffect, useRef, useState } from 'react';
 import StreetSearch from '@/components/StreetSearch';
 import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
+import MapScreenPanel from '@/system/map/MapScreenPanel';
 
 const PIN_HEIGHT = 54;
-const HEADER_BOTTOM = 60;
 
 export default function SearchMapOverlay({
   onStreetSelect,
@@ -50,8 +53,9 @@ export default function SearchMapOverlay({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
-      style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+      className="absolute left-0 right-0 bottom-0 top-[var(--header-h,69px)] flex flex-col pointer-events-none z-10"
+      style={{ overflow: 'hidden' }}
+      aria-hidden="true"
     >
       {/* Botón filtros */}
       <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
@@ -70,12 +74,11 @@ export default function SearchMapOverlay({
         />
       </div>
 
-      {/* Área UserAlertCard */}
-      <div
-        ref={cardRef}
-        className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start pointer-events-auto"
-      >
-        <div className="w-full h-full">{alertCard}</div>
+      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create) */}
+      <div className="flex-1 min-h-0 overflow-hidden flex items-end pointer-events-auto">
+        <MapScreenPanel>
+          <div ref={cardRef}>{alertCard}</div>
+        </MapScreenPanel>
       </div>
 
       {/* Pin fijo */}

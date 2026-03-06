@@ -14,7 +14,7 @@ import { useLayoutHeader } from '@/lib/LayoutContext';
 import MapboxMap from '@/components/MapboxMap';
 import CreateMapOverlay from '@/components/CreateMapOverlay';
 import SearchMapOverlay from '@/components/SearchMapOverlay';
-import MapScreenShell from '@/system/map/MapScreenShell';
+import MapViewportShell from '@/system/map/MapViewportShell';
 import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
 import MapFilters from '@/components/map/MapFilters';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -683,7 +683,7 @@ export default function Home() {
   RENDER_LOG('Home RETURNS map enabled');
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
-      <MapScreenShell
+      <MapViewportShell
         mode={mode || 'home'}
         mapNode={
           <MapboxMap
