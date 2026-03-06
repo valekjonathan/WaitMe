@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
+# IOS_DEV_LAUNCHER — Comando único para desarrollo iOS
+# - ENVIRONMENT_GUARD
+# - detectar IP
+# - arrancar Vite
+# - cap copy ios
+# - abrir Xcode
+# - lanzar en iPhone físico (si conectado) o Simulator
 set -e
 cd "$(dirname "$0")/.."
 
 PORT=5173
 
-# 1. Comprobar que el puerto está libre
-if lsof -Pi :${PORT} -sTCP:LISTEN -t >/dev/null 2>&1; then
-  echo "[dev:ios] ERROR: El puerto ${PORT} está ocupado."
-  echo "[dev:ios] Cierra el proceso que lo usa o ejecuta: lsof -i :${PORT}"
-  exit 1
-fi
+# 1. ENVIRONMENT_GUARD
+bash scripts/environment-guard.sh || exit 1
 
-# 2. Obtener IP (get-ip.js hace exit 1 si no hay IP válida)
+# 2. Obtener IP
 IP=$(node scripts/get-ip.js)
 URL="http://${IP}:${PORT}"
 
@@ -19,27 +22,27 @@ echo ""
 echo "=========================================="
 echo "  WaitMe — dev:ios"
 echo "=========================================="
-echo "  IP detectada:    $IP"
-echo "  Puerto:         $PORT"
-echo "  URL iPhone:     $URL"
-echo "  Web local:      http://localhost:${PORT}"
+echo "  IP:      $IP"
+echo "  Puerto:  $PORT"
+echo "  URL:     $URL"
 echo "=========================================="
 echo ""
-echo "[dev:ios] El iPhone DEBE abrir esta URL: $URL"
-echo "[dev:ios] Comprueba: iPhone y Mac en la misma WiFi; permiso 'Red local' en iPhone."
+echo "[dev:ios] iPhone debe abrir: $URL"
+echo "[dev:ios] Misma WiFi + permiso 'Red local' en iPhone."
 echo ""
 
 export CAPACITOR_USE_DEV_SERVER=true
 export CAPACITOR_DEV_SERVER_URL="$URL"
 
-# 3. Asegurar que dist existe (cap copy lo requiere)
+# 3. dist existe (cap copy lo requiere)
 if [ ! -d dist ]; then
-  echo "[dev:ios] dist/ no existe. Ejecutando build inicial..."
+  echo "[dev:ios] dist/ no existe. Build inicial..."
   npm run build
 fi
 
-# 4. Sincronizar config a iOS (embebe server.url en el proyecto nativo)
+# 4. Sincronizar config a iOS
 npx cap copy ios
 
-# 5. Arrancar Vite y Capacitor con live reload
+# 5. Arrancar Vite + Capacitor (live reload)
+# cap run ios: lanza en Simulator por defecto; si hay iPhone conectado, Xcode puede usarlo
 exec npx concurrently "vite --host --port ${PORT}" "npx cap run ios --live-reload --host ${IP} --port ${PORT}"

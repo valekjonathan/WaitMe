@@ -39,7 +39,9 @@
     "build-storybook": "storybook build",
     "audit:repo": "knip",
     "check:fast": "npm run build && npm run test:e2e tests/smoke/load.spec.js",
-    "dev:safe": "VITE_SAFE_MODE=true vite --host --port 5173"
+    "dev:safe": "VITE_SAFE_MODE=true vite --host --port 5173",
+    "env:guard": "bash scripts/environment-guard.sh",
+    "pwa:validate": "node scripts/pwa-icon-validator.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
