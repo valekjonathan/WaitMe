@@ -53,7 +53,7 @@ export default function CreateMapOverlay({
           overflowY: 'auto',
         }}
       >
-        <div className="w-[92%] max-w-[460px] flex-1">
+        <div className="w-[92%] max-w-[460px] flex-1 -translate-y-[10px]">
           <CreateAlertCard
           address={address}
           onAddressChange={onAddressChange}
