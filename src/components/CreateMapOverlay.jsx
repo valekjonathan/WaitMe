@@ -3,7 +3,6 @@
  * Posición vertical: MapScreenPanel (fuente única de verdad).
  */
 import { useEffect, useRef, useState } from 'react';
-import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
@@ -29,17 +28,8 @@ export default function CreateMapOverlay({
   useEffect(() => {
     if (!onUseCurrentLocation || hasAutoLocatedRef.current) return;
     hasAutoLocatedRef.current = true;
-    onUseCurrentLocation((pos) => {
-      if (pos?.lat == null || pos?.lng == null || !mapRef?.current) return;
-      const padding = getMapLayoutPadding();
-      const map = mapRef.current;
-      if (typeof map.easeTo === 'function') {
-        map.easeTo({ center: [pos.lng, pos.lat], zoom: 17, duration: 1200, padding });
-      } else if (typeof map.flyTo === 'function') {
-        map.flyTo({ center: [pos.lng, pos.lat], zoom: 17, duration: 1200, padding });
-      }
-    });
-  }, [onUseCurrentLocation, mapRef]);
+    onUseCurrentLocation(undefined);
+  }, [onUseCurrentLocation]);
 
   useEffect(() => {
     const card = cardRef.current;
