@@ -4,8 +4,8 @@
  * Fuente: src/assets/d2ae993d3_WaitMe.png
  * Salida: public/apple-touch-icon.png
  *
- * ESTRATEGIA: Detectar bounding box real del badge cristal con trim,
- * extraer cuadrado centrado (NO porcentaje vertical), escalar a 94-96%.
+ * ESTRATEGIA: Trim + crop cuadrado centrado, resize directo 180x180.
+ * Sin canvas, sin composite, sin padding negro.
  */
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
@@ -17,19 +17,17 @@ const srcLogo = path.join(root, 'src/assets/d2ae993d3_WaitMe.png');
 const outPath = path.join(root, 'public/apple-touch-icon.png');
 
 const SIZE = 180;
-const BADGE_RATIO = 0.95; // badge ocupa ~95% (94-96%)
-const badgeSize = Math.round(SIZE * BADGE_RATIO); // 171
 
 // Región que contiene el badge: top 700px (badge + margen, sin texto)
 const BADGE_REGION_HEIGHT = 700;
 
 async function main() {
-  // 1. Extraer región del badge (top 700px, sin usar % vertical fijo)
+  // 1. Extraer región del badge (top 700px)
   const topRegion = await sharp(srcLogo)
     .extract({ left: 0, top: 0, width: 1024, height: BADGE_REGION_HEIGHT })
     .toBuffer();
 
-  // 2. Trim: detectar bounding box real del badge (elimina negro exterior)
+  // 2. Trim: bounding box real del badge (elimina negro exterior)
   const trimmed = await sharp(topRegion)
     .trim({ threshold: 20 })
     .toBuffer({ resolveWithObject: true });
@@ -42,33 +40,19 @@ async function main() {
   const cropLeft = Math.floor((tw - sq) / 2);
   const cropTop = Math.floor((th - sq) / 2);
 
-  const badge = await sharp(trimmed.data)
+  // 4. Resize directo a 180x180 — SIN canvas, SIN composite, SIN offset
+  await sharp(trimmed.data)
     .extract({ left: cropLeft, top: cropTop, width: sq, height: sq })
-    .resize(badgeSize, badgeSize, { fit: 'fill' })
-    .ensureAlpha()
-    .toBuffer();
-
-  // 4. Componer sobre fondo negro, centrado
-  const offset = Math.floor((SIZE - badgeSize) / 2);
-
-  await sharp({
-    create: {
-      width: SIZE,
-      height: SIZE,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 1 }
-    }
-  })
-    .composite([{ input: badge, left: offset, top: offset }])
+    .resize(SIZE, SIZE, { fit: 'fill' })
     .removeAlpha()
     .png()
     .toFile(outPath);
 
   console.log('OK:', outPath);
   console.log('Bounding box (trimmed):', tw, 'x', th);
-  console.log('Square crop:', sq, 'x', sq, '| offset:', cropLeft, cropTop);
+  console.log('Square crop:', sq, 'x', sq);
   const meta = await sharp(outPath).metadata();
-  console.log('Output:', meta.width, 'x', meta.height);
+  console.log('Output:', meta.width, 'x', meta.height, '| no padding');
 }
 
 main().catch((e) => {
