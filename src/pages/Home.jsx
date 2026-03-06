@@ -619,16 +619,6 @@ export default function Home() {
     const { lat, lng } = coords;
     setSelectedPosition({ lat, lng });
     reverseGeocode(lat, lng);
-    const map = mapRef.current;
-    if (!map?.flyTo) return;
-    map.flyTo({
-      center: [lng, lat],
-      zoom: 17,
-      pitch: 30,
-      duration: 800,
-      essential: true,
-      padding: { top: 0, bottom: 120, left: 0, right: 0 },
-    });
   }, [reverseGeocode]);
 
   const handleStreetSelect = useCallback((result) => {

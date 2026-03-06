@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 export default function CreateAlertCard({
   address,
   onAddressChange,
-  onUseCurrentLocation,
   onRecenter,
   onCreateAlert,
   isLoading = false,
@@ -19,6 +18,32 @@ export default function CreateAlertCard({
 
   const handleCreate = () => {
     onCreateAlert({ price, minutes });
+  };
+
+  const handleUbicite = () => {
+    if (!navigator.geolocation) {
+      console.warn('[Ubícate] Geolocation no disponible');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const coords = { lat: latitude, lng: longitude };
+        onRecenter?.(coords);
+        if (mapRef?.current?.flyTo) {
+          mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: 17,
+            essential: true,
+            padding: { top: 0, bottom: 120, left: 0, right: 0 },
+          });
+        }
+      },
+      (err) => {
+        console.warn('[Ubícate] Permisos denegados o error:', err?.message || err);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
   };
 
   return (
@@ -44,19 +69,7 @@ export default function CreateAlertCard({
 
           <Button
             className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
-            onClick={() => {
-              onUseCurrentLocation?.((coords) => {
-                onRecenter?.(coords);
-                if (coords?.lat != null && coords?.lng != null && mapRef?.current?.flyTo) {
-                  mapRef.current.flyTo({
-                    center: [coords.lng, coords.lat],
-                    zoom: 17,
-                    essential: true,
-                    padding: { top: 0, bottom: 120, left: 0, right: 0 },
-                  });
-                }
-              });
-            }}
+            onClick={handleUbicite}
             type="button"
           >
             <LocateFixed className="w-5 h-5" />
