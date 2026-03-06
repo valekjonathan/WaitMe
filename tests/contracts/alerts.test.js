@@ -47,6 +47,11 @@ describe('alerts contract', () => {
     expect(typeof alerts.deleteAlert).toBe('function')
   })
 
+  it('reserveAlert exists and returns { data, error }', async () => {
+    const result = await alerts.reserveAlert('non-existent-uuid', 'test-buyer-id')
+    expect(hasDataErrorShape(result)).toBe(true)
+  })
+
   it('subscribeAlerts exists and returns unsubscribe function', () => {
     expect(typeof alerts.subscribeAlerts).toBe('function')
     const unsub = alerts.subscribeAlerts({})

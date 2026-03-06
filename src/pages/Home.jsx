@@ -461,16 +461,21 @@ export default function Home() {
       const buyerPlate = user?.plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
-      const { error: updateErr } = await alerts.updateAlert(alert.id, {
-        status: 'reserved',
-        reserved_by_id: user?.id,
+      const { data: reservedAlert, error: reserveErr } = await alerts.reserveAlert(alert.id, user?.id, {
         reserved_by_name: buyerName,
         reserved_by_car: `${buyerCarBrand} ${buyerCarModel}`.trim(),
         reserved_by_car_color: buyerCarColor,
         reserved_by_plate: buyerPlate,
-        reserved_by_vehicle_type: buyerVehicleType
+        reserved_by_vehicle_type: buyerVehicleType,
       });
-      if (updateErr) throw updateErr;
+      if (reserveErr) {
+        if (reserveErr.message === 'ALREADY_RESERVED' || reserveErr.code === 'ALREADY_RESERVED') {
+          const err = new Error('ALREADY_RESERVED');
+          err.code = 'ALREADY_RESERVED';
+          throw err;
+        }
+        throw reserveErr;
+      }
 
       const txRes = await transactions.createTransaction({
         alert_id: alert.id,
@@ -513,9 +518,11 @@ export default function Home() {
       return { previousAlerts, activeKey };
     },
     onError: (err, alert, context) => {
-      // Restaura el snapshot usando la key guardada en el contexto
       if (context?.previousAlerts !== undefined) {
         queryClient.setQueryData(context.activeKey ?? nearbyAlertsKey(locationKey), context.previousAlerts);
+      }
+      if (err?.message === 'ALREADY_RESERVED' || err?.code === 'ALREADY_RESERVED') {
+        queryClient.invalidateQueries({ queryKey: ['alerts', 'nearby'] });
       }
       setSelectedAlert(null);
     },

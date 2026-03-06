@@ -162,6 +162,57 @@ export async function updateAlert(alertId, updates) {
 }
 
 /**
+ * Reserva una alerta activa. Atómico: solo uno puede reservar.
+ * @param {string} alertId
+ * @param {string} userId - ID del comprador (reservador)
+ * @param {Object} [metadata] - metadata del reservador (reserved_by_name, reserved_by_car, etc.)
+ * @returns {{ data, error }} - data: alerta actualizada; error: ALREADY_RESERVED si ya está reservada
+ */
+export async function reserveAlert(alertId, userId, metadata = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+  if (!alertId || !userId) return { data: null, error: new Error('alertId y userId requeridos') };
+
+  const { data: current, error: fetchErr } = await supabase
+    .from(TABLE)
+    .select('id, status, seller_id, user_id, metadata')
+    .eq('id', alertId)
+    .single();
+
+  if (fetchErr || !current) return { data: null, error: fetchErr || new Error('Alerta no encontrada') };
+  if (current.status !== 'active') {
+    return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+  }
+  const ownerId = current.seller_id ?? current.user_id;
+  if (ownerId === userId) {
+    return { data: null, error: new Error('No puedes reservar tu propia alerta') };
+  }
+
+  const mergedMeta = { ...(current.metadata || {}), ...metadata };
+  const updatePayload = {
+    status: 'reserved',
+    reserved_by: userId,
+    metadata: Object.keys(mergedMeta).length ? mergedMeta : (current.metadata || {}),
+  };
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update(updatePayload)
+    .eq('id', alertId)
+    .eq('status', 'active')
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
+      return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+    }
+    return { data: null, error };
+  }
+  return { data: normalizeAlert(data), error: null };
+}
+
+/**
  * Elimina una alerta.
  * @param {string} alertId
  * @returns {{ error }}
