@@ -16,6 +16,7 @@ export default function MapboxMap({
   onAlertClick,
   onMapLoad,
   onRecenterRef,
+  mapRef: externalMapRef,
   useCenterPin = false,
   centerPinFromOverlay = false,
   centerPaddingBottom = 0,
@@ -25,7 +26,8 @@ export default function MapboxMap({
   ...rest
 }) {
   const containerRef = useRef(null);
-  const mapRef = useRef(null);
+  const internalMapRef = useRef(null);
+  const mapRef = externalMapRef ?? internalMapRef;
   const mapboxglRef = useRef(null);
   const markersRef = useRef([]);
   const resizeObserverRef = useRef(null);
@@ -191,6 +193,7 @@ export default function MapboxMap({
           map.on('load', () => {
             if (cancelled) return;
             mapRef.current = map;
+            if (onMapLoad) onMapLoad(map);
 
             // Estilo Uber/Bolt nocturno: desactivar relieve y árboles
             try {
@@ -208,7 +211,6 @@ export default function MapboxMap({
 
             map.resize();
             setMapReady(true);
-            onMapLoad?.(map);
 
             const resizeDelayed = () => {
               if (mapRef.current) mapRef.current.resize();

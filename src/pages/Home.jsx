@@ -642,6 +642,8 @@ export default function Home() {
         className="absolute inset-0 z-0 w-full h-full"
         style={{ top: 0, left: 0, width: '100%', height: '100%' }}
         alerts={mode === 'create' ? [] : homeMapAlerts}
+        mapRef={mapRef}
+        onMapLoad={(map) => { mapRef.current = map; }}
         onAlertClick={(alert) => {
           setMode('search');
           setSelectedAlert(alert);
@@ -649,7 +651,6 @@ export default function Home() {
         useCenterPin={mode === 'create' || mode === 'search'}
         centerPinFromOverlay={mode === 'create' || mode === 'search'}
         centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
-        onMapLoad={(map) => { mapRef.current = map; }}
         onMapMove={mode === 'create' ? handleMapMove : undefined}
         onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
       >
