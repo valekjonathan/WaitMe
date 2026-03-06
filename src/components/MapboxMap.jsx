@@ -55,34 +55,61 @@ export default function MapboxMap({
     timestamp: null,
   }));
 
-  const effectiveCenter = location.lat != null && location.lng != null
-    ? [location.lng, location.lat]
-    : OVIEDO_CENTER;
+  const effectiveCenter =
+    location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER;
 
-  const flyToUser = useCallback((coords) => {
-    const map = mapRef.current;
-    if (!map?.flyTo) return;
-    const [lng, lat] = Array.isArray(coords) && coords.length >= 2
-      ? [coords[1], coords[0]]
-      : (coords?.lat != null && coords?.lng != null
-        ? [coords.lng, coords.lat]
-        : (location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER));
-    const c = [lng, lat];
-    const padding = centerPaddingBottom > 0 ? { top: 0, bottom: 120, left: 0, right: 0 } : undefined;
-    map.flyTo({
-      center: c,
-      zoom: DEFAULT_ZOOM,
-      pitch: DEFAULT_PITCH,
-      duration: 800,
-      essential: true,
-      speed: 0.8,
-      ...(padding && { padding }),
-    });
-  }, [location.lat, location.lng, centerPaddingBottom]);
+  const getMapPadding = useCallback(() => {
+    if (centerPaddingBottom <= 0) return undefined;
+    const header = document.querySelector('[data-waitme-header]');
+    const nav = document.querySelector('[data-waitme-nav]');
+    const panel = document.querySelector('[data-map-screen-panel]');
+    const headerRect = header?.getBoundingClientRect();
+    const navRect = nav?.getBoundingClientRect();
+    const panelRect = panel?.getBoundingClientRect();
+    const top = headerRect?.bottom ?? 56;
+    const cardHeight = panelRect?.height ?? 200;
+    const navHeight = navRect ? window.innerHeight - navRect.top : 80;
+    const bottom = cardHeight + 20 + navHeight;
+    return { top, bottom, left: 0, right: 0 };
+  }, [centerPaddingBottom]);
+
+  const flyToUser = useCallback(
+    (coords) => {
+      const map = mapRef.current;
+      if (!map?.flyTo && !map?.easeTo) return;
+      const [lng, lat] =
+        Array.isArray(coords) && coords.length >= 2
+          ? [coords[1], coords[0]]
+          : coords?.lat != null && coords?.lng != null
+            ? [coords.lng, coords.lat]
+            : location.lat != null && location.lng != null
+              ? [location.lng, location.lat]
+              : OVIEDO_CENTER;
+      const c = [lng, lat];
+      const padding = getMapPadding();
+      const opts = {
+        center: c,
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        duration: 800,
+        essential: true,
+        speed: 0.8,
+        ...(padding && { padding }),
+      };
+      if (typeof map.easeTo === 'function') {
+        map.easeTo(opts);
+      } else {
+        map.flyTo(opts);
+      }
+    },
+    [location.lat, location.lng, getMapPadding]
+  );
 
   useEffect(() => {
     if (onRecenterRef) onRecenterRef.current = flyToUser;
-    return () => { if (onRecenterRef) onRecenterRef.current = null; };
+    return () => {
+      if (onRecenterRef) onRecenterRef.current = null;
+    };
   }, [onRecenterRef, flyToUser]);
 
   useEffect(() => {
@@ -161,9 +188,8 @@ export default function MapboxMap({
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN;
     const tokenStr = token ? String(token).trim() : '';
-    const isPlaceholder = !tokenStr ||
-      tokenStr === 'PEGA_AQUI_EL_TOKEN' ||
-      tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
+    const isPlaceholder =
+      !tokenStr || tokenStr === 'PEGA_AQUI_EL_TOKEN' || tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
     if (isPlaceholder) {
       setError('no_token');
@@ -208,7 +234,11 @@ export default function MapboxMap({
             if (onMapLoad) onMapLoad(map);
             if (import.meta.env.DEV) {
               try {
-                window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), mapboxMounted: true, mapRefAvailable: !!mapRef?.current };
+                window.__DEV_DIAG = {
+                  ...(window.__DEV_DIAG || {}),
+                  mapboxMounted: true,
+                  mapRefAvailable: !!mapRef?.current,
+                };
               } catch {}
             }
 
@@ -220,8 +250,15 @@ export default function MapboxMap({
             if (style?.layers) {
               for (const layer of style.layers) {
                 const id = (layer.id || '').toLowerCase();
-                if (id.includes('tree') || id.includes('park') || id.includes('landcover') || id.includes('land-use')) {
-                  try { map.setLayoutProperty(layer.id, 'visibility', 'none'); } catch {}
+                if (
+                  id.includes('tree') ||
+                  id.includes('park') ||
+                  id.includes('landcover') ||
+                  id.includes('land-use')
+                ) {
+                  try {
+                    map.setLayoutProperty(layer.id, 'visibility', 'none');
+                  } catch {}
                 }
               }
             }
@@ -245,7 +282,8 @@ export default function MapboxMap({
 
           map.on('error', (e) => {
             const msg = e?.error?.message || String(e);
-            if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) setError('no_token');
+            if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized'))
+              setError('no_token');
           });
         } catch (err) {
           console.error('Mapbox init error', err);
@@ -260,7 +298,11 @@ export default function MapboxMap({
     return () => {
       if (import.meta.env.DEV) {
         try {
-          window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), mapboxMounted: false, mapRefAvailable: false };
+          window.__DEV_DIAG = {
+            ...(window.__DEV_DIAG || {}),
+            mapboxMounted: false,
+            mapRefAvailable: false,
+          };
         } catch {}
       }
       cancelled = true;
@@ -269,7 +311,9 @@ export default function MapboxMap({
       markersRef.current.forEach((m) => m?.remove?.());
       markersRef.current = [];
       if (map) {
-        try { map.remove(); } catch {}
+        try {
+          map.remove();
+        } catch {}
       }
       mapRef.current = null;
       mapboxglRef.current = null;
@@ -291,25 +335,41 @@ export default function MapboxMap({
     lastFlownCenterRef.current = key;
 
     if (useCenterPin) {
-      const padding = centerPaddingBottom > 0
-        ? { top: 0, bottom: 120, left: 0, right: 0 }
-        : undefined;
-      map.flyTo({
+      const padding = getMapPadding();
+      const opts = {
         center: [lng, lat],
         zoom: DEFAULT_ZOOM,
         pitch: DEFAULT_PITCH,
         duration: 500,
-        padding,
-      });
+        ...(padding && { padding }),
+      };
+      if (typeof map.easeTo === 'function') {
+        map.easeTo(opts);
+      } else {
+        map.flyTo(opts);
+      }
       return;
     }
 
-    const shouldRecenter = accuracy <= ACCURACY_RECENTER_THRESHOLD && lat !== 43.3619 && lng !== -5.8494;
+    const shouldRecenter =
+      accuracy <= ACCURACY_RECENTER_THRESHOLD && lat !== 43.3619 && lng !== -5.8494;
     if (shouldRecenter && !hasFlownToUserRef.current) {
       hasFlownToUserRef.current = true;
-      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 600, speed: 0.8 });
+      map.flyTo({
+        center: [lng, lat],
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        duration: 600,
+        speed: 0.8,
+      });
     } else if (shouldRecenter) {
-      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 400, speed: 0.8 });
+      map.flyTo({
+        center: [lng, lat],
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        duration: 400,
+        speed: 0.8,
+      });
     }
   }, [mapReady, effectiveCenter, location.accuracy, error, useCenterPin, centerPaddingBottom]);
 
@@ -353,9 +413,7 @@ export default function MapboxMap({
       const markerEl = el.firstElementChild || el;
       markerEl.className = 'mapboxgl-marker-vehicle';
 
-      const marker = new mapboxgl.Marker({ element: markerEl })
-        .setLngLat([lng, lat])
-        .addTo(map);
+      const marker = new mapboxgl.Marker({ element: markerEl }).setLngLat([lng, lat]).addTo(map);
 
       if (onAlertClick) {
         markerEl.style.cursor = 'pointer';
@@ -374,12 +432,12 @@ export default function MapboxMap({
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
-    if (centerPaddingBottom > 0) {
-      map.setPadding({ top: 0, bottom: 120, left: 0, right: 0 });
-    } else {
-      map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
-    }
-  }, [mapReady, error, useCenterPin, centerPaddingBottom]);
+    const padding =
+      centerPaddingBottom > 0
+        ? (getMapPadding() ?? { top: 56, bottom: 300, left: 0, right: 0 })
+        : { top: 0, bottom: 0, left: 0, right: 0 };
+    map.setPadding(padding);
+  }, [mapReady, error, useCenterPin, centerPaddingBottom, getMapPadding]);
 
   // Brillo y contraste de calles cuando create (centerPaddingBottom > 0)
   useEffect(() => {
@@ -424,7 +482,6 @@ export default function MapboxMap({
       map.off('moveend', onMoveEnd);
     };
   }, [mapReady, error, useCenterPin]);
-
 
   if (error) {
     RENDER_LOG('MapboxMap RETURNS error state', error);

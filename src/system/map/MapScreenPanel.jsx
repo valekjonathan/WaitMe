@@ -3,14 +3,14 @@
  * Controla: anchura, separación respecto al menú inferior, safe area.
  * Usado por CreateAlertCard y UserAlertCard (search).
  *
- * paddingBottom = nav height + gap. 150px cubre --bottom-nav-h (~64-98px) + margen.
+ * paddingBottom = 20px (gap) + --bottom-nav-h
  */
 export default function MapScreenPanel({ children, className = '', style = {}, ...rest }) {
   return (
     <div
       className={`absolute left-0 right-0 bottom-0 flex justify-center pointer-events-none z-20 ${className}`.trim()}
       style={{
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)',
+        paddingBottom: 'calc(20px + var(--bottom-nav-h, 64px))',
         ...style,
       }}
       data-map-screen-panel

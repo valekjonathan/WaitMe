@@ -20,15 +20,29 @@ export default function CreateAlertCard({
     onCreateAlert({ price, minutes });
   };
 
+  const getMapPadding = () => {
+    const header = document.querySelector('[data-waitme-header]');
+    const nav = document.querySelector('[data-waitme-nav]');
+    const panel = document.querySelector('[data-map-screen-panel]');
+    const headerRect = header?.getBoundingClientRect();
+    const navRect = nav?.getBoundingClientRect();
+    const panelRect = panel?.getBoundingClientRect();
+    const paddingTop = headerRect?.bottom ?? 56;
+    const cardHeight = panelRect?.height ?? 200;
+    const navHeight = navRect ? window.innerHeight - navRect.top : 80;
+    const paddingBottom = cardHeight + 20 + navHeight;
+    return { top: paddingTop, bottom: paddingBottom, left: 0, right: 0 };
+  };
+
   const flyToCoords = (lng, lat) => {
     if (!mapRef?.current) return;
-    mapRef.current.flyTo({
-      center: [lng, lat],
-      zoom: 17,
-      duration: 1200,
-      essential: true,
-      padding: { top: 0, bottom: 120, left: 0, right: 0 },
-    });
+    const padding = getMapPadding();
+    const map = mapRef.current;
+    if (typeof map.easeTo === 'function') {
+      map.easeTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
+    } else if (typeof map.flyTo === 'function') {
+      map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
+    }
   };
 
   const fallbackToMapCenter = () => {
@@ -37,43 +51,45 @@ export default function CreateAlertCard({
       const c = mapRef.current.getCenter?.();
       if (c && typeof c.lat === 'number' && typeof c.lng === 'number') {
         onRecenter?.({ lat: c.lat, lng: c.lng });
-        mapRef.current.flyTo({
-          center: [c.lng, c.lat],
-          zoom: 17,
-          duration: 1200,
-          essential: true,
-          padding: { top: 0, bottom: 120, left: 0, right: 0 },
-        });
+        const padding = getMapPadding();
+        const map = mapRef.current;
+        if (typeof map.easeTo === 'function') {
+          map.easeTo({ center: [c.lng, c.lat], zoom: 17, duration: 1200, padding });
+        } else if (typeof map.flyTo === 'function') {
+          map.flyTo({ center: [c.lng, c.lat], zoom: 17, duration: 1200, padding });
+        }
       }
     } catch (err) {
-      // fallback silencioso si getCenter/flyTo fallan
+      // fallback silencioso
     }
   };
 
   const handleLocate = () => {
-    if (mapRef?.current) {
-      window.__WAITME_MAP__ = mapRef.current;
-    }
+    if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      if (window.__WAITME_MAP__) {
-        window.__WAITME_MAP__.flyTo({
-          center: [lng, lat],
-          zoom: 17,
-          duration: 1200,
-        });
-      }
-    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const map = mapRef?.current ?? window.__WAITME_MAP__;
+        if (!map) return;
+        const padding = getMapPadding();
+        if (typeof map.easeTo === 'function') {
+          map.easeTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
+        } else if (typeof map.flyTo === 'function') {
+          map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }
+    );
   };
 
   return (
     <div
       className="pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
-        boxShadow:
-          '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
+        boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
       }}
     >
       <div className="flex flex-col justify-between flex-1 min-h-0 gap-y-6">
