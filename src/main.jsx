@@ -81,6 +81,41 @@ const RENDER_LOG = (msg, extra) => {
 const rootEl = document.getElementById("root");
 if (rootEl) {
   RENDER_LOG('root element found, getting config');
+
+  // DEV: hard bypass — aísla capa base (main/React/CSS/root) vs App/Layout/router
+  if (import.meta.env.VITE_HARD_BYPASS_APP === 'true') {
+    const isSimple = import.meta.env.VITE_HARD_BYPASS_APP_SIMPLE === 'true';
+    RENDER_LOG('VITE_HARD_BYPASS_APP active', { isSimple });
+    ReactDOM.createRoot(rootEl).render(
+      isSimple ? (
+        <div style={{
+          minHeight: '100vh',
+          background: '#111',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          fontFamily: 'system-ui',
+        }}>
+          APP SIMPLE OK
+        </div>
+      ) : (
+        <div style={{
+          minHeight: '100vh',
+          background: '#111',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '24px',
+          fontFamily: 'system-ui',
+        }}>
+          WAITME HARD BYPASS OK
+        </div>
+      )
+    );
+  } else {
   const config = getSupabaseConfig();
   if (!config.ok) {
     RENDER_LOG('config NOT ok, rendering MissingEnvScreen', config.missing);
@@ -102,6 +137,7 @@ if (rootEl) {
         </HashRouter>
       </ErrorBoundary>
     );
+  }
   }
 } else {
   RENDER_LOG('root element NOT found');

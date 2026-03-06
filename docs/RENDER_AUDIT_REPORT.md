@@ -43,6 +43,8 @@ Todos los logs usan prefijo `[RENDER:...]` y solo se emiten en `import.meta.env.
 |------|---------|----------------|
 | `VITE_DISABLE_MAP=true` | `src/pages/Home.jsx` | Home renderiza bloque simple en vez del mapa |
 | `VITE_DEV_BYPASS_AUTH=true` | `src/lib/AuthContext.jsx` | Usa Supabase real en vez de mock |
+| `VITE_HARD_BYPASS_APP=true` | `src/main.jsx` | NO monta App: solo bloque "WAITME HARD BYPASS OK" |
+| `VITE_HARD_BYPASS_APP_SIMPLE=true` | `src/main.jsx` | Con HARD_BYPASS: muestra "APP SIMPLE OK" |
 
 **Uso:** Añadir a `.env` o ejecutar:
 ```bash
@@ -62,13 +64,17 @@ VITE_DEV_BYPASS_AUTH=true npm run dev
 
 ## Procedimiento para identificar causa raíz
 
-1. **Abrir consola** (Safari Web Inspector para simulador, Chrome DevTools para app)
-2. **Cargar la app** y observar secuencia de logs `[RENDER:...]`
-3. **Último log antes del negro/blanco** → capa culpable
-4. **Probar VITE_DISABLE_MAP=true:**
-   - Si desaparece el negro/blanco → **Mapa es culpable**
-   - Si persiste → causa en Auth/Layout/otro
-5. **Probar VITE_DEV_BYPASS_AUTH=true** para aislar auth
+1. **VITE_HARD_BYPASS_APP=true** (aisla capa base):
+   - Si ves "WAITME HARD BYPASS OK" → main/React/CSS/root OK; fallo en App/Layout/router
+   - Si NO ves nada → fallo en main.jsx, globals.css, montaje root, Capacitor/WebView
+
+2. **Si HARD BYPASS funciona**, probar `VITE_HARD_BYPASS_APP_SIMPLE=true` (mismo bloque, texto distinto)
+
+3. **Abrir consola** y observar logs `[RENDER:...]`
+
+4. **VITE_DISABLE_MAP=true** — si desaparece negro/blanco → Mapa culpable
+
+5. **VITE_DEV_BYPASS_AUTH=true** — para aislar auth
 
 ---
 
