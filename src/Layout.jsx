@@ -8,6 +8,7 @@ const RENDER_LOG = (msg, extra) => {
     } catch {}
   }
 };
+import { useEffect } from 'react';
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import Header from '@/components/Header';
@@ -74,7 +75,15 @@ function LayoutShell() {
 
 export default function Layout() {
   RENDER_LOG('Layout ENTER');
-  useRealtimeAlerts();
+  useEffect(() => {
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), layoutMounted: true };
+      return () => {
+        window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), layoutMounted: false };
+      };
+    }
+  }, []);
+  useRealtimeAlerts(); // no-op si VITE_DISABLE_REALTIME=true
   RENDER_LOG('Layout RENDER Routes');
   return (
     <LayoutProvider>

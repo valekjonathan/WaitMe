@@ -31,7 +31,10 @@ export default defineConfig({
         { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
       ],
   webServer: {
-    command: `npx vite --host --port ${port}`,
+    command:
+      process.env.VITE_SAFE_MODE === 'true'
+        ? `VITE_SAFE_MODE=true npx vite --host --port ${port}`
+        : `npx vite --host --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

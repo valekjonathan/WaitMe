@@ -6,8 +6,31 @@ import { AuthProvider } from "./lib/AuthContext";
 import { getSupabaseConfig } from "./lib/supabaseClient";
 import App from "./App";
 import MissingEnvScreen from "./diagnostics/MissingEnvScreen";
+import SafeModeShell from "./diagnostics/SafeModeShell";
 import "./globals.css";
 import "./styles/no-zoom.css";
+
+// Captura global de errores — guarda en window.__WAITME_DIAG__ para diagnóstico
+function initErrorCapture() {
+  if (typeof window === "undefined") return;
+  window.__WAITME_DIAG__ = window.__WAITME_DIAG__ || { errors: [], maxErrors: 10 };
+
+  const push = (type, err) => {
+    const entry = { type, message: err?.message ?? String(err), stack: err?.stack, ts: Date.now() };
+    window.__WAITME_DIAG__.errors.push(entry);
+    if (window.__WAITME_DIAG__.errors.length > window.__WAITME_DIAG__.maxErrors) {
+      window.__WAITME_DIAG__.errors.shift();
+    }
+  };
+
+  window.onerror = (msg, src, line, col, err) => {
+    push("onerror", err || new Error(String(msg)));
+  };
+  window.addEventListener("unhandledrejection", (e) => {
+    push("unhandledrejection", e.reason);
+  });
+}
+initErrorCapture();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +54,20 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error) {
     console.error('[ErrorBoundary]', error);
+    try {
+      if (typeof window !== "undefined" && window.__WAITME_DIAG__) {
+        window.__WAITME_DIAG__.errors = window.__WAITME_DIAG__.errors || [];
+        window.__WAITME_DIAG__.errors.push({
+          type: "ErrorBoundary",
+          message: error?.message ?? String(error),
+          stack: error?.stack,
+          ts: Date.now(),
+        });
+        if (window.__WAITME_DIAG__.errors.length > (window.__WAITME_DIAG__.maxErrors || 10)) {
+          window.__WAITME_DIAG__.errors.shift();
+        }
+      }
+    } catch (_) {}
   }
 
   render() {
@@ -82,8 +119,15 @@ const rootEl = document.getElementById("root");
 if (rootEl) {
   RENDER_LOG('root element found, getting config');
 
-  // DEV: hard bypass — aísla capa base (main/React/CSS/root) vs App/Layout/router
-  if (import.meta.env.VITE_HARD_BYPASS_APP === 'true') {
+  // SAFE MODE — shell mínima con nav + diagnóstico, siempre carga
+  if (import.meta.env.VITE_SAFE_MODE === 'true') {
+    RENDER_LOG('VITE_SAFE_MODE active');
+    ReactDOM.createRoot(rootEl).render(
+      <ErrorBoundary>
+        <SafeModeShell />
+      </ErrorBoundary>
+    );
+  } else if (import.meta.env.VITE_HARD_BYPASS_APP === 'true') {
     const isSimple = import.meta.env.VITE_HARD_BYPASS_APP_SIMPLE === 'true';
     RENDER_LOG('VITE_HARD_BYPASS_APP active', { isSimple });
     ReactDOM.createRoot(rootEl).render(

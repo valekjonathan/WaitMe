@@ -33,6 +33,8 @@ function normalizeRow(r) {
   };
 }
 
+const isRealtimeDisabled = () => import.meta.env.VITE_DISABLE_REALTIME === 'true';
+
 export function useRealtimeAlerts() {
   const setAlerts = useAppStore((state) => state.setAlerts);
   const setAlertsLoading = useAppStore((state) => state.setAlertsLoading);
@@ -42,6 +44,7 @@ export function useRealtimeAlerts() {
   const clearError = useAppStore((state) => state.clearError);
 
   useEffect(() => {
+    if (isRealtimeDisabled()) return;
     const supabase = getSupabase();
     if (!supabase) return;
 

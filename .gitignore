@@ -42,3 +42,4 @@ test-results/
 .env
 *storybook.log
 storybook-static
+ios_run_last.log

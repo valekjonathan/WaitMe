@@ -8,7 +8,8 @@ const isDevAutoLogin = () => import.meta.env.DEV;
 
 // DEV kill switch: bypass auth mock (use real Supabase flow)
 const isDevBypassAuth = () =>
-  import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+  import.meta.env.DEV &&
+  (import.meta.env.VITE_DEV_BYPASS_AUTH === 'true' || import.meta.env.VITE_BYPASS_AUTH === 'true');
 
 const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {

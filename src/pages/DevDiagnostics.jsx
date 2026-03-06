@@ -12,22 +12,30 @@ export default function DevDiagnostics() {
   const location = useLocation();
   const diag = typeof window !== 'undefined' ? window.__DEV_DIAG : {};
 
+  const diagGlobal = typeof window !== 'undefined' ? window.__WAITME_DIAG__ : null;
+  const lastErrors = diagGlobal?.errors?.slice(-3) || [];
+
   const rows = [
     { label: 'import.meta.env.DEV', value: String(import.meta.env.DEV) },
+    { label: 'VITE_SAFE_MODE', value: String(import.meta.env.VITE_SAFE_MODE === 'true') },
+    { label: 'VITE_DISABLE_MAP', value: String(import.meta.env.VITE_DISABLE_MAP === 'true') },
+    { label: 'VITE_DISABLE_REALTIME', value: String(import.meta.env.VITE_DISABLE_REALTIME === 'true') },
+    { label: 'VITE_BYPASS_AUTH', value: String(import.meta.env.VITE_BYPASS_AUTH === 'true') },
+    { label: 'VITE_DEV_BYPASS_AUTH', value: String(import.meta.env.VITE_DEV_BYPASS_AUTH === 'true') },
     { label: 'Capacitor (nativo)', value: String(Capacitor.isNativePlatform()) },
     {
-      label: 'Capacitor server URL',
-      value: import.meta.env.VITE_CAPACITOR_SERVER_URL || '(ver capacitor.config.json)',
+      label: 'Server URL',
+      value: import.meta.env.VITE_CAPACITOR_SERVER_URL || '(ver capacitor.config)',
     },
     { label: 'Auth: user', value: user?.id ? `id=${user.id}` : 'null' },
     { label: 'Auth: isLoadingAuth', value: String(isLoadingAuth) },
     { label: 'Auth: isAuthenticated', value: String(isAuthenticated) },
     { label: 'Router: path', value: location.pathname || '/' },
+    { label: 'Layout monta', value: String(diag?.layoutMounted ?? 'N/A') },
     { label: 'Home monta', value: String(diag?.homeMounted ?? 'N/A') },
     { label: 'MapboxMap monta', value: String(diag?.mapboxMounted ?? 'N/A') },
+    { label: 'Realtime hook', value: import.meta.env.VITE_DISABLE_REALTIME === 'true' ? 'disabled' : 'active' },
     { label: 'mapRef disponible', value: String(diag?.mapRefAvailable ?? 'N/A') },
-    { label: 'VITE_DISABLE_MAP', value: String(import.meta.env.VITE_DISABLE_MAP === 'true') },
-    { label: 'VITE_DEV_BYPASS_AUTH', value: String(import.meta.env.VITE_DEV_BYPASS_AUTH === 'true') },
   ];
 
   return (
@@ -46,6 +54,20 @@ export default function DevDiagnostics() {
           ))}
         </tbody>
       </table>
+      {lastErrors.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-gray-700">
+          <h2 className="text-lg font-bold text-red-400 mb-2">Últimos errores</h2>
+          {lastErrors.map((e, i) => (
+            <pre
+              key={i}
+              className="text-xs text-red-300 bg-black/50 p-2 rounded mb-2 overflow-auto"
+            >
+              [{e.type}] {e.message}
+              {e.stack ? `\n${e.stack}` : ''}
+            </pre>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
