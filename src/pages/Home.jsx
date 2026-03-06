@@ -572,8 +572,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden text-white">
-      {/* Mapa como fondo a pantalla completa */}
+    <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
+      {/* Mapa como fondo a pantalla completa — h-[100dvh] garantiza altura estable en móvil/simulador */}
       <MapboxMap
         className="absolute inset-0 z-0 w-full h-full"
         alerts={homeMapAlerts}

@@ -1,7 +1,9 @@
-# Workflows deshabilitados temporalmente
+# GitHub Actions
 
-Los workflows de GitHub Actions (CI, Supabase, CodeQL) están deshabilitados para evitar emails de "Run failed".
+## Activo
 
-Se han movido a `.github/workflows_disabled/` — GitHub solo ejecuta YAML dentro de `.github/workflows/`, por lo que no se dispararán automáticamente.
+- **ci.yml** — Ejecuta en push/PR a `main`: lint, typecheck, build. Ver `docs/CI_SETUP.md` para secrets.
 
-Para reactivarlos: mover los archivos de vuelta a `.github/workflows/`.
+## Deshabilitados
+
+Los workflows en `.github/workflows_disabled/` (supabase, codeql) no se ejecutan. Para reactivarlos: mover a `.github/workflows/` y configurar secrets.
