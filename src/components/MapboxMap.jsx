@@ -17,6 +17,7 @@ export default function MapboxMap({
   onMapLoad,
   onRecenterRef,
   useCenterPin = false,
+  centerPinFromOverlay = false,
   centerPaddingBottom = 0,
   onMapMove,
   onMapMoveEnd,
@@ -47,10 +48,16 @@ export default function MapboxMap({
     ? [location.lng, location.lat]
     : OVIEDO_CENTER;
 
-  const flyToUser = useCallback(() => {
+  const flyToUser = useCallback((coords) => {
     const map = mapRef.current;
     if (!map?.flyTo) return;
-    const c = location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER;
+    const [lng, lat] = Array.isArray(coords) && coords.length >= 2
+      ? [coords[1], coords[0]]
+      : (coords?.lat != null && coords?.lng != null
+        ? [coords.lng, coords.lat]
+        : (location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER));
+    const c = [lng, lat];
+    const padding = centerPaddingBottom > 0 ? { top: 0, bottom: 120, left: 0, right: 0 } : undefined;
     map.flyTo({
       center: c,
       zoom: DEFAULT_ZOOM,
@@ -58,8 +65,9 @@ export default function MapboxMap({
       duration: 800,
       essential: true,
       speed: 0.8,
+      ...(padding && { padding }),
     });
-  }, [location.lat, location.lng]);
+  }, [location.lat, location.lng, centerPaddingBottom]);
 
   useEffect(() => {
     if (onRecenterRef) onRecenterRef.current = flyToUser;
@@ -73,7 +81,14 @@ export default function MapboxMap({
   }, [flyToUser]);
 
   useEffect(() => {
-    const handler = () => flyToUser();
+    const handler = (e) => {
+      const detail = e?.detail;
+      if (detail?.lat != null && detail?.lng != null) {
+        flyToUser(detail);
+      } else {
+        flyToUser();
+      }
+    };
     window.addEventListener('waitme:recenterMap', handler);
     return () => window.removeEventListener('waitme:recenterMap', handler);
   }, [flyToUser]);
@@ -413,10 +428,10 @@ export default function MapboxMap({
     <div
       ref={containerRef}
       className={`${className} w-full h-full relative`}
-      style={containerStyle}
+      style={{ ...containerStyle, touchAction: 'none' }}
       {...rest}
     >
-      {useCenterPin && <CenterPin />}
+      {useCenterPin && !centerPinFromOverlay && <CenterPin />}
       {children}
     </div>
   );

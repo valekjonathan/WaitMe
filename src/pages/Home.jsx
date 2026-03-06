@@ -12,10 +12,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import { useLayoutHeader } from '@/lib/LayoutContext';
 import MapboxMap from '@/components/MapboxMap';
-import StreetSearch from '@/components/StreetSearch';
+import CreateMapOverlay from '@/components/CreateMapOverlay';
 import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
 import MapFilters from '@/components/map/MapFilters';
-import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
 import { useAuth } from '@/lib/AuthContext';
@@ -237,8 +236,8 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // One-shot: usado al pulsar "Estoy aparcado aquí" para refrescar posición al instante
-  const getCurrentLocation = useCallback(() => {
+  // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
+  const getCurrentLocation = useCallback((onReady) => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -246,6 +245,7 @@ export default function Home() {
         setUserLocation([latitude, longitude]);
         setSelectedPosition({ lat: latitude, lng: longitude });
         reverseGeocode(latitude, longitude);
+        onReady?.({ lat: latitude, lng: longitude });
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
@@ -616,6 +616,7 @@ export default function Home() {
           setSelectedAlert(alert);
         }}
         useCenterPin={mode === 'create'}
+        centerPinFromOverlay={mode === 'create'}
         centerPaddingBottom={mode === 'create' ? 280 : 0}
         onMapLoad={(map) => { mapRef.current = map; }}
         onMapMove={mode === 'create' ? handleMapMove : undefined}
@@ -772,25 +773,14 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] pointer-events-none"
-              style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)' }}
+              className="contents"
             >
-              <div className="absolute top-3 left-4 right-4 z-20 pointer-events-auto">
-                <StreetSearch
-                  onSelect={handleStreetSelect}
-                  placeholder="Buscar calle para centrar mapa..."
-                />
-              </div>
-              <div
-                className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] pointer-events-auto"
-                style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
-              >
-                <CreateAlertCard
-                    address={address}
-                    onAddressChange={setAddress}
-                    onUseCurrentLocation={getCurrentLocation}
-                    useCurrentLocationLabel="Ubicación actual"
-                    onCreateAlert={async (data) => {
+              <CreateMapOverlay
+                onStreetSelect={handleStreetSelect}
+                address={address}
+                onAddressChange={setAddress}
+                onUseCurrentLocation={getCurrentLocation}
+                onCreateAlert={async (data) => {
                       if (!selectedPosition || !address) {
                         alert('Por favor, selecciona una ubicación en el mapa');
                         return;
@@ -839,9 +829,8 @@ export default function Home() {
                       setPendingPublishPayload(payload);
                       setConfirmPublishOpen(true);
                     }}
-                    isLoading={createAlertMutation.isPending}
-                  />
-              </div>
+                isLoading={createAlertMutation.isPending}
+              />
             </motion.div>
           )}
         </AnimatePresence>
