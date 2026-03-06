@@ -3,6 +3,10 @@
  * Actualiza el Zustand store.
  * Soporta esquema nuevo (seller_id, price_cents) y legacy (user_id, price).
  * No explota si la tabla no existe: setError en store.
+ *
+ * FIX: usa useAppStore.getState() en vez del hook para evitar
+ * "dispatcher.useCallback" null en iOS/WebKit (Zustand hook invocado
+ * antes de que React dispatcher esté listo).
  */
 import { useEffect } from 'react';
 import { getSupabase } from '@/lib/supabaseClient';
@@ -34,9 +38,10 @@ function normalizeRow(r) {
 }
 
 export function useRealtimeAlerts() {
-  const { setAlerts, setAlertsLoading, upsertAlert, removeAlert, setError, clearError } = useAppStore();
-
   useEffect(() => {
+    const { setAlerts, setAlertsLoading, upsertAlert, removeAlert, setError, clearError } =
+      useAppStore.getState();
+
     const supabase = getSupabase();
     if (!supabase) return;
 
@@ -48,29 +53,34 @@ export function useRealtimeAlerts() {
       .select('*')
       .eq('status', 'active')
       .then(({ data, error }) => {
-        setAlertsLoading(false);
+        const store = useAppStore.getState();
+        store.setAlertsLoading(false);
         if (error) {
           console.error('Realtime alerts load error:', error);
-          setError('realtime_error');
+          store.setError('realtime_error');
           return;
         }
         const items = (data || []).map(normalizeRow);
-        setAlerts(items);
+        store.setAlerts(items);
       })
       .catch((err) => {
-        setAlertsLoading(false);
+        const store = useAppStore.getState();
+        store.setAlertsLoading(false);
         console.error('Realtime alerts load error:', err);
-        setError('realtime_error');
+        store.setError('realtime_error');
       });
 
     const unsub = subscribeActiveAlerts({
       onUpsert: (alert) => {
-        if (alert.status === 'active') upsertAlert(alert);
-        else removeAlert(alert.id);
+        const store = useAppStore.getState();
+        if (alert.status === 'active') store.upsertAlert(alert);
+        else store.removeAlert(alert.id);
       },
-      onDelete: removeAlert,
+      onDelete: (id) => {
+        useAppStore.getState().removeAlert(id);
+      },
     });
 
     return () => unsub();
-  }, [setAlerts, setAlertsLoading, upsertAlert, removeAlert, setError, clearError]);
+  }, []);
 }
