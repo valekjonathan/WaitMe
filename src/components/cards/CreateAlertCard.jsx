@@ -33,21 +33,28 @@ export default function CreateAlertCard({
 
   const fallbackToMapCenter = () => {
     if (!mapRef?.current) return;
-    const c = mapRef.current.getCenter();
-    if (c) {
-      onRecenter?.({ lat: c.lat, lng: c.lng });
-      mapRef.current.flyTo({
-        center: [c.lng, c.lat],
-        zoom: 17,
-        duration: 1200,
-        essential: true,
-        padding: { top: 0, bottom: 120, left: 0, right: 0 },
-      });
+    try {
+      const c = mapRef.current.getCenter?.();
+      if (c && typeof c.lat === 'number' && typeof c.lng === 'number') {
+        onRecenter?.({ lat: c.lat, lng: c.lng });
+        mapRef.current.flyTo({
+          center: [c.lng, c.lat],
+          zoom: 17,
+          duration: 1200,
+          essential: true,
+          padding: { top: 0, bottom: 120, left: 0, right: 0 },
+        });
+      }
+    } catch (err) {
+      // fallback silencioso si getCenter/flyTo fallan
     }
   };
 
   const handleUbicite = () => {
-    if (!mapRef?.current) return;
+    if (!mapRef?.current) {
+      console.warn('[Ubícate] mapRef no disponible');
+      return;
+    }
 
     if (!navigator.geolocation) {
       fallbackToMapCenter();
@@ -55,26 +62,46 @@ export default function CreateAlertCard({
     }
 
     let resolved = false;
+    let fallbackTimer;
+
     const resolve = (fn) => {
       if (resolved) return;
       resolved = true;
-      clearTimeout(fallbackTimer);
-      fn();
+      if (fallbackTimer != null) clearTimeout(fallbackTimer);
+      try {
+        fn?.();
+      } catch (err) {
+        try {
+          fallbackToMapCenter();
+        } catch {
+          // último recurso si todo falla
+        }
+      }
     };
 
-    const fallbackTimer = setTimeout(() => resolve(fallbackToMapCenter), 2000);
+    fallbackTimer = setTimeout(() => resolve(fallbackToMapCenter), 2000);
 
     const onSuccess = (pos) => {
+      const coords = pos?.coords;
+      if (!coords || typeof coords.latitude !== 'number' || typeof coords.longitude !== 'number') {
+        resolve(fallbackToMapCenter);
+        return;
+      }
       resolve(() => {
-        const { latitude, longitude } = pos.coords;
-        onRecenter?.({ lat: latitude, lng: longitude });
-        mapRef.current?.flyTo({
-          center: [longitude, latitude],
-          zoom: 17,
-          duration: 1200,
-          essential: true,
-          padding: { top: 0, bottom: 120, left: 0, right: 0 },
-        });
+        const { latitude, longitude } = coords;
+        const map = mapRef?.current;
+        if (map?.flyTo) {
+          onRecenter?.({ lat: latitude, lng: longitude });
+          map.flyTo({
+            center: [longitude, latitude],
+            zoom: 17,
+            duration: 1200,
+            essential: true,
+            padding: { top: 0, bottom: 120, left: 0, right: 0 },
+          });
+        } else {
+          fallbackToMapCenter();
+        }
       });
     };
 
@@ -82,11 +109,15 @@ export default function CreateAlertCard({
       resolve(fallbackToMapCenter);
     };
 
-    navigator.geolocation.getCurrentPosition(
-      onSuccess,
-      onError,
-      { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
-    );
+    try {
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        onError,
+        { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
+      );
+    } catch (err) {
+      resolve(fallbackToMapCenter);
+    }
   };
 
   return (
