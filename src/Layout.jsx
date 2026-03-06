@@ -27,6 +27,7 @@ const ROUTE_HEADER = {
   '/settings': { title: 'Ajustes', showBackButton: true, backTo: 'Home' },
   '/history': { title: 'Alertas', showBackButton: true, backTo: 'Home' },
   '/alertas': { title: 'Alertas', showBackButton: true, backTo: 'Home' },
+  '/alerts': { title: 'Alertas', showBackButton: true, backTo: 'Home' },
   '/navigate': { title: 'Navegación', showBackButton: true, backTo: 'History', titleClassName: 'text-[13px] leading-[13px] font-semibold select-none text-center max-w-xs' },
 };
 
@@ -78,6 +79,7 @@ export default function Layout() {
           <Route path="settings" element={<Settings />} />
           <Route path="history" element={<Alertas />} />
           <Route path="alertas" element={<Alertas />} />
+          <Route path="alerts" element={<Alertas />} />
           <Route path="navigate" element={<NavigatePage />} />
         </Route>
       </Routes>

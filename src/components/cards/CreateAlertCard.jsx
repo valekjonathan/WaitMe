@@ -36,10 +36,10 @@ export default function CreateAlertCard({
 
   return (
     <div
-      className="bg-gray-900/40 backdrop-blur-sm rounded-2xl p-2 border-2 border-purple-500 shadow-xl h-full flex flex-col min-h-0"
+      className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-3 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
         boxShadow:
-          '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
+          '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
       }}
     >
       <div className="flex flex-col justify-between flex-1 min-h-0">

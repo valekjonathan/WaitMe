@@ -428,7 +428,7 @@ export default function Home() {
     } catch {}
     setConfirmPublishOpen(false);
     setPendingPublishPayload(null);
-    navigate(createPageUrl('History'));
+    navigate('/alerts');
   },
 
   onError: (error) => {
@@ -750,20 +750,14 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
-              style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+              className="fixed inset-0 top-[60px] pointer-events-none"
+              style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)' }}
             >
-              <div className="px-7 pt-[14px] pb-[2px] flex-shrink-0 pointer-events-auto">
-                <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[2px]">
-                  <h3 className="text-white font-semibold text-center text-sm">
-                    ¿ Dónde estas aparcado ?
-                  </h3>
-                </div>
-              </div>
-
-              <div className="px-4 mt-[10px] flex-1 min-h-0 flex items-stretch pointer-events-auto">
-                <div className="w-full h-full">
-                  <CreateAlertCard
+              <div
+                className="absolute left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] min-h-[200px] pointer-events-auto"
+                style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
+              >
+                <CreateAlertCard
                     address={address}
                     onAddressChange={setAddress}
                     onUseCurrentLocation={getCurrentLocation}
@@ -819,7 +813,6 @@ export default function Home() {
                     }}
                     isLoading={createAlertMutation.isPending}
                   />
-                </div>
               </div>
             </motion.div>
           )}
