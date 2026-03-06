@@ -15,7 +15,6 @@ const MAP_TOP_VIEWPORT = 69; // overlay top = main pt = 69
 export default function CreateMapOverlay({
   address,
   onAddressChange,
-  onUseCurrentLocation,
   onRecenter,
   onCreateAlert,
   isLoading,
@@ -23,13 +22,6 @@ export default function CreateMapOverlay({
 }) {
   const cardRef = useRef(null);
   const [pinTop, setPinTop] = useState(null);
-  const hasAutoLocatedRef = useRef(false);
-
-  useEffect(() => {
-    if (!onUseCurrentLocation || hasAutoLocatedRef.current) return;
-    hasAutoLocatedRef.current = true;
-    onUseCurrentLocation(undefined);
-  }, [onUseCurrentLocation]);
 
   useEffect(() => {
     const card = cardRef.current;
@@ -60,7 +52,6 @@ export default function CreateMapOverlay({
           <CreateAlertCard
             address={address}
             onAddressChange={onAddressChange}
-            onUseCurrentLocation={onUseCurrentLocation}
             onRecenter={onRecenter}
             mapRef={mapRef}
             useCurrentLocationLabel="Ubicación actual"

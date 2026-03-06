@@ -10,7 +10,6 @@ export default function CreateAlertCard({
   address,
   onAddressChange,
   onRecenter,
-  onUseCurrentLocation,
   onCreateAlert,
   isLoading = false,
   mapRef,
@@ -54,12 +53,17 @@ export default function CreateAlertCard({
 
   const handleLocate = () => {
     if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
-    if (!onUseCurrentLocation) return;
-    onUseCurrentLocation((pos) => {
-      if (pos?.lat == null || pos?.lng == null) return;
-      const { lat, lng } = pos;
-      flyToCoords(lng, lat);
-    });
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        onRecenter?.({ lat, lng });
+        flyToCoords(lng, lat);
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }
+    );
   };
 
   return (
