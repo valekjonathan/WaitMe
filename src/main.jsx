@@ -70,16 +70,27 @@ class ErrorBoundary extends React.Component {
 // Sentry debe cargarse después de React para evitar dispatcher.useState null
 import('./lib/sentry').catch(() => {});
 
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:main] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
 const rootEl = document.getElementById("root");
 if (rootEl) {
+  RENDER_LOG('root element found, getting config');
   const config = getSupabaseConfig();
   if (!config.ok) {
+    RENDER_LOG('config NOT ok, rendering MissingEnvScreen', config.missing);
     ReactDOM.createRoot(rootEl).render(
       <HashRouter>
         <MissingEnvScreen missing={config.missing} />
       </HashRouter>
     );
   } else {
+    RENDER_LOG('config ok, rendering App with ErrorBoundary');
     ReactDOM.createRoot(rootEl).render(
       <ErrorBoundary>
         <HashRouter>
@@ -92,4 +103,6 @@ if (rootEl) {
       </ErrorBoundary>
     );
   }
+} else {
+  RENDER_LOG('root element NOT found');
 }

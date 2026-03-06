@@ -34,6 +34,18 @@ if (typeof window !== 'undefined') {
 }
 import { haversineKm } from '@/utils/carUtils';
 
+// DEV kill switch: disable map (render simple block instead)
+const isMapDisabled = () =>
+  import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
+
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:Home] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
 // ======================
 // Helpers
 // ======================
@@ -74,6 +86,15 @@ const MagnifierIconProfile = ({ color = "#8b5cf6", size = "w-14 h-14" }) => (
 );
 
 export default function Home() {
+  RENDER_LOG('Home ENTER');
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), homeMounted: true };
+      return () => {
+        window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), homeMounted: false };
+      };
+    }
+  }, []);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -646,6 +667,19 @@ export default function Home() {
     }
   }, [mode]);
 
+  if (isMapDisabled()) {
+    RENDER_LOG('Home RETURNS map disabled (kill switch)');
+    return (
+      <div className="relative w-full min-h-[100dvh] overflow-hidden text-white bg-black flex items-center justify-center">
+        <div className="text-center p-6 border border-purple-500/50 rounded-xl bg-gray-900/80">
+          <p className="text-purple-400 font-mono text-sm">[DEV] VITE_DISABLE_MAP=true</p>
+          <p className="text-gray-400 text-xs mt-2">Mapa desactivado para diagnóstico</p>
+        </div>
+      </div>
+    );
+  }
+
+  RENDER_LOG('Home RETURNS map enabled');
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
       {/* Mapa como fondo a pantalla completa — h-[100dvh] garantiza altura estable en móvil/simulador */}

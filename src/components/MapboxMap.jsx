@@ -2,6 +2,14 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 import CenterPin from '@/components/CenterPin';
 
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:MapboxMap] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 16.5;
@@ -25,6 +33,7 @@ export default function MapboxMap({
   children,
   ...rest
 }) {
+  RENDER_LOG('MapboxMap ENTER');
   const containerRef = useRef(null);
   const internalMapRef = useRef(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -196,6 +205,11 @@ export default function MapboxMap({
             if (cancelled) return;
             if (mapRef) mapRef.current = map;
             if (onMapLoad) onMapLoad(map);
+            if (import.meta.env.DEV) {
+              try {
+                window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), mapboxMounted: true, mapRefAvailable: !!mapRef?.current };
+              } catch {}
+            }
 
             // Estilo Uber/Bolt nocturno: desactivar relieve y árboles
             try {
@@ -241,6 +255,11 @@ export default function MapboxMap({
       });
 
     return () => {
+      if (import.meta.env.DEV) {
+        try {
+          window.__DEV_DIAG = { ...(window.__DEV_DIAG || {}), mapboxMounted: false, mapRefAvailable: false };
+        } catch {}
+      }
       cancelled = true;
       resizeObserverRef.current?.disconnect?.();
       resizeObserverRef.current = null;
@@ -405,6 +424,7 @@ export default function MapboxMap({
 
 
   if (error) {
+    RENDER_LOG('MapboxMap RETURNS error state', error);
     return (
       <div className="relative w-full h-full min-h-[200px]" style={{ minHeight: '100vh' }}>
         <div
@@ -429,6 +449,7 @@ export default function MapboxMap({
   };
 
   const { style: restStyle, ...restProps } = rest;
+  RENDER_LOG('MapboxMap RETURNS map container', { mapReady });
   return (
     <div
       ref={containerRef}

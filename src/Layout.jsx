@@ -1,5 +1,13 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
+
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:Layout] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import Header from '@/components/Header';
@@ -14,6 +22,7 @@ const Profile          = lazy(() => import('./pages/Profile'));
 const Settings         = lazy(() => import('./pages/Settings'));
 const Alertas          = lazy(() => import('./pages/History'));
 const NavigatePage     = lazy(() => import('./pages/Navigate'));
+const DevDiagnostics   = import.meta.env.DEV ? lazy(() => import('./pages/DevDiagnostics')) : null;
 
 const ROUTE_HEADER = {
   '/': { title: 'WaitMe!' },
@@ -29,11 +38,13 @@ const ROUTE_HEADER = {
   '/alertas': { title: 'Alertas', showBackButton: true, backTo: 'Home' },
   '/alerts': { title: 'Alertas', showBackButton: true, backTo: 'Home' },
   '/navigate': { title: 'Navegación', showBackButton: true, backTo: 'History', titleClassName: 'text-[13px] leading-[13px] font-semibold select-none text-center max-w-xs' },
+  '/dev-diagnostics': { title: 'Dev Diagnostics', showBackButton: true, backTo: 'Home' },
 };
 
 function LayoutShell() {
   const location = useLocation();
   const path = location.pathname;
+  RENDER_LOG('LayoutShell ENTER', { path });
   const routeConfig = ROUTE_HEADER[path] || ROUTE_HEADER['/'];
   const ctxConfig = useLayoutHeaderConfig();
   const baseConfig = { title: 'WaitMe!', showBackButton: false, backTo: null, onBack: null, onTitleClick: null, titleClassName: 'text-[24px] leading-[24px]' };
@@ -62,7 +73,9 @@ function LayoutShell() {
 }
 
 export default function Layout() {
+  RENDER_LOG('Layout ENTER');
   useRealtimeAlerts();
+  RENDER_LOG('Layout RENDER Routes');
   return (
     <LayoutProvider>
       <Routes>
@@ -81,6 +94,7 @@ export default function Layout() {
           <Route path="alertas" element={<Alertas />} />
           <Route path="alerts" element={<Alertas />} />
           <Route path="navigate" element={<NavigatePage />} />
+          {DevDiagnostics && <Route path="dev-diagnostics" element={<DevDiagnostics />} />}
         </Route>
       </Routes>
     </LayoutProvider>

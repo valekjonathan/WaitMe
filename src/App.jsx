@@ -32,14 +32,31 @@ async function processOAuthUrl(url, onSuccess) {
   return true;
 }
 
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:App:AuthRouter] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
 function AuthRouter() {
-  const { user, isLoadingAuth } = useAuth();
+  try {
+    const { user, isLoadingAuth } = useAuth();
+    RENDER_LOG('AuthRouter ENTER', { hasUser: !!user?.id, isLoadingAuth });
 
-  if (isLoadingAuth) return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;
+    if (isLoadingAuth) {
+      RENDER_LOG('AuthRouter RETURNS loading');
+      return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;
+    }
 
-  if (!user?.id) return <Login />;
+    if (!user?.id) {
+      RENDER_LOG('AuthRouter RETURNS Login (no user)');
+      return <Login />;
+    }
 
-  return (
+    RENDER_LOG('AuthRouter RETURNS Layout');
+    return (
     <>
       <DemoFlowManager />
       <WaitMeRequestScheduler />
@@ -47,6 +64,10 @@ function AuthRouter() {
       <Layout />
     </>
   );
+  } catch (err) {
+    RENDER_LOG('AuthRouter CATCH', err?.message ?? String(err));
+    throw err;
+  }
 }
 
 export default function App() {

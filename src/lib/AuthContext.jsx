@@ -6,6 +6,18 @@ import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
 // Only active during local development (npm run dev)
 const isDevAutoLogin = () => import.meta.env.DEV;
 
+// DEV kill switch: bypass auth mock (use real Supabase flow)
+const isDevBypassAuth = () =>
+  import.meta.env.DEV && import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
+const RENDER_LOG = (msg, extra) => {
+  if (import.meta.env.DEV) {
+    try {
+      console.log(`[RENDER:AuthContext] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
 /** Usuario mock para desarrollo local — nunca en producción */
 const DEV_MOCK_USER = {
   id: 'dev-user',
@@ -46,12 +58,21 @@ const DEV_MOCK_PROFILE = {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // En DEV: estado inicial ya con usuario mock — sin esperar Supabase
-  const isDev = isDevAutoLogin();
-  const [user, setUser] = useState(() => (isDev ? DEV_MOCK_USER : null));
+  RENDER_LOG('AuthProvider ENTER');
+  // En DEV: estado inicial ya con usuario mock — sin esperar Supabase (excepto si VITE_DEV_BYPASS_AUTH=true)
+  const isDev = isDevAutoLogin() && !isDevBypassAuth();
+  const [user, setUser] = useState(() => {
+    const init = isDev ? DEV_MOCK_USER : null;
+    RENDER_LOG('useState init', { isDev, hasUser: !!init });
+    return init;
+  });
   const [profile, setProfile] = useState(() => (isDev ? DEV_MOCK_PROFILE : null));
   const [isAuthenticated, setIsAuthenticated] = useState(isDev);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(!isDev);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(() => {
+    const loading = !isDev;
+    RENDER_LOG('isLoadingAuth init', loading);
+    return loading;
+  });
   const [authError, setAuthError] = useState(null);
   const authInFlightRef = useRef(false);
 
@@ -298,6 +319,7 @@ export const AuthProvider = ({ children }) => {
     [user, profile, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth, refreshProfile]
   );
 
+  RENDER_LOG('AuthProvider RENDER', { user: !!user?.id, isLoadingAuth, isAuthenticated });
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
