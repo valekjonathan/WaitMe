@@ -13,6 +13,7 @@ import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import { useLayoutHeader } from '@/lib/LayoutContext';
 import MapboxMap from '@/components/MapboxMap';
 import CreateMapOverlay from '@/components/CreateMapOverlay';
+import SearchMapOverlay from '@/components/SearchMapOverlay';
 import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
 import MapFilters from '@/components/map/MapFilters';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -99,7 +100,13 @@ export default function Home() {
 
   const heroRef = useRef(null);
   const mapRef = useRef(null);
+  const modeRef = useRef(mode);
+  const debounceReverseRef = useRef(null);
   const [contentArea, setContentArea] = useState({ top: 0, height: 0 });
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     if (mode) return;
@@ -236,6 +243,15 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
+  // Reverse geocode con debounce (300ms) para no spamear API durante move
+  const debouncedReverseGeocode = useCallback((lat, lng) => {
+    if (debounceReverseRef.current) clearTimeout(debounceReverseRef.current);
+    debounceReverseRef.current = setTimeout(() => {
+      reverseGeocode(lat, lng);
+      debounceReverseRef.current = null;
+    }, 300);
+  }, [reverseGeocode]);
+
   // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
   const getCurrentLocation = useCallback((onReady) => {
     if (!navigator.geolocation) return;
@@ -281,10 +297,13 @@ export default function Home() {
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
-        if (accuracy > 30) return; // ignorar lecturas con precisión peor de 30 m
+        if (accuracy > 30) return;
         setUserLocation([latitude, longitude]);
-        setSelectedPosition({ lat: latitude, lng: longitude });
-        reverseGeocode(latitude, longitude);
+        // En modo create, selectedPosition viene del mapa/mirilla; no sobrescribir con GPS
+        if (modeRef.current !== 'create') {
+          setSelectedPosition({ lat: latitude, lng: longitude });
+          reverseGeocode(latitude, longitude);
+        }
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
@@ -572,21 +591,20 @@ export default function Home() {
   }, [mode, handleBack, handleTitleClick, setHeader]);
 
   const handleMapMove = useCallback((center) => {
-    setSelectedPosition({ lat: center[0], lng: center[1] });
-  }, []);
+    const [lat, lng] = center;
+    setSelectedPosition({ lat, lng });
+    debouncedReverseGeocode(lat, lng);
+  }, [debouncedReverseGeocode]);
 
   const handleMapMoveEnd = useCallback((center) => {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center[0]}&lon=${center[1]}&zoom=19&addressdetails=1`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.address) {
-          const a = data.address;
-          const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
-          const number = a.house_number || '';
-          setAddress(number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '');
-        }
-      })
-      .catch(() => {});
+    const [lat, lng] = center;
+    setSelectedPosition({ lat, lng });
+    debouncedReverseGeocode(lat, lng);
+  }, [debouncedReverseGeocode]);
+
+  const handleMapMoveSearch = useCallback((center) => {
+    const [lat, lng] = center;
+    setUserLocation([lat, lng]);
   }, []);
 
   const handleStreetSelect = useCallback((result) => {
@@ -598,9 +616,8 @@ export default function Home() {
       pitch: 30,
       duration: 600,
     });
-    if (mode === 'create') {
-      setSelectedPosition({ lat, lng });
-      if (place_name) setAddress(place_name);
+    if (mode === 'search') {
+      setUserLocation([lat, lng]);
     }
   }, [mode]);
 
@@ -615,12 +632,12 @@ export default function Home() {
           setMode('search');
           setSelectedAlert(alert);
         }}
-        useCenterPin={mode === 'create'}
-        centerPinFromOverlay={mode === 'create'}
-        centerPaddingBottom={mode === 'create' ? 280 : 0}
+        useCenterPin={mode === 'create' || mode === 'search'}
+        centerPinFromOverlay={mode === 'create' || mode === 'search'}
+        centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
         onMapLoad={(map) => { mapRef.current = map; }}
-        onMapMove={mode === 'create' ? handleMapMove : undefined}
-        onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : undefined}
+        onMapMove={mode === 'create' ? handleMapMove : mode === 'search' ? handleMapMoveSearch : undefined}
+        onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
       />
 
       {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
@@ -710,49 +727,44 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
-              style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+              className="contents"
             >
-              <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
-                {!showFilters && (
-                  <Button
-                    onClick={() => setShowFilters(true)}
-                    className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
-                    size="icon"
-                  >
-                    <SlidersHorizontal className="w-5 h-5" />
-                  </Button>
-                )}
-                <AnimatePresence>
-                  {showFilters && (
-                    <>
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowFilters(false)}
-                        className="fixed inset-0 z-[999] bg-black/40"
-                      />
-                      <MapFilters
-                        filters={filters}
-                        onFilterChange={setFilters}
-                        onClose={() => setShowFilters(false)}
-                        alertsCount={searchAlerts.length}
-                      />
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
-                <StreetSearch
-                  onSelect={handleStreetSelect}
-                  placeholder="Buscar calle o dirección..."
-                />
-              </div>
-
-              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start pointer-events-auto">
-                <div className="w-full h-full">
+              <SearchMapOverlay
+                onStreetSelect={handleStreetSelect}
+                mapRef={mapRef}
+                filtersButton={
+                  !showFilters && (
+                    <Button
+                      onClick={() => setShowFilters(true)}
+                      className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                      size="icon"
+                    >
+                      <SlidersHorizontal className="w-5 h-5" />
+                    </Button>
+                  )
+                }
+                filtersContent={
+                  <AnimatePresence>
+                    {showFilters && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => setShowFilters(false)}
+                          className="fixed inset-0 z-[999] bg-black/40"
+                        />
+                        <MapFilters
+                          filters={filters}
+                          onFilterChange={setFilters}
+                          onClose={() => setShowFilters(false)}
+                          alertsCount={searchAlerts.length}
+                        />
+                      </>
+                    )}
+                  </AnimatePresence>
+                }
+                alertCard={
                   <UserAlertCard
                     alert={selectedAlert}
                     isEmpty={!selectedAlert}
@@ -762,8 +774,8 @@ export default function Home() {
                     isLoading={buyAlertMutation.isPending}
                     userLocation={userLocation}
                   />
-                </div>
-              </div>
+                }
+              />
             </motion.div>
           )}
 
@@ -776,10 +788,10 @@ export default function Home() {
               className="contents"
             >
               <CreateMapOverlay
-                onStreetSelect={handleStreetSelect}
                 address={address}
                 onAddressChange={setAddress}
                 onUseCurrentLocation={getCurrentLocation}
+                mapRef={mapRef}
                 onCreateAlert={async (data) => {
                       if (!selectedPosition || !address) {
                         alert('Por favor, selecciona una ubicación en el mapa');
