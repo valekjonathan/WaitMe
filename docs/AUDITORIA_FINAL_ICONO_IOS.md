@@ -1,76 +1,56 @@
 # Auditoría final — Icono iOS WaitMe
 
 **Fecha:** 2025-03-06  
-**Objetivo:** Corregir el marco negro extra alrededor del icono iOS.
+**Objetivo:** Usar el badge cristal completo sin recortes.
 
 ---
 
-## 1. Causa exacta
+## 1. Bounding box usado
 
-El script anterior:
-1. Extraía la región del icono (230, 0, 563, 563) que incluía **negro del asset** alrededor del badge.
-2. **Componía** ese recorte sobre un **canvas negro 180×180**.
-3. Resultado: doble marco negro — el del asset + el del canvas.
-
----
-
-## 2. Archivo fuente usado
-
-| Campo | Valor |
-|-------|-------|
-| **Archivo** | `src/assets/d2ae993d3_WaitMe.png` |
-| **Dimensiones** | 1024 × 1024 px |
-| **Uso en Home** | `<img src={appLogo} />` (línea 841) |
+| Paso | Descripción |
+|------|-------------|
+| **Región inicial** | Top 700px del asset `(0, 0, 1024, 700)` — contiene el badge, sin texto |
+| **Trim** | `trim({ threshold: 20 })` — detecta el bounding box real eliminando negro exterior |
+| **Resultado trim** | 552 × 543 px — badge con bordes cristal visibles |
+| **Cuadrado centrado** | min(552, 543) = 543 px — crop cuadrado del icono completo |
 
 ---
 
-## 3. Recorte exacto aplicado
+## 2. Coordenadas de crop
 
 | Parámetro | Valor |
 |-----------|-------|
-| **left** | 272 |
-| **top** | 40 |
-| **width** | 480 |
-| **height** | 480 |
+| **Paso 1** | `extract(0, 0, 1024, 700)` — región del badge |
+| **Paso 2** | `trim({ threshold: 20 })` — bounding box automático |
+| **Paso 3** | `extract(4, 0, 543, 543)` — cuadrado centrado del resultado trim |
+| **Paso 4** | `resize(171, 171)` — 95% de 180 |
+| **Paso 5** | `composite` sobre canvas 180×180 negro, offset (4, 4) |
 
-Región `(272, 40, 480, 480)` — cuadrado centrado que contiene solo el badge cristal, minimizando el negro del asset.
-
-**Pipeline:**
-1. `extract(272, 40, 480, 480)` — solo el badge.
-2. `resize(180, 180, { fit: 'fill' })` — escala directa a 180×180.
-3. `removeAlpha()` — sin transparencia.
-4. **Sin canvas negro** — el badge es el icono completo.
+**NO se usa porcentaje vertical fijo** — el crop se deriva del bounding box real detectado por trim.
 
 ---
 
-## 4. Qué se ve en /apple-touch-icon.png
+## 3. Confirmación: icono NO está cortado
 
-- Cuadrado cristal (badge con efecto cristal) ocupando prácticamente todo el icono.
-- Flechas moradas y cuadrado blanco centrados.
-- Sin marco negro extra.
-- Sin texto.
-- 180×180 px, PNG RGB, sin alpha.
-
----
-
-## 5. Validación
-
-| Check | Estado |
-|-------|--------|
-| index.html `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />` | OK |
-| HTTP 200 en `/apple-touch-icon.png` | OK |
-| 180×180, sin alpha | OK |
+- Badge cristal completo visible
+- Bordes cristal visibles
+- Flechas moradas y cuadrado blanco sin recortes
+- Centrado perfecto
+- Ocupa ~95% del área (171px en 180px)
 
 ---
 
-## 6. Archivos tocados
+## 4. Confirmación visual de /apple-touch-icon.png
 
-- `scripts/generate-apple-touch-icon.mjs` — nuevo recorte, sin canvas negro.
-- `public/apple-touch-icon.png` — icono regenerado.
+- Cuadrado cristal (badge con efecto cristal) completo
+- Flechas moradas y cuadrado blanco centrados
+- Fondo negro, sin transparencia
+- 180×180 px
+- HTTP 200 en `/apple-touch-icon.png`
 
-## 7. Archivos NO tocados
+---
 
-- Home.jsx
-- index.html
-- manifest.json
-- Cualquier lógica o UI
+## 5. Archivos tocados
+
+- `scripts/generate-apple-touch-icon.mjs` — detección por trim, crop cuadrado centrado
+- `public/apple-touch-icon.png` — icono regenerado

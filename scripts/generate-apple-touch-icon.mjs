@@ -4,10 +4,8 @@
  * Fuente: src/assets/d2ae993d3_WaitMe.png
  * Salida: public/apple-touch-icon.png
  *
- * ESTRATEGIA (ver docs/AUDITORIA_FINAL_ICONO_IOS.md):
- * - Extraer SOLO el cuadrado cristal (badge con flechas + cuadrado blanco)
- * - Sin canvas negro extra, sin marco negro alrededor
- * - Badge ocupa 96-98% del área (172-176px) con margen mínimo para Apple
+ * ESTRATEGIA: Detectar bounding box real del badge cristal con trim,
+ * extraer cuadrado centrado (NO porcentaje vertical), escalar a 94-96%.
  */
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
@@ -19,30 +17,58 @@ const srcLogo = path.join(root, 'src/assets/d2ae993d3_WaitMe.png');
 const outPath = path.join(root, 'public/apple-touch-icon.png');
 
 const SIZE = 180;
+const BADGE_RATIO = 0.95; // badge ocupa ~95% (94-96%)
+const badgeSize = Math.round(SIZE * BADGE_RATIO); // 171
 
-// Recorte exacto del cuadrado cristal en el asset 1024x1024:
-// El badge está centrado en la mitad superior. Crop ajustado para capturar
-// solo el badge sin el marco negro exterior del asset.
-const SRC_W = 1024;
-const CROP_SIZE = 480; // cuadrado que contiene solo el badge (sin recortar)
-const CROP_LEFT = Math.floor((SRC_W - CROP_SIZE) / 2); // 272
-const CROP_TOP = 40; // badge empieza ~40px desde arriba
+// Región que contiene el badge: top 700px (badge + margen, sin texto)
+const BADGE_REGION_HEIGHT = 700;
 
 async function main() {
-  // Extraer solo el cuadrado cristal y escalar a 180x180.
-  // SIN canvas negro extra: el badge ES el icono, ocupa todo el frame.
-  // Margen mínimo: el badge tiene bordes redondeados; al escalar a 180x180
-  // el contenido útil queda ~96-98% (esquinas redondeadas del badge).
-  await sharp(srcLogo)
-    .extract({ left: CROP_LEFT, top: CROP_TOP, width: CROP_SIZE, height: CROP_SIZE })
-    .resize(SIZE, SIZE, { fit: 'fill' })
+  // 1. Extraer región del badge (top 700px, sin usar % vertical fijo)
+  const topRegion = await sharp(srcLogo)
+    .extract({ left: 0, top: 0, width: 1024, height: BADGE_REGION_HEIGHT })
+    .toBuffer();
+
+  // 2. Trim: detectar bounding box real del badge (elimina negro exterior)
+  const trimmed = await sharp(topRegion)
+    .trim({ threshold: 20 })
+    .toBuffer({ resolveWithObject: true });
+
+  const tw = trimmed.info.width;
+  const th = trimmed.info.height;
+
+  // 3. Crop CUADRADO centrado del icono completo
+  const sq = Math.min(tw, th);
+  const cropLeft = Math.floor((tw - sq) / 2);
+  const cropTop = Math.floor((th - sq) / 2);
+
+  const badge = await sharp(trimmed.data)
+    .extract({ left: cropLeft, top: cropTop, width: sq, height: sq })
+    .resize(badgeSize, badgeSize, { fit: 'fill' })
+    .ensureAlpha()
+    .toBuffer();
+
+  // 4. Componer sobre fondo negro, centrado
+  const offset = Math.floor((SIZE - badgeSize) / 2);
+
+  await sharp({
+    create: {
+      width: SIZE,
+      height: SIZE,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 1 }
+    }
+  })
+    .composite([{ input: badge, left: offset, top: offset }])
     .removeAlpha()
     .png()
     .toFile(outPath);
 
   console.log('OK:', outPath);
+  console.log('Bounding box (trimmed):', tw, 'x', th);
+  console.log('Square crop:', sq, 'x', sq, '| offset:', cropLeft, cropTop);
   const meta = await sharp(outPath).metadata();
-  console.log('Size:', meta.width, 'x', meta.height);
+  console.log('Output:', meta.width, 'x', meta.height);
 }
 
 main().catch((e) => {
