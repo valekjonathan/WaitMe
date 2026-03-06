@@ -190,9 +190,11 @@ export default function MapboxMap({
             scrollZoom: true,
           });
 
+          if (mapRef) mapRef.current = map;
+
           map.on('load', () => {
             if (cancelled) return;
-            mapRef.current = map;
+            if (mapRef) mapRef.current = map;
             if (onMapLoad) onMapLoad(map);
 
             // Estilo Uber/Bolt nocturno: desactivar relieve y árboles

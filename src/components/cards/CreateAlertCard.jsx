@@ -32,7 +32,7 @@ export default function CreateAlertCard({
   };
 
   const handleUbicite = () => {
-    console.log('[Ubícate] handleUbicite ejecutado');
+    console.log('[Ubícate] mapRef:', mapRef?.current);
     if (!mapRef?.current) return;
     if (!navigator.geolocation) {
       const center = mapRef.current.getCenter();
