@@ -107,6 +107,7 @@ export default function Home() {
 
   useEffect(() => {
     modeRef.current = mode;
+    if (mode === 'create') lastGeocodeRef.current = { lat: null, lng: null };
   }, [mode]);
 
   useEffect(() => {
@@ -247,13 +248,15 @@ export default function Home() {
 
   const debouncedReverseGeocode = useCallback((lat, lng) => {
     const prev = lastGeocodeRef.current;
-    if (prev.lat === lat && prev.lng === lng) return;
+    const same = prev.lat != null && prev.lng != null &&
+      Math.abs(prev.lat - lat) < 1e-6 && Math.abs(prev.lng - lng) < 1e-6;
+    if (same) return;
     lastGeocodeRef.current = { lat, lng };
     if (debounceReverseRef.current) clearTimeout(debounceReverseRef.current);
     debounceReverseRef.current = setTimeout(() => {
       reverseGeocode(lat, lng);
       debounceReverseRef.current = null;
-    }, 200);
+    }, 150);
   }, [reverseGeocode]);
 
   // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
@@ -599,7 +602,9 @@ export default function Home() {
   }, []);
 
   const handleMapMoveEnd = useCallback((center) => {
+    if (!Array.isArray(center) || center.length < 2) return;
     const [lat, lng] = center;
+    if (typeof lat !== 'number' || typeof lng !== 'number') return;
     setSelectedPosition({ lat, lng });
     debouncedReverseGeocode(lat, lng);
   }, [debouncedReverseGeocode]);
@@ -614,11 +619,14 @@ export default function Home() {
     const { lat, lng } = coords;
     setSelectedPosition({ lat, lng });
     reverseGeocode(lat, lng);
-    mapRef.current?.flyTo({
+    const map = mapRef.current;
+    if (!map?.flyTo) return;
+    map.flyTo({
       center: [lng, lat],
-      zoom: 16.5,
+      zoom: 17,
       pitch: 30,
       duration: 800,
+      essential: true,
       padding: { top: 0, bottom: 120, left: 0, right: 0 },
     });
   }, [reverseGeocode]);

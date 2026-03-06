@@ -59,6 +59,7 @@ export default function CreateMapOverlay({
           onAddressChange={onAddressChange}
           onUseCurrentLocation={onUseCurrentLocation}
           onRecenter={onRecenter}
+          mapRef={mapRef}
           useCurrentLocationLabel="Ubicación actual"
           onCreateAlert={onCreateAlert}
           isLoading={isLoading}

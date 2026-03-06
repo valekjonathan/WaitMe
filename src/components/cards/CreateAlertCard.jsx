@@ -12,6 +12,7 @@ export default function CreateAlertCard({
   onRecenter,
   onCreateAlert,
   isLoading = false,
+  mapRef,
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
@@ -44,7 +45,17 @@ export default function CreateAlertCard({
           <Button
             className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
             onClick={() => {
-              onUseCurrentLocation?.((coords) => onRecenter?.(coords));
+              onUseCurrentLocation?.((coords) => {
+                onRecenter?.(coords);
+                if (coords?.lat != null && coords?.lng != null && mapRef?.current?.flyTo) {
+                  mapRef.current.flyTo({
+                    center: [coords.lng, coords.lat],
+                    zoom: 17,
+                    essential: true,
+                    padding: { top: 0, bottom: 120, left: 0, right: 0 },
+                  });
+                }
+              });
             }}
             type="button"
           >
