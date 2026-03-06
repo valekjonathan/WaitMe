@@ -47,6 +47,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>WaitMe necesita acceso a la red local para cargar la app desde el servidor de desarrollo en tu Mac.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
