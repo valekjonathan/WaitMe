@@ -19,6 +19,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run build",
+    "export-codebase": "node scripts/export-codebase.js",
     "ship": "bash scripts/ship.sh",
     "prepare": "husky",
     "preview": "vite preview --host --port 4173",
