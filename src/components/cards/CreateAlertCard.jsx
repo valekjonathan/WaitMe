@@ -42,7 +42,7 @@ export default function CreateAlertCard({
           '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
       }}
     >
-      <div className="flex flex-col justify-between flex-1 min-h-0">
+      <div className="flex flex-col justify-between flex-1 min-h-0 gap-y-6">
         {/* Ubicación */}
         <div className="flex items-center gap-2">
           <MapPin className="w-[22px] h-[22px] text-purple-400 flex-shrink-0" />
@@ -69,7 +69,7 @@ export default function CreateAlertCard({
         <div className="flex items-center gap-2">
           <Clock className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
-          <div className="flex-1 space-y-0.5">
+          <div className="flex-1 space-y-0.5 mt-2">
             <Label className="text-white text-xs font-medium">
               Me voy en:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-2">
@@ -92,7 +92,7 @@ export default function CreateAlertCard({
         <div className="flex items-center gap-2">
           <Euro className="w-[22px] h-[22px] text-purple-400 flex-shrink-0 self-center translate-y-[4px]" />
 
-          <div className="flex-1 space-y-0.5">
+          <div className="flex-1 space-y-0.5 mt-2">
             <Label className="text-white text-xs font-medium">
               Precio:
               <span className="text-purple-400 font-bold text-[22px] leading-none ml-[42px]">

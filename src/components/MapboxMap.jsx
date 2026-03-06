@@ -249,7 +249,7 @@ export default function MapboxMap({
 
     if (useCenterPin) {
       const padding = centerPaddingBottom > 0
-        ? { top: 0, bottom: centerPaddingBottom, left: 0, right: 0 }
+        ? { top: 120, bottom: 260, left: 0, right: 0 }
         : undefined;
       map.flyTo({
         center: [lng, lat],
@@ -333,11 +333,36 @@ export default function MapboxMap({
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
     if (centerPaddingBottom > 0) {
-      map.setPadding({ top: 0, bottom: centerPaddingBottom, left: 0, right: 0 });
+      map.setPadding({ top: 120, bottom: 260, left: 0, right: 0 });
     } else {
       map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     }
   }, [mapReady, error, useCenterPin, centerPaddingBottom]);
+
+  // Brillo y contraste de calles cuando create (centerPaddingBottom > 0)
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error || centerPaddingBottom <= 0) return;
+    const map = mapRef.current;
+    const style = map.getStyle();
+    if (!style?.layers) return;
+    for (const layer of style.layers) {
+      const id = (layer.id || '').toLowerCase();
+      if (id.includes('road') && layer.type === 'line') {
+        try {
+          map.setPaintProperty(layer.id, 'line-opacity', 0.95);
+        } catch {}
+      }
+    }
+    try {
+      const light = map.getLight();
+      if (light && typeof light === 'object') {
+        map.setLight({
+          ...light,
+          intensity: Math.min(1.2, (light.intensity ?? 0.5) + 0.25),
+        });
+      }
+    } catch {}
+  }, [mapReady, error, centerPaddingBottom]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
