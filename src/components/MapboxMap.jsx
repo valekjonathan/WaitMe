@@ -249,7 +249,7 @@ export default function MapboxMap({
 
     if (useCenterPin) {
       const padding = centerPaddingBottom > 0
-        ? { top: 120, bottom: 260, left: 0, right: 0 }
+        ? { top: 160, bottom: 240, left: 0, right: 0 }
         : undefined;
       map.flyTo({
         center: [lng, lat],
@@ -333,7 +333,7 @@ export default function MapboxMap({
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
     if (centerPaddingBottom > 0) {
-      map.setPadding({ top: 120, bottom: 260, left: 0, right: 0 });
+      map.setPadding({ top: 160, bottom: 240, left: 0, right: 0 });
     } else {
       map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     }
@@ -345,23 +345,16 @@ export default function MapboxMap({
     const map = mapRef.current;
     const style = map.getStyle();
     if (!style?.layers) return;
+    const ROAD_COLOR = '#8b5cf6';
     for (const layer of style.layers) {
       const id = (layer.id || '').toLowerCase();
       if (id.includes('road') && layer.type === 'line') {
         try {
-          map.setPaintProperty(layer.id, 'line-opacity', 0.95);
+          map.setPaintProperty(layer.id, 'line-color', ROAD_COLOR);
+          map.setPaintProperty(layer.id, 'line-opacity', 1);
         } catch {}
       }
     }
-    try {
-      const light = map.getLight();
-      if (light && typeof light === 'object') {
-        map.setLight({
-          ...light,
-          intensity: Math.min(1.2, (light.intensity ?? 0.5) + 0.25),
-        });
-      }
-    } catch {}
   }, [mapReady, error, centerPaddingBottom]);
 
   useEffect(() => {
