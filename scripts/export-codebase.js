@@ -26,11 +26,10 @@ const EXCLUDE_DIRS = new Set([
   'ios/App/App/public/assets',
 ]);
 
-const EXCLUDE_FILES = new Set(['package-lock.json']);
+const EXCLUDE_FILES = new Set([]);
 const EXCLUDE_PATTERNS = [
-  /package-lock.json$/, 
-  /.log$/, 
-  /playwright-report\//, 
+  /.log$/,
+  /playwright-report\//,
   /test-results\//,
   /\.env$/,
   /\.xcuserstate$/,
@@ -192,12 +191,55 @@ async function main() {
     partPaths.push(`docs/${name}`);
   }
 
+  let quarantineList = '';
+  try {
+    const qDir = join(ROOT, 'quarantine');
+    const listAll = async (d) => {
+      const acc = [];
+      const entries = await readdir(d, { withFileTypes: true });
+      for (const e of entries) {
+        const full = join(d, e.name);
+        if (e.isDirectory()) acc.push(...(await listAll(full)));
+        else acc.push(relative(ROOT, full));
+      }
+      return acc;
+    };
+    quarantineList = (await listAll(qDir)).sort().join('\n') || '(vacío)';
+  } catch {
+    quarantineList = '(carpeta no existe)';
+  }
+
   const indexContent = [
     '# Codebase Export Index',
     '',
     `Generated: ${new Date().toISOString()}`,
-    `Total files: ${files.length}`,
+    `Total files exported: ${files.length}`,
     `Parts: ${tempParts.length}`,
+    '',
+    '## Incluido',
+    '- src/**',
+    '- public/**',
+    '- tests/**',
+    '- .storybook/**',
+    '- docs/** (excepto CODEBASE_EXPORT_*)',
+    '- package.json, package-lock.json',
+    '- vite.config.js, playwright.config.js',
+    '- eslint/prettier config',
+    '- capacitor.config.*',
+    '- supabase config y migrations',
+    '- .env.example',
+    '',
+    '## Excluido',
+    '- node_modules, dist, storybook-static',
+    '- .git, quarantine',
+    '- ios/App/App/public/assets (build output)',
+    '- .env (secretos)',
+    '- archivos binarios (png, woff, etc.)',
+    '',
+    '## Quarantine (solo listado)',
+    '```',
+    quarantineList,
+    '```',
     '',
     '## File tree',
     '',
@@ -205,7 +247,7 @@ async function main() {
     treeToStr(tree),
     '```',
     '',
-    '## Parts',
+    '## Snapshot parts',
     '',
     ...partPaths.map((p, i) => `- [${OUTPUT_PREFIX}_${String(i + 1).padStart(2, '0')}.md](${p})`),
     '',

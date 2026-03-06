@@ -1,77 +1,1946 @@
 
 ================================================================
-FILE: src/services/transactionsSupabase.js
+FILE: src/pages/Notifications.jsx
+================================================================
+```jsx
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as alerts from '@/data/alerts';
+import { useAuth } from '@/lib/AuthContext';
+import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
+import {
+  Bell,
+  MapPin,
+  Navigation,
+  Clock,
+  MessageCircle,
+  Phone,
+  PhoneOff
+} from 'lucide-react';
+import UserAlertCard from '@/components/cards/UserAlertCard';
+
+import {
+  getDemoAlertById,
+  getDemoNotifications,
+  ensureConversationForAlert,
+  ensureInitialWaitMeMessage,
+  markDemoNotificationRead,
+  markAllDemoRead,
+  applyDemoAction
+} from '@/components/DemoFlowManager';
+
+function normalize(s) {
+  return String(s || '').trim().toLowerCase();
+}
+
+export default function Notifications() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [tick, setTick] = useState(0);
+
+  const { data: realNotifications = [] } = useQuery({
+    queryKey: ['notifications', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await notifications.listNotifications(user.id);
+      return data ?? [];
+    },
+    staleTime: 10_000,
+  });
+
+  // Solicitudes reales (localStorage) tipo “Usuario quiere tu WaitMe!”
+  const [requestsTick, setRequestsTick] = useState(0);
+  const [requests, setRequests] = useState([]);
+  const [alertsById, setAlertsById] = useState({});
+
+  useEffect(() => {
+    const load = () => {
+      const list = getWaitMeRequests() || [];
+      setRequests(Array.isArray(list) ? list : []);
+      setRequestsTick((t) => t + 1);
+    };
+
+    load();
+    const onChange = () => load();
+    window.addEventListener('waitme:requestsChanged', onChange);
+    return () => window.removeEventListener('waitme:requestsChanged', onChange);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const ids = (requests || [])
+        .map((r) => r?.alertId)
+        .filter(Boolean)
+        .filter((id) => !alertsById?.[id]);
+
+      if (!ids.length) return;
+
+      try {
+        const pairs = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const { data: a } = await alerts.getAlert(id);
+              return [id, a];
+            } catch {
+              return [id, null];
+            }
+          })
+        );
+
+        if (cancelled) return;
+        setAlertsById((prev) => {
+          const next = { ...(prev || {}) };
+          pairs.forEach(([id, a]) => {
+            if (a) next[id] = a;
+          });
+          return next;
+        });
+      } catch {
+        // noop
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestsTick, requests, alertsById]);
+
+  const acceptRequest = async (req) => {
+    try {
+      const alertId = req?.alertId;
+      if (!alertId) return;
+
+      const buyer = req?.buyer || {};
+
+      await alerts.updateAlert(alertId, {
+        status: 'reserved',
+        reserved_by_id: buyer?.id || 'buyer',
+        reserved_by_email: null,
+        reserved_by_name: buyer?.name || 'Usuario',
+        reserved_by_photo: buyer?.photo || null,
+        reserved_by_car: `${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
+        reserved_by_car_color: buyer?.color || 'gris',
+        reserved_by_plate: buyer?.plate || '',
+        reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
+      });
+
+      setWaitMeRequestStatus(req?.id, 'accepted');
+
+      await queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      navigate(createPageUrl('History'));
+    } catch {
+      // noop
+    }
+  };
+
+  const rejectRequest = (req) => {
+    try {
+      setWaitMeRequestStatus(req?.id, 'rejected');
+    } catch {
+      // noop
+    }
+  };
+
+  const notifications = useMemo(() => {
+    const demo = getDemoNotifications?.() || [];
+    const real = (realNotifications || []).map((n) => ({ ...n, _isReal: true }));
+    const merged = [...demo.map((d) => ({ ...d, _isReal: false })), ...real];
+    return merged.sort((a, b) => (b?.t ?? b?.createdAt ?? 0) - (a?.t ?? a?.createdAt ?? 0));
+  }, [tick, realNotifications]);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n?.read).length,
+    [notifications]
+  );
+
+  const markRead = async (n) => {
+    if (!n?.id) return;
+    if (n._isReal && user?.id) {
+      await notifications.markAsRead(n.id, user.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
+    } else {
+      markDemoNotificationRead(n.id);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (user?.id) {
+      await notifications.markAllAsRead(user.id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
+    }
+    markAllDemoRead?.();
+  };
+
+  const openChat = (conversationId, alertId) => {
+    if (!conversationId) return;
+    navigate(
+      createPageUrl(
+        `Chat?demo=true&conversationId=${encodeURIComponent(
+          conversationId
+        )}&alertId=${encodeURIComponent(alertId || '')}`
+      )
+    );
+  };
+
+  const openNavigate = (alertId) => {
+    if (!alertId) return;
+    navigate(createPageUrl(`Navigate?alertId=${encodeURIComponent(alertId)}`));
+  };
+
+  const runAction = (n, action) => {
+    if (!n) return;
+
+    const alertId = n.alertId || null;
+    const conv = ensureConversationForAlert(alertId, { fromName: n.fromName });
+    ensureInitialWaitMeMessage(conv?.id);
+
+    applyDemoAction({
+      conversationId: conv?.id,
+      alertId,
+      action
+    });
+
+    if (n?.id) markRead(n);
+
+    openChat(conv?.id, alertId);
+  };
+
+  return (
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto">
+        {/* Solicitudes entrantes (reales) */}
+        {requests.filter((r) => r?.type === 'incoming_waitme_request').length > 0 && (
+          <div className="px-4 pt-4 space-y-4">
+            {requests
+              .filter((r) => r?.type === 'incoming_waitme_request')
+              .map((r) => {
+                const buyer = r?.buyer || {};
+                const alert = r?.alertId ? alertsById?.[r.alertId] : null;
+
+                const status = String(r?.status || 'pending');
+                const statusText =
+                  status === 'rejected' ? 'RECHAZADA' : status === 'accepted' ? 'ACEPTADA' : 'PENDIENTE';
+
+                const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
+                const plate = buyer?.plate || '';
+                const carColor = buyer?.color || 'gris';
+
+                const address = alert?.address || '';
+                const mins = alert?.available_in_minutes;
+                const price = alert?.price;
+
+                // Construir un objeto "alert" compatible con UserAlertCard
+                const fakeAlert = {
+                  user_name: buyer?.name || 'Usuario',
+                  user_photo: buyer?.photo || null,
+                  brand: '',
+                  model: carLabel,
+                  color: carColor,
+                  plate: plate,
+                  address: address,
+                  available_in_minutes: typeof mins === 'number' ? mins : null,
+                  price: price,
+                  phone: buyer?.phone || null,
+                  allow_phone_calls: false,
+                  latitude: null,
+                  longitude: null
+                };
+
+                return (
+                  <div key={r?.id} className="rounded-xl border-2 border-purple-500/50 bg-gray-900 p-0 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
+                      <div className="text-white text-[15px] font-semibold">
+                        Usuario quiere tu Wait<span className="text-purple-500">Me!</span>
+                      </div>
+                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/50 font-bold text-xs">
+                        {statusText}
+                      </Badge>
+                    </div>
+
+                    {/* Tarjeta completa estilo "Dónde quieres aparcar" */}
+                    <div className="px-2 pb-2">
+                      <UserAlertCard
+                        alert={fakeAlert}
+                        isEmpty={false}
+                        onBuyAlert={status === 'pending' ? () => acceptRequest(r) : undefined}
+                        onChat={() => {}}
+                        onCall={() => buyer?.phone && (window.location.href = `tel:${buyer.phone}`)}
+                        isLoading={false}
+                        userLocation={null}
+                        buyLabel="Aceptar"
+                        hideBuy={status !== 'pending'}
+                      />
+                      {status === 'pending' && (
+                        <div className="mt-2">
+                          <Button variant="destructive" className="w-full" onClick={() => rejectRequest(r)}>
+                            Rechazar
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {notifications.length === 0 ? (
+          <div className="min-h-[calc(100dvh-80px-96px)] flex items-center justify-center px-4">
+            <div className="text-center">
+              <Bell className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+              <p className="text-gray-400 text-sm">No hay notificaciones.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="px-4 pt-3 pb-2 border-b border-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-purple-400" />
+                  <p className="text-sm text-gray-300">{unreadCount} sin leer</p>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-purple-400 hover:text-purple-300"
+                  onClick={() => handleMarkAllRead()}
+                >
+                  Marcar todas como leídas
+                </Button>
+              </div>
+            </div>
+
+            <div className="px-4 space-y-5 pt-4">
+              {notifications.map((n) => {
+                const type = n?.type || 'status_update';
+                const isUnread = !n?.read;
+                const alert = n?.alertId ? getDemoAlertById(n.alertId) : null;
+
+                const otherName = alert?.user_name || n?.fromName || 'Usuario';
+                const otherPhoto = alert?.user_photo || null;
+
+                const carLabel = `${alert?.brand || ''} ${alert?.model || ''}`.trim();
+                const plate = alert?.plate || '';
+                const carColor = alert?.color || 'gris';
+                const address = alert?.address || '';
+                const phoneEnabled = !!alert?.allow_phone_calls;
+                const phone = alert?.phone || null;
+
+                const statusText = n?.title || 'ACTIVA';
+                const hasLatLon =
+                  typeof alert?.latitude === 'number' &&
+                  typeof alert?.longitude === 'number';
+
+                const t = normalize(type);
+
+                const handleChatClick = (e) => {
+                    e?.stopPropagation();
+                    const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                    if (n?.id) markRead(n);
+                    openChat(convId, n?.alertId);
+                  };
+
+                  const carColors = { blanco: '#FFFFFF', negro: '#1a1a1a', rojo: '#ef4444', azul: '#3b82f6', amarillo: '#facc15', gris: '#6b7280' };
+                  const carFill = carColors[carColor] || '#6b7280';
+                  const formatPlate = (p) => { const c = String(p || '').replace(/\s+/g, '').toUpperCase(); if (!c) return '0000 XXX'; return `${c.slice(0,4)} ${c.slice(4)}`.trim(); };
+                  const photoSrc = otherPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=7c3aed&color=fff&size=128`;
+
+                  return (
+                  <div
+                    key={n.id}
+                    onClick={() => {
+                      const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                      if (n?.id) markRead(n);
+                      if (convId) openChat(convId, n?.alertId);
+                    }}
+                    className={`rounded-xl border-2 p-2 transition-all cursor-pointer ${
+                      isUnread
+                        ? 'bg-gray-900 border-purple-500/50 shadow-lg'
+                        : 'bg-gray-900 border-gray-700'
+                    }`}
+                  >
+                    {/* Header row: badge + título + sin leer */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center cursor-default select-none pointer-events-none">
+                        {n?.title || 'NOTIFICACIÓN'}
+                      </Badge>
+                      <div className="flex-1 text-center text-xs text-white truncate">{n?.text || '—'}</div>
+                      {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse flex-shrink-0" />}
+                    </div>
+
+                    <div className="border-t border-gray-700/80 mb-1" />
+
+                    {/* Foto + info usuario */}
+                    <div className="flex gap-2.5">
+                      <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                        <img src={photoSrc} alt={otherName} className={`w-full h-full object-cover ${!isUnread ? 'opacity-40 grayscale' : ''}`} />
+                      </div>
+
+                      <div className="flex-1 h-[85px] flex flex-col">
+                        <p className={`font-bold text-xl leading-none min-h-[22px] ${isUnread ? 'text-white' : 'text-gray-400'}`}>
+                          {(otherName || '').split(' ')[0] || 'Usuario'}
+                        </p>
+                        <p className={`text-sm font-medium leading-none flex-1 flex items-center truncate relative top-[6px] ${isUnread ? 'text-gray-200' : 'text-gray-500'}`}>
+                          {carLabel || 'Sin datos'}
+                        </p>
+
+                        <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                          <div className={`flex-shrink-0 ${!isUnread ? 'opacity-45' : ''}`}>
+                            <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                              <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                                <span className="text-white text-[8px] font-bold">E</span>
+                              </div>
+                              <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">{formatPlate(plate)}</span>
+                            </div>
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <div className={`flex-shrink-0 relative -top-[1px] ${!isUnread ? 'opacity-45' : ''}`}>
+                              <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none" style={{ transform: 'translateY(3px)' }}>
+                                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5" />
+                                <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+                                <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle cx="14" cy="18" r="2" fill="#666" />
+                                <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle cx="36" cy="18" r="2" fill="#666" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dirección y tiempo */}
+                    <div className="pt-1.5 border-t border-gray-700/80 mt-1">
+                      <div className={`space-y-1.5 ${!isUnread ? 'opacity-80' : ''}`}>
+                        {address ? (
+                          <div className="flex items-start gap-1.5 text-xs">
+                            <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                            <span className={`leading-5 line-clamp-1 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>{address}</span>
+                          </div>
+                        ) : null}
+                        <div className="flex items-start gap-1.5 text-xs">
+                          <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
+                          <span className={`leading-5 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>Operación en curso</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botones: mismo layout que UserAlertCard */}
+                    <div className="mt-2">
+                      <div className="flex gap-2">
+                        <Button size="icon" className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]" onClick={handleChatClick}>
+                          <MessageCircle className="w-4 h-4" />
+                        </Button>
+
+                        {phoneEnabled ? (
+                          <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                            onClick={(e) => { e.stopPropagation(); phone && (window.location.href = `tel:${phone}`); }}>
+                            <Phone className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+                            <PhoneOff className="w-4 h-4 text-white" />
+                          </Button>
+                        )}
+
+                        {hasLatLon && (
+                          <Button size="icon" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
+                            onClick={(e) => { e.stopPropagation(); if (n?.id) markRead(n); openNavigate(n?.alertId); }}>
+                            <Navigation className="w-4 h-4" />
+                          </Button>
+                        )}
+
+                        {t === 'incoming_waitme' ? (
+                          <div className="flex-1 grid grid-cols-3 gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button className="h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs px-1" onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
+                            <Button variant="outline" className="h-8 rounded-lg border-gray-600 text-white text-xs px-1" onClick={() => runAction(n, 'thinking')}>Pienso</Button>
+                            <Button variant="destructive" className="h-8 rounded-lg text-xs px-1" onClick={() => runAction(n, 'rejected')}>Rechazar</Button>
+                          </div>
+                        ) : (
+                          <div className="flex-1">
+                            <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
+                              <span className="text-sm font-mono font-extrabold text-purple-300">{statusText}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+```
+
+================================================================
+FILE: src/pages/Profile.jsx
+================================================================
+```jsx
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getSupabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
+import { useLayoutHeader, useSetProfileFormData } from '@/lib/LayoutContext';
+import { Camera, Phone } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+
+function normalizeAvatarPath(p) {
+  if (!p) return "";
+  const s = String(p).trim();
+  if (!s) return "";
+  if (s.startsWith("avatars/")) return s.slice("avatars/".length);
+  return s;
+}
+
+const carColors = [
+  { value: 'blanco', label: 'Blanco', fill: '#FFFFFF' },
+  { value: 'negro', label: 'Negro', fill: '#1a1a1a' },
+  { value: 'rojo', label: 'Rojo', fill: '#ef4444' },
+  { value: 'azul', label: 'Azul', fill: '#3b82f6' },
+  { value: 'amarillo', label: 'Amarillo', fill: '#facc15' },
+  { value: 'gris', label: 'Gris', fill: '#6b7280' },
+];
+
+export default function Profile() {
+  const navigate = useNavigate();
+  const { user, profile, setProfile } = useAuth();
+  const setHeader = useLayoutHeader();
+  const setProfileFormData = useSetProfileFormData();
+  const hydratedOnceRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    brand: '',
+    model: '',
+    color: 'gris',
+    vehicle_type: 'car',
+    plate: '',
+    avatar_url: '',
+    phone: '',
+    allow_phone_calls: false,
+    notifications_enabled: true,
+    email_notifications: true,
+  });
+
+  let raw =
+    formData?.avatar_url ||
+    profile?.avatar_url ||
+    "";
+
+  raw = String(raw || "").trim();
+
+  let avatarSrc = raw;
+
+  if (avatarSrc && !avatarSrc.startsWith("http") && !avatarSrc.startsWith("data:")) {
+    const path = normalizeAvatarPath(avatarSrc);
+    const sb = getSupabase();
+    if (sb) {
+      const { data } = sb.storage.from("avatars").getPublicUrl(path);
+      avatarSrc = data?.publicUrl || "";
+    } else {
+      avatarSrc = "";
+    }
+  }
+
+  const nameForInitial =
+    (formData?.full_name ||
+     profile?.full_name ||
+     "").trim();
+
+  const initial = (nameForInitial ? nameForInitial[0] : "?").toUpperCase();
+
+  useEffect(() => {
+    if (!user?.id) return;
+    if (hydratedOnceRef.current) return;
+    hydratedOnceRef.current = true;
+
+    // Perfil dev: usar datos del contexto (no existe en Supabase)
+    if (user.id === 'dev-user' && profile) {
+      setFormData({
+        full_name: profile.full_name || 'Dev User',
+        brand: profile.brand || 'Dev',
+        model: profile.model || 'Coche',
+        color: profile.color || 'gris',
+        vehicle_type: profile.vehicle_type || 'car',
+        plate: profile.plate || '0000XXX',
+        avatar_url: profile.avatar_url || '',
+        phone: profile.phone || '000000000',
+        allow_phone_calls: profile.allow_phone_calls || false,
+        notifications_enabled: profile.notifications_enabled !== false,
+        email_notifications: profile.email_notifications !== false,
+      });
+      setHydrated(true);
+      return;
+    }
+
+    const supabase = getSupabase();
+    if (!supabase) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) {
+        console.error("PROFILE LOAD ERROR:", error);
+        return;
+      }
+      if (data) {
+        setFormData({
+          full_name: data.full_name || '',
+          brand: data.brand || '',
+          model: data.model || '',
+          color: data.color || 'gris',
+          vehicle_type: data.vehicle_type || 'car',
+          plate: data.plate || '',
+          avatar_url: data.avatar_url || '',
+          phone: data.phone || '',
+          allow_phone_calls: data.allow_phone_calls || false,
+          notifications_enabled: data.notifications_enabled !== false,
+          email_notifications: data.email_notifications !== false,
+        });
+      }
+      setHydrated(true);
+    })();
+  }, [user?.id]);
+
+  const handleSave = useCallback(async () => {
+    if (user?.id === 'dev-user') {
+      setProfile({ ...profile, ...formData });
+      navigate('/');
+      return;
+    }
+    const supabase = getSupabase();
+    if (!supabase) return;
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return;
+    setSaving(true);
+    try {
+      const displayName = (formData.full_name || '').split(' ')[0] || formData.full_name || '';
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: authUser.id,
+          email: authUser.email,
+          full_name: formData.full_name,
+          display_name: displayName,
+          avatar_url: formData.avatar_url,
+          brand: formData.brand,
+          model: formData.model,
+          color: formData.color,
+          vehicle_type: formData.vehicle_type,
+          plate: formData.plate,
+          phone: formData.phone,
+          allow_phone_calls: formData.allow_phone_calls,
+          notifications_enabled: formData.notifications_enabled,
+          email_notifications: formData.email_notifications,
+        }, { onConflict: 'id' })
+        .select()
+        .single();
+      if (error) {
+        console.error("PROFILE SAVE ERROR:", error);
+        alert('Error al guardar. Intenta de nuevo.');
+        return;
+      }
+      if (data) setProfile(data);
+      navigate('/');
+    } catch (err) {
+      console.error("PROFILE SAVE ERROR:", err);
+      alert('Error al guardar. Intenta de nuevo.');
+    } finally {
+      setSaving(false);
+    }
+  }, [formData, navigate, setProfile, user?.id, profile]);
+
+  useEffect(() => {
+    setProfileFormData(formData);
+    return () => setProfileFormData(null);
+  }, [formData, setProfileFormData]);
+
+  const handleBack = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  useEffect(() => {
+    setHeader({ showBackButton: true, onBack: handleBack });
+    return () => setHeader({ onBack: null });
+  }, [handleBack, setHeader]);
+
+  const updateField = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    const supabase = getSupabase();
+    if (!supabase) return;
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      updateField('avatar_url', urlData.publicUrl);
+    } catch (error) {
+      console.error('Error subiendo foto:', error);
+    }
+  };
+
+  const selectedColor = carColors.find((c) => c.value === formData.color) || carColors[5];
+
+  const formatPlate = useMemo(() => {
+    return (value = '') => {
+      const clean = (value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const a = clean.slice(0, 4);
+      const b = clean.slice(4, 7);
+      return b ? `${a} ${b}`.trim() : a;
+    };
+  }, []);
+
+  const handlePlateChange = (raw) => {
+    const clean = (raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+    updateField('plate', clean);
+  };
+
+  const VehicleIconProfile = ({ type, color, size = 'w-16 h-10' }) => {
+    if (type === 'suv') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Todoterreno">
+          <path
+            d="M6 18 V13 L9.5 10.8 L16 8.8 H28.5 L36.5 10.8 L42 14.2 L43 18 H6 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16.8 9.6 L19.2 12.6 H28.2 L30.4 9.6 Z"
+            fill="rgba(255,255,255,0.22)"
+            stroke="white"
+            strokeWidth="0.5"
+          />
+          <path d="M29.1 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+          <path d="M42.7 15.6 H41.2" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="14.2" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="14.2" cy="18" r="2" fill="#666" />
+          <circle cx="35.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="35.6" cy="18" r="2" fill="#666" />
+        </svg>
+      );
+    }
+
+    if (type === 'van') {
+      return (
+        <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Furgoneta">
+          <path
+            d="M4 18 V12.8 L7.5 10.8 L14 8.8 H32.2 L40.2 10.2 L45.6 13.8 L46 18 H4 Z"
+            fill={color}
+            stroke="white"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M15.5 9.6 L18 12.6 H31.2 L33.2 9.6 Z"
+            fill="rgba(255,255,255,0.22)"
+            stroke="white"
+            strokeWidth="0.5"
+          />
+          <path d="M24.2 9.6 V12.6" stroke="white" strokeWidth="0.5" opacity="0.6" />
+          <path d="M12.4 12.8 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
+          <path d="M33.8 12.6 V18" stroke="white" strokeWidth="0.6" opacity="0.45" />
+          <path d="M46 15.6 H44.4" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+          <circle cx="13.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="13.6" cy="18" r="2" fill="#666" />
+          <circle cx="37.6" cy="18" r="3.8" fill="#333" stroke="white" strokeWidth="1" />
+          <circle cx="37.6" cy="18" r="2" fill="#666" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg viewBox="0 0 48 24" className={size} fill="none" aria-label="Coche">
+        <path
+          d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+          fill={color}
+          stroke="white"
+          strokeWidth="1.5"
+        />
+        <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
+        <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="14" cy="18" r="2" fill="#666" />
+        <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+        <circle cx="36" cy="18" r="2" fill="#666" />
+      </svg>
+    );
+  };
+
+  const CarIconSmall = ({ color }) => (
+    <svg viewBox="0 0 48 24" className="w-8 h-5" fill="none" aria-hidden="true">
+      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={color} stroke="white" strokeWidth="1.5" />
+      <circle cx="14" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+      <circle cx="36" cy="18" r="3" fill="#333" stroke="white" strokeWidth="1" />
+    </svg>
+  );
+
+  const vehicleLabel = (t) => {
+    if (t === 'suv') return 'Voluminoso';
+    if (t === 'van') return 'Furgoneta';
+    return 'Normal';
+  };
+
+  const VehicleIconSmall = ({ type }) => (
+    <VehicleIconProfile
+      type={type}
+      color={selectedColor?.fill}
+      size="w-6 h-4"
+    />
+  );
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 px-4">
+      <div className="flex flex-col items-center pt-6 pb-6">
+        <div className="w-full max-w-md">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          {/* Tarjeta tipo DNI */}
+          <div className="mt-1 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-4 border border-purple-500 shadow-xl">
+            <div className="flex gap-4">
+              {/* Foto */}
+              <div className="relative">
+                <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-purple-500 bg-gray-800">
+                  {avatarSrc ? (
+                    <img
+                      key={avatarSrc}
+                      src={avatarSrc}
+                      alt="avatar"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  ) : (
+                    <span className="text-2xl font-semibold">{initial}</span>
+                  )}
+                </div>
+                <label className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-700 transition-colors">
+                  <Camera className="w-4 h-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </label>
+              </div>
+
+              {/* Info */}
+              <div className="pl-3 flex-1 flex flex-col justify-between">
+                <p className="text-xl font-bold text-white">
+                  {formData.full_name || profile?.full_name}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium text-sm">
+                      {formData.brand || 'Sin'} {formData.model || 'coche'}
+                    </p>
+                  </div>
+                  <VehicleIconProfile type={formData.vehicle_type || 'car'} color={selectedColor?.fill} />
+                </div>
+
+                {/* Matrícula estilo placa */}
+                <div className="mt-2 flex items-center">
+                  <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                    <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                      <span className="text-white text-[8px] font-bold">E</span>
+                    </div>
+                    <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                      {formData.plate ? `${formData.plate.slice(0, 4)} ${formData.plate.slice(4)}`.trim() : '0000 XXX'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Formulario */}
+          <div className="space-y-3">
+            {/* Nombre y Teléfono en la misma fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Nombre</Label>
+                <Input
+                  value={formData.full_name}
+                  onChange={(e) => updateField('full_name', e.target.value.slice(0, 15))}
+                  placeholder="Tu nombre"
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                  maxLength={15}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-400 text-sm">Teléfono</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="+34 600 00 00"
+                  className="bg-gray-900 border-gray-700 text-white h-9 text-sm"
+                  type="tel"
+                />
+              </div>
+            </div>
+
+            {/* Permitir llamadas - compacto */}
+            <div className="bg-gray-900 rounded-lg p-2 border border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-purple-400" />
+                <p className="text-sm text-white">Permitir llamadas</p>
+              </div>
+              <Switch
+                checked={formData.allow_phone_calls}
+                onCheckedChange={(checked) => updateField('allow_phone_calls', checked)}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Marca</Label>
+                <Input
+                  value={formData.brand}
+                  onChange={(e) => updateField('brand', e.target.value)}
+                  placeholder="Seat, Renault..."
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Modelo</Label>
+                <Input
+                  value={formData.model}
+                  onChange={(e) => updateField('model', e.target.value)}
+                  placeholder="Ibiza, Megane..."
+                  className="bg-gray-900 border-gray-700 text-white h-9"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Color</Label>
+                <Select value={formData.color} onValueChange={(value) => updateField('color', value)}>
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent side="top" sideOffset={8} className="bg-gray-900 border-gray-700">
+                    {carColors.map((color) => (
+                      <SelectItem key={color.value} value={color.value} className="text-white hover:bg-gray-800">
+                        <div className="flex items-center gap-2">
+                          <CarIconSmall color={color.fill} />
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-gray-400 text-sm">Vehículo</Label>
+                <Select value={formData.vehicle_type || 'car'} onValueChange={(value) => updateField('vehicle_type', value)}>
+                  <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                    <div className="flex items-center gap-2">
+                      <VehicleIconSmall type={formData.vehicle_type || 'car'} />
+                      <span className="text-white">{vehicleLabel(formData.vehicle_type || 'car')}</span>
+                    </div>
+                  </SelectTrigger>
+
+                  <SelectContent side="top" sideOffset={8} className="bg-gray-900 border-gray-700">
+                    <SelectItem value="car" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <VehicleIconSmall type="car" />
+                        Normal
+                      </div>
+                    </SelectItem>
+
+                    <SelectItem value="suv" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <VehicleIconSmall type="suv" />
+                        Voluminoso
+                      </div>
+                    </SelectItem>
+
+                    <SelectItem value="van" className="text-white hover:bg-gray-800">
+                      <div className="flex items-center gap-2">
+                        <VehicleIconSmall type="van" />
+                        Furgoneta
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-gray-400 text-sm">Matrícula</Label>
+                <Input
+                  value={formatPlate(formData.plate)}
+                onChange={(e) => handlePlateChange(e.target.value)}
+                placeholder="1234 ABC"
+                className="bg-gray-900 border-gray-700 text-white font-mono uppercase text-center h-9"
+                maxLength={8}
+              />
+            </div>
+
+            <Button
+              onClick={handleSave}
+              disabled={saving || !user?.id}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl mt-4"
+            >
+              {saving ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </div>
+        </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
+
+================================================================
+FILE: src/pages/Settings.jsx
+================================================================
+```jsx
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import {
+  User,
+  Coins,
+  Bell,
+  Shield,
+  LogOut,
+  ChevronRight,
+  CreditCard,
+  HelpCircle,
+  Star,
+  Instagram,
+  Globe
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import Logo from '@/components/Logo';
+import { useAuth } from '@/lib/AuthContext';
+
+export default function Settings() {
+  const { user, isLoadingAuth, logout } = useAuth();
+
+  // Precarga real para que la foto salga instantánea
+  useEffect(() => {
+    if (!user?.photo_url) return;
+    const img = new Image();
+    img.src = user.photo_url;
+  }, [user?.photo_url]);
+
+  const handleLogout = () => {
+    logout?.(true);
+  };
+
+  const instagramUrl = user?.instagram_url || user?.instagram || '';
+  const webUrl = user?.website_url || user?.web || '';
+
+  const openExternal = (url) => {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const displayName =
+    user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
+
+  return (
+    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
+      <main className="flex-1 flex flex-col min-h-0 overflow-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          {/* Perfil resumen */}
+          <Link to={createPageUrl('Profile')}>
+            <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-4 hover:bg-gray-800/50 transition-colors">
+              {user?.photo_url ? (
+                <img
+                  src={user.photo_url}
+                  className="w-14 h-14 rounded-xl object-cover border-2 border-purple-500 bg-gray-800"
+                  alt=""
+                  loading="eager"
+                  decoding="sync"
+                  fetchPriority="high"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-xl bg-gray-800 border-2 border-purple-500 flex items-center justify-center">
+                  <User className="w-7 h-7 text-gray-500" />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="font-semibold">{displayName}</p>
+                <p className="text-sm text-gray-400">{user?.email || ''}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </div>
+          </Link>
+
+          {/* Créditos */}
+          <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-5 border-2 border-purple-500">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Coins className="w-6 h-6 text-purple-400" />
+                <span className="font-medium">Mis créditos</span>
+              </div>
+              <span className="text-2xl font-bold text-purple-400">
+                {(user?.credits || 0).toFixed(2)}€
+              </span>
+            </div>
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              disabled={isLoadingAuth}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Añadir créditos
+            </Button>
+          </div>
+
+          {/* Opciones */}
+          <div className="bg-gray-900 rounded-2xl border border-gray-800 divide-y divide-gray-800">
+            <Link
+              to={createPageUrl('NotificationSettings')}
+              className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors"
+            >
+              <Bell className="w-5 h-5 text-purple-500" />
+              <span className="flex-1">Notificaciones</span>
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </Link>
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+              <Shield className="w-5 h-5 text-purple-500" />
+              <span className="flex-1">Privacidad</span>
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </button>
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+              <Star className="w-5 h-5 text-purple-500" />
+              <span className="flex-1">Valorar la app</span>
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </button>
+
+            <button className="w-full flex items-center gap-4 p-4 text-left hover:bg-gray-800/50 transition-colors">
+              <HelpCircle className="w-5 h-5 text-purple-500" />
+              <span className="flex-1">Ayuda</span>
+              <ChevronRight className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+
+          {/* Instagram y Web - cajas individuales estilo Créditos */}
+          <div className="flex justify-center gap-6">
+            
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
+              <button
+                onClick={() => openExternal(instagramUrl)}
+                disabled={!instagramUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Instagram className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Instagram</span>
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
+              <button
+                onClick={() => openExternal(webUrl)}
+                disabled={!webUrl}
+                className="flex flex-col items-center gap-2 disabled:opacity-40"
+              >
+                <Globe className="w-7 h-7 text-purple-300" />
+                <span className="text-sm font-medium">Web</span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* Cerrar sesión */}
+          <Button
+            onClick={handleLogout}
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            disabled={isLoadingAuth}
+          >
+            <LogOut className="w-5 h-5 mr-2" />
+            Cerrar sesión
+          </Button>
+
+          {/* Footer */}
+          <div className="text-center pt-4">
+            <Logo size="sm" />
+            <p className="text-xs text-gray-500 mt-2">Versión 1.0.0</p>
+          </div>
+        </motion.div>
+      </main>
+    </div>
+  );
+}
+```
+
+================================================================
+FILE: src/services/alertsSupabase.js
 ================================================================
 ```js
 /**
- * Servicio de transacciones (Supabase).
- * Sustituye base44.entities.Transaction.
+ * Servicio de alertas de parking (Supabase).
+ * Capa de sustitución para base44.entities.ParkingAlert.
+ * Usa schema: parking_alerts (seller_id, price_cents, address_text, geohash, metadata).
  */
 import { getSupabase } from '@/lib/supabaseClient';
+import { encode } from '@/lib/geohash';
+import { haversineKm } from '@/utils/carUtils';
+import { NEARBY_RADIUS_KM, RESERVATION_TIMEOUT_MINUTES } from '@/config/alerts';
 
-const TABLE = 'transactions';
+const TABLE = 'parking_alerts';
 
 /**
- * Normaliza fila a formato esperado por History/HistoryBuyerView/HistorySellerView.
+ * Normaliza fila de Supabase a formato unificado (compatible con app).
+ * Shape estable: id, user_id, seller_id, lat, lng, latitude, longitude, price,
+ * vehicle_type, vehicle_color, status, address, user_name, user_photo, ...
  */
-function normalizeTransaction(row, { buyerProfile, sellerProfile, alert } = {}) {
+function normalizeAlert(row) {
   if (!row) return null;
+  const sellerId = row.seller_id ?? row.user_id;
+  const price = row.price_cents != null ? row.price_cents / 100 : (row.price ?? 0);
   const meta = row.metadata || {};
-  const alertMeta = alert?.metadata || {};
+  const mins = meta.available_in_minutes ?? row.available_in_minutes;
+  const reservedByCar = meta.reserved_by_car ?? '';
+  const carParts = String(reservedByCar).trim().split(/\s+/).filter(Boolean);
   return {
     id: row.id,
-    buyer_id: row.buyer_id,
-    seller_id: row.seller_id,
-    alert_id: row.alert_id,
-    amount: Number(row.amount) ?? 0,
-    status: row.status || 'pending',
-    address: row.address ?? meta.address ?? alert?.address ?? alert?.address_text ?? null,
+    user_id: sellerId,
+    seller_id: sellerId,
+    lat: row.lat,
+    lng: row.lng,
+    latitude: row.lat,
+    longitude: row.lng,
+    price,
+    price_cents: row.price_cents,
+    vehicle_type: row.vehicle_type ?? meta.vehicle_type ?? 'car',
+    vehicle_color: row.vehicle_color ?? meta.vehicle_color ?? meta.color ?? 'gray',
+    status: row.status,
+    reserved_by: row.reserved_by ?? null,
+    reserved_by_id: row.reserved_by ?? meta.reserved_by_id ?? null,
+    reserved_until: row.reserved_until ?? null,
+    brand: meta.brand ?? row.brand ?? (carParts[0] || ''),
+    model: meta.model ?? row.model ?? (carParts.slice(1).join(' ') || ''),
+    plate: meta.plate ?? meta.reserved_by_plate ?? row.plate ?? null,
+    color: meta.color ?? row.color ?? null,
+    user_name: meta.user_name ?? meta.reserved_by_name ?? null,
+    user_photo: meta.user_photo ?? meta.reserved_by_photo ?? null,
+    address: row.address_text ?? meta.address ?? row.address ?? null,
+    target_time: meta.target_time ?? row.target_time ?? null,
+    created_at: row.created_at,
     created_date: row.created_at,
-    seller_name: meta.seller_name ?? sellerProfile?.full_name ?? 'Usuario',
-    seller_photo_url: meta.seller_photo_url ?? sellerProfile?.avatar_url ?? null,
-    buyer_name: meta.buyer_name ?? buyerProfile?.full_name ?? 'Usuario',
-    buyer_photo_url: meta.buyer_photo_url ?? buyerProfile?.avatar_url ?? null,
-    seller_car: meta.seller_car ?? ((`${alert?.brand || ''} ${alert?.model || ''}`.trim()) || null),
-    seller_brand: meta.seller_brand ?? alert?.brand ?? null,
-    seller_model: meta.seller_model ?? alert?.model ?? null,
-    seller_plate: meta.seller_plate ?? alert?.plate ?? alertMeta?.reserved_by_plate ?? null,
-    seller_color: meta.seller_color ?? alert?.color ?? null,
-    buyer_car: meta.buyer_car ?? alertMeta?.reserved_by_car ?? null,
-    buyer_brand: meta.buyer_brand ?? null,
-    buyer_model: meta.buyer_model ?? null,
-    buyer_plate: meta.buyer_plate ?? alertMeta?.reserved_by_plate ?? null,
-    buyer_color: meta.buyer_color ?? null,
+    expires_at: row.expires_at,
+    geohash: row.geohash ?? null,
+    address_text: row.address_text,
+    available_in_minutes: mins ?? null,
+    cancel_reason: meta.cancel_reason ?? row.cancel_reason ?? null,
+    metadata: meta,
   };
 }
 
 /**
- * Crea una transacción.
- * @param {Object} payload - { buyer_id, seller_id, alert_id, amount, status?, seller_name?, buyer_name?, seller_earnings?, platform_fee?, address? }
+ * Crea una nueva alerta.
+ * Acepta payload Supabase-style o Base44-style (user_id, price, latitude/longitude, address).
+ * @param {Object} payload - { sellerId|user_id, lat|latitude, lng|longitude, addressText|address?, priceCents|price, expiresAt|wait_until?, metadata? }
  * @returns {{ data, error }}
  */
-export async function createTransaction(payload) {
+export async function createAlert(payload) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const sellerId = payload.sellerId ?? payload.user_id;
+  const lat = payload.lat ?? payload.latitude;
+  const lng = payload.lng ?? payload.longitude;
+  const addressText = payload.addressText ?? payload.address;
+  const priceCents = payload.priceCents ?? (typeof payload.price === 'number' ? Math.round(payload.price * 100) : null);
+  const expiresAt = payload.expiresAt ?? payload.wait_until;
+  const metadata = payload.metadata ?? {};
+  if (payload.vehicle_type) metadata.vehicle_type = payload.vehicle_type;
+  if (payload.available_in_minutes) metadata.available_in_minutes = payload.available_in_minutes;
+
+  const price = priceCents ?? 0;
+  const geohash = encode(lat, lng, 7);
+  const vehicleType = payload.vehicle_type ?? metadata.vehicle_type ?? 'car';
+  const vehicleColor = payload.vehicle_color ?? metadata.vehicle_color ?? metadata.color ?? 'gray';
+  if (!metadata.vehicle_type) metadata.vehicle_type = vehicleType;
+  if (!metadata.vehicle_color) metadata.vehicle_color = vehicleColor;
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .insert({
+      seller_id: sellerId,
+      lat,
+      lng,
+      address_text: addressText ?? null,
+      price_cents: price,
+      currency: 'EUR',
+      expires_at: expiresAt ?? null,
+      geohash,
+      status: payload.status ?? 'active',
+      vehicle_type: vehicleType,
+      vehicle_color: vehicleColor,
+      metadata: Object.keys(metadata).length ? metadata : {},
+    })
+    .select()
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: normalizeAlert(data), error: null };
+}
+
+/**
+ * Actualiza una alerta.
+ * @param {string} alertId
+ * @param {Object} updates - { status?, priceCents?, expiresAt?, addressText?, metadata?, ... }
+ * @returns {{ data, error }}
+ */
+export async function updateAlert(alertId, updates) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const row = {};
+  if (updates.status != null) row.status = updates.status;
+  if (updates.reserved_by != null) row.reserved_by = updates.reserved_by;
+  if (updates.reserved_by_id != null) row.reserved_by = updates.reserved_by_id;
+  if (updates.priceCents != null) row.price_cents = updates.priceCents;
+  else if (updates.price != null) row.price_cents = Math.round(updates.price * 100);
+  if (updates.expiresAt != null) row.expires_at = updates.expiresAt;
+  if (updates.addressText != null) row.address_text = updates.addressText;
+  if (updates.address != null) row.address_text = updates.address;
+  if (updates.metadata != null) row.metadata = updates.metadata;
+  const needsMeta = updates.reserved_by_name != null || updates.reserved_by_car != null ||
+    updates.reserved_by_plate != null || updates.cancel_reason != null;
+  if (needsMeta) {
+    const { data: cur } = await supabase.from(TABLE).select('metadata').eq('id', alertId).single();
+    const meta = { ...(cur?.metadata || {}) };
+    if (updates.reserved_by_name != null) meta.reserved_by_name = updates.reserved_by_name;
+    if (updates.reserved_by_car != null) meta.reserved_by_car = updates.reserved_by_car;
+    if (updates.reserved_by_plate != null) meta.reserved_by_plate = updates.reserved_by_plate;
+    if (updates.reserved_by_car_color != null) meta.reserved_by_car_color = updates.reserved_by_car_color;
+    if (updates.reserved_by_vehicle_type != null) meta.reserved_by_vehicle_type = updates.reserved_by_vehicle_type;
+    if (updates.cancel_reason != null) meta.cancel_reason = updates.cancel_reason;
+    row.metadata = meta;
+  }
+  if (updates.available_in_minutes != null) {
+    const future = new Date(Date.now() + updates.available_in_minutes * 60 * 1000);
+    row.expires_at = future.toISOString();
+  }
+
+  if (Object.keys(row).length === 0) {
+    const { data } = await supabase.from(TABLE).select('*').eq('id', alertId).single();
+    return { data: data ? normalizeAlert(data) : null, error: null };
+  }
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update(row)
+    .eq('id', alertId)
+    .select()
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: normalizeAlert(data), error: null };
+}
+
+/**
+ * Reserva una alerta activa. Atómico: solo uno puede reservar.
+ * @param {string} alertId
+ * @param {string} userId - ID del comprador (reservador)
+ * @param {Object} [metadata] - metadata del reservador (reserved_by_name, reserved_by_car, etc.)
+ * @returns {{ data, error }} - data: alerta actualizada; error: ALREADY_RESERVED si ya está reservada
+ */
+export async function reserveAlert(alertId, userId, metadata = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+  if (!alertId || !userId) return { data: null, error: new Error('alertId y userId requeridos') };
+
+  const { data: current, error: fetchErr } = await supabase
+    .from(TABLE)
+    .select('id, status, seller_id, user_id, metadata')
+    .eq('id', alertId)
+    .single();
+
+  if (fetchErr || !current) return { data: null, error: fetchErr || new Error('Alerta no encontrada') };
+  if (current.status !== 'active') {
+    return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+  }
+  const ownerId = current.seller_id ?? current.user_id;
+  if (ownerId === userId) {
+    return { data: null, error: new Error('No puedes reservar tu propia alerta') };
+  }
+
+  const reservedUntil = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000).toISOString();
+  const mergedMeta = { ...(current.metadata || {}), ...metadata };
+  const updatePayload = {
+    status: 'reserved',
+    reserved_by: userId,
+    reserved_until: reservedUntil,
+    metadata: Object.keys(mergedMeta).length ? mergedMeta : (current.metadata || {}),
+  };
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update(updatePayload)
+    .eq('id', alertId)
+    .eq('status', 'active')
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
+      return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+    }
+    return { data: null, error };
+  }
+  return { data: normalizeAlert(data), error: null };
+}
+
+/**
+ * Elimina una alerta.
+ * @param {string} alertId
+ * @returns {{ error }}
+ */
+export async function deleteAlert(alertId) {
+  const supabase = getSupabase();
+  if (!supabase) return { error: new Error('Supabase no configurado') };
+
+  const { error } = await supabase.from(TABLE).delete().eq('id', alertId);
+  return { error };
+}
+
+/**
+ * Expira reservas que superaron reserved_until.
+ * Convierte status reserved → active, limpia reserved_by y reserved_until.
+ * @returns {{ count: number, error }}
+ */
+export async function expireReservations() {
+  const supabase = getSupabase();
+  if (!supabase) return { count: 0, error: new Error('Supabase no configurado') };
+
+  const { data, error } = await supabase.rpc('expire_reservations');
+  if (error) return { count: 0, error };
+  return { count: data ?? 0, error: null };
+}
+
+/**
+ * Obtiene alertas activas cerca de (lat, lng).
+ * 0) Expira reservas vencidas.
+ * 1) Bounding box rápido en Supabase.
+ * 2) Filtro Haversine en memoria para radio real (no cuadrado).
+ * @param {number} lat
+ * @param {number} lng
+ * @param {number} radiusKm
+ * @returns {{ data: Array, error }}
+ */
+export async function getNearbyAlerts(lat, lng, radiusKm = NEARBY_RADIUS_KM) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  await expireReservations();
+
+  const degLat = radiusKm / 111;
+  const degLng = radiusKm / (111 * Math.max(0.01, Math.cos((lat * Math.PI) / 180)));
+  const latMin = lat - degLat;
+  const latMax = lat + degLat;
+  const lngMin = lng - degLng;
+  const lngMax = lng + degLng;
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .eq('status', 'active')
+    .gte('lat', latMin)
+    .lte('lat', latMax)
+    .gte('lng', lngMin)
+    .lte('lng', lngMax)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+
+  const normalized = (data ?? []).map(normalizeAlert).filter(Boolean);
+  const withinRadius = normalized.filter((a) => {
+    const km = haversineKm(lat, lng, a.latitude ?? a.lat, a.longitude ?? a.lng);
+    return Number.isFinite(km) && km <= radiusKm;
+  });
+
+  return { data: withinRadius, error: null };
+}
+
+/**
+ * Obtiene alertas del vendedor (mis alertas).
+ * @param {string} sellerId
+ * @returns {{ data: Array, error }}
+ */
+export async function getMyAlerts(sellerId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .eq('seller_id', sellerId)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+  return { data: (data ?? []).map(normalizeAlert), error: null };
+}
+
+/**
+ * Obtiene alertas reservadas por el comprador (tus reservas).
+ * @param {string} buyerId
+ * @returns {{ data: Array, error }}
+ */
+export async function getAlertsReservedByMe(buyerId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  const { data: reservations, error: resError } = await supabase
+    .from('alert_reservations')
+    .select('alert_id')
+    .eq('buyer_id', buyerId)
+    .in('status', ['requested', 'accepted', 'active']);
+
+  if (resError || !reservations?.length) return { data: [], error: resError };
+
+  const alertIds = reservations.map((r) => r.alert_id).filter(Boolean);
+  const { data: alerts, error } = await supabase
+    .from(TABLE)
+    .select('*')
+    .in('id', alertIds)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+  const normalized = (alerts ?? []).map((row) => {
+    const a = normalizeAlert(row);
+    a.reserved_by_id = buyerId;
+    return a;
+  });
+  return { data: normalized, error: null };
+}
+
+/**
+ * Obtiene alertas para la lista de Chats (donde el usuario es seller o buyer).
+ * @param {string} userId
+ * @returns {{ data: Array, error }}
+ */
+export async function getAlertsForChats(userId) {
+  const [mine, reserved] = await Promise.all([
+    getMyAlerts(userId),
+    getAlertsReservedByMe(userId),
+  ]);
+  const err = mine.error || reserved.error;
+  if (err) return { data: [], error: err };
+  const seen = new Set();
+  const merged = [];
+  for (const a of [...(mine.data ?? []), ...(reserved.data ?? [])]) {
+    if (a?.id && !seen.has(a.id)) {
+      seen.add(a.id);
+      merged.push(a);
+    }
+  }
+  return { data: merged, error: null };
+}
+
+/**
+ * Obtiene una alerta por ID.
+ * @param {string} alertId
+ * @returns {{ data, error }}
+ */
+export async function getAlert(alertId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { data, error } = await supabase.from(TABLE).select('*').eq('id', alertId).single();
+  if (error) return { data: null, error };
+  return { data: normalizeAlert(data), error: null };
+}
+
+/**
+ * Suscripción Realtime a cambios en parking_alerts.
+ * @param {Object} opts - { onUpsert?, onDelete? }
+ * @returns {() => void} unsubscribe
+ */
+export function subscribeAlerts({ onUpsert, onDelete } = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return () => {};
+
+  const channel = supabase
+    .channel('alertsSupabase_sub')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: TABLE },
+      (payload) => payload.new && onUpsert && onUpsert(normalizeAlert(payload.new))
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: TABLE },
+      (payload) => payload.new && onUpsert && onUpsert(normalizeAlert(payload.new))
+    )
+    .on(
+      'postgres_changes',
+      { event: 'DELETE', schema: 'public', table: TABLE },
+      (payload) => payload.old?.id && onDelete && onDelete(payload.old.id)
+    )
+    .subscribe();
+
+  return () => {
+    try {
+      supabase.removeChannel(channel);
+    } catch (_) {}
+  };
+}
+
+```
+
+================================================================
+FILE: src/services/chatSupabase.js
+================================================================
+```js
+/**
+ * Servicio de chat (Supabase).
+ * Usa tablas: conversations, messages.
+ */
+import { getSupabase } from '@/lib/supabaseClient';
+
+/**
+ * Normaliza conversación para formato esperado por la app.
+ */
+function normalizeConversation(row, userId) {
+  if (!row) return null;
+  const isBuyer = row.buyer_id === userId;
+  const otherId = isBuyer ? row.seller_id : row.buyer_id;
+  const otherProfile = isBuyer ? row.seller : row.buyer;
+  return {
+    id: row.id,
+    alert_id: row.alert_id,
+    participant1_id: row.buyer_id,
+    participant2_id: row.seller_id,
+    participant1_name: row.buyer?.full_name || row.buyer_name || 'Usuario',
+    participant2_name: row.seller?.full_name || row.seller_name || 'Usuario',
+    participant1_photo: row.buyer?.avatar_url || null,
+    participant2_photo: row.seller?.avatar_url || null,
+    last_message_text: row.last_message_text || null,
+    last_message_at: row.last_message_at || row.created_at,
+    created_date: row.created_at,
+    updated_date: row.updated_at || row.created_at,
+    unread_count_p1: 0,
+    unread_count_p2: 0,
+  };
+}
+
+/**
+ * Normaliza mensaje para formato esperado por la app.
+ */
+function normalizeMessage(row, userId) {
+  if (!row) return null;
+  const senderProfile = row.sender;
+  return {
+    id: row.id,
+    conversation_id: row.conversation_id,
+    sender_id: row.sender_id,
+    sender_name: senderProfile?.full_name || 'Usuario',
+    sender_photo: senderProfile?.avatar_url || null,
+    message: row.body,
+    created_date: row.created_at,
+    message_type: 'user',
+    attachments: null,
+  };
+}
+
+/**
+ * Obtiene una conversación por ID.
+ * @param {string} conversationId
+ * @param {string} userId
+ * @returns {{ data, error }}
+ */
+export async function getConversation(conversationId, userId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { data: row, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .eq('id', conversationId)
+    .single();
+
+  if (error || !row) return { data: null, error: error || new Error('Conversación no encontrada') };
+
+  const ids = [row.buyer_id, row.seller_id].filter(Boolean);
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', ids);
+  const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+
+  const enriched = {
+    ...row,
+    buyer: profileMap[row.buyer_id],
+    seller: profileMap[row.seller_id],
+  };
+  return { data: normalizeConversation(enriched, userId), error: null };
+}
+
+/**
+ * Obtiene conversaciones del usuario (como buyer o seller).
+ * @param {string} userId
+ * @returns {{ data: Array, error }}
+ */
+export async function getConversations(userId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  const { data: rows, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+  if (!rows?.length) return { data: [], error: null };
+
+  const ids = [...new Set(rows.flatMap((r) => [r.buyer_id, r.seller_id]).filter(Boolean))];
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', ids);
+
+  const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+  const data = rows.map((r) =>
+    normalizeConversation(
+      {
+        ...r,
+        buyer: profileMap[r.buyer_id],
+        seller: profileMap[r.seller_id],
+      },
+      userId
+    )
+  );
+  return { data, error: null };
+}
+
+/**
+ * Obtiene mensajes de una conversación.
+ * @param {string} conversationId
+ * @param {string} userId - para normalizar
+ * @returns {{ data: Array, error }}
+ */
+export async function getMessages(conversationId, userId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  const { data: rows, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: true });
+
+  if (error) return { data: [], error };
+  if (!rows?.length) return { data: [], error: null };
+
+  const senderIds = [...new Set(rows.map((r) => r.sender_id).filter(Boolean))];
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', senderIds);
+  const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+
+  const data = rows.map((r) =>
+    normalizeMessage({ ...r, sender: profileMap[r.sender_id] }, userId)
+  );
+  return { data, error: null };
+}
+
+/**
+ * Crea o obtiene una conversación para buyer+seller+alert.
+ * @param {Object} payload - { buyerId, sellerId, alertId }
+ * @returns {{ data, error }}
+ */
+export async function createConversation(payload) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { buyerId, sellerId, alertId } = payload;
+  const { data: existing } = await supabase
+    .from('conversations')
+    .select('id')
+    .eq('alert_id', alertId)
+    .eq('buyer_id', buyerId)
+    .eq('seller_id', sellerId)
+    .maybeSingle();
+
+  if (existing) return { data: existing, error: null };
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .insert({ buyer_id: buyerId, seller_id: sellerId, alert_id: alertId })
+    .select('id')
+    .single();
+
+  if (error) return { data: null, error };
+  return { data, error: null };
+}
+
+/**
+ * Envía un mensaje.
+ * @param {Object} payload - { conversationId, senderId, body }
+ * @returns {{ data, error }}
+ */
+export async function sendMessage(payload) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { conversationId, senderId, body } = payload;
+
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      body: body || '',
+    })
+    .select()
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: normalizeMessage(data, senderId), error: null };
+}
+
+/**
+ * Suscripción Realtime a mensajes de una conversación.
+ * @param {string} conversationId
+ * @param {Function} onNewMessage - (message) => void
+ * @returns {() => void} unsubscribe
+ */
+export function subscribeMessages(conversationId, onNewMessage) {
+  const supabase = getSupabase();
+  if (!supabase) return () => {};
+
+  const channel = supabase
+    .channel(`chat_messages_${conversationId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      async (payload) => {
+        const row = payload.new;
+        if (row && onNewMessage) {
+          const { data: sender } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', row.sender_id)
+            .single();
+          const msg = normalizeMessage({ ...row, sender }, row.sender_id);
+          onNewMessage(msg);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    try {
+      supabase.removeChannel(channel);
+    } catch (_) {}
+  };
+}
+
+```
+
+================================================================
+FILE: src/services/notificationsSupabase.js
+================================================================
+```js
+/**
+ * Servicio de notificaciones (Supabase).
+ * Sustituye base44.entities.Notification.
+ */
+import { getSupabase } from '@/lib/supabaseClient';
+
+const TABLE = 'notifications';
+
+/**
+ * Normaliza fila a formato esperado por la app.
+ */
+function normalizeNotification(row) {
+  if (!row) return null;
+  const meta = row.metadata || {};
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    type: row.type || 'status_update',
+    title: row.title || '',
+    message: row.message || '',
+    text: row.message || '',
+    metadata: meta,
+    read: row.is_read ?? false,
+    is_read: row.is_read ?? false,
+    created_at: row.created_at,
+    t: row.created_at ? new Date(row.created_at).getTime() : 0,
+    // Campos compatibles con demo (alertId, conversationId, fromName)
+    alertId: meta.alert_id ?? meta.alertId ?? null,
+    conversationId: meta.conversation_id ?? meta.conversationId ?? null,
+    fromName: meta.sender_name ?? meta.fromName ?? null,
+  };
+}
+
+/**
+ * Crea una notificación.
+ * @param {Object} payload - { user_id, type, title?, message?, metadata? }
+ *   Para extension_request: user_id=recipient_id, metadata={ sender_id, sender_name, alert_id, amount, extension_minutes, status }
+ * @returns {{ data, error }}
+ */
+export async function createNotification(payload) {
   const supabase = getSupabase();
   if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
 
   const row = {
-    buyer_id: payload.buyer_id,
-    seller_id: payload.seller_id,
-    alert_id: payload.alert_id ?? null,
-    amount: Number(payload.amount) ?? 0,
-    status: payload.status || 'pending',
-    seller_earnings: payload.seller_earnings != null ? Number(payload.seller_earnings) : null,
-    platform_fee: payload.platform_fee != null ? Number(payload.platform_fee) : null,
-    address: payload.address ?? null,
-    metadata: {},
+    user_id: payload.user_id,
+    type: payload.type || 'status_update',
+    title: payload.title ?? '',
+    message: payload.message ?? '',
+    metadata: payload.metadata ?? {},
+    is_read: payload.is_read ?? false,
   };
-  if (payload.seller_name) row.metadata.seller_name = payload.seller_name;
-  if (payload.buyer_name) row.metadata.buyer_name = payload.buyer_name;
-  if (payload.seller_photo_url) row.metadata.seller_photo_url = payload.seller_photo_url;
-  if (payload.buyer_photo_url) row.metadata.buyer_photo_url = payload.buyer_photo_url;
-  if (payload.seller_car) row.metadata.seller_car = payload.seller_car;
-  if (payload.buyer_car) row.metadata.buyer_car = payload.buyer_car;
-  if (payload.seller_plate) row.metadata.seller_plate = payload.seller_plate;
-  if (payload.buyer_plate) row.metadata.buyer_plate = payload.buyer_plate;
 
   const { data, error } = await supabase
     .from(TABLE)
@@ -80,179 +1949,153 @@ export async function createTransaction(payload) {
     .single();
 
   if (error) return { data: null, error };
-  return { data: normalizeTransaction(data), error: null };
+  return { data: normalizeNotification(data), error: null };
 }
 
 /**
- * Lista transacciones del usuario (como buyer o seller).
+ * Lista notificaciones del usuario.
  * @param {string} userId
- * @param {Object} opts - { limit?: number }
+ * @param {Object} opts - { unreadOnly?: boolean, limit?: number }
  * @returns {{ data: Array, error }}
  */
-export async function listTransactions(userId, opts = {}) {
+export async function listNotifications(userId, opts = {}) {
   const supabase = getSupabase();
   if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
 
-  const limit = opts.limit ?? 5000;
-
-  const { data: rows, error } = await supabase
+  const limit = opts.limit ?? 100;
+  let query = supabase
     .from(TABLE)
     .select('*')
-    .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit);
+
+  if (opts.unreadOnly) {
+    query = query.eq('is_read', false);
+  }
+
+  const { data: rows, error } = await query;
 
   if (error) return { data: [], error };
   if (!rows?.length) return { data: [], error: null };
 
-  const buyerIds = [...new Set(rows.map((r) => r.buyer_id).filter(Boolean))];
-  const sellerIds = [...new Set(rows.map((r) => r.seller_id).filter(Boolean))];
-  const alertIds = [...new Set(rows.map((r) => r.alert_id).filter(Boolean))];
-
-  const [profilesRes, alertsRes] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, avatar_url').in('id', [...buyerIds, ...sellerIds]),
-    alertIds.length
-      ? supabase.from('parking_alerts').select('id, metadata, address_text').in('id', alertIds)
-      : { data: [] },
-  ]);
-
-  const profileMap = Object.fromEntries((profilesRes?.data ?? []).map((p) => [p.id, p]));
-  const alertMap = Object.fromEntries((alertsRes?.data ?? []).map((a) => [a.id, a]));
-
-  const data = rows.map((r) =>
-    normalizeTransaction(r, {
-      buyerProfile: profileMap[r.buyer_id],
-      sellerProfile: profileMap[r.seller_id],
-      alert: alertMap[r.alert_id],
-    })
-  );
+  const data = rows.map(normalizeNotification);
   return { data, error: null };
 }
 
-```
-
-================================================================
-FILE: src/services/uploadsSupabase.js
-================================================================
-```js
 /**
- * Servicio de uploads (Supabase Storage).
- * Sustituye base44.integrations.Core.UploadFile.
- */
-import { getSupabase } from '@/lib/supabaseClient';
-
-const BUCKET = 'uploads';
-
-/**
- * Sube un archivo al bucket uploads.
- * @param {File} file - Archivo a subir
- * @param {string} path - Ruta en el bucket (ej: "userId/1234567890.jpg")
- * @returns {{ url?: string, file_url?: string, error?: Error }}
- */
-export async function uploadFile(file, path) {
-  const supabase = getSupabase();
-  if (!supabase) return { error: new Error('Supabase no configurado') };
-
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: true });
-
-  if (error) return { error };
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-  return { url: urlData.publicUrl, file_url: urlData.publicUrl };
-}
-
-/**
- * Obtiene la URL pública de un archivo.
- * @param {string} path - Ruta en el bucket
- * @returns {string}
- */
-export function getPublicUrl(path) {
-  const supabase = getSupabase();
-  if (!supabase) return '';
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
-}
-
-/**
- * Elimina un archivo del bucket.
- * @param {string} path - Ruta en el bucket
- * @returns {{ error?: Error }}
- */
-export async function deleteFile(path) {
-  const supabase = getSupabase();
-  if (!supabase) return { error: new Error('Supabase no configurado') };
-  const { error } = await supabase.storage.from(BUCKET).remove([path]);
-  return { error };
-}
-
-```
-
-================================================================
-FILE: src/services/userLocationsSupabase.js
-================================================================
-```js
-/**
- * Servicio de ubicaciones de usuario (Supabase).
- * Sustituye base44.entities.UserLocation.
- * Usa tabla user_location_updates (user_id, alert_id, lat, lng, is_active).
- */
-import { getSupabase } from '@/lib/supabaseClient';
-
-const TABLE = 'user_location_updates';
-
-/**
- * Obtiene ubicaciones activas por alert_id (compradores navegando hacia la alerta).
- * @param {string} alertId
- * @returns {Promise<Array<{ user_id, alert_id, latitude, longitude, is_active }>>}
- */
-export async function getLocationsByAlert(alertId) {
-  if (!alertId) return [];
-  const supabase = getSupabase();
-  if (!supabase) return [];
-
-  const { data: rows, error } = await supabase
-    .from(TABLE)
-    .select('user_id, alert_id, lat, lng, is_active, updated_at')
-    .eq('alert_id', alertId)
-    .eq('is_active', true)
-    .order('updated_at', { ascending: false });
-
-  if (error) return [];
-  return (rows ?? []).map((r) => ({
-    user_id: r.user_id,
-    alert_id: r.alert_id,
-    latitude: r.lat,
-    longitude: r.lng,
-    is_active: r.is_active ?? true,
-    updated_at: r.updated_at,
-  }));
-}
-
-/**
- * Upserta la ubicación del usuario para una alerta (comprador navegando).
- * @param {Object} payload - { userId, alertId, lat, lng, accuracyM? }
+ * Marca una notificación como leída.
+ * @param {string} notificationId
+ * @param {string} userId - para RLS
  * @returns {{ data, error }}
  */
-export async function upsertLocationForAlert(payload) {
+export async function markAsRead(notificationId, userId) {
   const supabase = getSupabase();
   if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
 
-  const { userId, alertId, lat, lng, accuracyM } = payload;
   const { data, error } = await supabase
     .from(TABLE)
-    .upsert(
+    .update({ is_read: true })
+    .eq('id', notificationId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: normalizeNotification(data), error: null };
+}
+
+/**
+ * Marca todas las notificaciones del usuario como leídas.
+ * @param {string} userId
+ * @returns {{ data, error }}
+ */
+export async function markAllAsRead(userId) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { error } = await supabase
+    .from(TABLE)
+    .update({ is_read: true })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+
+  if (error) return { data: null, error };
+  return { data: { ok: true }, error: null };
+}
+
+/**
+ * Suscripción Realtime a notificaciones del usuario.
+ * @param {string} userId
+ * @param {Function} onNotification - (notification) => void
+ * @returns {() => void} unsubscribe
+ */
+export function subscribeNotifications(userId, onNotification) {
+  const supabase = getSupabase();
+  if (!supabase || !userId) return () => {};
+
+  const channel = supabase
+    .channel(`notifications_${userId}`)
+    .on(
+      'postgres_changes',
       {
-        user_id: userId,
-        alert_id: alertId,
-        lat,
-        lng,
-        accuracy_m: accuracyM ?? null,
-        is_active: true,
-        updated_at: new Date().toISOString(),
+        event: 'INSERT',
+        schema: 'public',
+        table: TABLE,
+        filter: `user_id=eq.${userId}`,
       },
-      { onConflict: 'user_id,alert_id', ignoreDuplicates: false }
+      (payload) => {
+        const row = payload.new;
+        if (row && onNotification) {
+          onNotification(normalizeNotification(row));
+        }
+      }
     )
+    .subscribe();
+
+  return () => {
+    try {
+      supabase.removeChannel(channel);
+    } catch (_) {}
+  };
+}
+
+```
+
+================================================================
+FILE: src/services/profilesSupabase.js
+================================================================
+```js
+/**
+ * Servicio de perfiles (Supabase).
+ * Sustituye base44.auth.updateMe para preferencias de usuario.
+ */
+import { getSupabase } from '@/lib/supabaseClient';
+
+/**
+ * Actualiza el perfil del usuario.
+ * @param {string} userId
+ * @param {Object} updates - { notifications_enabled?, notify_reservations?, notify_payments?, notify_proximity?, notify_promotions? }
+ * @returns {{ data, error }}
+ */
+export async function updateProfile(userId, updates) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const row = {};
+  if (updates.notifications_enabled != null) row.notifications_enabled = updates.notifications_enabled;
+  if (updates.email_notifications != null) row.email_notifications = updates.email_notifications;
+  if (updates.notify_reservations != null) row.notify_reservations = updates.notify_reservations;
+  if (updates.notify_payments != null) row.notify_payments = updates.notify_payments;
+  if (updates.notify_proximity != null) row.notify_proximity = updates.notify_proximity;
+  if (updates.notify_promotions != null) row.notify_promotions = updates.notify_promotions;
+
+  if (Object.keys(row).length === 0) return { data: null, error: null };
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(row)
+    .eq('id', userId)
     .select()
     .single();
 
@@ -263,2138 +2106,108 @@ export async function upsertLocationForAlert(payload) {
 ```
 
 ================================================================
-FILE: src/state/appStore.js
+FILE: src/services/realtime/alertsRealtime.js
 ================================================================
 ```js
 /**
- * Store global con Zustand.
- * NO contiene llamadas a Supabase.
+ * Supabase Realtime para public.parking_alerts.
+ * Escucha INSERT, UPDATE, DELETE.
+ * Soporta esquema nuevo (seller_id, price_cents) y legacy (user_id, price).
+ * No explota si la tabla no existe (maneja error).
  */
-import { create } from 'zustand';
+import { getSupabase } from '@/lib/supabaseClient';
+import { useAppStore } from '@/state/appStore';
 
-export const useAppStore = create((set) => ({
-  auth: { user: null },
-  profile: null,
-  alerts: { items: [], loading: false },
-  location: { lat: null, lng: null, accuracy: null },
-  ui: { error: null },
+/**
+ * @param {Object} opts
+ * @param {Function} [opts.onUpsert] - (alert) => void
+ * @param {Function} [opts.onDelete] - (id) => void
+ * @returns {() => void} unsubscribe
+ */
+export function subscribeActiveAlerts({ onUpsert, onDelete } = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return () => {};
 
-  setUser: (user) => set((s) => ({ auth: { ...s.auth, user } })),
-  setProfile: (profile) => set({ profile }),
-  setLocation: (lat, lng, accuracy) =>
-    set({ location: { lat, lng, accuracy } }),
-  setAlerts: (items) =>
-    set((s) => ({ alerts: { ...s.alerts, items: items ?? [], loading: false } })),
-  setAlertsLoading: (loading) =>
-    set((s) => ({ alerts: { ...s.alerts, loading } })),
-  upsertAlert: (alert) =>
-    set((s) => {
-      const items = [...s.alerts.items];
-      const idx = items.findIndex((a) => a.id === alert.id);
-      if (idx >= 0) items[idx] = { ...items[idx], ...alert };
-      else items.push(alert);
-      return { alerts: { ...s.alerts, items } };
-    }),
-  removeAlert: (id) =>
-    set((s) => ({
-      alerts: {
-        ...s.alerts,
-        items: s.alerts.items.filter((a) => a.id !== id),
+  const channel = supabase
+    .channel('parking_alerts_realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'parking_alerts',
       },
-    })),
-  setError: (error) => set({ ui: { error } }),
-  clearError: () => set((s) => ({ ui: { ...s.ui, error: null } })),
-}));
-
-```
-
-================================================================
-FILE: src/stories/Button.jsx
-================================================================
-```jsx
-import React from 'react';
-
-import PropTypes from 'prop-types';
-
-import './button.css';
-
-/** Primary UI component for user interaction */
-export const Button = ({
-  primary = false,
-  backgroundColor = null,
-  size = 'medium',
-  label,
-  ...props
-}) => {
-  const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
-  return (
-    <button
-      type="button"
-      className={['storybook-button', `storybook-button--${size}`, mode].join(' ')}
-      style={backgroundColor && { backgroundColor }}
-      {...props}
-    >
-      {label}
-    </button>
-  );
-};
-
-Button.propTypes = {
-  /** Is this the principal call to action on the page? */
-  primary: PropTypes.bool,
-  /** What background color to use */
-  backgroundColor: PropTypes.string,
-  /** How large should the button be? */
-  size: PropTypes.oneOf(['small', 'medium', 'large']),
-  /** Button contents */
-  label: PropTypes.string.isRequired,
-  /** Optional click handler */
-  onClick: PropTypes.func,
-};
-
-```
-
-================================================================
-FILE: src/stories/Button.stories.js
-================================================================
-```js
-import { fn } from 'storybook/test';
-
-import { Button } from './Button';
-
-// More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
-export default {
-  title: 'Example/Button',
-  component: Button,
-  parameters: {
-    // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
-    layout: 'centered',
-  },
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
-  // More on argTypes: https://storybook.js.org/docs/api/argtypes
-  argTypes: {
-    backgroundColor: { control: 'color' },
-  },
-  // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#story-args
-  args: { onClick: fn() },
-};
-
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
-export const Primary = {
-  args: {
-    primary: true,
-    label: 'Button',
-  },
-};
-
-export const Secondary = {
-  args: {
-    label: 'Button',
-  },
-};
-
-export const Large = {
-  args: {
-    size: 'large',
-    label: 'Button',
-  },
-};
-
-export const Small = {
-  args: {
-    size: 'small',
-    label: 'Button',
-  },
-};
-
-```
-
-================================================================
-FILE: src/stories/Configure.mdx
-================================================================
-```mdx
-import { Meta } from "@storybook/addon-docs/blocks";
-
-import Github from "./assets/github.svg";
-import Discord from "./assets/discord.svg";
-import Youtube from "./assets/youtube.svg";
-import Tutorials from "./assets/tutorials.svg";
-import Styling from "./assets/styling.png";
-import Context from "./assets/context.png";
-import Assets from "./assets/assets.png";
-import Docs from "./assets/docs.png";
-import Share from "./assets/share.png";
-import FigmaPlugin from "./assets/figma-plugin.png";
-import Testing from "./assets/testing.png";
-import Accessibility from "./assets/accessibility.png";
-import Theming from "./assets/theming.png";
-import AddonLibrary from "./assets/addon-library.png";
-
-export const RightArrow = () => <svg 
-    viewBox="0 0 14 14" 
-    width="8px" 
-    height="14px" 
-    style={{ 
-      marginLeft: '4px',
-      display: 'inline-block',
-      shapeRendering: 'inherit',
-      verticalAlign: 'middle',
-      fill: 'currentColor',
-      'path fill': 'currentColor'
-    }}
->
-  <path d="m11.1 7.35-5.5 5.5a.5.5 0 0 1-.7-.7L10.04 7 4.9 1.85a.5.5 0 1 1 .7-.7l5.5 5.5c.2.2.2.5 0 .7Z" />
-</svg>
-
-<Meta title="Configure your project" />
-
-<div className="sb-container">
-  <div className='sb-section-title'>
-    # Configure your project
-
-    Because Storybook works separately from your app, you'll need to configure it for your specific stack and setup. Below, explore guides for configuring Storybook with popular frameworks and tools. If you get stuck, learn how you can ask for help from our community.
-  </div>
-  <div className="sb-section">
-    <div className="sb-section-item">
-      <img
-        src={Styling}
-        alt="A wall of logos representing different styling technologies"
-      />
-      <h4 className="sb-section-item-heading">Add styling and CSS</h4>
-      <p className="sb-section-item-paragraph">Like with web applications, there are many ways to include CSS within Storybook. Learn more about setting up styling within Storybook.</p>
-      <a
-        href="https://storybook.js.org/docs/configure/styling-and-css/?renderer=react&ref=configure"
-        target="_blank"
-      >Learn more<RightArrow /></a>
-    </div>
-    <div className="sb-section-item">
-      <img
-        src={Context}
-        alt="An abstraction representing the composition of data for a component"
-      />
-      <h4 className="sb-section-item-heading">Provide context and mocking</h4>
-      <p className="sb-section-item-paragraph">Often when a story doesn't render, it's because your component is expecting a specific environment or context (like a theme provider) to be available.</p>
-      <a
-        href="https://storybook.js.org/docs/writing-stories/decorators/?renderer=react&ref=configure#context-for-mocking"
-        target="_blank"
-      >Learn more<RightArrow /></a>
-    </div>
-    <div className="sb-section-item">
-      <img src={Assets} alt="A representation of typography and image assets" />
-      <div>
-        <h4 className="sb-section-item-heading">Load assets and resources</h4>
-        <p className="sb-section-item-paragraph">To link static files (like fonts) to your projects and stories, use the
-        `staticDirs` configuration option to specify folders to load when
-        starting Storybook.</p>
-        <a
-          href="https://storybook.js.org/docs/configure/images-and-assets/?renderer=react&ref=configure"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-    </div>
-  </div>
-</div>
-<div className="sb-container">
-  <div className='sb-section-title'>
-    # Do more with Storybook
-
-    Now that you know the basics, let's explore other parts of Storybook that will improve your experience. This list is just to get you started. You can customise Storybook in many ways to fit your needs.
-  </div>
-
-  <div className="sb-section">
-    <div className="sb-features-grid">
-      <div className="sb-grid-item">
-        <img src={Docs} alt="A screenshot showing the autodocs tag being set, pointing a docs page being generated" />
-        <h4 className="sb-section-item-heading">Autodocs</h4>
-        <p className="sb-section-item-paragraph">Auto-generate living,
-          interactive reference documentation from your components and stories.</p>
-        <a
-          href="https://storybook.js.org/docs/writing-docs/autodocs/?renderer=react&ref=configure"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-      <div className="sb-grid-item">
-        <img src={Share} alt="A browser window showing a Storybook being published to a chromatic.com URL" />
-        <h4 className="sb-section-item-heading">Publish to Chromatic</h4>
-        <p className="sb-section-item-paragraph">Publish your Storybook to review and collaborate with your entire team.</p>
-        <a
-          href="https://storybook.js.org/docs/sharing/publish-storybook/?renderer=react&ref=configure#publish-storybook-with-chromatic"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-      <div className="sb-grid-item">
-        <img src={FigmaPlugin} alt="Windows showing the Storybook plugin in Figma" />
-        <h4 className="sb-section-item-heading">Figma Plugin</h4>
-        <p className="sb-section-item-paragraph">Embed your stories into Figma to cross-reference the design and live
-          implementation in one place.</p>
-        <a
-          href="https://storybook.js.org/docs/sharing/design-integrations/?renderer=react&ref=configure#embed-storybook-in-figma-with-the-plugin"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-      <div className="sb-grid-item">
-        <img src={Testing} alt="Screenshot of tests passing and failing" />
-        <h4 className="sb-section-item-heading">Testing</h4>
-        <p className="sb-section-item-paragraph">Use stories to test a component in all its variations, no matter how
-          complex.</p>
-        <a
-          href="https://storybook.js.org/docs/writing-tests/?renderer=react&ref=configure"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-      <div className="sb-grid-item">
-        <img src={Accessibility} alt="Screenshot of accessibility tests passing and failing" />
-        <h4 className="sb-section-item-heading">Accessibility</h4>
-        <p className="sb-section-item-paragraph">Automatically test your components for a11y issues as you develop.</p>
-        <a
-          href="https://storybook.js.org/docs/writing-tests/accessibility-testing/?renderer=react&ref=configure"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-      <div className="sb-grid-item">
-        <img src={Theming} alt="Screenshot of Storybook in light and dark mode" />
-        <h4 className="sb-section-item-heading">Theming</h4>
-        <p className="sb-section-item-paragraph">Theme Storybook's UI to personalize it to your project.</p>
-        <a
-          href="https://storybook.js.org/docs/configure/theming/?renderer=react&ref=configure"
-          target="_blank"
-        >Learn more<RightArrow /></a>
-      </div>
-    </div>
-  </div>
-</div>
-<div className='sb-addon'>
-  <div className='sb-addon-text'>
-    <h4>Addons</h4>
-    <p className="sb-section-item-paragraph">Integrate your tools with Storybook to connect workflows.</p>
-    <a
-        href="https://storybook.js.org/addons/?ref=configure"
-        target="_blank"
-      >Discover all addons<RightArrow /></a>
-  </div>
-  <div className='sb-addon-img'>
-    <img src={AddonLibrary} alt="Integrate your tools with Storybook to connect workflows." />
-  </div>
-</div>
-
-<div className="sb-section sb-socials">
-    <div className="sb-section-item">
-      <img src={Github} alt="Github logo" className="sb-explore-image"/>
-      Join our contributors building the future of UI development.
-
-      <a
-        href="https://github.com/storybookjs/storybook"
-        target="_blank"
-      >Star on GitHub<RightArrow /></a>
-    </div>
-    <div className="sb-section-item">
-      <img src={Discord} alt="Discord logo" className="sb-explore-image"/>
-      <div>
-        Get support and chat with frontend developers.
-
-        <a
-          href="https://discord.gg/storybook"
-          target="_blank"
-        >Join Discord server<RightArrow /></a>
-      </div>
-    </div>
-    <div className="sb-section-item">
-      <img src={Youtube} alt="Youtube logo" className="sb-explore-image"/>
-      <div>
-        Watch tutorials, feature previews and interviews.
-
-        <a
-          href="https://www.youtube.com/@chromaticui"
-          target="_blank"
-        >Watch on YouTube<RightArrow /></a>
-      </div>
-    </div>
-    <div className="sb-section-item">
-      <img src={Tutorials} alt="A book" className="sb-explore-image"/>
-      <p>Follow guided walkthroughs on for key workflows.</p>
-
-      <a
-          href="https://storybook.js.org/tutorials/?ref=configure"
-          target="_blank"
-        >Discover tutorials<RightArrow /></a>
-    </div>
-</div>
-
-<style>
-  {`
-  .sb-container {
-    margin-bottom: 48px;
-  }
-
-  .sb-section {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-
-  img {
-    object-fit: cover;
-  }
-
-  .sb-section-title {
-    margin-bottom: 32px;
-  }
-
-  .sb-section a:not(h1 a, h2 a, h3 a) {
-    font-size: 14px;
-  }
-
-  .sb-section-item, .sb-grid-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .sb-section-item-heading {
-    padding-top: 20px !important;
-    padding-bottom: 5px !important;
-    margin: 0 !important;
-  }
-  .sb-section-item-paragraph {
-    margin: 0;
-    padding-bottom: 10px;
-  }
-
-  .sb-chevron {
-    margin-left: 5px;
-  }
-
-  .sb-features-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 32px 20px;
-  }
-
-  .sb-socials {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .sb-socials p {
-    margin-bottom: 10px;
-  }
-
-  .sb-explore-image {
-    max-height: 32px;
-    align-self: flex-start;
-  }
-
-  .sb-addon {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    position: relative;
-    background-color: #EEF3F8;
-    border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    background: #EEF3F8;
-    height: 180px;
-    margin-bottom: 48px;
-    overflow: hidden;
-  }
-
-  .sb-addon-text {
-    padding-left: 48px;
-    max-width: 240px;
-  }
-
-  .sb-addon-text h4 {
-    padding-top: 0px;
-  }
-
-  .sb-addon-img {
-    position: absolute;
-    left: 345px;
-    top: 0;
-    height: 100%;
-    width: 200%;
-    overflow: hidden;
-  }
-
-  .sb-addon-img img {
-    width: 650px;
-    transform: rotate(-15deg);
-    margin-left: 40px;
-    margin-top: -72px;
-    box-shadow: 0 0 1px rgba(255, 255, 255, 0);
-    backface-visibility: hidden;
-  }
-
-  @media screen and (max-width: 800px) {
-    .sb-addon-img {
-      left: 300px;
-    }
-  }
-
-  @media screen and (max-width: 600px) {
-    .sb-section {
-      flex-direction: column;
-    }
-
-    .sb-features-grid {
-      grid-template-columns: repeat(1, 1fr);
-    }
-
-    .sb-socials {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .sb-addon {
-      height: 280px;
-      align-items: flex-start;
-      padding-top: 32px;
-      overflow: hidden;
-    }
-
-    .sb-addon-text {
-      padding-left: 24px;
-    }
-
-    .sb-addon-img {
-      right: 0;
-      left: 0;
-      top: 130px;
-      bottom: 0;
-      overflow: hidden;
-      height: auto;
-      width: 124%;
-    }
-
-    .sb-addon-img img {
-      width: 1200px;
-      transform: rotate(-12deg);
-      margin-left: 0;
-      margin-top: 48px;
-      margin-bottom: -40px;
-      margin-left: -24px;
-    }
-  }
-  `}
-</style>
-
-```
-
-================================================================
-FILE: src/stories/Header.jsx
-================================================================
-```jsx
-import React from 'react';
-
-import PropTypes from 'prop-types';
-
-import { Button } from './Button';
-import './header.css';
-
-export const Header = ({ user = null, onLogin, onLogout, onCreateAccount }) => (
-  <header>
-    <div className="storybook-header">
-      <div>
-        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-          <g fill="none" fillRule="evenodd">
-            <path
-              d="M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z"
-              fill="#FFF"
-            />
-            <path
-              d="M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z"
-              fill="#555AB9"
-            />
-            <path
-              d="M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z"
-              fill="#91BAF8"
-            />
-          </g>
-        </svg>
-        <h1>Acme</h1>
-      </div>
-      <div>
-        {user ? (
-          <>
-            <span className="welcome">
-              Welcome, <b>{user.name}</b>!
-            </span>
-            <Button size="small" onClick={onLogout} label="Log out" />
-          </>
-        ) : (
-          <>
-            <Button size="small" onClick={onLogin} label="Log in" />
-            <Button primary size="small" onClick={onCreateAccount} label="Sign up" />
-          </>
-        )}
-      </div>
-    </div>
-  </header>
-);
-
-Header.propTypes = {
-  user: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-  }),
-  onLogin: PropTypes.func.isRequired,
-  onLogout: PropTypes.func.isRequired,
-  onCreateAccount: PropTypes.func.isRequired,
-};
-
-```
-
-================================================================
-FILE: src/stories/Header.stories.js
-================================================================
-```js
-import { fn } from 'storybook/test';
-
-import { Header } from './Header';
-
-export default {
-  title: 'Example/Header',
-  component: Header,
-  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
-  tags: ['autodocs'],
-  parameters: {
-    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
-    layout: 'fullscreen',
-  },
-  args: {
-    onLogin: fn(),
-    onLogout: fn(),
-    onCreateAccount: fn(),
-  },
-};
-
-export const LoggedIn = {
-  args: {
-    user: {
-      name: 'Jane Doe',
-    },
-  },
-};
-
-export const LoggedOut = {};
-
-```
-
-================================================================
-FILE: src/stories/Page.jsx
-================================================================
-```jsx
-import React from 'react';
-
-import { Header } from './Header';
-import './page.css';
-
-export const Page = () => {
-  const [user, setUser] = React.useState();
-
-  return (
-    <article>
-      <Header
-        user={user}
-        onLogin={() => setUser({ name: 'Jane Doe' })}
-        onLogout={() => setUser(undefined)}
-        onCreateAccount={() => setUser({ name: 'Jane Doe' })}
-      />
-
-      <section className="storybook-page">
-        <h2>Pages in Storybook</h2>
-        <p>
-          We recommend building UIs with a{' '}
-          <a href="https://componentdriven.org" target="_blank" rel="noopener noreferrer">
-            <strong>component-driven</strong>
-          </a>{' '}
-          process starting with atomic components and ending with pages.
-        </p>
-        <p>
-          Render pages with mock data. This makes it easy to build and review page states without
-          needing to navigate to them in your app. Here are some handy patterns for managing page
-          data in Storybook:
-        </p>
-        <ul>
-          <li>
-            Use a higher-level connected component. Storybook helps you compose such data from the
-            "args" of child component stories
-          </li>
-          <li>
-            Assemble data in the page component from your services. You can mock these services out
-            using Storybook.
-          </li>
-        </ul>
-        <p>
-          Get a guided tutorial on component-driven development at{' '}
-          <a href="https://storybook.js.org/tutorials/" target="_blank" rel="noopener noreferrer">
-            Storybook tutorials
-          </a>
-          . Read more in the{' '}
-          <a href="https://storybook.js.org/docs" target="_blank" rel="noopener noreferrer">
-            docs
-          </a>
-          .
-        </p>
-        <div className="tip-wrapper">
-          <span className="tip">Tip</span> Adjust the width of the canvas with the{' '}
-          <svg width="10" height="10" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-            <g fill="none" fillRule="evenodd">
-              <path
-                d="M1.5 5.2h4.8c.3 0 .5.2.5.4v5.1c-.1.2-.3.3-.4.3H1.4a.5.5 0 01-.5-.4V5.7c0-.3.2-.5.5-.5zm0-2.1h6.9c.3 0 .5.2.5.4v7a.5.5 0 01-1 0V4H1.5a.5.5 0 010-1zm0-2.1h9c.3 0 .5.2.5.4v9.1a.5.5 0 01-1 0V2H1.5a.5.5 0 010-1zm4.3 5.2H2V10h3.8V6.2z"
-                id="a"
-                fill="#999"
-              />
-            </g>
-          </svg>
-          Viewports addon in the toolbar
-        </div>
-      </section>
-    </article>
-  );
-};
-
-```
-
-================================================================
-FILE: src/stories/Page.stories.js
-================================================================
-```js
-import { expect, userEvent, within } from 'storybook/test';
-
-import { Page } from './Page';
-
-export default {
-  title: 'Example/Page',
-  component: Page,
-  parameters: {
-    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
-    layout: 'fullscreen',
-  },
-};
-
-export const LoggedOut = {};
-
-// More on component testing: https://storybook.js.org/docs/writing-tests/interaction-testing
-export const LoggedIn = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    const loginButton = canvas.getByRole('button', { name: /Log in/i });
-    await expect(loginButton).toBeInTheDocument();
-    await userEvent.click(loginButton);
-    await expect(loginButton).not.toBeInTheDocument();
-
-    const logoutButton = canvas.getByRole('button', { name: /Log out/i });
-    await expect(logoutButton).toBeInTheDocument();
-  },
-};
-
-```
-
-================================================================
-FILE: src/stories/button.css
-================================================================
-```css
-.storybook-button {
-  display: inline-block;
-  cursor: pointer;
-  border: 0;
-  border-radius: 3em;
-  font-weight: 700;
-  line-height: 1;
-  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-.storybook-button--primary {
-  background-color: #555ab9;
-  color: white;
-}
-.storybook-button--secondary {
-  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
-  background-color: transparent;
-  color: #333;
-}
-.storybook-button--small {
-  padding: 10px 16px;
-  font-size: 12px;
-}
-.storybook-button--medium {
-  padding: 11px 20px;
-  font-size: 14px;
-}
-.storybook-button--large {
-  padding: 12px 24px;
-  font-size: 16px;
-}
-
-```
-
-================================================================
-FILE: src/stories/header.css
-================================================================
-```css
-.storybook-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 15px 20px;
-  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-.storybook-header svg {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.storybook-header h1 {
-  display: inline-block;
-  vertical-align: top;
-  margin: 6px 0 6px 10px;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.storybook-header button + button {
-  margin-left: 10px;
-}
-
-.storybook-header .welcome {
-  margin-right: 10px;
-  color: #333;
-  font-size: 14px;
-}
-
-```
-
-================================================================
-FILE: src/stories/page.css
-================================================================
-```css
-.storybook-page {
-  margin: 0 auto;
-  padding: 48px 20px;
-  max-width: 600px;
-  color: #333;
-  font-size: 14px;
-  line-height: 24px;
-  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-.storybook-page h2 {
-  display: inline-block;
-  vertical-align: top;
-  margin: 0 0 4px;
-  font-weight: 700;
-  font-size: 32px;
-  line-height: 1;
-}
-
-.storybook-page p {
-  margin: 1em 0;
-}
-
-.storybook-page a {
-  color: inherit;
-}
-
-.storybook-page ul {
-  margin: 1em 0;
-  padding-left: 30px;
-}
-
-.storybook-page li {
-  margin-bottom: 8px;
-}
-
-.storybook-page .tip {
-  display: inline-block;
-  vertical-align: top;
-  margin-right: 10px;
-  border-radius: 1em;
-  background: #e7fdd8;
-  padding: 4px 12px;
-  color: #357a14;
-  font-weight: 700;
-  font-size: 11px;
-  line-height: 12px;
-}
-
-.storybook-page .tip-wrapper {
-  margin-top: 40px;
-  margin-bottom: 40px;
-  font-size: 13px;
-  line-height: 20px;
-}
-
-.storybook-page .tip-wrapper svg {
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 3px;
-  margin-right: 4px;
-  width: 12px;
-  height: 12px;
-}
-
-.storybook-page .tip-wrapper svg path {
-  fill: #1ea7fd;
-}
-
-```
-
-================================================================
-FILE: src/styles/no-zoom.css
-================================================================
-```css
-/**
- * Evita zoom en iOS Safari/Capacitor al enfocar inputs.
- * Safari hace zoom automático si font-size < 16px.
- */
-@supports (-webkit-touch-callout: none) {
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
-    line-height: 1.4;
-  }
-}
-
-```
-
-================================================================
-FILE: src/utils/carUtils.js
-================================================================
-```js
-/**
- * Shared car-related utilities used across multiple components.
- */
-
-export const CAR_COLOR_MAP = {
-  blanco:   '#FFFFFF',
-  negro:    '#1a1a1a',
-  gris:     '#6b7280',
-  plata:    '#d1d5db',
-  rojo:     '#ef4444',
-  azul:     '#3b82f6',
-  verde:    '#22c55e',
-  amarillo: '#eab308',
-  naranja:  '#f97316',
-  morado:   '#7c3aed',
-  rosa:     '#ec4899',
-  beige:    '#d4b483',
-  marron:   '#92400e',
-};
-
-/**
- * Returns a hex color for a Spanish car color name.
- * @param {string} colorName - e.g. "azul", "rojo"
- * @returns {string} hex color string
- */
-export function getCarFill(colorName) {
-  if (!colorName) return '#6b7280';
-  const key = String(colorName)
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-  return CAR_COLOR_MAP[key] ?? '#6b7280';
-}
-
-/**
- * Formats a Spanish license plate string as "NNNN LLL".
- * @param {string} plate
- * @returns {string}
- */
-export function formatPlate(plate) {
-  const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
-  if (!p) return '0000 XXX';
-  return `${p.slice(0, 4)} ${p.slice(4)}`.trim();
-}
-
-/**
- * Haversine distance in kilometres between two lat/lon points.
- * @returns {number} km
- */
-export function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-/**
- * Haversine distance in metres.
- * @returns {number} metres
- */
-export function haversineMeters(lat1, lon1, lat2, lon2) {
-  return haversineKm(lat1, lon1, lat2, lon2) * 1000;
-}
-
-```
-
-================================================================
-FILE: src/utils/index.ts
-================================================================
-```ts
-export function createPageUrl(pageName: string) {
-  const raw = String(pageName || '').trim();
-  return '/' + raw.toLowerCase();
-}
-```
-
-================================================================
-FILE: supabase/README.md
-================================================================
-```md
-# Supabase
-
-This directory contains the Supabase configuration and migrations for WaitMe.
-
-## Structure
-
-```
-supabase/
-├── config.toml    # Local development config
-├── migrations/   # SQL migrations (version-controlled)
-├── functions/    # Edge functions (optional)
-└── seed.sql      # Seed data for local db reset
-```
-
-## Migrations
-
-Migrations are applied in order by filename (timestamp prefix). To create a new migration:
-
-```bash
-npx supabase migration new <name>
-```
-
-## GitHub Actions
-
-Migrations are pushed to the linked Supabase project when changes in `supabase/migrations/` are pushed to `main`.
-
-**Required secrets:** See [docs/SETUP_SUPABASE_GITHUB_SECRETS.md](../docs/SETUP_SUPABASE_GITHUB_SECRETS.md)
-
-- `SUPABASE_ACCESS_TOKEN` - From [Supabase Dashboard](https://supabase.com/dashboard/account/tokens)
-- `SUPABASE_PROJECT_REF` - Project reference from Project Settings → General
-- `SUPABASE_DB_PASSWORD` - Database password
-
-**Link project locally:**
-```bash
-npx supabase login
-npx supabase link --project-ref <PROJECT_REF>
-```
-
-## Local development
-
-```bash
-npx supabase start   # Requires Docker
-npx supabase db reset  # Apply migrations + seed
-```
-
-```
-
-================================================================
-FILE: supabase/config.toml
-================================================================
-```toml
-# For detailed configuration reference documentation, visit:
-# https://supabase.com/docs/guides/local-development/cli/config
-# A string used to distinguish different Supabase projects on the same host. Defaults to the
-# working directory name when running `supabase init`.
-project_id = "WaitMeNuevo"
-
-[api]
-enabled = true
-# Port to use for the API URL.
-port = 54321
-# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
-# endpoints. `public` and `graphql_public` schemas are included by default.
-schemas = ["public", "graphql_public"]
-# Extra schemas to add to the search_path of every request.
-extra_search_path = ["public", "extensions"]
-# The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
-# for accidental or malicious requests.
-max_rows = 1000
-
-[api.tls]
-# Enable HTTPS endpoints locally using a self-signed certificate.
-enabled = false
-# Paths to self-signed certificate pair.
-# cert_path = "../certs/my-cert.pem"
-# key_path = "../certs/my-key.pem"
-
-[db]
-# Port to use for the local database URL.
-port = 54322
-# Port used by db diff command to initialize the shadow database.
-shadow_port = 54320
-# Maximum amount of time to wait for health check when starting the local database.
-health_timeout = "2m"
-# The database major version to use. This has to be the same as your remote database's. Run `SHOW
-# server_version;` on the remote database to check.
-major_version = 17
-
-[db.pooler]
-enabled = false
-# Port to use for the local connection pooler.
-port = 54329
-# Specifies when a server connection can be reused by other clients.
-# Configure one of the supported pooler modes: `transaction`, `session`.
-pool_mode = "transaction"
-# How many server connections to allow per user/database pair.
-default_pool_size = 20
-# Maximum number of client connections allowed.
-max_client_conn = 100
-
-# [db.vault]
-# secret_key = "env(SECRET_VALUE)"
-
-[db.migrations]
-# If disabled, migrations will be skipped during a db push or reset.
-enabled = true
-# Specifies an ordered list of schema files that describe your database.
-# Supports glob patterns relative to supabase directory: "./schemas/*.sql"
-schema_paths = []
-
-[db.seed]
-# If enabled, seeds the database after migrations during a db reset.
-enabled = true
-# Specifies an ordered list of seed files to load during db reset.
-# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
-
-[db.network_restrictions]
-# Enable management of network restrictions.
-enabled = false
-# List of IPv4 CIDR blocks allowed to connect to the database.
-# Defaults to allow all IPv4 connections. Set empty array to block all IPs.
-allowed_cidrs = ["0.0.0.0/0"]
-# List of IPv6 CIDR blocks allowed to connect to the database.
-# Defaults to allow all IPv6 connections. Set empty array to block all IPs.
-allowed_cidrs_v6 = ["::/0"]
-
-# Uncomment to reject non-secure connections to the database.
-# [db.ssl_enforcement]
-# enabled = true
-
-[realtime]
-enabled = true
-# Bind realtime via either IPv4 or IPv6. (default: IPv4)
-# ip_version = "IPv6"
-# The maximum length in bytes of HTTP request headers. (default: 4096)
-# max_header_length = 4096
-
-[studio]
-enabled = true
-# Port to use for Supabase Studio.
-port = 54323
-# External URL of the API server that frontend connects to.
-api_url = "http://127.0.0.1"
-# OpenAI API Key to use for Supabase AI in the Supabase Studio.
-openai_api_key = "env(OPENAI_API_KEY)"
-
-# Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
-# are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
-enabled = true
-# Port to use for the email testing server web interface.
-port = 54324
-# Uncomment to expose additional ports for testing user applications that send emails.
-# smtp_port = 54325
-# pop3_port = 54326
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
-
-[storage]
-enabled = true
-# The maximum file size allowed (e.g. "5MB", "500KB").
-file_size_limit = "50MiB"
-
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
-# public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
-
-# Allow connections via S3 compatible clients
-[storage.s3_protocol]
-enabled = true
-
-# Image transformation API is available to Supabase Pro plan.
-# [storage.image_transformation]
-# enabled = true
-
-# Store analytical data in S3 for running ETL jobs over Iceberg Catalog
-# This feature is only available on the hosted platform.
-[storage.analytics]
-enabled = false
-max_namespaces = 5
-max_tables = 10
-max_catalogs = 2
-
-# Analytics Buckets is available to Supabase Pro plan.
-# [storage.analytics.buckets.my-warehouse]
-
-# Store vector embeddings in S3 for large and durable datasets
-# This feature is only available on the hosted platform.
-[storage.vector]
-enabled = false
-max_buckets = 10
-max_indexes = 5
-
-# Vector Buckets is available to Supabase Pro plan.
-# [storage.vector.buckets.documents-openai]
-
-[auth]
-enabled = true
-# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
-site_url = "http://127.0.0.1:3000"
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
-# How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
-jwt_expiry = 3600
-# JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
-# jwt_issuer = ""
-# Path to JWT signing key. DO NOT commit your signing keys file to git.
-# signing_keys_path = "./signing_keys.json"
-# If disabled, the refresh token will never expire.
-enable_refresh_token_rotation = true
-# Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
-# Requires enable_refresh_token_rotation = true.
-refresh_token_reuse_interval = 10
-# Allow/disallow new user signups to your project.
-enable_signup = true
-# Allow/disallow anonymous sign-ins to your project.
-enable_anonymous_sign_ins = false
-# Allow/disallow testing manual linking of accounts
-enable_manual_linking = false
-# Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 6
-# Passwords that do not meet the following requirements will be rejected as weak. Supported values
-# are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
-password_requirements = ""
-
-[auth.rate_limit]
-# Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
-# Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
-sms_sent = 30
-# Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
-anonymous_users = 30
-# Number of sessions that can be refreshed in a 5 minute interval per IP address.
-token_refresh = 150
-# Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-sign_in_sign_ups = 30
-# Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
-token_verifications = 30
-# Number of Web3 logins that can be made in a 5 minute interval per IP address.
-web3 = 30
-
-# Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
-
-[auth.email]
-# Allow/disallow new user signups via email to your project.
-enable_signup = true
-# If enabled, a user will be required to confirm any email change on both the old, and new email
-# addresses. If disabled, only the new email is required to confirm.
-double_confirm_changes = true
-# If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
-# If enabled, users will need to reauthenticate or have logged in recently to change their password.
-secure_password_change = false
-# Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
-# Number of characters used in the email OTP.
-otp_length = 6
-# Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
-
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
-
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
-
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
-
-[auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
-# If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
-# Template for sending OTP to users
-template = "Your code is {{ .Code }}"
-# Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
-
-# Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
-
-# Configure logged in session timeouts.
-# [auth.sessions]
-# Force log out after the specified duration.
-# timebox = "24h"
-# Force log out if the user has been inactive longer than the specified duration.
-# inactivity_timeout = "8h"
-
-# This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
-# [auth.hook.before_user_created]
-# enabled = true
-# uri = "pg-functions://postgres/auth/before-user-created-hook"
-
-# This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
-# [auth.hook.custom_access_token]
-# enabled = true
-# uri = "pg-functions://<database>/<schema>/<hook_name>"
-
-# Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-[auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
-
-# Multi-factor-authentication is available to Supabase Pro plan.
-[auth.mfa]
-# Control how many MFA factors can be enrolled at once per user.
-max_enrolled_factors = 10
-
-# Control MFA via App Authenticator (TOTP)
-[auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
-
-# Configure MFA via Phone Messaging
-[auth.mfa.phone]
-enroll_enabled = false
-verify_enabled = false
-otp_length = 6
-template = "Your code is {{ .Code }}"
-max_frequency = "5s"
-
-# Configure MFA via WebAuthn
-# [auth.mfa.web_authn]
-# enroll_enabled = true
-# verify_enabled = true
-
-# Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
-# `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
-# `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
-[auth.external.apple]
-enabled = false
-client_id = ""
-# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
-secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
-# Overrides the default auth redirectUrl.
-redirect_uri = ""
-# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
-# or any other third-party OIDC providers.
-url = ""
-# If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
-skip_nonce_check = false
-# If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
-email_optional = false
-
-# Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
-# You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
-[auth.web3.solana]
-enabled = false
-
-# Use Firebase Auth as a third-party provider alongside Supabase Auth.
-[auth.third_party.firebase]
-enabled = false
-# project_id = "my-firebase-project"
-
-# Use Auth0 as a third-party provider alongside Supabase Auth.
-[auth.third_party.auth0]
-enabled = false
-# tenant = "my-auth0-tenant"
-# tenant_region = "us"
-
-# Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
-[auth.third_party.aws_cognito]
-enabled = false
-# user_pool_id = "my-user-pool-id"
-# user_pool_region = "us-east-1"
-
-# Use Clerk as a third-party provider alongside Supabase Auth.
-[auth.third_party.clerk]
-enabled = false
-# Obtain from https://clerk.com/setup/supabase
-# domain = "example.clerk.accounts.dev"
-
-# OAuth server configuration
-[auth.oauth_server]
-# Enable OAuth server functionality
-enabled = false
-# Path for OAuth consent flow UI
-authorization_url_path = "/oauth/consent"
-# Allow dynamic client registration
-allow_dynamic_registration = false
-
-[edge_runtime]
-enabled = true
-# Supported request policies: `oneshot`, `per_worker`.
-# `per_worker` (default) — enables hot reload during local development.
-# `oneshot` — fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
-policy = "per_worker"
-# Port to attach the Chrome inspector for debugging edge functions.
-inspector_port = 8083
-# The Deno major version to use.
-deno_version = 2
-
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
-
-[analytics]
-enabled = true
-port = 54327
-# Configure one of the supported backends: `postgres`, `bigquery`.
-backend = "postgres"
-
-# Experimental features may be deprecated any time
-[experimental]
-# Configures Postgres storage engine to use OrioleDB (S3)
-orioledb_version = ""
-# Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
-s3_host = "env(S3_HOST)"
-# Configures S3 bucket region, eg. us-east-1
-s3_region = "env(S3_REGION)"
-# Configures AWS_ACCESS_KEY_ID for S3 bucket
-s3_access_key = "env(S3_ACCESS_KEY)"
-# Configures AWS_SECRET_ACCESS_KEY for S3 bucket
-s3_secret_key = "env(S3_SECRET_KEY)"
-
-```
-
-================================================================
-FILE: supabase/functions/map-match/index.ts
-================================================================
-```ts
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
-const MAPBOX_SECRET = Deno.env.get("MAPBOX_SECRET_TOKEN");
-
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  if (!MAPBOX_SECRET) {
-    return new Response(
-      JSON.stringify({ error: "MAPBOX_SECRET_TOKEN not configured" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-
-  try {
-    const body = await req.json();
-    const points = body?.points ?? [];
-    if (!Array.isArray(points) || points.length < 2) {
-      return new Response(
-        JSON.stringify({ error: "points array with at least 2 items required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const coords = points
-      .map((p: { lat: number; lng: number }) => `${p.lng},${p.lat}`)
-      .join(";");
-    const timestamps = points
-      .map((p: { timestamp?: number }) => p.timestamp ?? Math.floor(Date.now() / 1000))
-      .join(";");
-
-    const url = `https://api.mapbox.com/matching/v5/mapbox/driving/${coords}?access_token=${MAPBOX_SECRET}&geometries=geojson&tidy=true&timestamps=${timestamps}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!res.ok) {
-      return new Response(
-        JSON.stringify({ error: data.message ?? "Map matching failed" }),
-        { status: res.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const match = data.matchings?.[0];
-    const geometry = match?.geometry;
-    const confidence = match?.confidence ?? 0;
-
-    return new Response(
-      JSON.stringify({ geometry, confidence }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
-
-```
-
-================================================================
-FILE: supabase/migrations/20260304134200_create_profiles.sql
-================================================================
-```sql
--- Tabla profiles (compatible con auth.users)
--- Campos obligatorios: full_name, phone, brand, model, color, vehicle_type, plate
--- Campo opcional: avatar_url
--- Nota: crear bucket 'avatars' en Storage con políticas públicas de lectura
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  full_name text,
-  avatar_url text,
-  display_name text,
-  brand text,
-  model text,
-  color text default 'gris',
-  vehicle_type text default 'car',
-  plate text,
-  phone text,
-  allow_phone_calls boolean default false,
-  notifications_enabled boolean default true,
-  email_notifications boolean default true,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- RLS: usuarios solo pueden leer/actualizar su propio perfil
-alter table public.profiles enable row level security;
-
-create policy "Users can view own profile"
-  on public.profiles for select
-  using (auth.uid() = id);
-
-create policy "Users can update own profile"
-  on public.profiles for update
-  using (auth.uid() = id);
-
-create policy "Users can insert own profile"
-  on public.profiles for insert
-  with check (auth.uid() = id);
-
-```
-
-================================================================
-FILE: supabase/migrations/20260304150000_create_parking_alerts.sql
-================================================================
-```sql
--- Tabla parking_alerts para migración desde base44
-create table if not exists public.parking_alerts (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references public.profiles(id) on delete cascade,
-  lat double precision not null,
-  lng double precision not null,
-  price numeric not null,
-  vehicle_type text default 'car',
-  status text default 'active',
-  reserved_by uuid references public.profiles(id) on delete set null,
-  created_at timestamptz default now(),
-  expires_at timestamptz
-);
-
--- Índices para consultas frecuentes
-create index if not exists idx_parking_alerts_status on public.parking_alerts(status);
-create index if not exists idx_parking_alerts_user_id on public.parking_alerts(user_id);
-create index if not exists idx_parking_alerts_expires_at on public.parking_alerts(expires_at);
-
--- RLS
-alter table public.parking_alerts enable row level security;
-
--- Usuario puede insertar sus alertas
-create policy "Users can insert own alerts"
-  on public.parking_alerts for insert
-  with check (auth.uid() = user_id);
-
--- Usuario puede ver alertas activas (mapa) y sus propias alertas
-create policy "Users can view active and own alerts"
-  on public.parking_alerts for select
-  using (
-    status = 'active'
-    or auth.uid() = user_id
-    or auth.uid() = reserved_by
-  );
-
--- Usuario puede actualizar sus alertas (owner) o reservar alertas activas (buyer)
-create policy "Users can update own or reserve active alerts"
-  on public.parking_alerts for update
-  using (
-    auth.uid() = user_id
-    or (status = 'active' and auth.uid() is not null)
-  );
-
-```
-
-================================================================
-FILE: supabase/migrations/20260304160000_enable_realtime_parking_alerts.sql
-================================================================
-```sql
--- Habilitar Realtime para parking_alerts
-alter publication supabase_realtime add table public.parking_alerts;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260304170000_add_geohash_parking_alerts.sql
-================================================================
-```sql
--- Añadir columna geohash a parking_alerts
-alter table public.parking_alerts add column if not exists geohash text;
-
--- Índice compuesto para búsquedas por geohash + status
-create index if not exists idx_parking_alerts_geohash_status on public.parking_alerts(geohash, status);
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305120000_fix_profiles_rls_and_trigger.sql
-================================================================
-```sql
--- Fix profiles: trigger para nuevos usuarios + políticas RLS explícitas
--- Resuelve "Error al guardar" al actualizar perfil
-
--- 1. Asegurar que la tabla profiles existe con estructura correcta
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  full_name text,
-  avatar_url text,
-  display_name text,
-  brand text,
-  model text,
-  color text default 'gris',
-  vehicle_type text default 'car',
-  plate text,
-  phone text,
-  allow_phone_calls boolean default false,
-  notifications_enabled boolean default true,
-  email_notifications boolean default true,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- 2. RLS activado
-alter table public.profiles enable row level security;
-
--- 3. Eliminar políticas existentes para recrearlas (evita conflictos)
-drop policy if exists "Users can view own profile" on public.profiles;
-drop policy if exists "Users can update own profile" on public.profiles;
-drop policy if exists "Users can insert own profile" on public.profiles;
-
--- 4. Políticas RLS explícitas
-create policy "Users can view own profile"
-  on public.profiles for select
-  using (auth.uid() = id);
-
-create policy "Users can insert own profile"
-  on public.profiles for insert
-  with check (auth.uid() = id);
-
-create policy "Users can update own profile"
-  on public.profiles for update
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
-
--- 5. Trigger: crear perfil automáticamente al registrar usuario
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (id, email, full_name, avatar_url)
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'),
-    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture')
-  )
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row
-  execute procedure public.handle_new_user();
-
--- 6. Backfill: crear perfiles para usuarios existentes sin perfil
-insert into public.profiles (id, email, full_name, avatar_url)
-select
-  u.id,
-  u.email,
-  coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name'),
-  coalesce(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture')
-from auth.users u
-where not exists (select 1 from public.profiles p where p.id = u.id)
-on conflict (id) do nothing;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305155000_migrate_parking_alerts_to_core.sql
-================================================================
-```sql
--- Migración segura: parking_alerts de schema antiguo (user_id, price) a core (seller_id, price_cents)
--- Solo ALTERs, idempotente con IF NOT EXISTS. No usar borrado de tablas.
-
--- Añadir columnas del schema core
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS seller_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS address_text text;
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS price_cents int;
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS currency text DEFAULT 'EUR';
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS metadata jsonb DEFAULT '{}'::jsonb;
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
-
--- Backfill: seller_id desde user_id, price_cents desde price
-UPDATE public.parking_alerts SET seller_id = user_id WHERE seller_id IS NULL AND user_id IS NOT NULL;
-UPDATE public.parking_alerts SET price_cents = COALESCE(price_cents, GREATEST(0, floor(COALESCE(price, 0) * 100)::int)) WHERE price_cents IS NULL;
-UPDATE public.parking_alerts SET updated_at = created_at WHERE updated_at IS NULL;
-
--- Constraints y defaults para filas nuevas (solo si la columna existe)
-ALTER TABLE public.parking_alerts ALTER COLUMN price_cents SET DEFAULT 0;
-ALTER TABLE public.parking_alerts ALTER COLUMN currency SET DEFAULT 'EUR';
-ALTER TABLE public.parking_alerts ALTER COLUMN metadata SET DEFAULT '{}'::jsonb;
-ALTER TABLE public.parking_alerts ALTER COLUMN updated_at SET DEFAULT now();
-
--- Índice para seller_id
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_seller_id ON public.parking_alerts(seller_id);
-
--- Políticas core: eliminar antiguas y crear nuevas (DROP POLICY es seguro, no borra datos)
-DROP POLICY IF EXISTS "Users can insert own alerts" ON public.parking_alerts;
-DROP POLICY IF EXISTS "Users can view active and own alerts" ON public.parking_alerts;
-DROP POLICY IF EXISTS "Users can update own or reserve active alerts" ON public.parking_alerts;
-DROP POLICY IF EXISTS "parking_alerts_select_all" ON public.parking_alerts;
-DROP POLICY IF EXISTS "parking_alerts_insert_own" ON public.parking_alerts;
-DROP POLICY IF EXISTS "parking_alerts_update_own" ON public.parking_alerts;
-DROP POLICY IF EXISTS "parking_alerts_delete_own" ON public.parking_alerts;
-
-CREATE POLICY "parking_alerts_select_all" ON public.parking_alerts FOR SELECT USING (true);
-CREATE POLICY "parking_alerts_insert_own" ON public.parking_alerts FOR INSERT WITH CHECK (seller_id = auth.uid() OR (seller_id IS NULL AND user_id = auth.uid()));
-CREATE POLICY "parking_alerts_update_own" ON public.parking_alerts FOR UPDATE USING (seller_id = auth.uid() OR (seller_id IS NULL AND user_id = auth.uid()));
-CREATE POLICY "parking_alerts_delete_own" ON public.parking_alerts FOR DELETE USING (seller_id = auth.uid() OR (seller_id IS NULL AND user_id = auth.uid()));
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305160000_core_schema.sql
-================================================================
-```sql
--- =============================================================================
--- WaitMe Core Schema - Migración profesional (idempotente, sin borrado de tablas)
--- Requiere: public.profiles, auth.users, public.parking_alerts (de migraciones previas)
---
--- Si ALTER PUBLICATION falla con "already member", añadir tablas en Dashboard:
---   Database → Replication → supabase_realtime
--- =============================================================================
-
--- 1) parking_alerts: ya existe de 20260304150000, migrado por 20260305155000
---    Solo aseguramos trigger updated_at
-CREATE OR REPLACE FUNCTION public.set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS parking_alerts_updated_at ON public.parking_alerts;
-CREATE TRIGGER parking_alerts_updated_at
-  BEFORE UPDATE ON public.parking_alerts
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- 2) alert_reservations
-CREATE TABLE IF NOT EXISTS public.alert_reservations (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  alert_id uuid NOT NULL REFERENCES public.parking_alerts(id) ON DELETE CASCADE,
-  buyer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  status text NOT NULL CHECK (status IN ('requested','accepted','active','completed','cancelled','expired')),
-  started_at timestamptz,
-  expires_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_alert_reservations_alert_id ON public.alert_reservations(alert_id);
-CREATE INDEX IF NOT EXISTS idx_alert_reservations_buyer_id ON public.alert_reservations(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_alert_reservations_status ON public.alert_reservations(status);
-
-ALTER TABLE public.alert_reservations ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "alert_reservations_select" ON public.alert_reservations;
-DROP POLICY IF EXISTS "alert_reservations_insert" ON public.alert_reservations;
-DROP POLICY IF EXISTS "alert_reservations_update" ON public.alert_reservations;
-CREATE POLICY "alert_reservations_select" ON public.alert_reservations FOR SELECT
-  USING (
-    buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND (pa.seller_id = auth.uid() OR pa.user_id = auth.uid()))
-  );
-CREATE POLICY "alert_reservations_insert" ON public.alert_reservations FOR INSERT
-  WITH CHECK (buyer_id = auth.uid());
-CREATE POLICY "alert_reservations_update" ON public.alert_reservations FOR UPDATE
-  USING (
-    buyer_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.parking_alerts pa WHERE pa.id = alert_id AND (pa.seller_id = auth.uid() OR pa.user_id = auth.uid()))
-  );
-
-DROP TRIGGER IF EXISTS alert_reservations_updated_at ON public.alert_reservations;
-CREATE TRIGGER alert_reservations_updated_at
-  BEFORE UPDATE ON public.alert_reservations
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- 3) conversations
-CREATE TABLE IF NOT EXISTS public.conversations (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  alert_id uuid REFERENCES public.parking_alerts(id) ON DELETE SET NULL,
-  buyer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  seller_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(alert_id, buyer_id, seller_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_conversations_buyer_id ON public.conversations(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_conversations_seller_id ON public.conversations(seller_id);
-
-ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "conversations_select" ON public.conversations;
-DROP POLICY IF EXISTS "conversations_insert" ON public.conversations;
-DROP POLICY IF EXISTS "conversations_update" ON public.conversations;
-CREATE POLICY "conversations_select" ON public.conversations FOR SELECT
-  USING (buyer_id = auth.uid() OR seller_id = auth.uid());
-CREATE POLICY "conversations_insert" ON public.conversations FOR INSERT
-  WITH CHECK (buyer_id = auth.uid() OR seller_id = auth.uid());
-CREATE POLICY "conversations_update" ON public.conversations FOR UPDATE
-  USING (buyer_id = auth.uid() OR seller_id = auth.uid());
-
--- 4) messages
-CREATE TABLE IF NOT EXISTS public.messages (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
-  sender_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  body text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_messages_conversation_created ON public.messages(conversation_id, created_at DESC);
-
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "messages_select" ON public.messages;
-DROP POLICY IF EXISTS "messages_insert" ON public.messages;
-CREATE POLICY "messages_select" ON public.messages FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.conversations c
-      WHERE c.id = conversation_id AND (c.buyer_id = auth.uid() OR c.seller_id = auth.uid())
+      (payload) => {
+        const row = payload.new;
+        if (row && row.status === 'active' && onUpsert) {
+          onUpsert(normalizeAlert(row));
+        }
+      }
     )
-  );
-CREATE POLICY "messages_insert" ON public.messages FOR INSERT
-  WITH CHECK (
-    sender_id = auth.uid()
-    AND EXISTS (
-      SELECT 1 FROM public.conversations c
-      WHERE c.id = conversation_id AND (c.buyer_id = auth.uid() OR c.seller_id = auth.uid())
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'parking_alerts',
+      },
+      (payload) => {
+        const row = payload.new;
+        if (row && onUpsert) {
+          onUpsert(normalizeAlert(row));
+        }
+      }
     )
-  );
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'parking_alerts',
+      },
+      (payload) => {
+        const id = payload.old?.id;
+        if (id && onDelete) onDelete(id);
+      }
+    )
+    .subscribe((status, err) => {
+      if (err) {
+        console.error('Realtime parking_alerts error:', err);
+        try {
+          useAppStore.getState().setError('realtime_error');
+        } catch (_) {}
+      }
+    });
 
--- 5) user_locations
-CREATE TABLE IF NOT EXISTS public.user_locations (
-  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  lat double precision NOT NULL,
-  lng double precision NOT NULL,
-  accuracy_m double precision,
-  heading double precision,
-  speed_mps double precision,
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+  return () => {
+    try {
+      supabase.removeChannel(channel);
+    } catch (_) {}
+  };
+}
 
-CREATE INDEX IF NOT EXISTS idx_user_locations_updated_at ON public.user_locations(updated_at);
-
-ALTER TABLE public.user_locations ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "user_locations_select_all" ON public.user_locations;
-DROP POLICY IF EXISTS "user_locations_insert_own" ON public.user_locations;
-DROP POLICY IF EXISTS "user_locations_update_own" ON public.user_locations;
-CREATE POLICY "user_locations_select_all" ON public.user_locations FOR SELECT USING (true);
-CREATE POLICY "user_locations_insert_own" ON public.user_locations FOR INSERT WITH CHECK (user_id = auth.uid());
-CREATE POLICY "user_locations_update_own" ON public.user_locations FOR UPDATE USING (user_id = auth.uid());
-
--- Realtime: añadir tablas a la publicación (ignorar si ya están)
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.parking_alerts;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.alert_reservations;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.user_locations;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305170000_add_geohash_and_reservation_trigger.sql
-================================================================
-```sql
--- Añadir geohash a parking_alerts para búsquedas por proximidad (getNearbyAlerts)
--- Trigger: al aceptar reserva, actualizar status de la alerta a 'reserved'
-
--- Geohash para consultas espaciales
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS geohash text;
-CREATE INDEX IF NOT EXISTS idx_parking_alerts_geohash_status ON public.parking_alerts(geohash, status);
-
--- Trigger: cuando reservation pasa a status 'accepted', marcar alerta como reserved
-CREATE OR REPLACE FUNCTION public.on_reservation_accepted()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.status = 'accepted' THEN
-    UPDATE public.parking_alerts
-    SET status = 'reserved', updated_at = now()
-    WHERE id = NEW.alert_id AND status = 'active';
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS trigger_on_reservation_accepted_insert ON public.alert_reservations;
-CREATE TRIGGER trigger_on_reservation_accepted_insert
-  AFTER INSERT ON public.alert_reservations
-  FOR EACH ROW EXECUTE FUNCTION public.on_reservation_accepted();
-
-DROP TRIGGER IF EXISTS trigger_on_reservation_accepted_update ON public.alert_reservations;
-CREATE TRIGGER trigger_on_reservation_accepted_update
-  AFTER UPDATE ON public.alert_reservations
-  FOR EACH ROW
-  WHEN (OLD.status IS DISTINCT FROM NEW.status AND NEW.status = 'accepted')
-  EXECUTE FUNCTION public.on_reservation_accepted();
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305180000_conversations_last_message.sql
-================================================================
-```sql
--- Añadir last_message a conversations para la lista de chats
-ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS last_message_text text;
-ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS last_message_at timestamptz;
-
--- Trigger: actualizar last_message al insertar mensaje
-CREATE OR REPLACE FUNCTION public.on_message_inserted()
-RETURNS TRIGGER AS $$
-BEGIN
-  UPDATE public.conversations
-  SET last_message_text = NEW.body,
-      last_message_at = NEW.created_at
-  WHERE id = NEW.conversation_id;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS trigger_on_message_inserted ON public.messages;
-CREATE TRIGGER trigger_on_message_inserted
-  AFTER INSERT ON public.messages
-  FOR EACH ROW EXECUTE FUNCTION public.on_message_inserted();
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305190000_transactions.sql
-================================================================
-```sql
--- Tabla transactions para historial de pagos
-CREATE TABLE IF NOT EXISTS public.transactions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  buyer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  seller_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  alert_id uuid REFERENCES public.parking_alerts(id) ON DELETE SET NULL,
-  amount numeric(10,2) NOT NULL DEFAULT 0,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','completed','cancelled','refunded')),
-  seller_earnings numeric(10,2),
-  platform_fee numeric(10,2),
-  address text,
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_transactions_buyer_id ON public.transactions(buyer_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_seller_id ON public.transactions(seller_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_alert_id ON public.transactions(alert_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON public.transactions(created_at DESC);
-
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "transactions_select_own" ON public.transactions FOR SELECT
-  USING (buyer_id = auth.uid() OR seller_id = auth.uid());
-CREATE POLICY "transactions_insert" ON public.transactions FOR INSERT
-  WITH CHECK (buyer_id = auth.uid() OR seller_id = auth.uid());
-CREATE POLICY "transactions_update_own" ON public.transactions FOR UPDATE
-  USING (buyer_id = auth.uid() OR seller_id = auth.uid());
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305200000_storage_uploads_bucket.sql
-================================================================
-```sql
--- Bucket para uploads (chat adjuntos, etc.)
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'uploads',
-  'uploads',
-  true,
-  10485760,
-  ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'video/mp4', 'video/webm']
-)
-ON CONFLICT (id) DO NOTHING;
-
--- RLS: usuarios autenticados pueden subir; público puede leer
-DROP POLICY IF EXISTS "uploads_insert_authenticated" ON storage.objects;
-CREATE POLICY "uploads_insert_authenticated" ON storage.objects FOR INSERT
-  TO authenticated WITH CHECK (bucket_id = 'uploads');
-DROP POLICY IF EXISTS "uploads_select_public" ON storage.objects;
-CREATE POLICY "uploads_select_public" ON storage.objects FOR SELECT
-  USING (bucket_id = 'uploads');
-DROP POLICY IF EXISTS "uploads_delete_authenticated" ON storage.objects;
-CREATE POLICY "uploads_delete_authenticated" ON storage.objects FOR DELETE
-  TO authenticated USING (bucket_id = 'uploads');
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305210000_notifications.sql
-================================================================
-```sql
--- Tabla notifications para notificaciones de usuario
-CREATE TABLE IF NOT EXISTS public.notifications (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  type text NOT NULL DEFAULT 'status_update',
-  title text NOT NULL DEFAULT '',
-  message text NOT NULL DEFAULT '',
-  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  is_read boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON public.notifications(user_id, is_read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at DESC);
-
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "notifications_select_own" ON public.notifications FOR SELECT
-  USING (user_id = auth.uid());
-CREATE POLICY "notifications_insert" ON public.notifications FOR INSERT
-  WITH CHECK (true);
-CREATE POLICY "notifications_update_own" ON public.notifications FOR UPDATE
-  USING (user_id = auth.uid());
-
--- Habilitar Realtime para subscribeNotifications
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305220000_profiles_notify_columns.sql
-================================================================
-```sql
--- Añadir columnas de preferencias de notificación a profiles
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notify_reservations boolean DEFAULT true;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notify_payments boolean DEFAULT true;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notify_proximity boolean DEFAULT true;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notify_promotions boolean DEFAULT true;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260305230000_user_location_updates.sql
-================================================================
-```sql
--- Tabla user_location_updates: ubicaciones de compradores por alerta (para SellerLocationTracker)
--- Sustituye el modelo Base44 UserLocation con alert_id.
--- user_locations (existente) queda para ubicación global por usuario; esta tabla es por (user, alert).
-CREATE TABLE IF NOT EXISTS public.user_location_updates (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  alert_id uuid NOT NULL REFERENCES public.parking_alerts(id) ON DELETE CASCADE,
-  lat double precision NOT NULL,
-  lng double precision NOT NULL,
-  accuracy_m double precision,
-  is_active boolean NOT NULL DEFAULT true,
-  updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(user_id, alert_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_user_location_updates_alert_id ON public.user_location_updates(alert_id);
-CREATE INDEX IF NOT EXISTS idx_user_location_updates_alert_active ON public.user_location_updates(alert_id, is_active) WHERE is_active = true;
-
-ALTER TABLE public.user_location_updates ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "user_location_updates_select_all" ON public.user_location_updates FOR SELECT USING (true);
-CREATE POLICY "user_location_updates_insert_own" ON public.user_location_updates FOR INSERT WITH CHECK (user_id = auth.uid());
-CREATE POLICY "user_location_updates_update_own" ON public.user_location_updates FOR UPDATE USING (user_id = auth.uid());
-
--- Realtime para SellerLocationTracker
-DO $$
-BEGIN
-  ALTER PUBLICATION supabase_realtime ADD TABLE public.user_location_updates;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-```
-
-================================================================
-FILE: supabase/migrations/20260306000000_add_vehicle_color_parking_alerts.sql
-================================================================
-```sql
--- Añadir vehicle_color a parking_alerts para iconos en mapa
-ALTER TABLE public.parking_alerts ADD COLUMN IF NOT EXISTS vehicle_color text;
+function normalizeAlert(row) {
+  const sellerId = row.seller_id ?? row.user_id;
+  const price = row.price_cents != null ? row.price_cents / 100 : (row.price ?? 0);
+  const meta = row.metadata || {};
+  return {
+    id: row.id,
+    user_id: sellerId,
+    seller_id: sellerId,
+    lat: row.lat,
+    lng: row.lng,
+    latitude: row.lat,
+    longitude: row.lng,
+    price,
+    price_cents: row.price_cents,
+    vehicle_type: row.vehicle_type ?? meta.vehicle_type ?? 'car',
+    status: row.status,
+    reserved_by: row.reserved_by ?? null,
+    created_at: row.created_at,
+    expires_at: row.expires_at,
+    geohash: row.geohash ?? null,
+    address_text: row.address_text,
+  };
+}
 
 ```

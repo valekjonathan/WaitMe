@@ -1,8 +1,48 @@
 # Codebase Export Index
 
-Generated: 2026-03-06T13:27:21.130Z
-Total files: 283
-Parts: 16
+Generated: 2026-03-06T13:27:55.057Z
+Total files exported: 284
+Parts: 17
+
+## Incluido
+- src/**
+- public/**
+- tests/**
+- .storybook/**
+- docs/** (excepto CODEBASE_EXPORT_*)
+- package.json, package-lock.json
+- vite.config.js, playwright.config.js
+- eslint/prettier config
+- capacitor.config.*
+- supabase config y migrations
+- .env.example
+
+## Excluido
+- node_modules, dist, storybook-static
+- .git, quarantine
+- ios/App/App/public/assets (build output)
+- .env (secretos)
+- archivos binarios (png, woff, etc.)
+
+## Quarantine (solo listado)
+```
+quarantine/README.md
+quarantine/components/ActiveAlertCard.jsx
+quarantine/components/ErrorBoundary.jsx
+quarantine/components/UserNotRegisteredError.jsx
+quarantine/hooks/use-mobile.jsx
+quarantine/hooks/useAlertsQuery.js
+quarantine/hooks/useDebouncedSave.js
+quarantine/hooks/useMapMatch.js
+quarantine/lib/PageNotFound.jsx
+quarantine/lib/logger.js
+quarantine/lib/maps/carUtils.js
+quarantine/lib/maps/mapConstants.js
+quarantine/lib/maps/mapMarkers.js
+quarantine/lib/query-client.js
+quarantine/pages.config.js
+quarantine/services/alertService.js
+```
 
 ## File tree
 
@@ -120,6 +160,7 @@ ios/
 jsconfig.json
 knip.json
 manifest.json
+package-lock.json
 package.json
 playwright.config.js
 postcss.config.js
@@ -339,7 +380,7 @@ vitest.shims.d.ts
 
 ```
 
-## Parts
+## Snapshot parts
 
 - [CODEBASE_EXPORT_PART_01.md](docs/CODEBASE_EXPORT_PART_01.md)
 - [CODEBASE_EXPORT_PART_02.md](docs/CODEBASE_EXPORT_PART_02.md)
@@ -357,3 +398,4 @@ vitest.shims.d.ts
 - [CODEBASE_EXPORT_PART_14.md](docs/CODEBASE_EXPORT_PART_14.md)
 - [CODEBASE_EXPORT_PART_15.md](docs/CODEBASE_EXPORT_PART_15.md)
 - [CODEBASE_EXPORT_PART_16.md](docs/CODEBASE_EXPORT_PART_16.md)
+- [CODEBASE_EXPORT_PART_17.md](docs/CODEBASE_EXPORT_PART_17.md)
