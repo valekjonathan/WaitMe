@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
@@ -69,6 +69,7 @@ export default function App() {
     initStatusBar();
   }, []);
 
+  const capacitorSubRef = useRef(null);
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const onOAuthSuccess = () => {
@@ -79,12 +80,17 @@ export default function App() {
       await processOAuthUrl(url, onOAuthSuccess);
     };
     const handleAppUrlOpen = ({ url }) => handleUrl(url);
-    let sub;
-    CapacitorApp.addListener('appUrlOpen', handleAppUrlOpen).then((s) => (sub = s));
+    (async () => {
+      try {
+        capacitorSubRef.current = await CapacitorApp.addListener('appUrlOpen', handleAppUrlOpen);
+      } catch (e) {
+        console.error('Capacitor listener error', e);
+      }
+    })();
     CapacitorApp.getLaunchUrl().then((result) => {
       if (result?.url) handleUrl(result.url);
     }).catch(() => {});
-    return () => sub?.remove?.();
+    return () => capacitorSubRef.current?.remove?.();
   }, [checkUserAuth, navigate]);
 
   return (

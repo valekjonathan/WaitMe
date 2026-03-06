@@ -62,7 +62,17 @@ function LayoutShell() {
       />
       <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24">
         <div className="flex-1 min-h-0 flex flex-col">
-          <Suspense fallback={null}>
+          <Suspense fallback={<div style={{
+  background:"#0B0B0F",
+  height:"100vh",
+  width:"100%",
+  display:"flex",
+  alignItems:"center",
+  justifyContent:"center",
+  color:"white"
+}}>
+Loading WaitMe...
+</div>}>
             <Outlet />
           </Suspense>
         </div>

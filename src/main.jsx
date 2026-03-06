@@ -12,27 +12,7 @@ import SafeModeShell from "./diagnostics/SafeModeShell";
 import "./globals.css";
 import "./styles/no-zoom.css";
 
-// Captura global de errores — guarda en window.__WAITME_DIAG__ para diagnóstico
-function initErrorCapture() {
-  if (typeof window === "undefined") return;
-  window.__WAITME_DIAG__ = window.__WAITME_DIAG__ || { errors: [], maxErrors: 10 };
-
-  const push = (type, err) => {
-    const entry = { type, message: err?.message ?? String(err), stack: err?.stack, ts: Date.now() };
-    window.__WAITME_DIAG__.errors.push(entry);
-    if (window.__WAITME_DIAG__.errors.length > window.__WAITME_DIAG__.maxErrors) {
-      window.__WAITME_DIAG__.errors.shift();
-    }
-  };
-
-  window.onerror = (msg, src, line, col, err) => {
-    push("onerror", err || new Error(String(msg)));
-  };
-  window.addEventListener("unhandledrejection", (e) => {
-    push("unhandledrejection", e.reason);
-  });
-}
-initErrorCapture();
+// diagnostics.js es el único manejador global de errores (window.onerror, onunhandledrejection)
 
 const queryClient = new QueryClient({
   defaultOptions: {
