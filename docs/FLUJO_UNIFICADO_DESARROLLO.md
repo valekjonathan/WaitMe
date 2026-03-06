@@ -79,6 +79,7 @@ Los cambios se reflejan al guardar en:
 | Problema | Solución |
 |----------|----------|
 | "No se encontró IP local" | Conecta a WiFi (en0) o verifica interfaces de red |
+| "Puerto 5173 ocupado" | Cierra el proceso que lo usa: `lsof -i :5173` |
 | Simulator no carga | Verifica que Vite esté en 0.0.0.0:5173 (`--host`) |
-| iPhone no carga | Misma WiFi que el Mac; firewall no bloquea 5173 |
+| iPhone físico no carga | Ver **docs/FLUJO_IPHONE_FISICO.md** (permiso Red local, misma WiFi, firewall) |
 | Cambios no se ven | Live reload activo; si no, recarga manual en el dispositivo |
