@@ -9,8 +9,8 @@ import { Plus, Minus } from 'lucide-react';
 export default function MapZoomControls({ mapRef, className = '' }) {
   return (
     <div
-      className={`absolute left-[4%] z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
-      style={{ top: 10 }}
+      className={`absolute z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
+      style={{ top: 10, left: 'calc(4% + 1rem)' }}
     >
       <Button
         type="button"

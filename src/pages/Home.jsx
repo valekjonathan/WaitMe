@@ -244,13 +244,13 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Reverse geocode con debounce (300ms) para no spamear API durante move
+  // Reverse geocode con debounce (150ms) para feedback en tiempo real durante move
   const debouncedReverseGeocode = useCallback((lat, lng) => {
     if (debounceReverseRef.current) clearTimeout(debounceReverseRef.current);
     debounceReverseRef.current = setTimeout(() => {
       reverseGeocode(lat, lng);
       debounceReverseRef.current = null;
-    }, 300);
+    }, 150);
   }, [reverseGeocode]);
 
   // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
