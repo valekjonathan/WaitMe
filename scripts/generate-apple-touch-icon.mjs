@@ -18,7 +18,7 @@ const srcLogo = path.join(root, 'src/assets/d2ae993d3_WaitMe.png');
 const outPath = path.join(root, 'public/apple-touch-icon.png');
 
 const SIZE = 180;
-const LOGO_RATIO = 0.92; // logo ocupa ~92% del área
+const LOGO_RATIO = 0.95; // logo completo ocupa ~95% del área
 const logoSize = Math.round(SIZE * LOGO_RATIO);
 
 async function main() {
