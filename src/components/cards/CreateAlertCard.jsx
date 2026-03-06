@@ -51,9 +51,8 @@ export default function CreateAlertCard({
   };
 
   const handleUbicite = () => {
-    if (!mapRef?.current) {
-      console.warn('[Ubícate] mapRef no disponible');
-      return;
+    if (mapRef?.current) {
+      window.__WAITME_MAP__ = mapRef.current;
     }
 
     if (!navigator.geolocation) {
@@ -61,63 +60,21 @@ export default function CreateAlertCard({
       return;
     }
 
-    let resolved = false;
-    let fallbackTimer;
-
-    const resolve = (fn) => {
-      if (resolved) return;
-      resolved = true;
-      if (fallbackTimer != null) clearTimeout(fallbackTimer);
-      try {
-        fn?.();
-      } catch (err) {
-        try {
-          fallbackToMapCenter();
-        } catch {
-          // último recurso si todo falla
-        }
-      }
-    };
-
-    fallbackTimer = setTimeout(() => resolve(fallbackToMapCenter), 2000);
-
-    const onSuccess = (pos) => {
-      const coords = pos?.coords;
-      if (!coords || typeof coords.latitude !== 'number' || typeof coords.longitude !== 'number') {
-        resolve(fallbackToMapCenter);
-        return;
-      }
-      resolve(() => {
-        const { latitude, longitude } = coords;
-        const map = mapRef?.current;
-        if (map?.flyTo) {
-          onRecenter?.({ lat: latitude, lng: longitude });
-          map.flyTo({
-            center: [longitude, latitude],
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        if (window.__WAITME_MAP__) {
+          window.__WAITME_MAP__.flyTo({
+            center: [lng, lat],
             zoom: 17,
-            duration: 1200,
-            essential: true,
-            padding: { top: 0, bottom: 120, left: 0, right: 0 },
+            speed: 1.2,
           });
-        } else {
-          fallbackToMapCenter();
         }
-      });
-    };
-
-    const onError = () => {
-      resolve(fallbackToMapCenter);
-    };
-
-    try {
-      navigator.geolocation.getCurrentPosition(
-        onSuccess,
-        onError,
-        { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
-      );
-    } catch (err) {
-      resolve(fallbackToMapCenter);
-    }
+      },
+      fallbackToMapCenter,
+      { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
+    );
   };
 
   return (
