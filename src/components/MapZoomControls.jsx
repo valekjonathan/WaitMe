@@ -27,7 +27,7 @@ export default function MapZoomControls({ mapRef, className = '' }) {
   return (
     <div
       className={`absolute z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
-      style={{ top: 70, left: 'calc((100% - 92%) / 2 + 1rem)' }}
+      style={{ top: 70 }}
     >
       <Button
         type="button"

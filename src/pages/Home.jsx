@@ -102,6 +102,7 @@ export default function Home() {
   const mapRef = useRef(null);
   const modeRef = useRef(mode);
   const debounceReverseRef = useRef(null);
+  const lastGeocodeRef = useRef({ lat: null, lng: null });
   const [contentArea, setContentArea] = useState({ top: 0, height: 0 });
 
   useEffect(() => {
@@ -244,13 +245,15 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Reverse geocode con debounce (150ms) para feedback en tiempo real durante move
   const debouncedReverseGeocode = useCallback((lat, lng) => {
+    const prev = lastGeocodeRef.current;
+    if (prev.lat === lat && prev.lng === lng) return;
+    lastGeocodeRef.current = { lat, lng };
     if (debounceReverseRef.current) clearTimeout(debounceReverseRef.current);
     debounceReverseRef.current = setTimeout(() => {
       reverseGeocode(lat, lng);
       debounceReverseRef.current = null;
-    }, 150);
+    }, 200);
   }, [reverseGeocode]);
 
   // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
@@ -591,11 +594,9 @@ export default function Home() {
     return () => setHeader({ showBackButton: false, onBack: null, onTitleClick: null });
   }, [mode, handleBack, handleTitleClick, setHeader]);
 
-  const handleMapMove = useCallback((center) => {
-    const [lat, lng] = center;
-    setSelectedPosition({ lat, lng });
-    debouncedReverseGeocode(lat, lng);
-  }, [debouncedReverseGeocode]);
+  const handleMapMove = useCallback(() => {
+    /* No-op: evita setState por frame durante drag (reduce CPU/calentamiento) */
+  }, []);
 
   const handleMapMoveEnd = useCallback((center) => {
     const [lat, lng] = center;
@@ -651,7 +652,7 @@ export default function Home() {
         centerPinFromOverlay={mode === 'create' || mode === 'search'}
         centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
         onMapLoad={(map) => { mapRef.current = map; }}
-        onMapMove={mode === 'create' ? handleMapMove : mode === 'search' ? handleMapMoveSearch : undefined}
+        onMapMove={mode === 'create' ? handleMapMove : undefined}
         onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
       >
         {mode === 'create' && (
@@ -758,8 +759,11 @@ export default function Home() {
         )}
       </MapboxMap>
 
-      {/* Contenido UI por encima del mapa — pointer-events-none cuando hay mode para que el mapa reciba pan/zoom */}
-      <div className={`relative z-10 flex flex-col min-h-screen ${mode ? 'pointer-events-none' : ''}`}>
+      {/* En modo create/search: no cubrir el mapa; eventos pasan al canvas */}
+      <div
+        className={`relative z-10 flex flex-col min-h-screen ${mode ? 'pointer-events-none' : ''}`}
+        style={mode ? { pointerEvents: 'none' } : undefined}
+      >
       <main className={`flex-1 flex flex-col relative overflow-hidden min-h-0 ${mode ? 'pointer-events-none' : ''}`}>
         {/* CONTENT_AREA: hueco real entre header y bottom nav */}
         <div

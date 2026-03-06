@@ -185,6 +185,7 @@ export default function MapboxMap({
             attributionControl: false,
             dragPan: true,
             touchZoomRotate: true,
+            scrollZoom: true,
           });
 
           map.on('load', () => {
@@ -250,6 +251,7 @@ export default function MapboxMap({
     };
   }, []);
 
+  const lastFlownCenterRef = useRef(null);
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
     const map = mapRef.current;
@@ -257,6 +259,10 @@ export default function MapboxMap({
     const accuracy = location.accuracy ?? 50;
     centerRef.current = [lng, lat];
     accuracyRef.current = accuracy;
+
+    const key = `${lng.toFixed(5)}_${lat.toFixed(5)}`;
+    if (lastFlownCenterRef.current === key) return;
+    lastFlownCenterRef.current = key;
 
     if (useCenterPin) {
       const padding = centerPaddingBottom > 0
@@ -272,7 +278,6 @@ export default function MapboxMap({
       return;
     }
 
-    // Centrar mapa en ubicación del usuario (la punta morada del diseño está fija en el centro)
     const shouldRecenter = accuracy <= ACCURACY_RECENTER_THRESHOLD && lat !== 43.3619 && lng !== -5.8494;
     if (shouldRecenter && !hasFlownToUserRef.current) {
       hasFlownToUserRef.current = true;
@@ -370,16 +375,21 @@ export default function MapboxMap({
     }
   }, [mapReady, error, centerPaddingBottom]);
 
+  const onMapMoveRef = useRef(onMapMove);
+  const onMapMoveEndRef = useRef(onMapMoveEnd);
+  onMapMoveRef.current = onMapMove;
+  onMapMoveEndRef.current = onMapMoveEnd;
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
     const onMove = () => {
       const c = map.getCenter();
-      onMapMove?.([c.lat, c.lng]);
+      onMapMoveRef.current?.([c.lat, c.lng]);
     };
     const onMoveEnd = () => {
       const c = map.getCenter();
-      onMapMoveEnd?.([c.lat, c.lng]);
+      onMapMoveEndRef.current?.([c.lat, c.lng]);
     };
     map.on('move', onMove);
     map.on('moveend', onMoveEnd);
@@ -387,7 +397,7 @@ export default function MapboxMap({
       map.off('move', onMove);
       map.off('moveend', onMoveEnd);
     };
-  }, [mapReady, error, useCenterPin, onMapMove, onMapMoveEnd]);
+  }, [mapReady, error, useCenterPin]);
 
 
   if (error) {
@@ -411,14 +421,16 @@ export default function MapboxMap({
     height: '100%',
     minHeight: isZeroSize ? '100vh' : '100dvh',
     minWidth: '100%',
+    touchAction: 'manipulation',
   };
 
+  const { style: restStyle, ...restProps } = rest;
   return (
     <div
       ref={containerRef}
       className={`${className} w-full h-full relative`}
-      style={{ ...containerStyle, touchAction: 'none' }}
-      {...rest}
+      style={{ ...containerStyle, ...restStyle }}
+      {...restProps}
     >
       {useCenterPin && !centerPinFromOverlay && <CenterPin />}
       {children}

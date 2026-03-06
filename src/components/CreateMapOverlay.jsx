@@ -43,12 +43,16 @@ export default function CreateMapOverlay({
   }, []);
 
   return (
-    <>
-      {/* Tarjeta — único elemento que captura en su área */}
+    <div className="absolute inset-0 z-10 pointer-events-none" aria-hidden="true">
+      {/* Tarjeta — pointer-events-auto solo en su área */}
       <div
         ref={cardRef}
         className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] z-20 pointer-events-auto"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)' }}
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)',
+          maxHeight: 'min(55vh, 340px)',
+          overflowY: 'auto',
+        }}
       >
         <CreateAlertCard
           address={address}
@@ -68,8 +72,8 @@ export default function CreateMapOverlay({
         </div>
       )}
 
-      {/* Zoom — alineado con borde izquierdo de tarjeta */}
-      <MapZoomControls mapRef={mapRef} />
-    </>
+      {/* Zoom — alineado con borde izquierdo de tarjeta (4% = mitad del margen 92%) */}
+      <MapZoomControls mapRef={mapRef} className="left-[4%]" />
+    </div>
   );
 }
