@@ -8,7 +8,7 @@ export default function MapScreenPanel({ children, className = '', style = {}, .
     <div
       className={`absolute left-0 right-0 bottom-0 flex justify-center pointer-events-none z-20 ${className}`.trim()}
       style={{
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 86px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)',
         ...style,
       }}
       data-map-screen-panel
