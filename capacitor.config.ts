@@ -5,10 +5,6 @@ const config: CapacitorConfig = {
   appName: 'WaitMe',
   webDir: 'dist',
   bundledWebRuntime: false,
-  server: {
-    url: 'http://192.168.0.15:5173',
-    cleartext: true,
-  },
 };
 
 export default config;
