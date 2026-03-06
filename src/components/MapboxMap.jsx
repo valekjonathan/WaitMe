@@ -183,9 +183,6 @@ export default function MapboxMap({
             bearing: 0,
             antialias: true,
             attributionControl: false,
-            dragPan: true,
-            touchZoomRotate: true,
-            touchPitch: true,
           });
 
           map.on('load', () => {
@@ -416,16 +413,11 @@ export default function MapboxMap({
 
   return (
     <div
+      ref={containerRef}
       className={`${className} w-full h-full relative`}
-      style={containerStyle}
+      style={{ ...containerStyle, touchAction: 'none' }}
       {...rest}
     >
-      {/* Contenedor VACÍO para Mapbox — requisito: "The specified element must have no children" */}
-      <div
-        ref={containerRef}
-        className="absolute inset-0"
-        style={{ touchAction: 'none' }}
-      />
       {useCenterPin && !centerPinFromOverlay && <CenterPin />}
       {children}
     </div>

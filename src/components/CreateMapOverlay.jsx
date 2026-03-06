@@ -44,10 +44,10 @@ export default function CreateMapOverlay({
 
   return (
     <>
-      {/* Tarjeta — fixed para restaurar posición original (viewport), único elemento que captura en su área */}
+      {/* Tarjeta — único elemento que captura en su área */}
       <div
         ref={cardRef}
-        className="fixed left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] z-20 pointer-events-auto"
+        className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] z-20 pointer-events-auto"
         style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
       >
         <CreateAlertCard

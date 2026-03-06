@@ -1,6 +1,6 @@
 /**
- * Overlay "¿Dónde quieres aparcar?" — SIN wrapper fullscreen.
- * StreetSearch arriba, UserAlertCard abajo, pin y zoom. Zona libre → canvas recibe gestos.
+ * Overlay "¿Dónde quieres aparcar?" — CON StreetSearch arriba.
+ * Pin fijo entre buscador y tarjeta. Mapa arrastrable. Zoom controls.
  */
 import { useEffect, useRef, useState } from 'react';
 import StreetSearch from '@/components/StreetSearch';
@@ -8,7 +8,7 @@ import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
 
 const PIN_HEIGHT = 54;
-const MAP_TOP_VIEWPORT = 69;
+const HEADER_BOTTOM = 60;
 
 export default function SearchMapOverlay({
   onStreetSelect,
@@ -17,43 +17,52 @@ export default function SearchMapOverlay({
   filtersContent,
   alertCard,
 }) {
+  const overlayRef = useRef(null);
   const searchRef = useRef(null);
   const cardRef = useRef(null);
   const [pinTop, setPinTop] = useState(null);
 
   useEffect(() => {
+    const overlay = overlayRef.current;
     const search = searchRef.current;
     const card = cardRef.current;
-    if (!search || !card) return;
+    if (!overlay || !search || !card) return;
 
     const updatePinPosition = () => {
+      const overlayRect = overlay.getBoundingClientRect();
       const searchRect = search.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
-      const midPoint = (searchRect.bottom + cardRect.top) / 2;
-      const pinTopViewport = midPoint - PIN_HEIGHT;
-      const pinTopInMap = pinTopViewport - MAP_TOP_VIEWPORT;
-      setPinTop(Math.max(0, pinTopInMap));
+      const searchBottom = searchRect.bottom;
+      const cardTop = cardRect.top;
+      const midPoint = (searchBottom + cardTop) / 2;
+      const pinTopFromOverlay = midPoint - overlayRect.top - PIN_HEIGHT;
+      setPinTop(Math.max(0, pinTopFromOverlay));
     };
 
     updatePinPosition();
     const ro = new ResizeObserver(updatePinPosition);
+    ro.observe(overlay);
     ro.observe(search);
     ro.observe(card);
     return () => ro.disconnect();
   }, []);
 
   return (
-    <>
-      {/* Botón filtros — fixed top right */}
-      <div className="fixed top-[72px] right-3 z-[1000] pointer-events-auto">
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
+      style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+    >
+      {/* Botón filtros */}
+      <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
         {filtersButton}
         {filtersContent}
       </div>
 
-      {/* StreetSearch — fixed top */}
+      {/* StreetSearch */}
       <div
         ref={searchRef}
-        className="fixed left-0 right-0 top-[60px] z-20 px-4 pt-3 pb-2 pointer-events-auto"
+        className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto"
       >
         <StreetSearch
           onSelect={onStreetSelect}
@@ -61,24 +70,19 @@ export default function SearchMapOverlay({
         />
       </div>
 
-      {/* UserAlertCard — fixed bottom */}
+      {/* Área UserAlertCard */}
       <div
         ref={cardRef}
-        className="fixed left-0 right-0 bottom-0 z-20 px-4 pt-2 pb-3 pointer-events-auto"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)' }}
+        className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start pointer-events-auto"
       >
-        <div className="w-full max-w-md mx-auto">{alertCard}</div>
+        <div className="w-full h-full">{alertCard}</div>
       </div>
 
-      {/* Pin — absolute en MapboxMap, pointer-events-none */}
-      {pinTop != null && (
-        <div className="absolute left-0 right-0 z-10 pointer-events-none" style={{ top: 0 }}>
-          <CenterPin top={pinTop} />
-        </div>
-      )}
+      {/* Pin fijo */}
+      {pinTop != null && <CenterPin top={pinTop} />}
 
       {/* Zoom controls */}
       <MapZoomControls mapRef={mapRef} />
-    </>
+    </div>
   );
 }
