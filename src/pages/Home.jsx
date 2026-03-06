@@ -14,8 +14,7 @@ import { useLayoutHeader } from '@/lib/LayoutContext';
 import MapboxMap from '@/components/MapboxMap';
 import CreateMapOverlay from '@/components/CreateMapOverlay';
 import SearchMapOverlay from '@/components/SearchMapOverlay';
-import MapLayer from '@/system/layout/MapLayer';
-import OverlayLayer from '@/system/layout/OverlayLayer';
+import MapScreenShell from '@/system/map/MapScreenShell';
 import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
 import MapFilters from '@/components/map/MapFilters';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -684,27 +683,28 @@ export default function Home() {
   RENDER_LOG('Home RETURNS map enabled');
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
-      <MapLayer>
-        <MapboxMap
-          className="w-full h-full"
-          style={{ width: '100%', height: '100%' }}
-          alerts={mode === 'create' ? [] : homeMapAlerts}
-          mapRef={mapRef}
-          onMapLoad={(map) => { mapRef.current = map; }}
-          onAlertClick={(alert) => {
-            setMode('search');
-            setSelectedAlert(alert);
-          }}
-          useCenterPin={mode === 'create' || mode === 'search'}
-          centerPinFromOverlay={mode === 'create' || mode === 'search'}
-          centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
-          onMapMove={mode === 'create' ? handleMapMove : undefined}
-          onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
-        />
-      </MapLayer>
-
-      <OverlayLayer>
-        {mode === 'create' && (
+      <MapScreenShell
+        mode={mode || 'home'}
+        mapNode={
+          <MapboxMap
+            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }}
+            alerts={mode === 'create' ? [] : homeMapAlerts}
+            mapRef={mapRef}
+            onMapLoad={(map) => { mapRef.current = map; }}
+            onAlertClick={(alert) => {
+              setMode('search');
+              setSelectedAlert(alert);
+            }}
+            useCenterPin={mode === 'create' || mode === 'search'}
+            centerPinFromOverlay={mode === 'create' || mode === 'search'}
+            centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
+            onMapMove={mode === 'create' ? handleMapMove : undefined}
+            onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined}
+          />
+        }
+        panel={
+          mode === 'create' ? (
           <CreateMapOverlay
             address={address}
             onAddressChange={setAddress}
@@ -756,8 +756,7 @@ export default function Home() {
             }}
             isLoading={createAlertMutation.isPending}
           />
-        )}
-        {mode === 'search' && (
+        ) : mode === 'search' ? (
           <SearchMapOverlay
             onStreetSelect={handleStreetSelect}
             mapRef={mapRef}
@@ -805,8 +804,8 @@ export default function Home() {
               />
             }
           />
-        )}
-      </OverlayLayer>
+        ) : null}
+      />
 
       {/* En modo create/search: no cubrir el mapa; eventos pasan al canvas */}
       <div

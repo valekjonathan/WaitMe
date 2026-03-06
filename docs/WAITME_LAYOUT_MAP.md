@@ -50,10 +50,10 @@ Home (relative min-h-[100dvh])
 
 | Archivo | Elemento | Propiedades clave |
 |---------|----------|-------------------|
+| **MapScreenPanel.jsx** | **FUENTE ÚNICA** | padding-bottom: calc(safe-area + 86px), w-[92%] max-w-[460px] |
+| MapScreenShell.jsx | shell | MapLayer + OverlayLayer |
 | Home.jsx | root | relative, min-h-[100dvh], overflow-hidden |
-| Home.jsx | MapboxMap | absolute inset-0 z-0 |
-| CreateMapOverlay.jsx | wrapper | absolute inset-0 z-10 pointer-events-none |
-| CreateMapOverlay.jsx | tarjeta | absolute left-1/2 -translate-x-1/2, bottom: calc(safe-area + 90px), z-20 |
+| CreateMapOverlay.jsx | overlay | usa MapScreenPanel para tarjeta |
 | SearchMapOverlay.jsx | wrapper | fixed inset-0 top-[60px], paddingBottom: calc(safe-area + 88px) |
 | BottomNav.jsx | nav | fixed bottom-0 left-0 right-0 z-[2147483647] |
 | globals.css | --bottom-nav-h | calc(64px + env(safe-area-inset-bottom)) |
