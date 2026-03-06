@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "predev": "rm -rf ios/App/App/public/assets 2>/dev/null || true",
-    "dev": "vite --host",
+    "dev": "vite --host --port 5173",
     "build": "vite build",
     "lint": "eslint . --max-warnings=9999",
     "lint:fix": "eslint . --fix",
