@@ -1,0 +1,30 @@
+---
+description: Protocolo obligatorio para cambios visuales en WaitMe
+globs: ["**/*.jsx", "**/*.tsx", "**/*.css"]
+---
+
+# Protocolo UI — Cambios visuales en WaitMe
+
+Cuando se solicite un cambio visual (posición, layout, estilos, overlays):
+
+## 1. Plan previo
+- Identificar: componente visual real, wrapper que controla posición, archivo fuente
+- Documentar: archivo exacto a tocar, por qué controla el cambio, qué NO se tocará
+- Consultar: docs/WAITME_LAYOUT_MAP.md, docs/WAITME_UI_CHANGE_PROTOCOL.md
+
+## 2. Fuente de verdad
+- Aplicar el cambio SOLO en el archivo identificado como fuente de verdad
+- No duplicar lógica de posición en varios archivos
+
+## 3. Aplicar cambio
+- Modificar únicamente el archivo planificado
+
+## 4. Validar visualmente
+- Si tiene story: validar en Storybook (npm run storybook)
+- Si no: validar con Playwright (tests/visual/*.spec.js)
+- No marcar como hecho si el cambio no se ve realmente
+
+## Herramientas
+- window.__WAITME_LAYOUT_INSPECTOR__ (DEV) — inspeccionar elementos
+- CreateMapOverlay: story "WithLayoutContext" para posición
+- tests/visual/create-card-position.spec.js para tarjeta create
