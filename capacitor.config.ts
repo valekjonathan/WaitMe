@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   bundledWebRuntime: false,
   ...(useDevServer && {
     server: {
-      url: 'http://192.168.0.11:5173',
+      url: 'http://192.168.0.15:5173',
       cleartext: true,
     },
   }),
