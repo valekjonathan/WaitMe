@@ -27,7 +27,7 @@ test.describe('Smoke - Estoy aparcado aquí', () => {
     const card = page.getByText(/me voy en|publicar mi waitme/i).first();
     const ubiciteBtn = page.getByRole('button').filter({ has: page.locator('svg') }).first();
 
-    await expect(mapContainer.or(page.locator('#root'))).toBeVisible();
+    await expect(mapContainer).toBeVisible({ timeout: 5000 });
     await expect(card).toBeVisible({ timeout: 5000 });
     expect(await ubiciteBtn.isVisible().catch(() => false)).toBeTruthy();
   });

@@ -40,3 +40,5 @@ test-results/
 *.sw?
 
 .env
+*storybook.log
+storybook-static
