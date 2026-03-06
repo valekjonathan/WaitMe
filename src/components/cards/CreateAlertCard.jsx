@@ -31,45 +31,61 @@ export default function CreateAlertCard({
     });
   };
 
-  const handleUbicite = () => {
-    console.log('[Ubícate] mapRef:', mapRef?.current);
+  const fallbackToMapCenter = () => {
     if (!mapRef?.current) return;
+    const c = mapRef.current.getCenter();
+    if (c) {
+      onRecenter?.({ lat: c.lat, lng: c.lng });
+      mapRef.current.flyTo({
+        center: [c.lng, c.lat],
+        zoom: 17,
+        duration: 1200,
+        essential: true,
+        padding: { top: 0, bottom: 120, left: 0, right: 0 },
+      });
+    }
+  };
+
+  const handleUbicite = () => {
+    if (!mapRef?.current) return;
+
     if (!navigator.geolocation) {
-      const center = mapRef.current.getCenter();
-      if (center) {
-        onRecenter?.({ lat: center.lat, lng: center.lng });
-        flyToCoords(center.lng, center.lat);
-      }
+      fallbackToMapCenter();
       return;
     }
 
-    const onSuccess = (pos) => {
-      const { latitude, longitude } = pos.coords;
-      onRecenter?.({ lat: latitude, lng: longitude });
-      flyToCoords(longitude, latitude);
+    let resolved = false;
+    const resolve = (fn) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(fallbackTimer);
+      fn();
     };
 
-    const onError = (err) => {
-      console.warn('[Ubícate] Intento fallido:', err?.message || err);
-      navigator.geolocation.getCurrentPosition(
-        onSuccess,
-        (err2) => {
-          console.warn('[Ubícate] Segundo intento fallido:', err2?.message || err2);
-          if (!mapRef?.current) return;
-          const center = mapRef.current.getCenter();
-          if (center) {
-            onRecenter?.({ lat: center.lat, lng: center.lng });
-            flyToCoords(center.lng, center.lat);
-          }
-        },
-        { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
-      );
+    const fallbackTimer = setTimeout(() => resolve(fallbackToMapCenter), 2000);
+
+    const onSuccess = (pos) => {
+      resolve(() => {
+        const { latitude, longitude } = pos.coords;
+        onRecenter?.({ lat: latitude, lng: longitude });
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 17,
+          duration: 1200,
+          essential: true,
+          padding: { top: 0, bottom: 120, left: 0, right: 0 },
+        });
+      });
+    };
+
+    const onError = () => {
+      resolve(fallbackToMapCenter);
     };
 
     navigator.geolocation.getCurrentPosition(
       onSuccess,
       onError,
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
     );
   };
 
