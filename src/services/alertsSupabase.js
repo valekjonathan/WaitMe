@@ -6,7 +6,7 @@
 import { getSupabase } from '@/lib/supabaseClient';
 import { encode } from '@/lib/geohash';
 import { haversineKm } from '@/utils/carUtils';
-import { NEARBY_RADIUS_KM } from '@/config/alerts';
+import { NEARBY_RADIUS_KM, RESERVATION_TIMEOUT_MINUTES } from '@/config/alerts';
 
 const TABLE = 'parking_alerts';
 
@@ -38,6 +38,7 @@ function normalizeAlert(row) {
     status: row.status,
     reserved_by: row.reserved_by ?? null,
     reserved_by_id: row.reserved_by ?? meta.reserved_by_id ?? null,
+    reserved_until: row.reserved_until ?? null,
     brand: meta.brand ?? row.brand ?? (carParts[0] || ''),
     model: meta.model ?? row.model ?? (carParts.slice(1).join(' ') || ''),
     plate: meta.plate ?? meta.reserved_by_plate ?? row.plate ?? null,
@@ -188,10 +189,12 @@ export async function reserveAlert(alertId, userId, metadata = {}) {
     return { data: null, error: new Error('No puedes reservar tu propia alerta') };
   }
 
+  const reservedUntil = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000).toISOString();
   const mergedMeta = { ...(current.metadata || {}), ...metadata };
   const updatePayload = {
     status: 'reserved',
     reserved_by: userId,
+    reserved_until: reservedUntil,
     metadata: Object.keys(mergedMeta).length ? mergedMeta : (current.metadata || {}),
   };
 
@@ -226,7 +229,22 @@ export async function deleteAlert(alertId) {
 }
 
 /**
+ * Expira reservas que superaron reserved_until.
+ * Convierte status reserved → active, limpia reserved_by y reserved_until.
+ * @returns {{ count: number, error }}
+ */
+export async function expireReservations() {
+  const supabase = getSupabase();
+  if (!supabase) return { count: 0, error: new Error('Supabase no configurado') };
+
+  const { data, error } = await supabase.rpc('expire_reservations');
+  if (error) return { count: 0, error };
+  return { count: data ?? 0, error: null };
+}
+
+/**
  * Obtiene alertas activas cerca de (lat, lng).
+ * 0) Expira reservas vencidas.
  * 1) Bounding box rápido en Supabase.
  * 2) Filtro Haversine en memoria para radio real (no cuadrado).
  * @param {number} lat
@@ -237,6 +255,8 @@ export async function deleteAlert(alertId) {
 export async function getNearbyAlerts(lat, lng, radiusKm = NEARBY_RADIUS_KM) {
   const supabase = getSupabase();
   if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  await expireReservations();
 
   const degLat = radiusKm / 111;
   const degLng = radiusKm / (111 * Math.max(0.01, Math.cos((lat * Math.PI) / 180)));
