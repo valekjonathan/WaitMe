@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./lib/AuthContext";
 import { getSupabaseConfig } from "./lib/supabaseClient";
 import App from "./App";
+import ErrorBoundary from "./core/ErrorBoundary";
 import MissingEnvScreen from "./diagnostics/MissingEnvScreen";
 import SafeModeShell from "./diagnostics/SafeModeShell";
 import "./globals.css";
@@ -44,65 +45,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-class ErrorBoundary extends React.Component {
-  state = { error: null };
-
-  static getDerivedStateFromError(error) {
-    return { error };
-  }
-
-  componentDidCatch(error) {
-    console.error('[ErrorBoundary]', error);
-    try {
-      if (typeof window !== "undefined" && window.__WAITME_DIAG__) {
-        window.__WAITME_DIAG__.errors = window.__WAITME_DIAG__.errors || [];
-        window.__WAITME_DIAG__.errors.push({
-          type: "ErrorBoundary",
-          message: error?.message ?? String(error),
-          stack: error?.stack,
-          ts: Date.now(),
-        });
-        if (window.__WAITME_DIAG__.errors.length > (window.__WAITME_DIAG__.maxErrors || 10)) {
-          window.__WAITME_DIAG__.errors.shift();
-        }
-      }
-    } catch (_) {}
-  }
-
-  render() {
-    const err = this.state.error;
-    if (err) {
-      const msg = err?.message ?? String(err);
-      const stack = err?.stack ?? '';
-      return (
-        <div
-          style={{
-            background: "#0a0a0a",
-            color: "#fca5a5",
-            padding: 24,
-            fontFamily: "monospace, system-ui",
-            fontSize: 13,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-all",
-            minHeight: "100vh",
-            overflow: "auto",
-          }}
-        >
-          <h2 style={{ marginBottom: 12, color: "#ef4444" }}>Runtime error:</h2>
-          <div style={{ marginBottom: 16 }}>{msg}</div>
-          {stack && (
-            <>
-              <h3 style={{ marginBottom: 8, color: "#f97316" }}>Stack:</h3>
-              <pre style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{stack}</pre>
-            </>
-          )}
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 // Sentry debe cargarse después de React para evitar dispatcher.useState null
 import('./lib/sentry').catch(() => {});
