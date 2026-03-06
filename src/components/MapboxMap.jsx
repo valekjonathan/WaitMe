@@ -15,6 +15,9 @@ export default function MapboxMap({
   onAlertClick,
   onMapLoad,
   onRecenterRef,
+  useCenterPin = false,
+  onMapMove,
+  onMapMoveEnd,
   children,
   ...rest
 }) {
@@ -228,6 +231,11 @@ export default function MapboxMap({
     centerRef.current = [lng, lat];
     accuracyRef.current = accuracy;
 
+    if (useCenterPin) {
+      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 500 });
+      return;
+    }
+
     // Centrar mapa en ubicación del usuario (la punta morada del diseño está fija en el centro)
     const shouldRecenter = accuracy <= ACCURACY_RECENTER_THRESHOLD && lat !== 43.3619 && lng !== -5.8494;
     if (shouldRecenter && !hasFlownToUserRef.current) {
@@ -236,7 +244,7 @@ export default function MapboxMap({
     } else if (shouldRecenter) {
       map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 400, speed: 0.8 });
     }
-  }, [mapReady, effectiveCenter, location.accuracy, error]);
+  }, [mapReady, effectiveCenter, location.accuracy, error, useCenterPin]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;
@@ -248,7 +256,7 @@ export default function MapboxMap({
 
     const userLng = location.lng;
     const userLat = location.lat;
-    if (userLat != null && userLng != null) {
+    if (userLat != null && userLng != null && !useCenterPin) {
       const userPinHtml = `<div style="position:relative;width:40px;height:100px;">
         <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
         <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;"></div>
@@ -294,7 +302,26 @@ export default function MapboxMap({
       markersRef.current.forEach((m) => m?.remove?.());
       markersRef.current = [];
     };
-  }, [mapReady, error, alerts, onAlertClick, location.lat, location.lng]);
+  }, [mapReady, error, alerts, onAlertClick, location.lat, location.lng, useCenterPin]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error || !useCenterPin) return;
+    const map = mapRef.current;
+    const onMove = () => {
+      const c = map.getCenter();
+      onMapMove?.([c.lat, c.lng]);
+    };
+    const onMoveEnd = () => {
+      const c = map.getCenter();
+      onMapMoveEnd?.([c.lat, c.lng]);
+    };
+    map.on('move', onMove);
+    map.on('moveend', onMoveEnd);
+    return () => {
+      map.off('move', onMove);
+      map.off('moveend', onMoveEnd);
+    };
+  }, [mapReady, error, useCenterPin, onMapMove, onMapMoveEnd]);
 
 
   if (error) {
@@ -323,10 +350,22 @@ export default function MapboxMap({
   return (
     <div
       ref={containerRef}
-      className={`${className} w-full h-full`}
+      className={`${className} w-full h-full relative`}
       style={containerStyle}
       {...rest}
     >
+      {useCenterPin && (
+        <div
+          className="absolute z-10 pointer-events-none flex flex-col items-center"
+          style={{ left: '50%', top: '50%', transform: 'translate(-50%, calc(-100% - 10px))', width: 18 }}
+        >
+          <div
+            className="w-[18px] h-[18px] rounded-full bg-purple-500"
+            style={{ boxShadow: '0 0 15px rgba(168,85,247,0.8)' }}
+          />
+          <div className="w-0.5 h-9 bg-purple-500" />
+        </div>
+      )}
       {children}
     </div>
   );

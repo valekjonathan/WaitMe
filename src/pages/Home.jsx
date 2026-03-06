@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import { useLayoutHeader } from '@/lib/LayoutContext';
-import ParkingMap from '@/components/map/ParkingMap';
 import MapboxMap from '@/components/MapboxMap';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
@@ -585,11 +584,15 @@ export default function Home() {
       {/* Mapa como fondo a pantalla completa — h-[100dvh] garantiza altura estable en móvil/simulador */}
       <MapboxMap
         className="absolute inset-0 z-0 w-full h-full"
-        alerts={homeMapAlerts}
+        style={{ top: 0, left: 0, width: '100%', height: '100%' }}
+        alerts={mode === 'create' ? [] : homeMapAlerts}
         onAlertClick={(alert) => {
           setMode('search');
           setSelectedAlert(alert);
         }}
+        useCenterPin={mode === 'create'}
+        onMapMove={mode === 'create' ? handleMapMove : undefined}
+        onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : undefined}
       />
 
       {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
@@ -601,9 +604,9 @@ export default function Home() {
           to-[#0b0618]/90"
       />
 
-      {/* Contenido UI por encima del mapa */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-      <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
+      {/* Contenido UI por encima del mapa — pointer-events-none cuando hay mode para que el mapa reciba pan/zoom */}
+      <div className={`relative z-10 flex flex-col min-h-screen ${mode ? 'pointer-events-none' : ''}`}>
+      <main className={`flex-1 flex flex-col relative overflow-hidden min-h-0 ${mode ? 'pointer-events-none' : ''}`}>
         {/* CONTENT_AREA: hueco real entre header y bottom nav */}
         <div
           data-home-content
@@ -679,38 +682,19 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] flex flex-col"
+              className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none"
-                style={{ height: "280px" }}>
-                <div
-                  className="rounded-2xl border-2 border-purple-500 overflow-hidden h-full"
-                  style={{
-                    boxShadow:
-                      '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
-                  }}
-                >
-                  <ParkingMap
-                    alerts={searchAlerts}
-                    onAlertClick={setSelectedAlert}
-                    userLocation={userLocation}
-                    selectedAlert={selectedAlert}
-                    showRoute={!!selectedAlert}
-                    zoomControl={true}
-                    className="h-full"
-                  />
-                </div>
+              <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
                 {!showFilters && (
                   <Button
                     onClick={() => setShowFilters(true)}
-                    className="absolute top-5 right-7 z-[1000] bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
                     size="icon"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
                 )}
-
                 <AnimatePresence>
                   {showFilters && (
                     <>
@@ -719,7 +703,7 @@ export default function Home() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setShowFilters(false)}
-                        className="absolute inset-0 z-[999]"
+                        className="fixed inset-0 z-[999] bg-black/40"
                       />
                       <MapFilters
                         filters={filters}
@@ -732,7 +716,7 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
+              <div className="px-7 pt-[14px] pb-[2px] flex-shrink-0 pointer-events-auto">
                 <div className="bg-gray-900/40 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl px-3 py-[6px] flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
                   <Input
@@ -744,7 +728,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start">
+              <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start pointer-events-auto">
                 <div className="w-full h-full">
                   <UserAlertCard
                     alert={selectedAlert}
@@ -766,30 +750,10 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 top-[60px] flex flex-col"
+              className="fixed inset-0 top-[60px] flex flex-col pointer-events-none"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
             >
-              <div className="relative px-3 pt-[14px] pb-2 flex-none"
-                style={{ height: "280px" }}>
-                <div
-                  className="rounded-2xl border-2 border-purple-500 overflow-hidden h-full"
-                  style={{
-                    boxShadow:
-                      '0 0 30px rgba(168, 85, 247, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2)',
-                  }}
-                >
-                  <ParkingMap
-                    useCenterPin={true}
-                    userLocation={userLocation}
-                    zoomControl={true}
-                    className="h-full"
-                    onMapMove={handleMapMove}
-                    onMapMoveEnd={handleMapMoveEnd}
-                  />
-                </div>
-              </div>
-
-              <div className="px-7 pt-[2px] pb-[2px] flex-shrink-0">
+              <div className="px-7 pt-[14px] pb-[2px] flex-shrink-0 pointer-events-auto">
                 <div className="bg-purple-600/20 border-2 border-purple-500/50 rounded-xl px-3 py-[2px]">
                   <h3 className="text-white font-semibold text-center text-sm">
                     ¿ Dónde estas aparcado ?
@@ -797,7 +761,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="px-4 mt-[10px] flex-1 min-h-0 flex items-stretch">
+              <div className="px-4 mt-[10px] flex-1 min-h-0 flex items-stretch pointer-events-auto">
                 <div className="w-full h-full">
                   <CreateAlertCard
                     address={address}
