@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { AppDeviceFrame } from '@/system/layout';
 import Layout from './Layout';
 import Login from '@/pages/Login';
 import DemoFlowManager from '@/components/DemoFlowManager';
@@ -87,18 +88,22 @@ export default function App() {
         console.error('Capacitor listener error', e);
       }
     })();
-    CapacitorApp.getLaunchUrl().then((result) => {
-      if (result?.url) handleUrl(result.url);
-    }).catch(() => {});
+    CapacitorApp.getLaunchUrl()
+      .then((result) => {
+        if (result?.url) handleUrl(result.url);
+      })
+      .catch(() => {});
     return () => capacitorSubRef.current?.remove?.();
   }, [checkUserAuth, navigate]);
 
   return (
-    <div
-      className="min-h-[100dvh] bg-black flex flex-col"
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-    >
-      <AuthRouter />
-    </div>
+    <AppDeviceFrame>
+      <div
+        className="min-h-[100dvh] bg-black flex flex-col"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
+        <AuthRouter />
+      </div>
+    </AppDeviceFrame>
   );
 }
