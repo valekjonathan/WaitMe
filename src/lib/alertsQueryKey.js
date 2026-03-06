@@ -9,6 +9,8 @@
  *   queryClient.invalidateQueries({ queryKey: alertsPrefix })
  */
 
+import { NEARBY_REFRESH_THRESHOLD_M } from '@/config/alerts';
+
 /** Exact key for a specific mode + location combination. */
 export const alertsKey = (mode, locationKey) => ['alerts', mode, locationKey];
 
@@ -17,3 +19,31 @@ export const nearbyAlertsKey = (locationKey) => ['alerts', 'nearby', locationKey
 
 /** Prefix key — invalidates ALL alert query variants at once. */
 export const alertsPrefix = ['alerts'];
+
+/**
+ * Extrae lat/lng de userLocation (array o objeto).
+ * @param {[number,number]|{lat,lng,latitude,longitude}} userLocation
+ * @returns {{ lat: number, lng: number }|null}
+ */
+export function extractLatLng(userLocation) {
+  if (!userLocation) return null;
+  const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
+  const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+/**
+ * Genera locationKey para nearby: solo cambia cuando el usuario se mueve
+ * más de NEARBY_REFRESH_THRESHOLD_M. Evita refetches por movimientos mínimos.
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {string|null} "lat,lng" o null si inválido
+ */
+export function getLocationKeyForNearby(lat, lng) {
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const gridDeg = NEARBY_REFRESH_THRESHOLD_M / 111000;
+  const latSnap = Math.floor(lat / gridDeg) * gridDeg;
+  const lngSnap = Math.floor(lng / gridDeg) * gridDeg;
+  return `${latSnap.toFixed(5)},${lngSnap.toFixed(5)}`;
+}

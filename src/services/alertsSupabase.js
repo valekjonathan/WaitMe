@@ -5,11 +5,15 @@
  */
 import { getSupabase } from '@/lib/supabaseClient';
 import { encode } from '@/lib/geohash';
+import { haversineKm } from '@/utils/carUtils';
+import { NEARBY_RADIUS_KM } from '@/config/alerts';
 
 const TABLE = 'parking_alerts';
 
 /**
  * Normaliza fila de Supabase a formato unificado (compatible con app).
+ * Shape estable: id, user_id, seller_id, lat, lng, latitude, longitude, price,
+ * vehicle_type, vehicle_color, status, address, user_name, user_photo, ...
  */
 function normalizeAlert(row) {
   if (!row) return null;
@@ -171,13 +175,15 @@ export async function deleteAlert(alertId) {
 }
 
 /**
- * Obtiene alertas activas cerca de (lat, lng) usando geohash.
+ * Obtiene alertas activas cerca de (lat, lng).
+ * 1) Bounding box rápido en Supabase.
+ * 2) Filtro Haversine en memoria para radio real (no cuadrado).
  * @param {number} lat
  * @param {number} lng
  * @param {number} radiusKm
  * @returns {{ data: Array, error }}
  */
-export async function getNearbyAlerts(lat, lng, radiusKm = 2) {
+export async function getNearbyAlerts(lat, lng, radiusKm = NEARBY_RADIUS_KM) {
   const supabase = getSupabase();
   if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
 
@@ -188,7 +194,7 @@ export async function getNearbyAlerts(lat, lng, radiusKm = 2) {
   const lngMin = lng - degLng;
   const lngMax = lng + degLng;
 
-  let query = supabase
+  const { data, error } = await supabase
     .from(TABLE)
     .select('*')
     .eq('status', 'active')
@@ -198,10 +204,15 @@ export async function getNearbyAlerts(lat, lng, radiusKm = 2) {
     .lte('lng', lngMax)
     .order('created_at', { ascending: false });
 
-  const { data, error } = await query;
-
   if (error) return { data: [], error };
-  return { data: (data ?? []).map(normalizeAlert), error: null };
+
+  const normalized = (data ?? []).map(normalizeAlert).filter(Boolean);
+  const withinRadius = normalized.filter((a) => {
+    const km = haversineKm(lat, lng, a.latitude ?? a.lat, a.longitude ?? a.lng);
+    return Number.isFinite(km) && km <= radiusKm;
+  });
+
+  return { data: withinRadius, error: null };
 }
 
 /**

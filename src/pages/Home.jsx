@@ -21,7 +21,8 @@ import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelecto
 import { useAuth } from '@/lib/AuthContext';
 import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
-import { alertsPrefix, nearbyAlertsKey } from '@/lib/alertsQueryKey';
+import { alertsPrefix, nearbyAlertsKey, getLocationKeyForNearby, extractLatLng } from '@/lib/alertsQueryKey';
+import { NEARBY_RADIUS_KM } from '@/config/alerts';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -126,11 +127,8 @@ export default function Home() {
   }, [mode]);
 
   const locationKey = useMemo(() => {
-    if (!userLocation) return null;
-    const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
-    const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
-    if (lat == null || lng == null) return null;
-    return `${Number(lat).toFixed(3)},${Number(lng).toFixed(3)}`;
+    const coords = extractLatLng(userLocation);
+    return coords ? getLocationKeyForNearby(coords.lat, coords.lng) : null;
   }, [userLocation]);
 
   // BLINDADO: resetea SIEMPRE al logo (los 2 botones grandes), sin tocar la UI del logo.
@@ -179,9 +177,9 @@ export default function Home() {
     queryKey: nearbyAlertsKey(locationKey),
     enabled: !!locationKey,
     queryFn: async () => {
-      const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
-      const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
-      const { data, error } = await alerts.getNearbyAlerts(lat, lng, 2);
+      const coords = extractLatLng(userLocation);
+      if (!coords) return [];
+      const { data, error } = await alerts.getNearbyAlerts(coords.lat, coords.lng, NEARBY_RADIUS_KM);
       if (error) {
         console.error('[getNearbyAlerts]', error);
         return [];
@@ -193,8 +191,22 @@ export default function Home() {
     refetchInterval: false,
     refetchOnWindowFocus: true,
     refetchOnMount: false,
+    retry: false,
     placeholderData: (prev) => prev,
   });
+
+  // Realtime: invalidar nearby cuando se crea/actualiza/elimina una alerta
+  useEffect(() => {
+    const unsub = alerts.subscribeAlerts({
+      onUpsert: () => {
+        queryClient.invalidateQueries({ queryKey: ['alerts', 'nearby'] });
+      },
+      onDelete: () => {
+        queryClient.invalidateQueries({ queryKey: ['alerts', 'nearby'] });
+      },
+    });
+    return unsub;
+  }, [queryClient]);
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
   const { data: myAlerts = [] } = useMyAlerts();
