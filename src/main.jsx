@@ -172,13 +172,13 @@ if (rootEl) {
     RENDER_LOG('config ok, rendering App with ErrorBoundary');
     ReactDOM.createRoot(rootEl).render(
       <ErrorBoundary>
-        <HashRouter>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
+        <AuthProvider>
+          <HashRouter>
+            <QueryClientProvider client={queryClient}>
               <App />
-            </AuthProvider>
-          </QueryClientProvider>
-        </HashRouter>
+            </QueryClientProvider>
+          </HashRouter>
+        </AuthProvider>
       </ErrorBoundary>
     );
   }
