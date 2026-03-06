@@ -9,8 +9,8 @@ import MapZoomControls from '@/components/MapZoomControls';
 import MapScreenPanel from '@/system/map/MapScreenPanel';
 
 const PIN_HEIGHT = 54;
-const HEADER_BOTTOM = 60;
-const MAP_TOP_VIEWPORT = 69;
+const HEADER_BOTTOM = 69; // --header-h en globals.css
+const MAP_TOP_VIEWPORT = 69; // overlay top = main pt = 69
 
 export default function CreateMapOverlay({
   address,
@@ -29,11 +29,15 @@ export default function CreateMapOverlay({
     if (!card) return;
 
     const updatePinPosition = () => {
-      const cardRect = card.getBoundingClientRect();
-      const midPoint = (HEADER_BOTTOM + cardRect.top) / 2;
+      const headerEl = document.querySelector('[data-waitme-header]');
+      const panelInner = document.querySelector('[data-map-screen-panel-inner]');
+      const headerBottom = headerEl?.getBoundingClientRect()?.bottom ?? HEADER_BOTTOM;
+      const cardRect = (panelInner ?? card)?.getBoundingClientRect?.();
+      if (!cardRect) return;
+      const midPoint = (headerBottom + cardRect.top) / 2;
       const pinTopViewport = midPoint - PIN_HEIGHT;
-      const pinTopInMap = pinTopViewport - MAP_TOP_VIEWPORT;
-      setPinTop(Math.max(0, pinTopInMap));
+      const pinTopInOverlay = pinTopViewport - MAP_TOP_VIEWPORT;
+      setPinTop(Math.max(0, pinTopInOverlay));
     };
 
     updatePinPosition();

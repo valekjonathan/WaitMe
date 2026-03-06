@@ -10,13 +10,15 @@ export default function MapScreenPanel({ children, className = '', style = {}, .
     <div
       className={`absolute left-0 right-0 bottom-0 flex justify-center pointer-events-none z-20 ${className}`.trim()}
       style={{
-        paddingBottom: 'calc(20px + var(--bottom-nav-h, 64px))',
+        paddingBottom:
+          'calc(20px + var(--bottom-nav-h, calc(64px + env(safe-area-inset-bottom, 0px))))',
         ...style,
       }}
       data-map-screen-panel
       {...rest}
     >
       <div
+        data-map-screen-panel-inner
         className="w-[92%] max-w-[460px] pointer-events-auto min-h-[200px]"
         style={{
           transform: 'translateY(0)',

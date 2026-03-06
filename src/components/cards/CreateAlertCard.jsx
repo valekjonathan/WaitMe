@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
+import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
@@ -20,23 +21,9 @@ export default function CreateAlertCard({
     onCreateAlert({ price, minutes });
   };
 
-  const getMapPadding = () => {
-    const header = document.querySelector('[data-waitme-header]');
-    const nav = document.querySelector('[data-waitme-nav]');
-    const panel = document.querySelector('[data-map-screen-panel]');
-    const headerRect = header?.getBoundingClientRect();
-    const navRect = nav?.getBoundingClientRect();
-    const panelRect = panel?.getBoundingClientRect();
-    const paddingTop = headerRect?.bottom ?? 56;
-    const cardHeight = panelRect?.height ?? 200;
-    const navHeight = navRect ? window.innerHeight - navRect.top : 80;
-    const paddingBottom = cardHeight + 20 + navHeight;
-    return { top: paddingTop, bottom: paddingBottom, left: 0, right: 0 };
-  };
-
   const flyToCoords = (lng, lat) => {
     if (!mapRef?.current) return;
-    const padding = getMapPadding();
+    const padding = getMapLayoutPadding();
     const map = mapRef.current;
     if (typeof map.easeTo === 'function') {
       map.easeTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
@@ -51,7 +38,7 @@ export default function CreateAlertCard({
       const c = mapRef.current.getCenter?.();
       if (c && typeof c.lat === 'number' && typeof c.lng === 'number') {
         onRecenter?.({ lat: c.lat, lng: c.lng });
-        const padding = getMapPadding();
+        const padding = getMapLayoutPadding();
         const map = mapRef.current;
         if (typeof map.easeTo === 'function') {
           map.easeTo({ center: [c.lng, c.lat], zoom: 17, duration: 1200, padding });
@@ -73,7 +60,7 @@ export default function CreateAlertCard({
         const lng = pos.coords.longitude;
         const map = mapRef?.current ?? window.__WAITME_MAP__;
         if (!map) return;
-        const padding = getMapPadding();
+        const padding = getMapLayoutPadding();
         if (typeof map.easeTo === 'function') {
           map.easeTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
         } else if (typeof map.flyTo === 'function') {
@@ -87,6 +74,7 @@ export default function CreateAlertCard({
 
   return (
     <div
+      data-create-alert-card
       className="pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
         boxShadow: '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',

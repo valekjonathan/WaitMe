@@ -8,6 +8,7 @@
 export default function CenterPin({ top, className = '' }) {
   return (
     <div
+      data-center-pin
       className={`absolute z-10 pointer-events-none flex flex-col items-center ${className}`.trim()}
       style={{
         left: '50%',

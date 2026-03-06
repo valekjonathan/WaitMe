@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
+import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 
 const RENDER_LOG = (msg, extra) => {
@@ -60,17 +61,7 @@ export default function MapboxMap({
 
   const getMapPadding = useCallback(() => {
     if (centerPaddingBottom <= 0) return undefined;
-    const header = document.querySelector('[data-waitme-header]');
-    const nav = document.querySelector('[data-waitme-nav]');
-    const panel = document.querySelector('[data-map-screen-panel]');
-    const headerRect = header?.getBoundingClientRect();
-    const navRect = nav?.getBoundingClientRect();
-    const panelRect = panel?.getBoundingClientRect();
-    const top = headerRect?.bottom ?? 56;
-    const cardHeight = panelRect?.height ?? 200;
-    const navHeight = navRect ? window.innerHeight - navRect.top : 80;
-    const bottom = cardHeight + 20 + navHeight;
-    return { top, bottom, left: 0, right: 0 };
+    return getMapLayoutPadding();
   }, [centerPaddingBottom]);
 
   const flyToUser = useCallback(

@@ -1,0 +1,96 @@
+// @ts-check
+/**
+ * Test de layout: geometría mapa/pin/tarjeta/nav en modo "Estoy aparcado aquí".
+ * Falla si gapCardNav != 20px ± 1px o pin no centrado ± 2px.
+ */
+import { test, expect } from '@playwright/test';
+
+function measureLayoutInPage() {
+  const header = document.querySelector('[data-waitme-header]');
+  const nav = document.querySelector('[data-waitme-nav]');
+  const panel = document.querySelector('[data-map-screen-panel]');
+  const inner = document.querySelector('[data-map-screen-panel-inner]');
+  const card = document.querySelector('[data-create-alert-card]');
+  const pin = document.querySelector('[data-center-pin]');
+  const headerRect = header?.getBoundingClientRect();
+  const navRect = nav?.getBoundingClientRect();
+  const panelRect = panel?.getBoundingClientRect();
+  const innerRect = inner?.getBoundingClientRect();
+  const cardRect = card?.getBoundingClientRect();
+  const pinRect = pin?.getBoundingClientRect();
+
+  const headerBottom = headerRect?.bottom ?? 69;
+  const cardTop = (innerRect ?? cardRect ?? panelRect)?.top ?? 0;
+  const cardBottom = (innerRect ?? cardRect ?? panelRect)?.bottom ?? 0;
+  const navTop = navRect?.top ?? window.innerHeight;
+  const pinBottomY = pinRect ? pinRect.bottom : null;
+  const centerGapExpected = (headerBottom + cardTop) / 2;
+  const gapCardNav = navTop - cardBottom;
+
+  return {
+    viewportHeight: window.innerHeight,
+    headerBottom,
+    cardTop,
+    cardBottom,
+    navTop,
+    pinBottomY,
+    centerGapExpected,
+    gapCardNav,
+    ok: {
+      gap: Math.abs(gapCardNav - 20) <= 1,
+      pin: pinBottomY != null && Math.abs(pinBottomY - centerGapExpected) <= 2,
+    },
+  };
+}
+
+test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    // Entrar en modo "Estoy aparcado aquí"
+    const createBtn = page.getByRole('button', { name: /estoy aparcado aquí/i });
+    await expect(createBtn).toBeVisible({ timeout: 15000 });
+    await createBtn.click();
+    // Esperar overlay create
+    await expect(page.locator('[data-map-screen-panel]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-center-pin]')).toBeVisible({ timeout: 5000 });
+    // Estabilizar layout
+    await page.waitForTimeout(400);
+  });
+
+  test('gap entre tarjeta y menú inferior es 20px ± 1px', async ({ page }) => {
+    const m = await page.evaluate(measureLayoutInPage);
+    expect(m.gapCardNav, `gapCardNav=${m.gapCardNav}px, esperado 19-21px`).toBeGreaterThanOrEqual(
+      19
+    );
+    expect(m.gapCardNav, `gapCardNav=${m.gapCardNav}px, esperado 19-21px`).toBeLessThanOrEqual(21);
+  });
+
+  test('punta del pin en centro esperado ± 2px', async ({ page }) => {
+    const m = await page.evaluate(measureLayoutInPage);
+    expect(m.pinBottomY, 'pin debe estar visible').not.toBeNull();
+    const diff = Math.abs(m.pinBottomY - m.centerGapExpected);
+    expect(
+      diff,
+      `pinBottomY=${m.pinBottomY}, centerGapExpected=${m.centerGapExpected}, diff=${diff}px`
+    ).toBeLessThanOrEqual(2);
+  });
+
+  test('medidas completas registradas para auditoría', async ({ page }) => {
+    const m = await page.evaluate(measureLayoutInPage);
+    expect(m.headerBottom).toBeDefined();
+    expect(m.cardTop).toBeDefined();
+    expect(m.cardBottom).toBeDefined();
+    expect(m.navTop).toBeDefined();
+    expect(m.centerGapExpected).toBeDefined();
+    expect(m.ok.gap).toBe(true);
+    expect(m.ok.pin).toBe(true);
+  });
+
+  test('diagnóstico: imprime medidas actuales', async ({ page }) => {
+    const m = await page.evaluate(measureLayoutInPage);
+     
+    console.log('\n[layout-map-create DIAG]', JSON.stringify(m, null, 2));
+    expect(m.viewportHeight).toBeDefined();
+  });
+});
