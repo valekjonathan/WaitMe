@@ -34,11 +34,6 @@ export function useLayoutHeaderConfig() {
   return ctx?.headerConfig ?? {};
 }
 
-export function useProfileFormData() {
-  const ctx = useContext(LayoutContext);
-  return ctx?.profileFormData ?? null;
-}
-
 export function useSetProfileFormData() {
   const ctx = useContext(LayoutContext);
   return ctx?.setProfileFormData ?? (() => {});
