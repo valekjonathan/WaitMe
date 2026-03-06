@@ -43,18 +43,18 @@ export default function CreateMapOverlay({
   }, []);
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none" aria-hidden="true">
-      {/* Tarjeta — pointer-events-auto solo en su área */}
+    <div className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-end" aria-hidden="true">
+      {/* Tarjeta — posición controlada por OverlayLayer */}
       <div
         ref={cardRef}
-        className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] z-20 pointer-events-auto"
+        className="w-full flex justify-center min-h-[200px] z-20 pointer-events-auto px-[4%]"
         style={{
-          bottom: '20px',
           maxHeight: 'min(55vh, 340px)',
           overflowY: 'auto',
         }}
       >
-        <CreateAlertCard
+        <div className="w-[92%] max-w-[460px] flex-1">
+          <CreateAlertCard
           address={address}
           onAddressChange={onAddressChange}
           onUseCurrentLocation={onUseCurrentLocation}
@@ -64,6 +64,7 @@ export default function CreateMapOverlay({
           onCreateAlert={onCreateAlert}
           isLoading={isLoading}
         />
+        </div>
       </div>
 
       {/* Pin — pointer-events-none para que pase al canvas */}
