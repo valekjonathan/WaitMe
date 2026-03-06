@@ -7,12 +7,13 @@ import * as notifications from '@/data/notifications';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as transactions from '@/data/transactions';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, MapPin, Clock, Euro, X } from 'lucide-react';
 import { useLayoutHeader } from '@/lib/LayoutContext';
 import MapboxMap from '@/components/MapboxMap';
+import StreetSearch from '@/components/StreetSearch';
+import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
 import MapFilters from '@/components/map/MapFilters';
 import CreateAlertCard from '@/components/cards/CreateAlertCard';
 import UserAlertCard from '@/components/cards/UserAlertCard';
@@ -98,6 +99,7 @@ export default function Home() {
   });
 
   const heroRef = useRef(null);
+  const mapRef = useRef(null);
   const [contentArea, setContentArea] = useState({ top: 0, height: 0 });
 
   useEffect(() => {
@@ -328,11 +330,19 @@ export default function Home() {
     return filteredAlerts || [];
   }, [mode, filteredAlerts]);
 
+  const MOCK_THRESHOLD = 15;
+
   const homeMapAlerts = useMemo(() => {
-    if (mode === 'search') return searchAlerts || [];
-    if (mode === null) return Array.isArray(rawAlerts) ? rawAlerts : [];
-    return [];
-  }, [mode, searchAlerts, rawAlerts]);
+    const base = mode === 'search' ? (searchAlerts || []) : (mode === null ? (Array.isArray(rawAlerts) ? rawAlerts : []) : []);
+    if (mode === 'search' || mode === null) {
+      if (base.length < MOCK_THRESHOLD) {
+        const mock = getMockOviedoAlerts(userLocation);
+        const toAdd = Math.min(mock.length, Math.max(0, 50 - base.length));
+        return [...base, ...mock.slice(0, toAdd)];
+      }
+    }
+    return base;
+  }, [mode, searchAlerts, rawAlerts, userLocation]);
 
   const createAlertMutation = useMutation({
   mutationFn: async (data) => {
@@ -579,6 +589,21 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
+  const handleStreetSelect = useCallback((result) => {
+    if (result?.lng == null || result?.lat == null) return;
+    const { lng, lat, place_name } = result;
+    mapRef.current?.flyTo({
+      center: [lng, lat],
+      zoom: 17,
+      pitch: 30,
+      duration: 600,
+    });
+    if (mode === 'create') {
+      setSelectedPosition({ lat, lng });
+      if (place_name) setAddress(place_name);
+    }
+  }, [mode]);
+
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
       {/* Mapa como fondo a pantalla completa — h-[100dvh] garantiza altura estable en móvil/simulador */}
@@ -591,6 +616,8 @@ export default function Home() {
           setSelectedAlert(alert);
         }}
         useCenterPin={mode === 'create'}
+        centerPaddingBottom={mode === 'create' ? 280 : 0}
+        onMapLoad={(map) => { mapRef.current = map; }}
         onMapMove={mode === 'create' ? handleMapMove : undefined}
         onMapMoveEnd={mode === 'create' ? handleMapMoveEnd : undefined}
       />
@@ -716,16 +743,11 @@ export default function Home() {
                 </AnimatePresence>
               </div>
 
-              <div className="px-7 pt-[14px] pb-[2px] flex-shrink-0 pointer-events-auto">
-                <div className="bg-gray-900/40 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl px-3 py-[6px] flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar dirección..."
-                    className="bg-transparent border-0 text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 h-7 text-sm p-0"
-                  />
-                </div>
+              <div className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
+                <StreetSearch
+                  onSelect={handleStreetSelect}
+                  placeholder="Buscar calle o dirección..."
+                />
               </div>
 
               <div className="flex-1 px-4 pt-2 pb-3 min-h-0 overflow-hidden flex items-start pointer-events-auto">
@@ -753,8 +775,14 @@ export default function Home() {
               className="fixed inset-0 top-[60px] pointer-events-none"
               style={{ overflow: 'hidden', height: 'calc(100dvh - 60px)' }}
             >
+              <div className="absolute top-3 left-4 right-4 z-20 pointer-events-auto">
+                <StreetSearch
+                  onSelect={handleStreetSelect}
+                  placeholder="Buscar calle para centrar mapa..."
+                />
+              </div>
               <div
-                className="absolute left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] min-h-[200px] pointer-events-auto"
+                className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] pointer-events-auto"
                 style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
               >
                 <CreateAlertCard

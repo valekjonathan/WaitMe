@@ -5,7 +5,7 @@ const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 17.5;
 const DEFAULT_PITCH = 30;
-const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
+const DARK_STYLE = 'mapbox://styles/mapbox/standard';
 const GPS_TIMEOUT_MS = 2500;
 const ACCURACY_RECENTER_THRESHOLD = 80;
 
@@ -16,6 +16,7 @@ export default function MapboxMap({
   onMapLoad,
   onRecenterRef,
   useCenterPin = false,
+  centerPaddingBottom = 0,
   onMapMove,
   onMapMoveEnd,
   children,
@@ -232,7 +233,16 @@ export default function MapboxMap({
     accuracyRef.current = accuracy;
 
     if (useCenterPin) {
-      map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 500 });
+      const padding = centerPaddingBottom > 0
+        ? { top: 0, bottom: centerPaddingBottom, left: 0, right: 0 }
+        : undefined;
+      map.flyTo({
+        center: [lng, lat],
+        zoom: DEFAULT_ZOOM,
+        pitch: DEFAULT_PITCH,
+        duration: 500,
+        padding,
+      });
       return;
     }
 
@@ -244,7 +254,7 @@ export default function MapboxMap({
     } else if (shouldRecenter) {
       map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, pitch: DEFAULT_PITCH, duration: 400, speed: 0.8 });
     }
-  }, [mapReady, effectiveCenter, location.accuracy, error, useCenterPin]);
+  }, [mapReady, effectiveCenter, location.accuracy, error, useCenterPin, centerPaddingBottom]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;
@@ -303,6 +313,16 @@ export default function MapboxMap({
       markersRef.current = [];
     };
   }, [mapReady, error, alerts, onAlertClick, location.lat, location.lng, useCenterPin]);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error || !useCenterPin) return;
+    const map = mapRef.current;
+    if (centerPaddingBottom > 0) {
+      map.setPadding({ top: 0, bottom: centerPaddingBottom, left: 0, right: 0 });
+    } else {
+      map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+    }
+  }, [mapReady, error, useCenterPin, centerPaddingBottom]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;

@@ -36,7 +36,7 @@ export default function CreateAlertCard({
 
   return (
     <div
-      className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-3 border-2 border-purple-500/70 shadow-xl flex flex-col"
+      className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
         boxShadow:
           '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
@@ -83,7 +83,7 @@ export default function CreateAlertCard({
               min={5}
               max={60}
               step={5}
-              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+              className="py-2 [&_[data-orientation=horizontal]]:h-[44px] [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:h-6 [&_[role=slider]]:w-6 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
             />
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function CreateAlertCard({
               min={3}
               max={20}
               step={1}
-              className="py-0.5 [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
+              className="py-2 [&_[data-orientation=horizontal]]:h-[44px] [&_[data-orientation=horizontal]]:bg-gray-700 [&_[data-orientation=horizontal]>span]:bg-purple-500 [&_[role=slider]]:h-6 [&_[role=slider]]:w-6 [&_[role=slider]]:border-purple-400 [&_[role=slider]]:bg-purple-500"
             />
           </div>
         </div>
