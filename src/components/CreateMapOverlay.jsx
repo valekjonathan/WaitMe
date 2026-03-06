@@ -49,7 +49,7 @@ export default function CreateMapOverlay({
         ref={cardRef}
         className="absolute left-1/2 -translate-x-1/2 w-[92%] max-w-[460px] min-h-[200px] z-20 pointer-events-auto"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+          bottom: 'calc(env(safe-area-inset-bottom,0px) + 90px)',
           maxHeight: 'min(55vh, 340px)',
           overflowY: 'auto',
         }}

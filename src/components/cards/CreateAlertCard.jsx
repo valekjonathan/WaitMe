@@ -50,31 +50,22 @@ export default function CreateAlertCard({
     }
   };
 
-  const handleUbicite = () => {
+  const handleLocate = () => {
     if (mapRef?.current) {
       window.__WAITME_MAP__ = mapRef.current;
     }
-
-    if (!navigator.geolocation) {
-      fallbackToMapCenter();
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        if (window.__WAITME_MAP__) {
-          window.__WAITME_MAP__.flyTo({
-            center: [lng, lat],
-            zoom: 17,
-            speed: 1.2,
-          });
-        }
-      },
-      fallbackToMapCenter,
-      { enableHighAccuracy: true, timeout: 2000, maximumAge: 0 }
-    );
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      if (window.__WAITME_MAP__) {
+        window.__WAITME_MAP__.flyTo({
+          center: [lng, lat],
+          zoom: 17,
+          duration: 1200,
+        });
+      }
+    });
   };
 
   return (
@@ -100,7 +91,7 @@ export default function CreateAlertCard({
 
           <Button
             className="pointer-events-auto h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70 flex items-center justify-center"
-            onClick={handleUbicite}
+            onClick={handleLocate}
             type="button"
           >
             <LocateFixed className="w-5 h-5" />
