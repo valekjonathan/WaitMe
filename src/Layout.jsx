@@ -10,7 +10,6 @@ const RENDER_LOG = (msg, extra) => {
 };
 import { useEffect } from 'react';
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
-import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import Home from './pages/Home';
@@ -83,7 +82,6 @@ export default function Layout() {
       };
     }
   }, []);
-  useRealtimeAlerts(); // no-op si VITE_DISABLE_REALTIME=true
   RENDER_LOG('Layout RENDER Routes');
   return (
     <LayoutProvider>
