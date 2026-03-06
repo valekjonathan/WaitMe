@@ -1,6 +1,6 @@
 /**
  * Botones de zoom (+/-) para el mapa.
- * 10px debajo del menú superior; left alineado con borde izquierdo de la tarjeta (4%).
+ * top: 70px; left alineado con borde izquierdo de la tarjeta (centrada 92% → 4% + margen).
  * Estilo morado como botón reubicar.
  */
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ export default function MapZoomControls({ mapRef, className = '' }) {
   return (
     <div
       className={`absolute z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
-      style={{ top: 10, left: 'calc(4% + 1rem)' }}
+      style={{ top: 70, left: 'calc((100% - 92%) / 2 + 1rem)' }}
     >
       <Button
         type="button"
