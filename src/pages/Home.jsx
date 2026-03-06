@@ -758,15 +758,6 @@ export default function Home() {
         )}
       </MapboxMap>
 
-      {/* Overlay profesional estilo Uber/Bolt — no tapa el mapa */}
-      <div
-        className="absolute inset-0 z-[1] pointer-events-none
-          bg-gradient-to-b
-          from-[#1a0b2e]/80
-          via-[#1a0b2e]/55
-          to-[#0b0618]/90"
-      />
-
       {/* Contenido UI por encima del mapa — pointer-events-none cuando hay mode para que el mapa reciba pan/zoom */}
       <div className={`relative z-10 flex flex-col min-h-screen ${mode ? 'pointer-events-none' : ''}`}>
       <main className={`flex-1 flex flex-col relative overflow-hidden min-h-0 ${mode ? 'pointer-events-none' : ''}`}>

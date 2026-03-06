@@ -1,6 +1,6 @@
 /**
  * Botones de zoom (+/-) para el mapa.
- * Arriba izquierda: 10px desde barra superior, 10px desde borde.
+ * 10px debajo del menú superior; left alineado con borde izquierdo de la tarjeta (4%).
  * Estilo morado como botón reubicar.
  */
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Plus, Minus } from 'lucide-react';
 export default function MapZoomControls({ mapRef, className = '' }) {
   return (
     <div
-      className={`absolute left-[10px] z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
+      className={`absolute left-[4%] z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
       style={{ top: 10 }}
     >
       <Button
