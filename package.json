@@ -28,7 +28,8 @@
     "ios:run:dev": "CAPACITOR_USE_DEV_SERVER=true npx cap run ios",
     "supabase:migrate": "bash scripts/supabase-migrate.sh",
     "supabase:migrate:direct": "node scripts/run-profile-migration.mjs",
-    "db:migrate:print": "node -e \"const fs=require('fs');const p='supabase/migrations';const files=fs.readdirSync(p).filter(f=>f.endsWith('.sql')).sort().reverse();const last=files[0];console.log(fs.readFileSync(p+'/'+last,'utf8'));\""
+    "db:migrate:print": "node -e \"const fs=require('fs');const p='supabase/migrations';const files=fs.readdirSync(p).filter(f=>f.endsWith('.sql')).sort().reverse();const last=files[0];console.log(fs.readFileSync(p+'/'+last,'utf8'));\"",
+    "diagnose": "node scripts/diagnose-project.js"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
