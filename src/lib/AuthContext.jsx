@@ -2,7 +2,46 @@ import React, { createContext, useState, useContext, useEffect, useCallback, use
 import { Capacitor } from '@capacitor/core';
 import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
 
-const isDevIos = () => import.meta.env.DEV && Capacitor.getPlatform?.() === 'ios';
+// DEV AUTO LOGIN
+// Only active during local development (npm run dev)
+const isDevAutoLogin = () => import.meta.env.DEV;
+
+/** Usuario mock para desarrollo local — nunca en producción */
+const DEV_MOCK_USER = {
+  id: 'dev-user',
+  name: 'Dev User',
+  full_name: 'Dev User',
+  display_name: 'Dev',
+  email: 'dev@waitme.app',
+  avatar: null,
+  photo_url: null,
+  brand: 'Dev',
+  model: 'Coche',
+  color: 'gris',
+  vehicle_type: 'car',
+  plate: '0000XXX',
+  phone: '000000000',
+  allow_phone_calls: false,
+  notifications_enabled: true,
+  email_notifications: true,
+};
+
+const DEV_MOCK_PROFILE = {
+  id: 'dev-user',
+  display_name: 'Dev',
+  full_name: 'Dev User',
+  email: 'dev@waitme.app',
+  avatar_url: null,
+  vehicle_type: 'car',
+  brand: 'Dev',
+  model: 'Coche',
+  color: 'gris',
+  plate: '0000XXX',
+  phone: '000000000',
+  allow_phone_calls: false,
+  notifications_enabled: true,
+  email_notifications: true,
+};
 
 const AuthContext = createContext();
 
@@ -122,45 +161,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, [ensureUserInDb]);
 
+  const autoLoginDevUser = useCallback(() => {
+    if (!isDevAutoLogin()) return;
+    setUser(DEV_MOCK_USER);
+    setProfile(DEV_MOCK_PROFILE);
+    setIsAuthenticated(true);
+    setIsLoadingAuth(false);
+  }, []);
+
   useEffect(() => {
-    // Bypass login en DEV + iOS simulator para probar mapa (OAuth no funciona en capacitor://localhost)
-    if (isDevIos()) {
-      const devUser = {
-        id: 'dev-user',
-        email: 'dev@waitme.local',
-        full_name: 'Dev User',
-        display_name: 'Dev',
-        photo_url: null,
-        brand: 'Dev',
-        model: 'Coche',
-        color: 'gris',
-        vehicle_type: 'car',
-        plate: '0000XXX',
-        phone: '000000000',
-        allow_phone_calls: false,
-        notifications_enabled: true,
-        email_notifications: true,
-      };
-      const devProfile = {
-        id: 'dev-user',
-        display_name: 'Dev',
-        vehicle_type: 'car',
-        brand: 'Dev',
-        model: 'Coche',
-        color: 'gris',
-        plate: '0000XXX',
-        phone: '000000000',
-        full_name: 'Dev User',
-        email: 'dev@waitme.local',
-        avatar_url: null,
-        allow_phone_calls: false,
-        notifications_enabled: true,
-        email_notifications: true,
-      };
-      setUser(devUser);
-      setProfile(devProfile);
-      setIsAuthenticated(true);
-      setIsLoadingAuth(false);
+    // DEV AUTO LOGIN — Only active during local development
+    if (isDevAutoLogin()) {
+      autoLoginDevUser();
       return;
     }
 
@@ -237,7 +249,7 @@ export const AuthProvider = ({ children }) => {
     resolveSession();
 
     return () => subscription.unsubscribe();
-  }, [resolveSession, ensureUserInDb]);
+  }, [resolveSession, ensureUserInDb, autoLoginDevUser]);
 
   const checkUserAuth = useCallback(async () => {
     await resolveSession();
