@@ -70,7 +70,7 @@ export default function CreateAlertCard({
 
   return (
     <div
-      className="pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col mb-[80px]"
+      className="pointer-events-auto bg-gray-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border-2 border-purple-500/70 shadow-xl flex flex-col"
       style={{
         boxShadow:
           '0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.15)',
