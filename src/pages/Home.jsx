@@ -21,7 +21,7 @@ import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelecto
 import { useAuth } from '@/lib/AuthContext';
 import { useProfileGuard } from '@/hooks/useProfileGuard';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
-import { alertsKey, alertsPrefix } from '@/lib/alertsQueryKey';
+import { alertsPrefix, nearbyAlertsKey } from '@/lib/alertsQueryKey';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -31,7 +31,6 @@ if (typeof window !== 'undefined') {
     _preload.src = appLogo;
   } catch {}
 }
-import { getMockNearbyAlerts } from '@/lib/mockNearby';
 import { haversineKm } from '@/utils/carUtils';
 
 // ======================
@@ -177,11 +176,17 @@ export default function Home() {
   });
 
   const { data: rawAlerts } = useQuery({
-    queryKey: alertsKey(mode, locationKey),
-    enabled: mode === 'search',
+    queryKey: nearbyAlertsKey(locationKey),
+    enabled: !!locationKey,
     queryFn: async () => {
-      // 10 usuarios cerca (demo local)
-      return getMockNearbyAlerts(userLocation);
+      const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
+      const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
+      const { data, error } = await alerts.getNearbyAlerts(lat, lng, 2);
+      if (error) {
+        console.error('[getNearbyAlerts]', error);
+        return [];
+      }
+      return data ?? [];
     },
     staleTime: 15_000,
     gcTime: 10 * 60 * 1000,
@@ -314,24 +319,9 @@ export default function Home() {
 
   const homeMapAlerts = useMemo(() => {
     if (mode === 'search') return searchAlerts || [];
-    if (mode === null) {
-      const base = getMockNearbyAlerts(userLocation);
-      const lat0 = Array.isArray(userLocation)
-        ? Number(userLocation[0])
-        : Number(userLocation?.latitude ?? userLocation?.lat ?? 43.3623);
-      const lng0 = Array.isArray(userLocation)
-        ? Number(userLocation[1])
-        : Number(userLocation?.longitude ?? userLocation?.lng ?? -5.8489);
-      // 3 coches extra bien al sur: aparecen en la zona del botón morado en pantalla
-      const extra = [
-        { id: 'mock_below_1', latitude: lat0 - 0.0032, longitude: lng0 + 0.0005, price: 7,  color: 'azul',   vehicle_color: 'blue',  vehicle_type: 'suv',  status: 'active' },
-        { id: 'mock_below_2', latitude: lat0 - 0.0040, longitude: lng0 - 0.0014, price: 5,  color: 'rojo',   vehicle_color: 'red',   vehicle_type: 'van',  status: 'active' },
-        { id: 'mock_below_3', latitude: lat0 - 0.0048, longitude: lng0 + 0.0020, price: 10, color: 'negro',  vehicle_color: 'black', vehicle_type: 'car',  status: 'active' },
-      ];
-      return [...base, ...extra];
-    }
+    if (mode === null) return Array.isArray(rawAlerts) ? rawAlerts : [];
     return [];
-  }, [mode, searchAlerts, userLocation]);
+  }, [mode, searchAlerts, rawAlerts]);
 
   const createAlertMutation = useMutation({
   mutationFn: async (data) => {
@@ -408,8 +398,8 @@ export default function Home() {
 },
 
   onSuccess: (newAlert) => {
-    // Update optimista sobre la key exacta activa
-    queryClient.setQueryData(alertsKey(mode, locationKey), (old) => {
+    // Update optimista sobre nearby (mapa)
+    queryClient.setQueryData(nearbyAlertsKey(locationKey), (old) => {
       const list = Array.isArray(old) ? old : (old?.data || []);
       return [newAlert, ...list.filter(a => !a.id?.startsWith('temp_'))];
     });
@@ -497,8 +487,8 @@ export default function Home() {
       setConfirmDialog({ open: false, alert: null });
       navigate(createPageUrl('History'));
 
-      // Usa la key activa exacta para cancelar + snapshot + update optimista
-      const activeKey = alertsKey(mode, locationKey);
+      // Usa la key nearby para cancelar + snapshot + update optimista
+      const activeKey = nearbyAlertsKey(locationKey);
       await queryClient.cancelQueries({ queryKey: activeKey });
 
       const previousAlerts = queryClient.getQueryData(activeKey);
@@ -513,7 +503,7 @@ export default function Home() {
     onError: (err, alert, context) => {
       // Restaura el snapshot usando la key guardada en el contexto
       if (context?.previousAlerts !== undefined) {
-        queryClient.setQueryData(context.activeKey ?? alertsKey(mode, locationKey), context.previousAlerts);
+        queryClient.setQueryData(context.activeKey ?? nearbyAlertsKey(locationKey), context.previousAlerts);
       }
       setSelectedAlert(null);
     },

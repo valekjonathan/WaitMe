@@ -12,5 +12,8 @@
 /** Exact key for a specific mode + location combination. */
 export const alertsKey = (mode, locationKey) => ['alerts', mode, locationKey];
 
+/** Key for nearby alerts (used by Home map in both logo and search modes). */
+export const nearbyAlertsKey = (locationKey) => ['alerts', 'nearby', locationKey];
+
 /** Prefix key — invalidates ALL alert query variants at once. */
 export const alertsPrefix = ['alerts'];

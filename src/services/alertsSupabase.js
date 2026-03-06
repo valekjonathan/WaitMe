@@ -4,7 +4,7 @@
  * Usa schema: parking_alerts (seller_id, price_cents, address_text, geohash, metadata).
  */
 import { getSupabase } from '@/lib/supabaseClient';
-import { encode, getNeighborPrefixes } from '@/lib/geohash';
+import { encode } from '@/lib/geohash';
 
 const TABLE = 'parking_alerts';
 
@@ -38,6 +38,8 @@ function normalizeAlert(row) {
     model: meta.model ?? row.model ?? (carParts.slice(1).join(' ') || ''),
     plate: meta.plate ?? meta.reserved_by_plate ?? row.plate ?? null,
     color: meta.color ?? row.color ?? null,
+    user_name: meta.user_name ?? meta.reserved_by_name ?? null,
+    user_photo: meta.user_photo ?? meta.reserved_by_photo ?? null,
     address: row.address_text ?? meta.address ?? row.address ?? null,
     target_time: meta.target_time ?? row.target_time ?? null,
     created_at: row.created_at,
@@ -179,15 +181,24 @@ export async function getNearbyAlerts(lat, lng, radiusKm = 2) {
   const supabase = getSupabase();
   if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
 
-  const geohash = encode(lat, lng, 7);
-  const prefixes = getNeighborPrefixes(geohash, radiusKm);
-  const orFilter = prefixes.map((p) => `geohash.ilike.${p}%`).join(',');
+  const degLat = radiusKm / 111;
+  const degLng = radiusKm / (111 * Math.max(0.01, Math.cos((lat * Math.PI) / 180)));
+  const latMin = lat - degLat;
+  const latMax = lat + degLat;
+  const lngMin = lng - degLng;
+  const lngMax = lng + degLng;
 
-  let query = supabase.from(TABLE).select('*').eq('status', 'active');
-  if (orFilter) {
-    query = query.or(orFilter);
-  }
-  const { data, error } = await query.order('created_at', { ascending: false });
+  let query = supabase
+    .from(TABLE)
+    .select('*')
+    .eq('status', 'active')
+    .gte('lat', latMin)
+    .lte('lat', latMax)
+    .gte('lng', lngMin)
+    .lte('lng', lngMax)
+    .order('created_at', { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) return { data: [], error };
   return { data: (data ?? []).map(normalizeAlert), error: null };
