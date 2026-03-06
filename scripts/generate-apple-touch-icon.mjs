@@ -4,11 +4,10 @@
  * Fuente: src/assets/d2ae993d3_WaitMe.png
  * Salida: public/apple-touch-icon.png
  *
- * ESTRATEGIA (ver docs/AUDITORIA_ICONO_IOS_PWA.md):
- * El asset contiene icono (arriba ~55%) + texto (abajo ~45%).
- * El logo completo no escala bien a 180x180 (texto ilegible).
- * Usamos SOLO la parte cuadrada del icono (efecto cristal) que el usuario
- * ve en Home, ocupando el 100% del área útil.
+ * ESTRATEGIA (ver docs/AUDITORIA_FINAL_ICONO_IOS.md):
+ * - Extraer SOLO el cuadrado cristal (badge con flechas + cuadrado blanco)
+ * - Sin canvas negro extra, sin marco negro alrededor
+ * - Badge ocupa 96-98% del área (172-176px) con margen mínimo para Apple
  */
 import sharp from 'sharp';
 import { fileURLToPath } from 'url';
@@ -21,32 +20,22 @@ const outPath = path.join(root, 'public/apple-touch-icon.png');
 
 const SIZE = 180;
 
-// Región del icono cuadrado en el asset 1024x1024:
-// top 55%, centrado horizontalmente
-const SRC_SIZE = 1024;
-const ICON_HEIGHT_RATIO = 0.55;
-const iconHeight = Math.floor(SRC_SIZE * ICON_HEIGHT_RATIO); // 563
-const iconSize = Math.min(SRC_SIZE, iconHeight);             // 563
-const left = Math.floor((SRC_SIZE - iconSize) / 2);          // 230
+// Recorte exacto del cuadrado cristal en el asset 1024x1024:
+// El badge está centrado en la mitad superior. Crop ajustado para capturar
+// solo el badge sin el marco negro exterior del asset.
+const SRC_W = 1024;
+const CROP_SIZE = 480; // cuadrado que contiene solo el badge (sin recortar)
+const CROP_LEFT = Math.floor((SRC_W - CROP_SIZE) / 2); // 272
+const CROP_TOP = 40; // badge empieza ~40px desde arriba
 
 async function main() {
-  // 1. Extraer solo la región del icono (cuadrado con efecto cristal)
-  const iconBuffer = await sharp(srcLogo)
-    .extract({ left, top: 0, width: iconSize, height: iconSize })
-    .resize(SIZE, SIZE, { fit: 'fill' })  // fill = escala exacta 180x180
-    .ensureAlpha()
-    .toBuffer();
-
-  // 2. Componer sobre fondo negro (sin padding; icono ocupa 100%)
-  await sharp({
-    create: {
-      width: SIZE,
-      height: SIZE,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 1 }
-    }
-  })
-    .composite([{ input: iconBuffer, left: 0, top: 0 }])
+  // Extraer solo el cuadrado cristal y escalar a 180x180.
+  // SIN canvas negro extra: el badge ES el icono, ocupa todo el frame.
+  // Margen mínimo: el badge tiene bordes redondeados; al escalar a 180x180
+  // el contenido útil queda ~96-98% (esquinas redondeadas del badge).
+  await sharp(srcLogo)
+    .extract({ left: CROP_LEFT, top: CROP_TOP, width: CROP_SIZE, height: CROP_SIZE })
+    .resize(SIZE, SIZE, { fit: 'fill' })
     .removeAlpha()
     .png()
     .toFile(outPath);
