@@ -230,7 +230,17 @@ export default function Home() {
     queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
   }, [user?.id, user?.email, queryClient]);
 
-  // Reverse geocoding — solo actualiza si hay resultado válido; mantiene última dirección en fallo
+  const formatAddress = (road, number, city) => {
+    let streetFormatted = (road || '').trim();
+    if (streetFormatted.toLowerCase().startsWith('calle ')) {
+      streetFormatted = 'C/ ' + streetFormatted.slice(6);
+    } else if (streetFormatted.toLowerCase().startsWith('avenida ')) {
+      streetFormatted = 'Av. ' + streetFormatted.slice(8);
+    }
+    const parts = [streetFormatted, number, city].filter(Boolean);
+    return parts.length ? parts.join(', ') : '';
+  };
+
   const reverseGeocode = useCallback((lat, lng) => {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=19&addressdetails=1`)
       .then((res) => res.json())
@@ -239,7 +249,8 @@ export default function Home() {
           const a = data.address;
           const road = a.road || a.pedestrian || a.footway || a.path || a.street || a.cycleway || '';
           const number = a.house_number || '';
-          const result = number ? `${road}, ${number}` : road || data.display_name?.split(',')[0] || '';
+          const city = a.city || a.town || a.village || a.municipality || '';
+          const result = formatAddress(road, number, city) || data.display_name?.split(',')[0] || '';
           if (result) setAddress(result);
         }
       })
