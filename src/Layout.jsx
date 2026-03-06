@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { LayoutProvider, useLayoutHeaderConfig } from '@/lib/LayoutContext';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import BottomNavLayer from '@/system/layout/BottomNavLayer';
 import Home from './pages/Home';
 
 const Chats            = lazy(() => import('./pages/Chats'));
@@ -77,7 +78,9 @@ Loading WaitMe...
           </Suspense>
         </div>
       </main>
-      <BottomNav />
+      <BottomNavLayer>
+        <BottomNav />
+      </BottomNavLayer>
     </div>
   );
 }
