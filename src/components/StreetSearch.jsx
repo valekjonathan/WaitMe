@@ -112,7 +112,7 @@ export default function StreetSearch({ onSelect, placeholder = 'Buscar calle o d
   if (!hasToken) return null;
 
   return (
-    <div ref={containerRef} className={`relative mt-[5px] ${className}`}>
+    <div ref={containerRef} className={`relative mt-[10px] ${className}`}>
       <div className="bg-gray-900/80 backdrop-blur-sm border-2 border-purple-500/50 rounded-xl px-3 py-2 flex items-center gap-2">
         <MapPin className="w-5 h-5 text-purple-400 flex-shrink-0" />
         <Input

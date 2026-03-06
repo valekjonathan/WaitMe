@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
+import CenterPin from '@/components/CenterPin';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const FALLBACK_ZOOM = 14;
@@ -69,6 +70,12 @@ export default function MapboxMap({
     const handler = () => flyToUser();
     window.addEventListener('waitme:goLogo', handler);
     return () => window.removeEventListener('waitme:goLogo', handler);
+  }, [flyToUser]);
+
+  useEffect(() => {
+    const handler = () => flyToUser();
+    window.addEventListener('waitme:recenterMap', handler);
+    return () => window.removeEventListener('waitme:recenterMap', handler);
   }, [flyToUser]);
 
   useEffect(() => {
@@ -249,7 +256,7 @@ export default function MapboxMap({
 
     if (useCenterPin) {
       const padding = centerPaddingBottom > 0
-        ? { top: 220, bottom: 200, left: 0, right: 0 }
+        ? { top: 0, bottom: 120, left: 0, right: 0 }
         : undefined;
       map.flyTo({
         center: [lng, lat],
@@ -333,7 +340,7 @@ export default function MapboxMap({
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
     const map = mapRef.current;
     if (centerPaddingBottom > 0) {
-      map.setPadding({ top: 220, bottom: 200, left: 0, right: 0 });
+      map.setPadding({ top: 0, bottom: 120, left: 0, right: 0 });
     } else {
       map.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
     }
@@ -409,18 +416,7 @@ export default function MapboxMap({
       style={containerStyle}
       {...rest}
     >
-      {useCenterPin && (
-        <div
-          className="absolute z-10 pointer-events-none flex flex-col items-center"
-          style={{ left: '50%', top: '50%', transform: 'translate(-50%, calc(-100% - 10px))', width: 18 }}
-        >
-          <div
-            className="w-[18px] h-[18px] rounded-full bg-purple-500"
-            style={{ boxShadow: '0 0 15px rgba(168,85,247,0.8)' }}
-          />
-          <div className="w-0.5 h-9 bg-purple-500" />
-        </div>
-      )}
+      {useCenterPin && <CenterPin />}
       {children}
     </div>
   );

@@ -42,7 +42,10 @@ export default function CreateAlertCard({
 
           <Button
             className="h-8 w-8 min-h-[32px] min-w-[32px] p-0 border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/50 flex items-center justify-center"
-            onClick={onUseCurrentLocation}
+            onClick={() => {
+              onUseCurrentLocation?.();
+              try { window.dispatchEvent(new Event('waitme:recenterMap')); } catch {}
+            }}
             type="button"
           >
             <LocateFixed className="w-5 h-5" />
@@ -97,7 +100,7 @@ export default function CreateAlertCard({
 
         {/* Botón publicar */}
         <Button
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8 text-sm"
+          className="inline-flex px-6 bg-purple-600 hover:bg-purple-700 text-white font-semibold h-8 text-sm"
           onClick={handleCreate}
           disabled={isLoading || !address}
         >
