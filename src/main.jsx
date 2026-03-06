@@ -29,21 +29,37 @@ class ErrorBoundary extends React.Component {
     return { error };
   }
 
+  componentDidCatch(error) {
+    console.error('[ErrorBoundary]', error);
+  }
+
   render() {
-    if (this.state.error) {
+    const err = this.state.error;
+    if (err) {
+      const msg = err?.message ?? String(err);
+      const stack = err?.stack ?? '';
       return (
         <div
           style={{
-            background: "#1a1a1a",
+            background: "#0a0a0a",
             color: "#fca5a5",
             padding: 24,
-            fontFamily: "system-ui, sans-serif",
+            fontFamily: "monospace, system-ui",
+            fontSize: 13,
             whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
             minHeight: "100vh",
+            overflow: "auto",
           }}
         >
-          <h2 style={{ marginBottom: 16 }}>Error</h2>
-          {String(this.state.error)}
+          <h2 style={{ marginBottom: 12, color: "#ef4444" }}>Runtime error:</h2>
+          <div style={{ marginBottom: 16 }}>{msg}</div>
+          {stack && (
+            <>
+              <h3 style={{ marginBottom: 8, color: "#f97316" }}>Stack:</h3>
+              <pre style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>{stack}</pre>
+            </>
+          )}
         </div>
       );
     }
