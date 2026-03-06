@@ -26,8 +26,9 @@ function zoomOut(map) {
 export default function MapZoomControls({ mapRef, className = '' }) {
   return (
     <div
+      data-zoom-controls
       className={`absolute z-20 flex flex-col gap-1 pointer-events-auto ${className}`.trim()}
-      style={{ top: 80 }}
+      style={{ top: 75 }}
     >
       <Button
         type="button"

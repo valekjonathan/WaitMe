@@ -3,15 +3,23 @@
  * Controla: anchura, separación respecto al menú inferior, safe area.
  * Usado por CreateAlertCard y UserAlertCard (search).
  *
- * paddingBottom = 20px (gap) + --bottom-nav-h
+ * paddingBottom = (20 - cardShiftUp)px (gap) + --bottom-nav-h
+ * cardShiftUp: sube la tarjeta N px manteniendo gap 20px (bottom + paddingBottom)
  */
-export default function MapScreenPanel({ children, className = '', style = {}, ...rest }) {
+export default function MapScreenPanel({
+  children,
+  className = '',
+  style = {},
+  cardShiftUp = 0,
+  ...rest
+}) {
+  const gapPx = Math.max(0, 20 - cardShiftUp);
   return (
     <div
       className={`absolute left-0 right-0 bottom-0 flex justify-center pointer-events-none z-20 ${className}`.trim()}
       style={{
-        paddingBottom:
-          'calc(20px + var(--bottom-nav-h, calc(64px + env(safe-area-inset-bottom, 0px))))',
+        bottom: cardShiftUp,
+        paddingBottom: `calc(${gapPx}px + var(--bottom-nav-h, calc(64px + env(safe-area-inset-bottom, 0px))))`,
         ...style,
       }}
       data-map-screen-panel

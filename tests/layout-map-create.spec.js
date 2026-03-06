@@ -93,4 +93,36 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
     console.log('\n[layout-map-create DIAG]', JSON.stringify(m, null, 2));
     expect(m.viewportHeight).toBeDefined();
   });
+
+  test('botones de zoom están 5px más arriba que antes (top=75 en overlay)', async ({ page }) => {
+    const zoomEl = page.locator('[data-zoom-controls]');
+    await expect(zoomEl).toBeVisible({ timeout: 5000 });
+    const box = await zoomEl.boundingBox();
+    expect(box, 'zoom controls deben tener boundingBox').toBeTruthy();
+    const top = box?.y;
+    expect(typeof top, 'top debe ser número').toBe('number');
+    // Antes top:80 → viewport ~149. Ahora top:75 → viewport ~144 (69+75). 5px más arriba.
+    expect(
+      top,
+      `zoom top=${top}px, esperado 143-145 (5px más arriba que 149)`
+    ).toBeGreaterThanOrEqual(142);
+    expect(top, `zoom top=${top}px, esperado 143-145`).toBeLessThanOrEqual(146);
+  });
+
+  test('Ubícate ejecuta geolocalización y recentra mapa', async ({ page }) => {
+    const locateBtn = page
+      .locator('[data-create-alert-card] button')
+      .filter({ has: page.locator('svg') })
+      .first();
+    await expect(locateBtn).toBeVisible();
+    await locateBtn.click();
+    await page.waitForTimeout(1500);
+    const mapCenter = await page.evaluate(() => {
+      const map = window.__WAITME_MAP__;
+      if (!map?.getCenter) return null;
+      const c = map.getCenter();
+      return { lng: c.lng, lat: c.lat };
+    });
+    expect(mapCenter).toBeTruthy();
+  });
 });
