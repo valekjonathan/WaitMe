@@ -7,6 +7,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    fs: {
+      deny: ['**/ios__backup*/**', '**/DerivedData/**', '**/ios/**'],
+    },
+    watch: {
+      ignored: ['**/ios__backup*/**', '**/DerivedData/**', '**/ios/**'],
+    },
     hmr: {
       host: '192.168.0.11',
       port: 5173,

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "rm -rf ios/App/App/public/assets 2>/dev/null || true",
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint . --max-warnings=9999",

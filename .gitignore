@@ -15,8 +15,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-ios__backup_*
-ios/App/DerivedData
+ios__backup*
+DerivedData
+*.xcworkspace
+*.xcuserdata
 *.local
 
 # Playwright
