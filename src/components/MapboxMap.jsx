@@ -22,6 +22,7 @@ export default function MapboxMap({
   const mapRef = useRef(null);
   const mapboxglRef = useRef(null);
   const markersRef = useRef([]);
+  const resizeObserverRef = useRef(null);
   const centerRef = useRef(OVIEDO_CENTER);
   const accuracyRef = useRef(null);
   const watchIdRef = useRef(null);
@@ -137,7 +138,8 @@ export default function MapboxMap({
     const token = import.meta.env.VITE_MAPBOX_TOKEN;
     const tokenStr = token ? String(token).trim() : '';
     const isPlaceholder = !tokenStr ||
-      tokenStr === 'PEGA_AQUI_EL_TOKEN' || tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
+      tokenStr === 'PEGA_AQUI_EL_TOKEN' ||
+      tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
     if (isPlaceholder) {
       setError('no_token');
@@ -177,9 +179,18 @@ export default function MapboxMap({
             setMapReady(true);
             onMapLoad?.(map);
 
-            setTimeout(() => {
+            const resizeDelayed = () => {
               if (mapRef.current) mapRef.current.resize();
-            }, 300);
+            };
+            setTimeout(resizeDelayed, 100);
+            setTimeout(resizeDelayed, 400);
+            setTimeout(resizeDelayed, 800);
+
+            if (container && typeof ResizeObserver !== 'undefined') {
+              const ro = new ResizeObserver(resizeDelayed);
+              resizeObserverRef.current = ro;
+              ro.observe(container);
+            }
           });
 
           map.on('error', (e) => {
@@ -196,6 +207,8 @@ export default function MapboxMap({
 
     return () => {
       cancelled = true;
+      resizeObserverRef.current?.disconnect?.();
+      resizeObserverRef.current = null;
       markersRef.current.forEach((m) => m?.remove?.());
       markersRef.current = [];
       if (map) {
@@ -303,7 +316,8 @@ export default function MapboxMap({
     inset: 0,
     width: '100%',
     height: '100%',
-    minHeight: isZeroSize ? '100vh' : '100vh',
+    minHeight: isZeroSize ? '100vh' : '100dvh',
+    minWidth: '100%',
   };
 
   return (
