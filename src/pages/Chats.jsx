@@ -7,7 +7,14 @@ import * as notifications from '@/data/notifications';
 import { Search, X, Navigation, TrendingUp, TrendingDown, MessageCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -63,7 +70,18 @@ const getChatStatusLabel = (status) => {
 
 const isFinalChatStatus = (status) => {
   const s = String(status || '').toLowerCase();
-  return ['completed', 'completada', 'cancelled', 'canceled', 'cancelada', 'expired', 'agotada', 'expirada', 'went_early', 'se_fue'].includes(s);
+  return [
+    'completed',
+    'completada',
+    'cancelled',
+    'canceled',
+    'cancelada',
+    'expired',
+    'agotada',
+    'expirada',
+    'went_early',
+    'se_fue',
+  ].includes(s);
 };
 
 // ====== Estilos sincronizados (CHATS / CHAT / NOTIFICACIONES) ======
@@ -71,7 +89,10 @@ const PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
 const PURPLE_ACTIVE_TEXT = 'text-purple-400';
 const PURPLE_ACTIVE_TEXT_DIM = 'text-purple-400/70';
 
-const normalizeStatus = (status) => String(status || '').trim().toLowerCase();
+const normalizeStatus = (status) =>
+  String(status || '')
+    .trim()
+    .toLowerCase();
 
 const isStatusMeLoPienso = (status) => {
   const s = normalizeStatus(status);
@@ -117,11 +138,17 @@ const getRoleBoxClasses = ({ status, isSeller, isBuyer }) => {
 
 const PricePill = ({ direction = 'up', amount = 0 }) => {
   const isUp = direction === 'up';
-  const wrapCls = isUp ? 'bg-green-500/15 border border-green-400/40' : 'bg-red-500/15 border border-red-400/40';
+  const wrapCls = isUp
+    ? 'bg-green-500/15 border border-green-400/40'
+    : 'bg-red-500/15 border border-red-400/40';
   const textCls = isUp ? 'text-green-400' : 'text-red-400';
   return (
     <div className={`${wrapCls} rounded-lg px-2 py-1 flex items-center gap-1 h-7`}>
-      {isUp ? <TrendingUpIcon className={`w-4 h-4 ${textCls}`} /> : <TrendingDownIcon className={`w-4 h-4 ${textCls}`} />}
+      {isUp ? (
+        <TrendingUpIcon className={`w-4 h-4 ${textCls}`} />
+      ) : (
+        <TrendingDownIcon className={`w-4 h-4 ${textCls}`} />
+      )}
       <span className={`font-bold text-sm ${textCls}`}>{Math.floor(amount || 0)}€</span>
     </div>
   );
@@ -129,14 +156,30 @@ const PricePill = ({ direction = 'up', amount = 0 }) => {
 
 // Íconos (SVG) para mantener este archivo autocontenido sin tocar imports
 const TrendingUpIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
     <polyline points="17 6 23 6 23 12" />
   </svg>
 );
 
 const TrendingDownIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
     <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
     <polyline points="17 18 23 18 23 12" />
   </svg>
@@ -150,7 +193,6 @@ const shouldEnableIR = ({ status, isSeller, isFinal }) => {
   // En el resto de estados no finales, también lo dejamos activo (comprador)
   return true;
 };
-
 
 const clampFinite = (n, fallback = null) => (Number.isFinite(n) ? n : fallback);
 
@@ -184,8 +226,8 @@ const PriceChip = ({ amount, direction }) => {
   const wrapCls = isGreen
     ? 'bg-green-500/20 border border-green-500/30'
     : isRed
-    ? 'bg-red-500/20 border border-red-500/30'
-    : 'bg-purple-600/20 border border-purple-500/30';
+      ? 'bg-red-500/20 border border-red-500/30'
+      : 'bg-purple-600/20 border border-purple-500/30';
   const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-purple-300';
   return (
     <div className={`${wrapCls} rounded-lg px-3 py-0.5 flex items-center gap-1 h-7`}>
@@ -195,7 +237,6 @@ const PriceChip = ({ amount, direction }) => {
     </div>
   );
 };
-
 
 export default function Chats() {
   const navigate = useNavigate();
@@ -232,12 +273,18 @@ export default function Chats() {
   }, []);
 
   const [demoConvs, setDemoConvs] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]'); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]');
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {
     const handler = () => {
-      try { setDemoConvs(JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]')); } catch {}
+      try {
+        setDemoConvs(JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]'));
+      } catch {}
     };
     window.addEventListener('waitme:newDemoConversation', handler);
     return () => window.removeEventListener('waitme:newDemoConversation', handler);
@@ -258,7 +305,7 @@ export default function Chats() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchInterval: false
+    refetchInterval: false,
   });
 
   const { data: alertsData = [] } = useQuery({
@@ -276,7 +323,7 @@ export default function Chats() {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchInterval: false
+    refetchInterval: false,
   });
 
   const alertsMap = useMemo(() => {
@@ -330,7 +377,11 @@ export default function Chats() {
 
     // Mantener solo la reserva buyer más reciente como activa
     if (buyerReservations.length > 1) {
-      buyerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      buyerReservations.sort(
+        (a, b) =>
+          new Date(b.last_message_at || b.created_date) -
+          new Date(a.last_message_at || a.created_date)
+      );
       const [activeBuyer, ...restBuyer] = buyerReservations;
       filtered = filtered.map((conv) => {
         if (restBuyer.find((c) => c.id === conv.id)) {
@@ -344,7 +395,11 @@ export default function Chats() {
 
     // Mantener solo la reserva seller más reciente como activa
     if (sellerReservations.length > 1) {
-      sellerReservations.sort((a, b) => new Date(b.last_message_at || b.created_date) - new Date(a.last_message_at || a.created_date));
+      sellerReservations.sort(
+        (a, b) =>
+          new Date(b.last_message_at || b.created_date) -
+          new Date(a.last_message_at || a.created_date)
+      );
       const [activeSeller, ...restSeller] = sellerReservations;
       filtered = filtered.map((conv) => {
         if (restSeller.find((c) => c.id === conv.id)) {
@@ -428,21 +483,21 @@ export default function Chats() {
           alert_id: alert.id,
           amount: price,
           extension_minutes: minutes,
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       });
       if (error) throw error;
 
       toast({
         title: '✅ PRÓRROGA ENVIADA',
-        description: `${minutes} min por ${price}€`
+        description: `${minutes} min por ${price}€`,
       });
     } catch (err) {
       console.error('Error creando notificación de prórroga:', err);
       toast({
         title: 'Error',
         description: 'No se pudo enviar la prórroga. Inténtalo de nuevo.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
 
@@ -511,93 +566,116 @@ export default function Chats() {
       if (!alert) continue;
       const isBuyer = alert?.reserved_by_id === user?.id;
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            const statusLabel = getChatStatusLabel(alert?.status);
-const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
-const isThinking = statusLabel === 'ME LO PIENSO';
-const isProrroga = statusLabel === 'PRÓRROGA';
+      const statusLabel = getChatStatusLabel(alert?.status);
+      const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
+      const isThinking = statusLabel === 'ME LO PIENSO';
+      const isProrroga = statusLabel === 'PRÓRROGA';
 
-const isSeller = alert?.user_id === user?.id;
+      const isSeller = alert?.user_id === user?.id;
 
-const badgeCls = isCompletedOrCanceled
-  ? 'bg-red-500/20 text-red-400 border-red-500/30'
-  : isBuyer
-  ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
-  : isSeller
-  ? 'bg-green-500/20 text-green-300 border-green-400/50'
-  : 'bg-purple-500/10 text-purple-300/70 border-purple-400/30';
+      const badgeCls = isCompletedOrCanceled
+        ? 'bg-red-500/20 text-red-400 border-red-500/30'
+        : isBuyer
+          ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'
+          : isSeller
+            ? 'bg-green-500/20 text-green-300 border-green-400/50'
+            : 'bg-purple-500/10 text-purple-300/70 border-purple-400/30';
 
-
-      if (remainingMs === 0 && hasEverHadTimeRef.current.get(alert.id) === true && !showProrrogaDialog) {
+      if (
+        remainingMs === 0 &&
+        hasEverHadTimeRef.current.get(alert.id) === true &&
+        !showProrrogaDialog
+      ) {
         openExpiredDialog(alert, isBuyer);
       }
     }
   }, [nowTs, filteredConversations, alertsMap, user?.id, showProrrogaDialog]);
 
   return (
-    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
       <main className="flex-1 flex flex-col min-h-0 overflow-auto">
         {/* Conversaciones demo (WaitMe aceptados) */}
         {demoConvs.length > 0 && (
           <div className="px-4 pt-3 space-y-3">
             {demoConvs.map((dc) => {
               const buyerFirstName = (dc.buyer_name || 'Usuario').split(' ')[0];
-              const buyerPhoto = dc.buyer_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(dc.buyer_name||'U')}&background=7c3aed&color=fff&size=128`;
+              const buyerPhoto =
+                dc.buyer_photo ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(dc.buyer_name || 'U')}&background=7c3aed&color=fff&size=128`;
               const carLabel = `${dc.brand || ''} ${dc.model || ''}`.trim() || 'Sin datos';
               const hasUnread = (dc.unread || 0) > 0;
               return (
-                <div key={dc.id}
+                <div
+                  key={dc.id}
                   className={`bg-gray-900 rounded-xl p-2.5 border-2 ${hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'} cursor-pointer`}
                   onClick={() => {
                     // Limpiar unread de esta conv
                     try {
-                      const updated = demoConvs.map(c => c.id === dc.id ? { ...c, unread: 0 } : c);
+                      const updated = demoConvs.map((c) =>
+                        c.id === dc.id ? { ...c, unread: 0 } : c
+                      );
                       setDemoConvs(updated);
                       localStorage.setItem('waitme:demo_conversations', JSON.stringify(updated));
                       const total = updated.reduce((s, c) => s + (c.unread || 0), 0);
                       localStorage.setItem('waitme:chat_unread', String(total));
                       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
                     } catch {}
-                    navigate(`/chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`);
+                    navigate(
+                      `/chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`
+                    );
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex-shrink-0 w-[95px] h-7 bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md flex items-center justify-center">
                       Te reservó:
                     </div>
-                    <div className="flex-1"/>
+                    <div className="flex-1" />
                     <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                      <Navigation className="w-3 h-3 text-purple-400"/>
+                      <Navigation className="w-3 h-3 text-purple-400" />
                       <span className="text-white font-bold text-xs">300m</span>
                     </div>
                     <div className="bg-green-500/15 border border-green-400/40 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
-                      <TrendingUp className="w-4 h-4 text-green-400"/>
+                      <TrendingUp className="w-4 h-4 text-green-400" />
                       <span className="text-green-400 font-bold text-sm">{dc.price || 3}€</span>
                     </div>
-                    <button onClick={(e) => {
-                      e.stopPropagation();
-                      const updated = demoConvs.filter(c => c.id !== dc.id);
-                      setDemoConvs(updated);
-                      localStorage.setItem('waitme:demo_conversations', JSON.stringify(updated));
-                      const total = updated.reduce((s, c) => s + (c.unread || 0), 0);
-                      localStorage.setItem('waitme:chat_unread', String(total));
-                      window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
-                    }} className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors">
-                      <X className="w-3.5 h-3.5 text-red-400"/>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = demoConvs.filter((c) => c.id !== dc.id);
+                        setDemoConvs(updated);
+                        localStorage.setItem('waitme:demo_conversations', JSON.stringify(updated));
+                        const total = updated.reduce((s, c) => s + (c.unread || 0), 0);
+                        localStorage.setItem('waitme:chat_unread', String(total));
+                        window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
+                      }}
+                      className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-red-400" />
                     </button>
                   </div>
-                  <div className="border-t border-gray-700/80 mb-2"/>
+                  <div className="border-t border-gray-700/80 mb-2" />
                   <div className="flex gap-2.5 mb-2">
                     <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-                      <img src={buyerPhoto} alt={buyerFirstName} className="w-full h-full object-cover"/>
+                      <img
+                        src={buyerPhoto}
+                        alt={buyerFirstName}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div className="flex-1 h-[85px] flex flex-col">
                       <p className="font-bold text-xl text-white leading-none">{buyerFirstName}</p>
-                      <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+                      <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">
+                        {carLabel}
+                      </p>
                       <div className="flex items-end gap-2 mt-1 min-h-[28px]">
                         <div className="flex-shrink-0">
                           <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-                            <div className="bg-blue-600 h-full w-5 flex items-center justify-center"><span className="text-white text-[8px] font-bold">E</span></div>
-                            <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{dc.plate || '0000 XXX'}</span>
+                            <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                              <span className="text-white text-[8px] font-bold">E</span>
+                            </div>
+                            <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">
+                              {dc.plate || '0000 XXX'}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -605,14 +683,22 @@ const badgeCls = isCompletedOrCanceled
                   </div>
                   <div className="border-t border-gray-700/80 pt-2">
                     <div className="flex justify-between items-center mb-1">
-                      <p className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}>Últimos mensajes:</p>
+                      <p
+                        className={`text-xs font-bold ${hasUnread ? 'text-purple-400' : 'text-purple-400/70'}`}
+                      >
+                        Últimos mensajes:
+                      </p>
                       {hasUnread && (
                         <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center">
-                          <span className="text-red-400 text-xs font-bold">{dc.unread > 9 ? '9+' : dc.unread}</span>
+                          <span className="text-red-400 text-xs font-bold">
+                            {dc.unread > 9 ? '9+' : dc.unread}
+                          </span>
                         </div>
                       )}
                     </div>
-                    <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>{dc.first_message || 'Sin mensajes'}</p>
+                    <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'}`}>
+                      {dc.first_message || 'Sin mensajes'}
+                    </p>
                   </div>
                 </div>
               );
@@ -631,197 +717,226 @@ const badgeCls = isCompletedOrCanceled
 
         {filteredConversations.length > 0 && (
           <>
+            <div className="px-4 pt-3 pb-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar conversaciones..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
 
-        <div className="px-4 pt-3 pb-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-            <input
-              type="text"
-              placeholder="Buscar conversaciones..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 text-white pl-10 pr-10 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </div>
+            <div className="px-4 space-y-3 pt-1">
+              {filteredConversations.map((conv, index) => {
+                const alert = alertsMap.get(conv.alert_id);
+                if (!alert) return null;
 
-        <div className="px-4 space-y-3 pt-1">
-          {filteredConversations.map((conv, index) => {
-            const alert = alertsMap.get(conv.alert_id);
-            if (!alert) return null;
+                const isP1 = conv.participant1_id === user?.id;
+                const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
+                const hasUnread = (unreadCount || 0) > 0;
 
-            const isP1 = conv.participant1_id === user?.id;
-            const unreadCount = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
-            const hasUnread = (unreadCount || 0) > 0;
+                const isBuyer = alert?.reserved_by_id === user?.id;
+                const isSeller = alert?.reserved_by_id && !isBuyer;
 
-            const isBuyer = alert?.reserved_by_id === user?.id;
-            const isSeller = alert?.reserved_by_id && !isBuyer;
+                const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
+                let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
 
-            const otherUserName = isP1 ? conv.participant2_name : conv.participant1_name;
-            let otherUserPhoto = isP1 ? conv.participant2_photo : conv.participant1_photo;
+                if (!otherUserPhoto) {
+                  const photoUrls = [
+                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                    'https://randomuser.me/api/portraits/women/68.jpg',
+                    'https://randomuser.me/api/portraits/men/32.jpg',
+                    'https://randomuser.me/api/portraits/women/44.jpg',
+                    'https://randomuser.me/api/portraits/men/75.jpg',
+                  ];
+                  otherUserPhoto =
+                    photoUrls[String(conv.id || '').charCodeAt(0) % photoUrls.length];
+                }
 
-            if (!otherUserPhoto) {
-              const photoUrls = [
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-                'https://randomuser.me/api/portraits/women/68.jpg',
-                'https://randomuser.me/api/portraits/men/32.jpg',
-                'https://randomuser.me/api/portraits/women/44.jpg',
-                'https://randomuser.me/api/portraits/men/75.jpg'
-              ];
-              otherUserPhoto = photoUrls[String(conv.id || '').charCodeAt(0) % photoUrls.length];
-            }
+                const distanceText = calculateDistanceText(alert);
 
-            const distanceText = calculateDistanceText(alert);
+                const remainingMs = getRemainingMsForAlert(alert, isBuyer);
+                const countdownText = formatMMSS(remainingMs);
 
-            const remainingMs = getRemainingMsForAlert(alert, isBuyer);
-            const countdownText = formatMMSS(remainingMs);
+                const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
+                const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', {
+                  locale: es,
+                });
 
-            const remainingMinutes = Math.max(0, Math.ceil((remainingMs ?? 0) / 60000));
-            const waitUntilText = format(new Date(nowTs + (remainingMs ?? 0)), 'HH:mm', { locale: es });
+                const finalLabel = getChatStatusLabel(alert?.status);
+                const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
+                const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
+                const statusBoxText = isFinal ? finalLabel : countdownText;
 
-            const finalLabel = getChatStatusLabel(alert?.status);
-            const isFinal = isFinalChatStatus(alert?.status) && !!finalLabel;
-            const canIR = shouldEnableIR({ status: alert?.status, isSeller, isFinal });
-            const statusBoxText = isFinal ? finalLabel : countdownText;
+                const navigateToChat = () => {
+                  const name = encodeURIComponent(otherUserName || '');
+                  const photo = encodeURIComponent(otherUserPhoto || '');
+                  navigate(
+                    `/chat?conversationId=${conv.id}&alertId=${conv.alert_id}&otherName=${name}&otherPhoto=${photo}`
+                  );
+                };
 
-            const navigateToChat = () => {
-              const name = encodeURIComponent(otherUserName || '');
-              const photo = encodeURIComponent(otherUserPhoto || '');
-              navigate(`/chat?conversationId=${conv.id}&alertId=${conv.alert_id}&otherName=${name}&otherPhoto=${photo}`);
-            };
-
-            return (
-              <motion.div
-                key={conv.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <div
-                  className={`bg-gradient-to-br ${
-                    hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
-                  } rounded-xl p-2.5 transition-all border-2 ${
-                    hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'
-                  }`}
-                >
-                  <div className="flex flex-col h-full">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex-shrink-0 w-[95px]">
-                        <Badge
-                          className={getRoleBoxClasses({ status: alert?.status, isSeller, isBuyer })}
-                        >
-                          {isBuyer ? 'Reservaste a:' : isSeller ? 'Te reservo:' : 'Info usuario'}
-                        </Badge>
-                      </div>
-                      <div className="flex-1"></div>
-                      <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                        <Navigation className="w-3 h-3 text-purple-400" />
-                        <span className="text-white font-bold text-xs">{distanceText}</span>
-                      </div>
-                      <PricePill direction={isSeller ? 'up' : 'down'} amount={alert?.price} />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Cerrar conversación:', conv.id);
-                        }}
-                        className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5 text-red-400" />
-                      </button>
-                    </div>
-
-                    <div className="border-t border-gray-700/80 mb-1.5 pt-2">
-                      <MarcoCard
-                        photoUrl={otherUserPhoto}
-                        name={otherUserName}
-                        carLabel={`${alert.brand || ''} ${alert.model || ''}`.trim()}
-                        plate={alert.plate}
-                        carColor={alert.color || 'gris'}
-                        address={alert.address}
-                        timeLine={
-                          isSeller ? (
-                            <span className="text-white leading-5">
-                              Te vas en {remainingMinutes} min · Debes esperar hasta las{' '}
-                              <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilText}</span>
-                            </span>
-                          ) : isBuyer ? (
-                            <span className="text-white leading-5">
-                              Se va en {remainingMinutes} min · Te espera hasta las{' '}
-                              <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilText}</span>
-                            </span>
-                          ) : (
-                            <span className={hasUnread ? 'text-white' : 'text-gray-400'}>Tiempo para llegar:</span>
-                          )
-                        }
-                        onChat={navigateToChat}
-                        statusText={statusBoxText}
-                        phoneEnabled={alert.allow_phone_calls}
-                        onCall={() => alert.allow_phone_calls && alert?.phone && (window.location.href = `tel:${alert.phone}`)}
-                        dimmed={!hasUnread}
-                        role={isSeller ? 'seller' : 'buyer'}
-                      />
-
-                      {hasLatLon(alert) && (
-                        <div className="mt-2">
-                          <Button
-                            disabled={!canIR}
-                            className={`w-full border-2 ${
-                              canIR ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70' : 'bg-blue-600/30 text-white/50 border-blue-500/30'
-                            }`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (isSeller || isFinal) return;
-                              openDirectionsToAlert(alert);
-                            }}
-                          >
-                            <span className="flex items-center justify-center gap-2">
-                              <Navigation className="w-4 h-4" />
-                              IR
-                            </span>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
+                return (
+                  <motion.div
+                    key={conv.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
                     <div
-                      className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={navigateToChat}
+                      className={`bg-gradient-to-br ${
+                        hasUnread ? 'from-gray-800 to-gray-900' : 'from-gray-900/50 to-gray-900/50'
+                      } rounded-xl p-2.5 transition-all border-2 ${
+                        hasUnread ? 'border-purple-400/70' : 'border-purple-500/30'
+                      }`}
                     >
-                      <div className="flex justify-between items-center">
-                        <p className={`text-xs font-bold ${hasUnread ? PURPLE_ACTIVE_TEXT : PURPLE_ACTIVE_TEXT_DIM}`}>
-                          Últimos mensajes:
-                        </p>
-                        {unreadCount > 0 && (
-                          <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
-                            <span className="text-red-400 text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="flex-shrink-0 w-[95px]">
+                            <Badge
+                              className={getRoleBoxClasses({
+                                status: alert?.status,
+                                isSeller,
+                                isBuyer,
+                              })}
+                            >
+                              {isBuyer
+                                ? 'Reservaste a:'
+                                : isSeller
+                                  ? 'Te reservo:'
+                                  : 'Info usuario'}
+                            </Badge>
                           </div>
-                        )}
+                          <div className="flex-1"></div>
+                          <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
+                            <Navigation className="w-3 h-3 text-purple-400" />
+                            <span className="text-white font-bold text-xs">{distanceText}</span>
+                          </div>
+                          <PricePill direction={isSeller ? 'up' : 'down'} amount={alert?.price} />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Cerrar conversación:', conv.id);
+                            }}
+                            className="w-7 h-7 rounded-lg bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5 text-red-400" />
+                          </button>
+                        </div>
+
+                        <div className="border-t border-gray-700/80 mb-1.5 pt-2">
+                          <MarcoCard
+                            photoUrl={otherUserPhoto}
+                            name={otherUserName}
+                            carLabel={`${alert.brand || ''} ${alert.model || ''}`.trim()}
+                            plate={alert.plate}
+                            carColor={alert.color || 'gris'}
+                            address={alert.address}
+                            timeLine={
+                              isSeller ? (
+                                <span className="text-white leading-5">
+                                  Te vas en {remainingMinutes} min · Debes esperar hasta las{' '}
+                                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                                    {waitUntilText}
+                                  </span>
+                                </span>
+                              ) : isBuyer ? (
+                                <span className="text-white leading-5">
+                                  Se va en {remainingMinutes} min · Te espera hasta las{' '}
+                                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                                    {waitUntilText}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span className={hasUnread ? 'text-white' : 'text-gray-400'}>
+                                  Tiempo para llegar:
+                                </span>
+                              )
+                            }
+                            onChat={navigateToChat}
+                            statusText={statusBoxText}
+                            phoneEnabled={alert.allow_phone_calls}
+                            onCall={() =>
+                              alert.allow_phone_calls &&
+                              alert?.phone &&
+                              (window.location.href = `tel:${alert.phone}`)
+                            }
+                            dimmed={!hasUnread}
+                            role={isSeller ? 'seller' : 'buyer'}
+                          />
+
+                          {hasLatLon(alert) && (
+                            <div className="mt-2">
+                              <Button
+                                disabled={!canIR}
+                                className={`w-full border-2 ${
+                                  canIR
+                                    ? 'bg-blue-600 hover:bg-blue-700 border-blue-400/70'
+                                    : 'bg-blue-600/30 text-white/50 border-blue-500/30'
+                                }`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (isSeller || isFinal) return;
+                                  openDirectionsToAlert(alert);
+                                }}
+                              >
+                                <span className="flex items-center justify-center gap-2">
+                                  <Navigation className="w-4 h-4" />
+                                  IR
+                                </span>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div
+                          className="border-t border-gray-700/80 mt-2 pt-2 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={navigateToChat}
+                        >
+                          <div className="flex justify-between items-center">
+                            <p
+                              className={`text-xs font-bold ${hasUnread ? PURPLE_ACTIVE_TEXT : PURPLE_ACTIVE_TEXT_DIM}`}
+                            >
+                              Últimos mensajes:
+                            </p>
+                            {unreadCount > 0 && (
+                              <div className="w-6 h-6 bg-red-500/20 border-2 border-red-500/30 rounded-full flex items-center justify-center relative top-[10px]">
+                                <span className="text-red-400 text-xs font-bold">
+                                  {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p
+                            className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}
+                          >
+                            {conv.last_message_text || 'Sin mensajes'}
+                          </p>
+                        </div>
                       </div>
-                      <p className={`text-xs ${hasUnread ? 'text-gray-300' : 'text-gray-500'} mt-1`}>
-                        {conv.last_message_text || 'Sin mensajes'}
-                      </p>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      
+                  </motion.div>
+                );
+              })}
+            </div>
           </>
         )}
-</main>
+      </main>
 
       <Dialog
         open={showProrrogaDialog}
@@ -837,7 +952,9 @@ const badgeCls = isCompletedOrCanceled
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {currentExpiredAlert?.isBuyer ? '⏱️ No te has presentado' : '⏱️ Usuario no se ha presentado'}
+              {currentExpiredAlert?.isBuyer
+                ? '⏱️ No te has presentado'
+                : '⏱️ Usuario no se ha presentado'}
             </DialogTitle>
             <DialogDescription className="text-gray-400">
               {currentExpiredAlert?.isBuyer
@@ -895,7 +1012,11 @@ const badgeCls = isCompletedOrCanceled
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowProrrogaDialog(false)} className="flex-1 border-gray-700">
+            <Button
+              variant="outline"
+              onClick={() => setShowProrrogaDialog(false)}
+              className="flex-1 border-gray-700"
+            >
               {currentExpiredAlert?.isBuyer ? 'ACEPTAR DEVOLUCIÓN' : 'ACEPTAR COMPENSACIÓN'}
             </Button>
             <Button

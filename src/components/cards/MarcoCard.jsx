@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, MessageCircle, Phone, PhoneOff } from 'lucide-react';
+import { getCarFill, formatPlate } from '@/utils/carUtils';
 
 function MarcoCard({
   photoUrl,
@@ -19,23 +20,33 @@ function MarcoCard({
   bright = false,
   dimmed = false,
   conversationId,
-  role
+  role,
 }) {
-  const stUpper = String(statusText || '').trim().toUpperCase();
+  const stUpper = String(statusText || '')
+    .trim()
+    .toUpperCase();
   const isCountdownLike =
     typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
   const isCompleted = stUpper === 'COMPLETADA';
   const isDimStatus = stUpper === 'CANCELADA' || stUpper === 'EXPIRADA';
   const statusOn = statusEnabled || isCompleted || isDimStatus || isCountdownLike;
 
-  const photoCls = dimmed ? 'w-full h-full object-cover opacity-40 grayscale' : 'w-full h-full object-cover';
+  const photoCls = dimmed
+    ? 'w-full h-full object-cover opacity-40 grayscale'
+    : 'w-full h-full object-cover';
 
-  const nameCls = dimmed ? 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]' : 'font-bold text-xl text-white leading-none min-h-[22px]';
+  const nameCls = dimmed
+    ? 'font-bold text-xl text-gray-300 leading-none opacity-70 min-h-[22px]'
+    : 'font-bold text-xl text-white leading-none min-h-[22px]';
 
-  const carCls = dimmed ? 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]' : 'text-sm font-medium text-white leading-none flex-1 flex items-center truncate relative top-[6px]';
+  const carCls = dimmed
+    ? 'text-sm font-medium text-gray-400 leading-none opacity-70 flex-1 flex items-center truncate relative top-[6px]'
+    : 'text-sm font-medium text-white leading-none flex-1 flex items-center truncate relative top-[6px]';
 
   const plateWrapCls = dimmed ? 'opacity-45 flex-shrink-0' : 'flex-shrink-0';
-  const carIconWrapCls = dimmed ? 'opacity-45 flex-shrink-0 relative -top-[1px]' : 'flex-shrink-0 relative -top-[1px]';
+  const carIconWrapCls = dimmed
+    ? 'opacity-45 flex-shrink-0 relative -top-[1px]'
+    : 'flex-shrink-0 relative -top-[1px]';
 
   const lineTextCls = dimmed ? 'text-gray-400 leading-5 opacity-80' : 'text-white leading-5';
 
@@ -52,41 +63,20 @@ function MarcoCard({
     ? isCountdownLike
       ? 'text-purple-100'
       : isDimStatus
-      ? 'text-gray-400/70'
-      : 'text-purple-300'
+        ? 'text-gray-400/70'
+        : 'text-purple-300'
     : 'text-gray-400 opacity-70';
 
-  const getCarFill = (colorValue) => {
-    const carColors = [
-      { value: 'blanco', fill: '#FFFFFF' },
-      { value: 'negro', fill: '#1a1a1a' },
-      { value: 'rojo', fill: '#ef4444' },
-      { value: 'azul', fill: '#3b82f6' },
-      { value: 'amarillo', fill: '#facc15' },
-      { value: 'gris', fill: '#6b7280' }
-    ];
-    const c = carColors.find((x) => x.value === (colorValue || '').toLowerCase());
-    return c?.fill || '#6b7280';
-  };
-
-  const PlateProfile = ({ plate }) => {
-    const formatPlate = (p) => {
-      const clean = String(p || '').replace(/\s+/g, '').toUpperCase();
-      if (!clean) return '0000 XXX';
-      return `${clean.slice(0, 4)} ${clean.slice(4)}`.trim();
-    };
-
-    return (
-      <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-        <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-          <span className="text-white text-[8px] font-bold">E</span>
-        </div>
-        <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-          {formatPlate(plate)}
-        </span>
+  const PlateProfile = ({ plate }) => (
+    <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+      <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+        <span className="text-white text-[8px] font-bold">E</span>
       </div>
-    );
-  };
+      <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+        {formatPlate(plate)}
+      </span>
+    </div>
+  );
 
   const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
     <svg viewBox="0 0 48 24" className={size} fill="none" style={{ transform: 'translateY(3px)' }}>
@@ -114,7 +104,11 @@ function MarcoCard({
       <div className="flex gap-2.5">
         <div
           className={`w-[95px] h-[85px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
-            dimmed ? 'border-gray-600/70 bg-gray-800/30' : bright ? 'border-purple-500/40 bg-gray-900' : 'border-gray-600/70 bg-gray-800/30'
+            dimmed
+              ? 'border-gray-600/70 bg-gray-800/30'
+              : bright
+                ? 'border-purple-500/40 bg-gray-900'
+                : 'border-gray-600/70 bg-gray-800/30'
           }`}
         >
           {photoUrl ? (
@@ -149,17 +143,27 @@ function MarcoCard({
       </div>
 
       <div className="pt-1.5 border-t border-gray-700/80 mt-2">
-        <div className={dimmed ? 'space-y-1.5 opacity-80' : bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
+        <div
+          className={
+            dimmed ? 'space-y-1.5 opacity-80' : bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'
+          }
+        >
           {address ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
-              <span className={`${dimmed ? 'text-gray-400' : 'text-white'} leading-5 line-clamp-1`}>{address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}</span>
+              <MapPin
+                className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`}
+              />
+              <span className={`${dimmed ? 'text-gray-400' : 'text-white'} leading-5 line-clamp-1`}>
+                {address ? `${address}, Oviedo` : 'Calle del Paseo, 25, Oviedo'}
+              </span>
             </div>
           ) : null}
 
           {timeLine ? (
             <div className="flex items-start gap-1.5 text-xs">
-              <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`} />
+              <Clock
+                className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimmed ? 'text-gray-500' : 'text-purple-400'}`}
+              />
               {isTimeObj ? (
                 <span className={lineTextCls}>
                   <span className="text-white">{timeLine.main}</span>
@@ -217,11 +221,8 @@ function MarcoCard({
               </span>
             </div>
           </div>
-
         </div>
       </div>
-
-
     </>
   );
 }

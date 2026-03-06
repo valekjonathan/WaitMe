@@ -1,10 +1,6 @@
 // ================================
 // FILE: src/lib/mockNearby.js
 // ================================
-
-const OVIEDO_LAT = 43.3623;
-const OVIEDO_LNG = -5.8489;
-
 // 10 usuarios fijos (fotos realistas) + datos completos
 export const MOCK_USERS = [
   {
@@ -16,7 +12,7 @@ export const MOCK_USERS = [
     model: 'León',
     color: 'blanco',
     plate: '1234 JKL',
-    phone: '+34 612 345 901'
+    phone: '+34 612 345 901',
   },
   {
     id: 'mock_u2',
@@ -27,7 +23,7 @@ export const MOCK_USERS = [
     model: 'Qashqai',
     color: 'gris',
     plate: '5678 MNP',
-    phone: '+34 611 224 872'
+    phone: '+34 611 224 872',
   },
   {
     id: 'mock_u3',
@@ -38,7 +34,7 @@ export const MOCK_USERS = [
     model: 'Transporter',
     color: 'negro',
     plate: '9012 BCD',
-    phone: '+34 613 908 771'
+    phone: '+34 613 908 771',
   },
   {
     id: 'mock_u4',
@@ -49,7 +45,7 @@ export const MOCK_USERS = [
     model: 'Clio',
     color: 'rojo',
     plate: '3456 FGH',
-    phone: '+34 610 552 330'
+    phone: '+34 610 552 330',
   },
   {
     id: 'mock_u5',
@@ -60,7 +56,7 @@ export const MOCK_USERS = [
     model: '208',
     color: 'azul',
     plate: '7890 QRS',
-    phone: '+34 614 401 992'
+    phone: '+34 614 401 992',
   },
   {
     id: 'mock_u6',
@@ -71,7 +67,7 @@ export const MOCK_USERS = [
     model: 'Sportage',
     color: 'verde',
     plate: '2468 TUV',
-    phone: '+34 615 993 120'
+    phone: '+34 615 993 120',
   },
   {
     id: 'mock_u7',
@@ -82,7 +78,7 @@ export const MOCK_USERS = [
     model: 'Corolla',
     color: 'negro',
     plate: '1357 WXY',
-    phone: '+34 616 220 415'
+    phone: '+34 616 220 415',
   },
   {
     id: 'mock_u8',
@@ -93,7 +89,7 @@ export const MOCK_USERS = [
     model: 'Vito',
     color: 'gris',
     plate: '8642 ZAB',
-    phone: '+34 617 882 064'
+    phone: '+34 617 882 064',
   },
   {
     id: 'mock_u9',
@@ -104,7 +100,7 @@ export const MOCK_USERS = [
     model: 'Golf',
     color: 'blanco',
     plate: '9753 CDE',
-    phone: '+34 618 771 203'
+    phone: '+34 618 771 203',
   },
   {
     id: 'mock_u10',
@@ -115,77 +111,6 @@ export const MOCK_USERS = [
     model: 'Tucson',
     color: 'morado',
     plate: '1122 FJK',
-    phone: '+34 619 330 778'
-  }
+    phone: '+34 619 330 778',
+  },
 ];
-
-export function getMockNearbyAlerts(userLocation) {
-  const baseLat = Array.isArray(userLocation) ? Number(userLocation[0]) : Number(userLocation?.latitude ?? userLocation?.lat);
-  const baseLng = Array.isArray(userLocation) ? Number(userLocation[1]) : Number(userLocation?.longitude ?? userLocation?.lng);
-
-  const lat0 = Number.isFinite(baseLat) ? baseLat : OVIEDO_LAT;
-  const lng0 = Number.isFinite(baseLng) ? baseLng : OVIEDO_LNG;
-
-  // offsets fijos (no aleatorios) para que siempre estén “cerca alrededor”
-  const now = Date.now();
-  const streets = [
-    'Calle Uría, n18, Oviedo',
-    'Calle Cervantes, n7, Oviedo',
-    'Calle Campoamor, n12, Oviedo',
-    'Calle Rosal, n3, Oviedo',
-    'Calle Jovellanos, n9, Oviedo',
-    'Avenida de Galicia, n22, Oviedo',
-    'Calle Milicias Nacionales, n5, Oviedo',
-    'Calle San Francisco, n14, Oviedo',
-    'Calle Martínez Marina, n6, Oviedo',
-    'Calle Independencia, n11, Oviedo',
-    'Calle Fruela, n4, Oviedo', 'Calle Mon, n15, Oviedo', 'Calle Toreno, n8, Oviedo',
-    'Calle Asturias, n22, Oviedo', 'Plaza Escandalera, Oviedo', 'Calle Gil de Jaz, n12, Oviedo'
-  ];
-
-  const minutes = [8, 12, 15, 18, 10, 22, 14, 9, 16, 20, 11, 13, 17, 19, 6, 21];
-  const prices = [6, 8, 7, 9, 5, 10, 6, 7, 8, 9, 4, 11, 6, 7, 5, 10, 8];
-
-  const count = 12 + Math.floor(Math.random() * 9);
-  const result = [];
-  const randomOffset = () => {
-    const angle = Math.random() * 2 * Math.PI;
-    const r = 0.0022 * (0.3 + Math.random() * 0.7);
-    return [r * Math.cos(angle), r * Math.sin(angle)];
-  };
-  for (let i = 0; i < count; i++) {
-    const u = MOCK_USERS[i % MOCK_USERS.length];
-    const [dLat, dLng] = randomOffset();
-    const available = minutes[i % minutes.length] || 15;
-    const created = now - (i + 1) * 60 * 1000;
-
-    result.push({
-      id: `mock_alert_${u.id}_${i}`,
-      user_id: u.id,
-      user_name: u.name,
-      user_photo: u.photo,
-
-      // “todos los datos”
-      brand: u.brand,
-      model: u.model,
-      plate: u.plate,
-      phone: u.phone,
-
-      vehicle_type: u.vehicle_type,
-      vehicle_color: u.color,
-      color: u.color,
-
-      address: streets[i % streets.length] || 'Calle Gran Vía, n1, Oviedo',
-
-      latitude: lat0 + dLat,
-      longitude: lng0 + dLng,
-
-      price: prices[i % prices.length] || 8,
-      available_in_minutes: available,
-      created_date: created,
-      wait_until: created + available * 60 * 1000,
-      status: 'active'
-    });
-  }
-  return result;
-}

@@ -5,7 +5,15 @@ import { useAuth } from '@/lib/AuthContext';
 import * as chat from '@/data/chat';
 import * as uploads from '@/data/uploads';
 import { format } from 'date-fns';
-import { Send, Paperclip, Camera, Image as ImageIcon, Phone, Check, Navigation } from 'lucide-react';
+import {
+  Send,
+  Paperclip,
+  Camera,
+  Image as ImageIcon,
+  Phone,
+  Check,
+  Navigation,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,7 +21,7 @@ import {
   getDemoMessages,
   markDemoRead,
   sendDemoMessage,
-  demoFlow
+  demoFlow,
 } from '@/components/DemoFlowManager';
 
 export default function Chat() {
@@ -72,11 +80,12 @@ export default function Chat() {
   }, [isDemo, demoSt, conversationId]);
 
   const demoConv = isDemo && demoConversationId ? getDemoConversation(demoConversationId) : null;
-  const demoMsgs = isDemo && demoConversationId ? (getDemoMessages(demoConversationId) || []) : [];
+  const demoMsgs = isDemo && demoConversationId ? getDemoMessages(demoConversationId) || [] : [];
 
   const demoOtherUser = useMemo(() => {
     if (!isDemo || !demoConv) return null;
-    const otherId = demoConv.participant1_id === 'me' ? demoConv.participant2_id : demoConv.participant1_id;
+    const otherId =
+      demoConv.participant1_id === 'me' ? demoConv.participant2_id : demoConv.participant1_id;
     return (demoSt?.users || []).find((u) => u.id === otherId) || null;
   }, [isDemo, demoConv, demoSt]);
 
@@ -97,7 +106,7 @@ export default function Chat() {
       if (error) throw error;
       return data ?? null;
     },
-    staleTime: 30000
+    staleTime: 30000,
   });
 
   const { data: messages = [] } = useQuery({
@@ -108,7 +117,7 @@ export default function Chat() {
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 10000
+    staleTime: 10000,
   });
 
   // Suscripción Realtime a mensajes
@@ -128,15 +137,17 @@ export default function Chat() {
     if (!firstMsg) return [];
 
     const isMineMsg = firstMsg.includes('he enviado') || firstMsg.includes('he reservado');
-    return [{
-      id: 'demo_initial_1',
-      mine: !isMineMsg,
-      sender_name: otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario',
-      sender_photo: otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null,
-      message: firstMsg,
-      created_date: new Date().toISOString(),
-      kind: 'text'
-    }];
+    return [
+      {
+        id: 'demo_initial_1',
+        mine: !isMineMsg,
+        sender_name: otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario',
+        sender_photo: otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null,
+        message: firstMsg,
+        created_date: new Date().toISOString(),
+        kind: 'text',
+      },
+    ];
   });
 
   // ======================
@@ -151,13 +162,17 @@ export default function Chat() {
         sender_photo: m.senderPhoto,
         message: m.text,
         created_date: new Date(m.ts).toISOString(),
-        kind: m.kind || 'text'
+        kind: m.kind || 'text',
       }));
       // Combinar con mensajes locales del demo (para WaitMe aceptados)
       const combined = [...localDemoMessages, ...demoMapped];
       // Deduplicar por id
       const seen = new Set();
-      return combined.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
+      return combined.filter((m) => {
+        if (seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+      });
     }
 
     return (messages || []).map((m) => ({
@@ -168,7 +183,7 @@ export default function Chat() {
       message: m.message,
       created_date: m.created_date,
       kind: m.message_type || 'user',
-      attachments: m.attachments
+      attachments: m.attachments,
     }));
   }, [isDemo, demoMsgs, messages, user]);
 
@@ -195,7 +210,7 @@ export default function Chat() {
 
       return {
         name: decodedName || 'Usuario',
-        photo: decodedPhoto || null
+        photo: decodedPhoto || null,
       };
     }
 
@@ -205,14 +220,14 @@ export default function Chat() {
         'https://randomuser.me/api/portraits/women/44.jpg',
         'https://randomuser.me/api/portraits/men/32.jpg',
         'https://randomuser.me/api/portraits/women/68.jpg',
-        'https://randomuser.me/api/portraits/men/75.jpg'
+        'https://randomuser.me/api/portraits/men/75.jpg',
       ];
       const seed = String(demoConversationId || alertId || 'x').charCodeAt(0) || 0;
       const fallbackPhoto = fallbackPhotos[seed % fallbackPhotos.length];
 
       return {
         name: demoOtherUser?.name || demoConv?.other_name || otherNameParam || 'Sofía',
-        photo: demoOtherUser?.photo || demoConv?.other_photo || otherPhotoParam || fallbackPhoto
+        photo: demoOtherUser?.photo || demoConv?.other_photo || otherPhotoParam || fallbackPhoto,
       };
     }
 
@@ -220,7 +235,7 @@ export default function Chat() {
     const isP1 = conversation?.participant1_id === user?.id;
     return {
       name: isP1 ? conversation?.participant2_name : conversation?.participant1_name,
-      photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo
+      photo: isP1 ? conversation?.participant2_photo : conversation?.participant1_photo,
     };
   }, [isDemo, demoOtherUser, demoConv, conversation, user, otherNameParam, otherPhotoParam]);
 
@@ -245,43 +260,46 @@ export default function Chat() {
   // ======================
   const autoRespond = (convId, userMessage) => {
     const responses = {
-      'mock_reservaste_1': [
+      mock_reservaste_1: [
         'Perfecto, ya voy de camino 🚗',
         '¿A qué distancia estás?',
         'Llego en 5 minutos',
         'Gracias por esperarme 😊',
-        '¿Sigues ahí?'
+        '¿Sigues ahí?',
       ],
-      'mock_te_reservo_1': [
+      mock_te_reservo_1: [
         'Estoy esperando aquí',
         '¿Cuánto tardas?',
         'Veo que te acercas en el mapa',
         'Perfecto, te espero',
-        'No hay problema 👍'
+        'No hay problema 👍',
       ],
-      'mock_reservaste_2': [
+      mock_reservaste_2: [
         'Ok, voy llegando',
         'Genial, aguanto',
         '¿Cuánto falta?',
         'Ya casi estoy',
-        'Muchas gracias'
+        'Muchas gracias',
       ],
-      'mock_te_reservo_2': [
+      mock_te_reservo_2: [
         'Estoy cerca',
         'Llego en 2 minutos',
         '¿Sigues ahí?',
         'Ya te veo',
-        'Gracias por la paciencia'
-      ]
+        'Gracias por la paciencia',
+      ],
     };
 
     const convResponses = responses[convId];
     if (!convResponses) return;
 
-    setTimeout(() => {
-      const randomResponse = convResponses[Math.floor(Math.random() * convResponses.length)];
-      sendDemoMessage(convId, randomResponse, [], false);
-    }, 1500 + Math.random() * 2000);
+    setTimeout(
+      () => {
+        const randomResponse = convResponses[Math.floor(Math.random() * convResponses.length)];
+        sendDemoMessage(convId, randomResponse, [], false);
+      },
+      1500 + Math.random() * 2000
+    );
   };
 
   // ======================
@@ -302,25 +320,37 @@ export default function Chat() {
             sender_photo: null,
             message: clean,
             created_date: new Date().toISOString(),
-            kind: 'text'
+            kind: 'text',
           };
-          setLocalDemoMessages(prev => [...prev, myMsg]);
+          setLocalDemoMessages((prev) => [...prev, myMsg]);
           // Auto-respuesta simple del otro usuario
           const otherName = otherNameParam ? decodeURIComponent(otherNameParam) : 'Usuario';
           const otherPhoto = otherPhotoParam ? decodeURIComponent(otherPhotoParam) : null;
-          setTimeout(() => {
-            const responses = ['Vale, ya voy de camino 🚗', '¿A qué distancia estás?', 'Perfecto, te espero', 'Ok!', 'Bien, salgo en un momento 👍'];
-            const reply = responses[Math.floor(Math.random() * responses.length)];
-            setLocalDemoMessages(prev => [...prev, {
-              id: `local_reply_${Date.now()}`,
-              mine: false,
-              sender_name: otherName,
-              sender_photo: otherPhoto,
-              message: reply,
-              created_date: new Date().toISOString(),
-              kind: 'text'
-            }]);
-          }, 1500 + Math.random() * 2000);
+          setTimeout(
+            () => {
+              const responses = [
+                'Vale, ya voy de camino 🚗',
+                '¿A qué distancia estás?',
+                'Perfecto, te espero',
+                'Ok!',
+                'Bien, salgo en un momento 👍',
+              ];
+              const reply = responses[Math.floor(Math.random() * responses.length)];
+              setLocalDemoMessages((prev) => [
+                ...prev,
+                {
+                  id: `local_reply_${Date.now()}`,
+                  mine: false,
+                  sender_name: otherName,
+                  sender_photo: otherPhoto,
+                  message: reply,
+                  created_date: new Date().toISOString(),
+                  kind: 'text',
+                },
+              ]);
+            },
+            1500 + Math.random() * 2000
+          );
           return;
         }
         if (demoConversationId) {
@@ -333,7 +363,7 @@ export default function Chat() {
       const { error } = await chat.sendMessage({
         conversationId,
         senderId: user?.id,
-        body: clean
+        body: clean,
       });
       if (error) throw error;
     },
@@ -346,7 +376,7 @@ export default function Chat() {
         queryClient.invalidateQueries({ queryKey: ['chatMessages', conversationId, user?.id] });
         queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
       }
-    }
+    },
   });
 
   const handleSend = () => {
@@ -367,7 +397,7 @@ export default function Chat() {
           // En demo, metemos un "fake attachment" local (solo para UI)
           setAttachments((prev) => [
             ...prev,
-            { url: URL.createObjectURL(file), type: file.type, name: file.name }
+            { url: URL.createObjectURL(file), type: file.type, name: file.name },
           ]);
         } else {
           const ext = file.name.split('.').pop() || 'bin';
@@ -377,7 +407,10 @@ export default function Chat() {
           if (error) throw error;
           const attachmentUrl = file_url || url;
           if (attachmentUrl) {
-            setAttachments((prev) => [...prev, { url: attachmentUrl, type: file.type, name: file.name }]);
+            setAttachments((prev) => [
+              ...prev,
+              { url: attachmentUrl, type: file.type, name: file.name },
+            ]);
           }
         }
       } catch (err) {
@@ -399,15 +432,21 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-min-h-[100dvh] bg-black flex flex-col">
+    <div className="min-h-[100dvh] bg-black flex flex-col">
       {/* Info del usuario */}
       <div className="fixed top-[56px] left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700">
         <div className="flex items-center gap-3 px-4 py-1 pt-[10px]">
           <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
             {otherUser?.photo ? (
-              <img src={otherUser.photo} alt={otherUser.name} className="w-full h-full object-cover" />
+              <img
+                src={otherUser.photo}
+                alt={otherUser.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl">👤</div>
+              <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl">
+                👤
+              </div>
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -415,9 +454,7 @@ export default function Chat() {
             <p className="text-xs text-gray-400">En línea</p>
           </div>
 
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 border-2 border-blue-400/70 text-white rounded-lg h-9 px-3"
-          >
+          <Button className="bg-blue-600 hover:bg-blue-700 border-2 border-blue-400/70 text-white rounded-lg h-9 px-3">
             <Navigation className="w-4 h-4 mr-1" />
             IR
           </Button>
@@ -451,7 +488,8 @@ export default function Chat() {
 
             const showDate =
               idx === 0 ||
-              new Date(msg.created_date).getTime() - new Date(displayMessages[idx - 1].created_date).getTime() >
+              new Date(msg.created_date).getTime() -
+                new Date(displayMessages[idx - 1].created_date).getTime() >
                 300000;
 
             const atts = safeParseAttachments(msg.attachments);
@@ -468,7 +506,7 @@ export default function Chat() {
                           month: 'short',
                           hour: '2-digit',
                           minute: '2-digit',
-                          hour12: false
+                          hour12: false,
                         })
                         .replace(' de ', ' ')
                         .replace(',', ' -')}
@@ -500,18 +538,28 @@ export default function Chat() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}>
+                        <span
+                          className={`text-[10px] ${isMine ? 'text-purple-200' : 'text-gray-400'}`}
+                        >
                           {format(new Date(msg.created_date), 'HH:mm')}
                         </span>
                         {isMine && (
                           <div className="relative w-4 h-3">
-                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-0" strokeWidth={2.5} />
-                            <Check className="w-3 h-3 text-blue-400 absolute top-0 left-1.5" strokeWidth={2.5} />
+                            <Check
+                              className="w-3 h-3 text-blue-400 absolute top-0 left-0"
+                              strokeWidth={2.5}
+                            />
+                            <Check
+                              className="w-3 h-3 text-blue-400 absolute top-0 left-1.5"
+                              strokeWidth={2.5}
+                            />
                           </div>
                         )}
                       </div>
 
-                      <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{msg.message}</p>
+                      <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
+                        {msg.message}
+                      </p>
 
                       {atts.map((att, i) => (
                         <div key={i} className="mt-2">
@@ -534,7 +582,9 @@ export default function Chat() {
 
                   {isMine && (
                     <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 border border-purple-500/30">
-                      <div className="w-full h-full bg-purple-700 flex items-center justify-center text-lg">👤</div>
+                      <div className="w-full h-full bg-purple-700 flex items-center justify-center text-lg">
+                        👤
+                      </div>
                     </div>
                   )}
                 </motion.div>
@@ -556,7 +606,9 @@ export default function Chat() {
                   {att.type?.includes('image') ? (
                     <img src={att.url} alt="" className="w-16 h-16 rounded object-cover" />
                   ) : (
-                    <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center text-xs">📄</div>
+                    <div className="w-16 h-16 bg-gray-800 rounded flex items-center justify-center text-xs">
+                      📄
+                    </div>
                   )}
                   <button
                     onClick={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}
@@ -633,7 +685,9 @@ export default function Chat() {
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())
+              }
               placeholder="Escribe un mensaje..."
               className="flex-1 bg-purple-900/30 border border-purple-700/50 rounded-md px-4 py-2.5 text-white text-sm focus:outline-none focus:border-purple-500 placeholder-gray-400 h-[42px]"
             />

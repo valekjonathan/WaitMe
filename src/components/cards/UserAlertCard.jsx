@@ -3,6 +3,7 @@
 // ================================
 import React, { useMemo } from 'react';
 import { MapPin, Clock, Navigation, MessageCircle, Phone, PhoneOff, X } from 'lucide-react';
+import { getCarFill, formatPlate } from '@/utils/carUtils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -73,21 +74,13 @@ function UserAlertCard({
     const distanceKm = meters / 1000;
 
     if (!Number.isFinite(distanceKm)) return null;
-    
+
     // Si showDistanceInMeters es true, mostrar en metros
     if (showDistanceInMeters && meters < 1000) {
       return { value: Math.round(meters), unit: ' m' };
     }
-    
-    return { value: distanceKm.toFixed(1), unit: 'km' };
-  };
 
-  const formatPlate = (plate) => {
-    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
-    if (!p) return '0000 XXX';
-    const a = p.slice(0, 4);
-    const b = p.slice(4);
-    return `${a} ${b}`.trim();
+    return { value: distanceKm.toFixed(1), unit: 'km' };
   };
 
   const waitUntilTs = alert?.wait_until ? toMs(alert.wait_until) : null;
@@ -141,8 +134,8 @@ function UserAlertCard({
       const ms = toMs(alert.created_date);
       if (!ms) return '';
       const d = new Date(ms);
-      const datePart = format(d, "d MMMM", { locale: es });
-      const timePart = format(d, "HH:mm", { locale: es });
+      const datePart = format(d, 'd MMMM', { locale: es });
+      const timePart = format(d, 'HH:mm', { locale: es });
       return `${datePart.charAt(0).toUpperCase() + datePart.slice(1)} - ${timePart}`;
     } catch {
       return '';
@@ -153,7 +146,11 @@ function UserAlertCard({
     return (
       <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl px-4 py-4 border-2 border-purple-500/50 h-full flex items-center justify-center">
         <div className="text-center text-gray-500">
-          <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: '#A855F7' }} strokeWidth={2.5} />
+          <MapPin
+            className="w-10 h-10 mx-auto mb-2"
+            style={{ color: '#A855F7' }}
+            strokeWidth={2.5}
+          />
           <p className="text-xs">Toca un coche en el mapa para ver sus datos</p>
         </div>
       </div>
@@ -174,7 +171,10 @@ function UserAlertCard({
             {distanceLabel ? (
               <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
                 <Navigation className="w-3 h-3 text-purple-400" />
-                <span className="text-white font-bold text-xs">{distanceLabel.value}{distanceLabel.unit}</span>
+                <span className="text-white font-bold text-xs">
+                  {distanceLabel.value}
+                  {distanceLabel.unit}
+                </span>
               </div>
             ) : null}
             <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
@@ -199,9 +199,15 @@ function UserAlertCard({
       <div className="flex gap-2.5">
         <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
           {alert?.user_photo ? (
-            <img src={alert.user_photo} alt={alert.user_name} className="w-full h-full object-cover" />
+            <img
+              src={alert.user_photo}
+              alt={alert.user_name}
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-300">👤</div>
+            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-300">
+              👤
+            </div>
           )}
         </div>
 
@@ -266,10 +272,9 @@ function UserAlertCard({
               <span className="truncate">
                 <span className="text-purple-400">
                   {alert.isIncomingRequest ? 'Te vas en' : 'Se va en'}{' '}
-                  <span className="text-white">{alert.available_in_minutes}</span>{' '}
-                  min · {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}
-                </span>
-                {' '}
+                  <span className="text-white">{alert.available_in_minutes}</span> min ·{' '}
+                  {alert.isIncomingRequest ? 'Debes esperar hasta las:' : 'Te espera hasta las:'}
+                </span>{' '}
                 <span className="text-white font-bold text-sm">{waitUntilLabel}</span>
               </span>
             </div>
@@ -284,7 +289,8 @@ function UserAlertCard({
             {/* 1. Chat */}
             <Button
               className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-full flex items-center justify-center border border-green-400/50"
-              onClick={handleChat}>
+              onClick={handleChat}
+            >
               <MessageCircle className="w-4 h-4" />
             </Button>
 
@@ -292,14 +298,16 @@ function UserAlertCard({
             {phoneEnabled ? (
               <Button
                 className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-full flex items-center justify-center border border-gray-300/50"
-                onClick={handleCall}>
+                onClick={handleCall}
+              >
                 <Phone className="w-4 h-4" />
               </Button>
             ) : (
               <Button
                 variant="outline"
                 className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-full flex items-center justify-center opacity-70 cursor-not-allowed border border-white/30"
-                disabled>
+                disabled
+              >
                 <PhoneOff className="w-4 h-4 text-white" />
               </Button>
             )}
@@ -316,8 +324,12 @@ function UserAlertCard({
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-full flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-400/50 btn-navigate"
               disabled={!alert?.latitude || !alert?.longitude}
               onClick={() => {
-                window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
-              }}>
+                window.open(
+                  `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
+                  '_blank'
+                );
+              }}
+            >
               <Navigation className="w-4 h-4" />
               <span className="font-semibold text-sm">Ir</span>
             </Button>
@@ -336,14 +348,16 @@ function UserAlertCard({
             <Button
               size="icon"
               className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
-              onClick={handleChat}>
+              onClick={handleChat}
+            >
               <MessageCircle className="w-4 h-4" />
             </Button>
             {phoneEnabled ? (
               <Button
                 size="icon"
                 className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-                onClick={handleCall}>
+                onClick={handleCall}
+              >
                 <Phone className="w-4 h-4" />
               </Button>
             ) : (
@@ -351,7 +365,8 @@ function UserAlertCard({
                 variant="outline"
                 size="icon"
                 className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
-                disabled>
+                disabled
+              >
                 <PhoneOff className="w-4 h-4 text-white" />
               </Button>
             )}
@@ -361,9 +376,13 @@ function UserAlertCard({
               disabled={!alert?.latitude || !alert?.longitude}
               onClick={() => {
                 if (alert?.latitude && alert?.longitude) {
-                  window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
+                  window.open(
+                    `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
+                    '_blank'
+                  );
                 }
-              }}>
+              }}
+            >
               <Navigation className="w-4 h-4" />
               <span className="font-semibold text-sm">Ir</span>
             </Button>
@@ -371,25 +390,16 @@ function UserAlertCard({
               <Button
                 className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
                 onClick={handleBuy}
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? 'Procesando...' : buyLabel}
               </Button>
             </div>
           </div>
         )}
       </div>
-    </div>);
-
+    </div>
+  );
 }
-
-const carColors = {
-  blanco: '#FFFFFF',
-  negro: '#1a1a1a',
-  rojo: '#ef4444',
-  azul: '#3b82f6',
-  amarillo: '#facc15',
-  gris: '#6b7280'
-};
-const getCarFill = (colorName) => carColors[colorName] || '#CCCCCC';
 
 export default React.memo(UserAlertCard);

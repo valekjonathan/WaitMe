@@ -7,84 +7,95 @@ import * as alerts from '@/data/alerts';
 import * as chat from '@/data/chat';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
-import { MapPin, Clock, MessageCircle, Phone, PhoneOff, Navigation, X, TrendingUp } from 'lucide-react';
+import {
+  MapPin,
+  Clock,
+  MessageCircle,
+  Phone,
+  PhoneOff,
+  Navigation,
+  X,
+  TrendingUp,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCarFill } from '@/utils/carUtils';
 
-function formatAddress(addr){
-  const s=String(addr||'').trim();
-  if(!s)return'Ubicación marcada';
-  if(/oviedo/i.test(s))return s;
-  return`${s}, Oviedo`;
+function formatAddress(addr) {
+  const s = String(addr || '').trim();
+  if (!s) return 'Ubicación marcada';
+  if (/oviedo/i.test(s)) return s;
+  return `${s}, Oviedo`;
 }
 
-const CAR_COLOR_MAP_MODAL={
-  blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',
-  rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',
-  naranja:'#f97316',marron:'#92400e',morado:'#7c3aed',rosa:'#ec4899',
-  beige:'#d4b483',
-};
+export default function IncomingRequestModal() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
 
-function getCarFill(color){
-  const key=String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  return CAR_COLOR_MAP_MODAL[key]||'#9ca3af';
-}
+  const [open, setOpen] = useState(false);
+  const [request, setRequest] = useState(null);
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [nowTs, setNowTs] = useState(Date.now());
 
-export default function IncomingRequestModal(){
-  const navigate=useNavigate();
-  const queryClient=useQueryClient();
-  const { user: currentUser }=useAuth();
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  const[open,setOpen]=useState(false);
-  const[request,setRequest]=useState(null);
-  const[alert,setAlert]=useState(null);
-  const[loading,setLoading]=useState(false);
-  const[nowTs,setNowTs]=useState(Date.now());
-
-  useEffect(()=>{
-    const id=setInterval(()=>setNowTs(Date.now()),1000);
-    return()=>clearInterval(id);
-  },[]);
-
-  useEffect(()=>{
-    const handler=(e)=>{
-      const req=e?.detail?.request||null;
-      const alt=e?.detail?.alert||null;
-      if(req){setRequest(req);setAlert(alt);setOpen(true);}
+  useEffect(() => {
+    const handler = (e) => {
+      const req = e?.detail?.request || null;
+      const alt = e?.detail?.alert || null;
+      if (req) {
+        setRequest(req);
+        setAlert(alt);
+        setOpen(true);
+      }
     };
-    window.addEventListener('waitme:showIncomingRequestModal',handler);
-    return()=>window.removeEventListener('waitme:showIncomingRequestModal',handler);
-  },[]);
+    window.addEventListener('waitme:showIncomingRequestModal', handler);
+    return () => window.removeEventListener('waitme:showIncomingRequestModal', handler);
+  }, []);
 
-  const handleClose=useCallback(()=>{setOpen(false);setRequest(null);setAlert(null);setLoading(false);},[]);
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    setRequest(null);
+    setAlert(null);
+    setLoading(false);
+  }, []);
 
-  const acceptRequest=async()=>{
-    if(!request?.alertId)return;
+  const acceptRequest = async () => {
+    if (!request?.alertId) return;
     setLoading(true);
 
-    const buyer=request?.buyer||{};
-    const payload={
-      status:'reserved',
-      reserved_by_id:buyer?.id||'buyer',
-      reserved_by_email:null,
-      reserved_by_name:buyer?.name||'Usuario',
-      reserved_by_photo:buyer?.photo||null,
-      reserved_by_car:`${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
-      reserved_by_car_color:buyer?.color||'gris',
-      reserved_by_plate:buyer?.plate||'',
-      reserved_by_vehicle_type:buyer?.vehicle_type||'car'
+    const buyer = request?.buyer || {};
+    const payload = {
+      status: 'reserved',
+      reserved_by_id: buyer?.id || 'buyer',
+      reserved_by_email: null,
+      reserved_by_name: buyer?.name || 'Usuario',
+      reserved_by_photo: buyer?.photo || null,
+      reserved_by_car: `${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
+      reserved_by_car_color: buyer?.color || 'gris',
+      reserved_by_plate: buyer?.plate || '',
+      reserved_by_vehicle_type: buyer?.vehicle_type || 'car',
     };
 
-    setWaitMeRequestStatus(request?.id,'accepted');
+    setWaitMeRequestStatus(request?.id, 'accepted');
     // Clear ALL thinking requests (accepted one wins, rest are dismissed)
-    try{
-      localStorage.setItem('waitme:thinking_requests',JSON.stringify([]));
+    try {
+      localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
       window.dispatchEvent(new Event('waitme:thinkingUpdated'));
-    }catch{}
+    } catch {}
     // Optimistically update the alert in cache so it appears immediately in Activas
-    queryClient.setQueryData(['myAlerts'], (old=[]) =>
-      Array.isArray(old) ? old.map(a => a.id === request.alertId ? {...a,...payload} : a) : old
+    queryClient.setQueryData(['myAlerts'], (old = []) =>
+      Array.isArray(old)
+        ? old.map((a) => (a.id === request.alertId ? { ...a, ...payload } : a))
+        : old
     );
-    try{window.dispatchEvent(new Event('waitme:badgeRefresh'));}catch{}
+    try {
+      window.dispatchEvent(new Event('waitme:badgeRefresh'));
+    } catch {}
     handleClose();
     navigate(createPageUrl('History'));
 
@@ -124,59 +135,71 @@ export default function IncomingRequestModal(){
       window.dispatchEvent(new CustomEvent('waitme:newDemoConversation', { detail: newConv }));
     } catch {}
 
-    try{
+    try {
       const { error: updateErr } = await alerts.updateAlert(request.alertId, payload);
       if (updateErr) throw updateErr;
-      queryClient.invalidateQueries({queryKey:['alerts']});
-      queryClient.invalidateQueries({queryKey:['myAlerts']});
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
 
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if(currentUser?.id && buyer?.id && uuidRegex.test(buyer.id)){
-        const convRes = await chat.createConversation({
-          buyerId: buyer.id,
-          sellerId: currentUser.id,
-          alertId: request.alertId
-        }).catch(()=>({}));
+      if (currentUser?.id && buyer?.id && uuidRegex.test(buyer.id)) {
+        const convRes = await chat
+          .createConversation({
+            buyerId: buyer.id,
+            sellerId: currentUser.id,
+            alertId: request.alertId,
+          })
+          .catch(() => ({}));
         const conv = convRes?.data;
-        if(conv?.id){
-          await chat.sendMessage({
-            conversationId: conv.id,
-            senderId: buyer.id,
-            body: 'ey ! te he enviado un waitme'
-          }).catch(()=>{});
+        if (conv?.id) {
+          await chat
+            .sendMessage({
+              conversationId: conv.id,
+              senderId: buyer.id,
+              body: 'ey ! te he enviado un waitme',
+            })
+            .catch(() => {});
         }
       }
-    }catch{setLoading(false);}
+    } catch {
+      setLoading(false);
+    }
   };
 
-  const handleMeLoPienso=()=>{
-    if(request?.id){
-      setWaitMeRequestStatus(request.id,'thinking');
+  const handleMeLoPienso = () => {
+    if (request?.id) {
+      setWaitMeRequestStatus(request.id, 'thinking');
       // Save to localStorage so Alertas page can show it
-      try{
-        const thinking=JSON.parse(localStorage.getItem('waitme:thinking_requests')||'[]');
-        const exists=thinking.find(r=>r.id===request.id);
-        if(!exists){
-          thinking.push({id:request.id,request,alert,savedAt:Date.now()});
-          localStorage.setItem('waitme:thinking_requests',JSON.stringify(thinking));
+      try {
+        const thinking = JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]');
+        const exists = thinking.find((r) => r.id === request.id);
+        if (!exists) {
+          thinking.push({ id: request.id, request, alert, savedAt: Date.now() });
+          localStorage.setItem('waitme:thinking_requests', JSON.stringify(thinking));
           window.dispatchEvent(new Event('waitme:thinkingUpdated'));
         }
-      }catch{}
+      } catch {}
     }
     handleClose();
     navigate(createPageUrl('History'));
   };
 
-  const handleRechazar=()=>{
-    if(request?.id){
-      setWaitMeRequestStatus(request.id,'rejected');
+  const handleRechazar = () => {
+    if (request?.id) {
+      setWaitMeRequestStatus(request.id, 'rejected');
       // Save to localStorage so Alertas page shows it as Finalizada
-      try{
-        const rejected=JSON.parse(localStorage.getItem('waitme:rejected_requests')||'[]');
-        rejected.push({id:request.id,request,alert,savedAt:Date.now(),finalized_at:Date.now()});
-        localStorage.setItem('waitme:rejected_requests',JSON.stringify(rejected));
+      try {
+        const rejected = JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
+        rejected.push({
+          id: request.id,
+          request,
+          alert,
+          savedAt: Date.now(),
+          finalized_at: Date.now(),
+        });
+        localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
         window.dispatchEvent(new Event('waitme:rejectedUpdated'));
-      }catch{}
+      } catch {}
     }
     handleClose();
   };
@@ -190,85 +213,138 @@ export default function IncomingRequestModal(){
     const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
     const plate = buyer?.plate || '';
     const carFill = getCarFill(buyer?.color || 'gris');
-    const photo = buyer?.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7c3aed&color=fff&size=128`;
+    const photo =
+      buyer?.photo ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=7c3aed&color=fff&size=128`;
     const phoneEnabled = Boolean(buyer?.phone);
     const mins = Number(alert?.available_in_minutes) || 0;
     const alertCreatedKey = alert?.id ? `alert-created-${alert.id}` : null;
-    const storedCreated = alertCreatedKey ? Number(localStorage.getItem(alertCreatedKey) || '0') : 0;
-    const createdTs = storedCreated > 0 ? storedCreated : (alert?.created_date ? new Date(alert.created_date).getTime() : Date.now());
+    const storedCreated = alertCreatedKey
+      ? Number(localStorage.getItem(alertCreatedKey) || '0')
+      : 0;
+    const createdTs =
+      storedCreated > 0
+        ? storedCreated
+        : alert?.created_date
+          ? new Date(alert.created_date).getTime()
+          : Date.now();
     const waitUntilTs = createdTs + mins * 60 * 1000;
-    const waitUntilLabel = new Date(waitUntilTs).toLocaleTimeString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false });
-    return { buyer, userName, firstName, carLabel, plate, carFill, photo, phoneEnabled, mins, waitUntilTs, waitUntilLabel };
+    const waitUntilLabel = new Date(waitUntilTs).toLocaleTimeString('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return {
+      buyer,
+      userName,
+      firstName,
+      carLabel,
+      plate,
+      carFill,
+      photo,
+      phoneEnabled,
+      mins,
+      waitUntilTs,
+      waitUntilLabel,
+    };
   }, [request, alert]);
 
   if (!request || !stableInfo) return null;
 
-  const { buyer, userName, firstName, carLabel, plate, carFill, photo, phoneEnabled, mins, waitUntilTs, waitUntilLabel } = stableInfo;
+  const {
+    buyer,
+    userName,
+    firstName,
+    carLabel,
+    plate,
+    carFill,
+    photo,
+    phoneEnabled,
+    mins,
+    waitUntilTs,
+    waitUntilLabel,
+  } = stableInfo;
 
   // Dynamic — only these depend on the 1-second tick
-  const remainingMs=Math.max(0,waitUntilTs-nowTs);
-  const remSec=Math.floor(remainingMs/1000);
-  const remHrs=Math.floor(remSec/3600);
-  const remMin=Math.floor((remSec%3600)/60);
-  const remSecRem=remSec%60;
-  const mm=String(remHrs>0?remHrs:remMin).padStart(2,'0');
-  const ss=String(remHrs>0?remMin:remSecRem).padStart(2,'0');
-  const ss2=remHrs>0?`:${String(remSecRem).padStart(2,'0')}`:'';
-  const countdownText=remainingMs>0?`${mm}:${ss}${ss2}`:'00:00';
-  const isCountdown=remainingMs>0;
+  const remainingMs = Math.max(0, waitUntilTs - nowTs);
+  const remSec = Math.floor(remainingMs / 1000);
+  const remHrs = Math.floor(remSec / 3600);
+  const remMin = Math.floor((remSec % 3600) / 60);
+  const remSecRem = remSec % 60;
+  const mm = String(remHrs > 0 ? remHrs : remMin).padStart(2, '0');
+  const ss = String(remHrs > 0 ? remMin : remSecRem).padStart(2, '0');
+  const ss2 = remHrs > 0 ? `:${String(remSecRem).padStart(2, '0')}` : '';
+  const countdownText = remainingMs > 0 ? `${mm}:${ss}${ss2}` : '00:00';
+  const isCountdown = remainingMs > 0;
 
-  return(
+  return (
     <AnimatePresence>
-      {open&&(
-        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           className="fixed inset-0 z-[200] flex items-center justify-center px-4"
-          style={{backgroundColor:'rgba(0,0,0,0.75)'}}>
-
-          <motion.div initial={{scale:0.9,y:30,opacity:0}} animate={{scale:1,y:0,opacity:1}}
-            exit={{scale:0.9,y:30,opacity:0}} transition={{type:'spring',damping:22,stiffness:300}}
-            className="w-full max-w-sm bg-gray-900 rounded-2xl border-2 border-purple-500 overflow-hidden">
-
+          style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 30, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 30, opacity: 0 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+            className="w-full max-w-sm bg-gray-900 rounded-2xl border-2 border-purple-500 overflow-hidden"
+          >
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
               <p className="text-white font-semibold text-lg">
                 {firstName} quiere un <span className="text-2xl font-bold">Wait</span>
                 <span className="text-purple-400 text-2xl font-bold">Me!</span>
               </p>
 
-              <button onClick={handleMeLoPienso}
-                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors">
-                <X className="w-5 h-5"/>
+              <button
+                onClick={handleMeLoPienso}
+                className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="px-3 pb-3">
               <div className="bg-gray-800/60 rounded-xl p-2 border border-purple-500">
-
                 <div className="flex items-center justify-between mb-2">
                   <div className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs rounded-md px-3 py-1">
                     Te reservó:
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="bg-black/40 backdrop-blur-sm border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                      <Navigation className="w-3 h-3 text-purple-400"/>
+                      <Navigation className="w-3 h-3 text-purple-400" />
                       <span className="text-white font-bold text-xs">300m</span>
                     </div>
                     <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
-                      <TrendingUp className="w-4 h-4 text-green-400"/>
+                      <TrendingUp className="w-4 h-4 text-green-400" />
                       <span className="text-green-400 font-bold text-sm">3€</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-700/80 mb-2"/>
+                <div className="border-t border-gray-700/80 mb-2" />
 
                 <div className="flex gap-2.5">
                   <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-                    <img src={photo} alt={userName} className="w-full h-full object-cover" loading="eager" decoding="sync"/>
+                    <img
+                      src={photo}
+                      alt={userName}
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      decoding="sync"
+                    />
                   </div>
 
                   <div className="flex-1 h-[85px] flex flex-col">
                     <p className="font-bold text-xl text-white leading-none">{firstName}</p>
-                    <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+                    <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">
+                      {carLabel}
+                    </p>
 
                     <div className="flex items-end gap-2 mt-1 min-h-[28px]">
                       <div className="flex-shrink-0">
@@ -276,18 +352,44 @@ export default function IncomingRequestModal(){
                           <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
                             <span className="text-white text-[8px] font-bold">E</span>
                           </div>
-                          <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{plate}</span>
+                          <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">
+                            {plate}
+                          </span>
                         </div>
                       </div>
                       <div className="flex-1 flex justify-center">
                         <div className="flex-shrink-0 relative top-[2px]">
                           <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
-                            <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5"/>
-                            <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
-                            <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                            <circle cx="14" cy="18" r="2" fill="#666"/>
-                            <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                            <circle cx="36" cy="18" r="2" fill="#666"/>
+                            <path
+                              d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                              fill={carFill}
+                              stroke="white"
+                              strokeWidth="1.5"
+                            />
+                            <path
+                              d="M16 9 L18 12 L30 12 L32 9 Z"
+                              fill="rgba(255,255,255,0.3)"
+                              stroke="white"
+                              strokeWidth="0.5"
+                            />
+                            <circle
+                              cx="14"
+                              cy="18"
+                              r="4"
+                              fill="#333"
+                              stroke="white"
+                              strokeWidth="1"
+                            />
+                            <circle cx="14" cy="18" r="2" fill="#666" />
+                            <circle
+                              cx="36"
+                              cy="18"
+                              r="4"
+                              fill="#333"
+                              stroke="white"
+                              strokeWidth="1"
+                            />
+                            <circle cx="36" cy="18" r="2" fill="#666" />
                           </svg>
                         </div>
                       </div>
@@ -297,64 +399,101 @@ export default function IncomingRequestModal(){
 
                 <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs min-h-[20px]">
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400"/>
-                    <span className="text-gray-200 line-clamp-1 leading-none">{formatAddress(alert?.address)}</span>
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400" />
+                    <span className="text-gray-200 line-clamp-1 leading-none">
+                      {formatAddress(alert?.address)}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
-                    <Clock className="w-4 h-4 flex-shrink-0 text-purple-400"/>
+                    <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
                     <span className="leading-none">
                       <span className="text-white">Te vas en {mins} min · </span>
-                      <span className="text-purple-400">Debes esperar hasta las:</span>
-                      {' '}<span className="text-white font-bold" style={{fontSize:'14px'}}>{waitUntilLabel}</span>
+                      <span className="text-purple-400">Debes esperar hasta las:</span>{' '}
+                      <span className="text-white font-bold" style={{ fontSize: '14px' }}>
+                        {waitUntilLabel}
+                      </span>
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400" style={{width:'46px',flexShrink:0}}>
-                    <MessageCircle className="w-4 h-4"/>
+                  <Button
+                    size="icon"
+                    className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400"
+                    style={{ width: '46px', flexShrink: 0 }}
+                  >
+                    <MessageCircle className="w-4 h-4" />
                   </Button>
 
-                  {phoneEnabled?(
-                    <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300" style={{width:'46px',flexShrink:0}}
-                      onClick={()=>window.location.href=`tel:${buyer.phone}`}>
-                      <Phone className="w-4 h-4"/>
+                  {phoneEnabled ? (
+                    <Button
+                      size="icon"
+                      className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300"
+                      style={{ width: '46px', flexShrink: 0 }}
+                      onClick={() => (window.location.href = `tel:${buyer.phone}`)}
+                    >
+                      <Phone className="w-4 h-4" />
                     </Button>
-                  ):(
-                    <Button size="icon" className="h-8 border-2 border-white/30 bg-white/10 text-white rounded-lg opacity-70" style={{width:'46px',flexShrink:0}} disabled>
-                      <PhoneOff className="w-4 h-4"/>
+                  ) : (
+                    <Button
+                      size="icon"
+                      className="h-8 border-2 border-white/30 bg-white/10 text-white rounded-lg opacity-70"
+                      style={{ width: '46px', flexShrink: 0 }}
+                      disabled
+                    >
+                      <PhoneOff className="w-4 h-4" />
                     </Button>
                   )}
 
-                  <Button size="icon" className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1 border-2 border-blue-400" style={{width:'46px',flexShrink:0}} disabled>
-                    <Navigation className="w-4 h-4"/>
+                  <Button
+                    size="icon"
+                    className="h-8 rounded-lg bg-blue-600 text-white opacity-40 flex items-center justify-center gap-1 border-2 border-blue-400"
+                    style={{ width: '46px', flexShrink: 0 }}
+                    disabled
+                  >
+                    <Navigation className="w-4 h-4" />
                   </Button>
 
                   <div className="flex-1">
-                    <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center ${isCountdown?'border-purple-400/70 bg-purple-600/25':'border-purple-500/30 bg-purple-600/10'}`}>
-                      <span className={`font-mono font-extrabold ${isCountdown?'text-purple-100':'text-purple-300'}`}>
+                    <div
+                      className={`w-full h-8 rounded-lg border-2 flex items-center justify-center ${isCountdown ? 'border-purple-400/70 bg-purple-600/25' : 'border-purple-500/30 bg-purple-600/10'}`}
+                    >
+                      <span
+                        className={`font-mono font-extrabold ${isCountdown ? 'text-purple-100' : 'text-purple-300'}`}
+                      >
                         {countdownText}
                       </span>
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
 
             <div className="px-3 pb-4 grid grid-cols-3 gap-2">
-              <Button className="bg-purple-600 hover:bg-purple-700 font-semibold" onClick={acceptRequest} disabled={loading}>
+              <Button
+                className="bg-purple-600 hover:bg-purple-700 font-semibold"
+                onClick={acceptRequest}
+                disabled={loading}
+              >
                 Aceptar
               </Button>
-              <Button variant="outline" className="border-gray-600 text-white font-semibold" onClick={handleMeLoPienso} disabled={loading}>
+              <Button
+                variant="outline"
+                className="border-gray-600 text-white font-semibold"
+                onClick={handleMeLoPienso}
+                disabled={loading}
+              >
                 Me lo pienso
               </Button>
-              <Button className="bg-red-600/80 hover:bg-red-700 font-semibold" onClick={handleRechazar} disabled={loading}>
+              <Button
+                className="bg-red-600/80 hover:bg-red-700 font-semibold"
+                onClick={handleRechazar}
+                disabled={loading}
+              >
                 Rechazar
               </Button>
             </div>
-
           </motion.div>
         </motion.div>
       )}

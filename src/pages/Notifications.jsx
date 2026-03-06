@@ -5,18 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as alerts from '@/data/alerts';
+import * as notificationsApi from '@/data/notifications';
 import { useAuth } from '@/lib/AuthContext';
 import { getWaitMeRequests, setWaitMeRequestStatus } from '@/lib/waitmeRequests';
-import {
-  Bell,
-  MapPin,
-  Navigation,
-  Clock,
-  MessageCircle,
-  Phone,
-  PhoneOff
-} from 'lucide-react';
+import { Bell, MapPin, Navigation, Clock, MessageCircle, Phone, PhoneOff } from 'lucide-react';
 import UserAlertCard from '@/components/cards/UserAlertCard';
+import { formatPlate } from '@/utils/carUtils';
 
 import {
   getDemoAlertById,
@@ -25,11 +19,13 @@ import {
   ensureInitialWaitMeMessage,
   markDemoNotificationRead,
   markAllDemoRead,
-  applyDemoAction
+  applyDemoAction,
 } from '@/components/DemoFlowManager';
 
 function normalize(s) {
-  return String(s || '').trim().toLowerCase();
+  return String(s || '')
+    .trim()
+    .toLowerCase();
 }
 
 export default function Notifications() {
@@ -42,7 +38,7 @@ export default function Notifications() {
     queryKey: ['notifications', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await notifications.listNotifications(user.id);
+      const { data } = await notificationsApi.listNotifications(user.id);
       return data ?? [];
     },
     staleTime: 10_000,
@@ -123,14 +119,16 @@ export default function Notifications() {
         reserved_by_car: `${buyer?.brand || ''} ${buyer?.model || ''}`.trim(),
         reserved_by_car_color: buyer?.color || 'gris',
         reserved_by_plate: buyer?.plate || '',
-        reserved_by_vehicle_type: buyer?.vehicle_type || 'car'
+        reserved_by_vehicle_type: buyer?.vehicle_type || 'car',
       });
 
       setWaitMeRequestStatus(req?.id, 'accepted');
 
       await queryClient.invalidateQueries({ queryKey: ['alerts'] });
       await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      try {
+        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      } catch {}
       navigate(createPageUrl('History'));
     } catch {
       // noop
@@ -152,15 +150,12 @@ export default function Notifications() {
     return merged.sort((a, b) => (b?.t ?? b?.createdAt ?? 0) - (a?.t ?? a?.createdAt ?? 0));
   }, [tick, realNotifications]);
 
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !n?.read).length,
-    [notifications]
-  );
+  const unreadCount = useMemo(() => notifications.filter((n) => !n?.read).length, [notifications]);
 
   const markRead = async (n) => {
     if (!n?.id) return;
     if (n._isReal && user?.id) {
-      await notifications.markAsRead(n.id, user.id);
+      await notificationsApi.markAsRead(n.id, user.id);
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
     } else {
@@ -170,7 +165,7 @@ export default function Notifications() {
 
   const handleMarkAllRead = async () => {
     if (user?.id) {
-      await notifications.markAllAsRead(user.id);
+      await notificationsApi.markAllAsRead(user.id);
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['unreadCount', user?.id] });
     }
@@ -203,7 +198,7 @@ export default function Notifications() {
     applyDemoAction({
       conversationId: conv?.id,
       alertId,
-      action
+      action,
     });
 
     if (n?.id) markRead(n);
@@ -225,9 +220,14 @@ export default function Notifications() {
 
                 const status = String(r?.status || 'pending');
                 const statusText =
-                  status === 'rejected' ? 'RECHAZADA' : status === 'accepted' ? 'ACEPTADA' : 'PENDIENTE';
+                  status === 'rejected'
+                    ? 'RECHAZADA'
+                    : status === 'accepted'
+                      ? 'ACEPTADA'
+                      : 'PENDIENTE';
 
-                const carLabel = `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
+                const carLabel =
+                  `${buyer?.brand || ''} ${buyer?.model || ''}`.trim() || 'Sin datos';
                 const plate = buyer?.plate || '';
                 const carColor = buyer?.color || 'gris';
 
@@ -249,11 +249,14 @@ export default function Notifications() {
                   phone: buyer?.phone || null,
                   allow_phone_calls: false,
                   latitude: null,
-                  longitude: null
+                  longitude: null,
                 };
 
                 return (
-                  <div key={r?.id} className="rounded-xl border-2 border-purple-500/50 bg-gray-900 p-0 overflow-hidden">
+                  <div
+                    key={r?.id}
+                    className="rounded-xl border-2 border-purple-500/50 bg-gray-900 p-0 overflow-hidden"
+                  >
                     {/* Header */}
                     <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-2">
                       <div className="text-white text-[15px] font-semibold">
@@ -279,7 +282,11 @@ export default function Notifications() {
                       />
                       {status === 'pending' && (
                         <div className="mt-2">
-                          <Button variant="destructive" className="w-full" onClick={() => rejectRequest(r)}>
+                          <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={() => rejectRequest(r)}
+                          >
                             Rechazar
                           </Button>
                         </div>
@@ -336,28 +343,36 @@ export default function Notifications() {
 
                 const statusText = n?.title || 'ACTIVA';
                 const hasLatLon =
-                  typeof alert?.latitude === 'number' &&
-                  typeof alert?.longitude === 'number';
+                  typeof alert?.latitude === 'number' && typeof alert?.longitude === 'number';
 
                 const t = normalize(type);
 
                 const handleChatClick = (e) => {
-                    e?.stopPropagation();
-                    const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
-                    if (n?.id) markRead(n);
-                    openChat(convId, n?.alertId);
-                  };
+                  e?.stopPropagation();
+                  const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                  if (n?.id) markRead(n);
+                  openChat(convId, n?.alertId);
+                };
 
-                  const carColors = { blanco: '#FFFFFF', negro: '#1a1a1a', rojo: '#ef4444', azul: '#3b82f6', amarillo: '#facc15', gris: '#6b7280' };
-                  const carFill = carColors[carColor] || '#6b7280';
-                  const formatPlate = (p) => { const c = String(p || '').replace(/\s+/g, '').toUpperCase(); if (!c) return '0000 XXX'; return `${c.slice(0,4)} ${c.slice(4)}`.trim(); };
-                  const photoSrc = otherPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=7c3aed&color=fff&size=128`;
+                const carColors = {
+                  blanco: '#FFFFFF',
+                  negro: '#1a1a1a',
+                  rojo: '#ef4444',
+                  azul: '#3b82f6',
+                  amarillo: '#facc15',
+                  gris: '#6b7280',
+                };
+                const carFill = carColors[carColor] || '#6b7280';
+                const photoSrc =
+                  otherPhoto ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=7c3aed&color=fff&size=128`;
 
-                  return (
+                return (
                   <div
                     key={n.id}
                     onClick={() => {
-                      const convId = n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
+                      const convId =
+                        n?.conversationId || ensureConversationForAlert(n?.alertId)?.id;
                       if (n?.id) markRead(n);
                       if (convId) openChat(convId, n?.alertId);
                     }}
@@ -372,8 +387,12 @@ export default function Notifications() {
                       <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/50 font-bold text-xs h-7 px-3 flex items-center justify-center cursor-default select-none pointer-events-none">
                         {n?.title || 'NOTIFICACIÓN'}
                       </Badge>
-                      <div className="flex-1 text-center text-xs text-white truncate">{n?.text || '—'}</div>
-                      {isUnread && <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse flex-shrink-0" />}
+                      <div className="flex-1 text-center text-xs text-white truncate">
+                        {n?.text || '—'}
+                      </div>
+                      {isUnread && (
+                        <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse flex-shrink-0" />
+                      )}
                     </div>
 
                     <div className="border-t border-gray-700/80 mb-1" />
@@ -381,14 +400,22 @@ export default function Notifications() {
                     {/* Foto + info usuario */}
                     <div className="flex gap-2.5">
                       <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-                        <img src={photoSrc} alt={otherName} className={`w-full h-full object-cover ${!isUnread ? 'opacity-40 grayscale' : ''}`} />
+                        <img
+                          src={photoSrc}
+                          alt={otherName}
+                          className={`w-full h-full object-cover ${!isUnread ? 'opacity-40 grayscale' : ''}`}
+                        />
                       </div>
 
                       <div className="flex-1 h-[85px] flex flex-col">
-                        <p className={`font-bold text-xl leading-none min-h-[22px] ${isUnread ? 'text-white' : 'text-gray-400'}`}>
+                        <p
+                          className={`font-bold text-xl leading-none min-h-[22px] ${isUnread ? 'text-white' : 'text-gray-400'}`}
+                        >
                           {(otherName || '').split(' ')[0] || 'Usuario'}
                         </p>
-                        <p className={`text-sm font-medium leading-none flex-1 flex items-center truncate relative top-[6px] ${isUnread ? 'text-gray-200' : 'text-gray-500'}`}>
+                        <p
+                          className={`text-sm font-medium leading-none flex-1 flex items-center truncate relative top-[6px] ${isUnread ? 'text-gray-200' : 'text-gray-500'}`}
+                        >
                           {carLabel || 'Sin datos'}
                         </p>
 
@@ -398,17 +425,50 @@ export default function Notifications() {
                               <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
                                 <span className="text-white text-[8px] font-bold">E</span>
                               </div>
-                              <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">{formatPlate(plate)}</span>
+                              <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                                {formatPlate(plate)}
+                              </span>
                             </div>
                           </div>
                           <div className="flex-1 flex justify-center">
-                            <div className={`flex-shrink-0 relative -top-[1px] ${!isUnread ? 'opacity-45' : ''}`}>
-                              <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none" style={{ transform: 'translateY(3px)' }}>
-                                <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5" />
-                                <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5" />
-                                <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                            <div
+                              className={`flex-shrink-0 relative -top-[1px] ${!isUnread ? 'opacity-45' : ''}`}
+                            >
+                              <svg
+                                viewBox="0 0 48 24"
+                                className="w-16 h-10"
+                                fill="none"
+                                style={{ transform: 'translateY(3px)' }}
+                              >
+                                <path
+                                  d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                                  fill={carFill}
+                                  stroke="white"
+                                  strokeWidth="1.5"
+                                />
+                                <path
+                                  d="M16 9 L18 12 L30 12 L32 9 Z"
+                                  fill="rgba(255,255,255,0.3)"
+                                  stroke="white"
+                                  strokeWidth="0.5"
+                                />
+                                <circle
+                                  cx="14"
+                                  cy="18"
+                                  r="4"
+                                  fill="#333"
+                                  stroke="white"
+                                  strokeWidth="1"
+                                />
                                 <circle cx="14" cy="18" r="2" fill="#666" />
-                                <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                                <circle
+                                  cx="36"
+                                  cy="18"
+                                  r="4"
+                                  fill="#333"
+                                  stroke="white"
+                                  strokeWidth="1"
+                                />
                                 <circle cx="36" cy="18" r="2" fill="#666" />
                               </svg>
                             </div>
@@ -422,13 +482,25 @@ export default function Notifications() {
                       <div className={`space-y-1.5 ${!isUnread ? 'opacity-80' : ''}`}>
                         {address ? (
                           <div className="flex items-start gap-1.5 text-xs">
-                            <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
-                            <span className={`leading-5 line-clamp-1 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>{address}</span>
+                            <MapPin
+                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`}
+                            />
+                            <span
+                              className={`leading-5 line-clamp-1 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}
+                            >
+                              {address}
+                            </span>
                           </div>
                         ) : null}
                         <div className="flex items-start gap-1.5 text-xs">
-                          <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`} />
-                          <span className={`leading-5 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}>Operación en curso</span>
+                          <Clock
+                            className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isUnread ? 'text-purple-400' : 'text-gray-500'}`}
+                          />
+                          <span
+                            className={`leading-5 ${isUnread ? 'text-gray-200' : 'text-gray-400'}`}
+                          >
+                            Operación en curso
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -436,38 +508,82 @@ export default function Notifications() {
                     {/* Botones: mismo layout que UserAlertCard */}
                     <div className="mt-2">
                       <div className="flex gap-2">
-                        <Button size="icon" className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]" onClick={handleChatClick}>
+                        <Button
+                          size="icon"
+                          className="bg-green-500 hover:bg-green-600 text-white rounded-lg h-8 w-[42px]"
+                          onClick={handleChatClick}
+                        >
                           <MessageCircle className="w-4 h-4" />
                         </Button>
 
                         {phoneEnabled ? (
-                          <Button size="icon" className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
-                            onClick={(e) => { e.stopPropagation(); phone && (window.location.href = `tel:${phone}`); }}>
+                          <Button
+                            size="icon"
+                            className="bg-white hover:bg-gray-200 text-black rounded-lg h-8 w-[42px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              phone && (window.location.href = `tel:${phone}`);
+                            }}
+                          >
                             <Phone className="w-4 h-4" />
                           </Button>
                         ) : (
-                          <Button variant="outline" size="icon" className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed" disabled>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-white/30 bg-white/10 text-white rounded-lg h-8 w-[42px] opacity-70 cursor-not-allowed"
+                            disabled
+                          >
                             <PhoneOff className="w-4 h-4 text-white" />
                           </Button>
                         )}
 
                         {hasLatLon && (
-                          <Button size="icon" className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
-                            onClick={(e) => { e.stopPropagation(); if (n?.id) markRead(n); openNavigate(n?.alertId); }}>
+                          <Button
+                            size="icon"
+                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-[42px]"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (n?.id) markRead(n);
+                              openNavigate(n?.alertId);
+                            }}
+                          >
                             <Navigation className="w-4 h-4" />
                           </Button>
                         )}
 
                         {t === 'incoming_waitme' ? (
-                          <div className="flex-1 grid grid-cols-3 gap-1" onClick={(e) => e.stopPropagation()}>
-                            <Button className="h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs px-1" onClick={() => runAction(n, 'reserved')}>Aceptar</Button>
-                            <Button variant="outline" className="h-8 rounded-lg border-gray-600 text-white text-xs px-1" onClick={() => runAction(n, 'thinking')}>Pienso</Button>
-                            <Button variant="destructive" className="h-8 rounded-lg text-xs px-1" onClick={() => runAction(n, 'rejected')}>Rechazar</Button>
+                          <div
+                            className="flex-1 grid grid-cols-3 gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              className="h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs px-1"
+                              onClick={() => runAction(n, 'reserved')}
+                            >
+                              Aceptar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="h-8 rounded-lg border-gray-600 text-white text-xs px-1"
+                              onClick={() => runAction(n, 'thinking')}
+                            >
+                              Pienso
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="h-8 rounded-lg text-xs px-1"
+                              onClick={() => runAction(n, 'rejected')}
+                            >
+                              Rechazar
+                            </Button>
                           </div>
                         ) : (
                           <div className="flex-1">
                             <div className="w-full h-8 rounded-lg border-2 border-purple-500/30 bg-purple-600/10 flex items-center justify-center px-3">
-                              <span className="text-sm font-mono font-extrabold text-purple-300">{statusText}</span>
+                              <span className="text-sm font-mono font-extrabold text-purple-300">
+                                {statusText}
+                              </span>
                             </div>
                           </div>
                         )}

@@ -12,7 +12,7 @@ import {
   HelpCircle,
   Star,
   Instagram,
-  Globe
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -41,11 +41,10 @@ export default function Settings() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const displayName =
-    user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
+  const displayName = user?.display_name || user?.full_name?.split(' ')?.[0] || 'Usuario';
 
   return (
-    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
       <main className="flex-1 flex flex-col min-h-0 overflow-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -88,10 +87,7 @@ export default function Settings() {
                 {(user?.credits || 0).toFixed(2)}€
               </span>
             </div>
-            <Button
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              disabled={isLoadingAuth}
-            >
+            <Button className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoadingAuth}>
               <CreditCard className="w-4 h-4 mr-2" />
               Añadir créditos
             </Button>
@@ -129,7 +125,6 @@ export default function Settings() {
 
           {/* Instagram y Web - cajas individuales estilo Créditos */}
           <div className="flex justify-center gap-6">
-            
             <div className="bg-gradient-to-r from-purple-900/50 to-purple-600/30 rounded-2xl p-4 border-2 border-purple-500 w-32 flex flex-col items-center">
               <button
                 onClick={() => openExternal(instagramUrl)}
@@ -151,7 +146,6 @@ export default function Settings() {
                 <span className="text-sm font-medium">Web</span>
               </button>
             </div>
-
           </div>
 
           {/* Cerrar sesión */}

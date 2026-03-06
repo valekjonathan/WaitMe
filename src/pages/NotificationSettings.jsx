@@ -16,7 +16,7 @@ export default function NotificationSettings() {
     notify_reservations: true,
     notify_payments: true,
     notify_proximity: true,
-    notify_promotions: true
+    notify_promotions: true,
   });
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function NotificationSettings() {
       notify_reservations: user.notify_reservations ?? true,
       notify_payments: user.notify_payments ?? true,
       notify_proximity: user.notify_proximity ?? true,
-      notify_promotions: user.notify_promotions ?? true
+      notify_promotions: user.notify_promotions ?? true,
     });
   }, [user]);
 
@@ -51,7 +51,7 @@ export default function NotificationSettings() {
   };
 
   return (
-    <div className="min-min-h-[100dvh] bg-black text-white flex flex-col">
+    <div className="min-h-[100dvh] bg-black text-white flex flex-col">
       <main className="flex-1 flex flex-col min-h-0 overflow-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,11 @@ export default function NotificationSettings() {
             <Switch
               checked={masterToggle}
               onCheckedChange={updateMasterToggle}
-              className={masterToggle ? 'data-[state=checked]:bg-green-500' : 'data-[state=unchecked]:bg-red-500'}
+              className={
+                masterToggle
+                  ? 'data-[state=checked]:bg-green-500'
+                  : 'data-[state=unchecked]:bg-red-500'
+              }
             />
           </div>
 
