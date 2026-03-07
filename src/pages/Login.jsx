@@ -5,9 +5,12 @@ import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
-// Supabase recomienda path para deep linking: com.app://auth/callback
+
+// iOS native: SIEMPRE com.waitme.app://auth/callback. NUNCA localhost.
+// Supabase Dashboard DEBE tener esta URL en Redirect URLs (Additional Redirect URLs).
+const OAUTH_REDIRECT_IOS_NATIVE = 'com.waitme.app://auth/callback';
 const OAUTH_REDIRECT_CAPACITOR =
-  import.meta.env.VITE_OAUTH_REDIRECT_IOS || 'com.waitme.app://auth/callback';
+  import.meta.env.VITE_OAUTH_REDIRECT_IOS || OAUTH_REDIRECT_IOS_NATIVE;
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -25,15 +28,33 @@ export default function Login() {
       const isNative = Capacitor.isNativePlatform();
 
       if (isNative) {
+        // iOS: NUNCA usar localhost. Supabase usa Site URL si redirectTo no está permitido.
+        const redirectTo = OAUTH_REDIRECT_CAPACITOR?.includes('localhost')
+          ? OAUTH_REDIRECT_IOS_NATIVE
+          : OAUTH_REDIRECT_CAPACITOR;
+        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+          console.log('[OAuth] iOS native: redirectTo =', redirectTo);
+        }
         const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: OAUTH_REDIRECT_CAPACITOR,
+            redirectTo,
             skipBrowserRedirect: true,
           },
         });
         if (oauthError) throw oauthError;
         if (data?.url) {
+          if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+            const u = data.url;
+            console.log('[OAuth] signInWithOAuth URL (first 120 chars):', u?.slice(0, 120));
+            const redirectMatch = u?.match(/redirect_uri=([^&]+)/);
+            if (redirectMatch) {
+              console.log(
+                '[OAuth] redirect_uri in OAuth URL:',
+                decodeURIComponent(redirectMatch[1])
+              );
+            }
+          }
           await InAppBrowser.openInExternalBrowser({ url: data.url });
         } else {
           setError('No se pudo obtener la URL de login');

@@ -53,10 +53,21 @@ async function processOAuthUrl(url, onSuccess) {
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
     if (code) {
-      if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession executing...');
+      if (OAuthDebug)
+        console.log('[OAuth] exchangeCodeForSession executing (code len:', code?.length, ')');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession OK, session:', !!data?.session);
+        if (OAuthDebug) {
+          const session = data?.session;
+          console.log(
+            '[OAuth] exchangeCodeForSession OK, session:',
+            !!session,
+            'user:',
+            session?.user?.id
+          );
+          const { data: s } = await supabase.auth.getSession();
+          console.log('[OAuth] getSession after exchange:', !!s?.session);
+        }
         onSuccess?.();
         return true;
       }
@@ -144,8 +155,10 @@ export default function App() {
     CapacitorApp.getLaunchUrl()
       .then((result) => {
         if (result?.url) {
-          if (OAuthDebug) console.log('[OAuth] getLaunchUrl:', result.url?.slice(0, 80));
+          if (OAuthDebug) console.log('[OAuth] getLaunchUrl received:', result.url);
           handleUrl(result.url);
+        } else if (OAuthDebug) {
+          console.log('[OAuth] getLaunchUrl: no url');
         }
       })
       .catch(() => {});

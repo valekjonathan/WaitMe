@@ -1,4 +1,12 @@
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { Capacitor } from '@capacitor/core';
 import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
 
@@ -142,7 +150,9 @@ export const AuthProvider = ({ children }) => {
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
       if (!authUser?.id) {
         setUser(null);
         setProfile(null);
@@ -165,7 +175,7 @@ export const AuthProvider = ({ children }) => {
         .maybeSingle();
 
       if (profileError) {
-        console.error("PROFILE LOAD ERROR:", profileError);
+        console.error('PROFILE LOAD ERROR:', profileError);
       }
       if (profileData) {
         setProfile(profileData);
@@ -186,8 +196,9 @@ export const AuthProvider = ({ children }) => {
   }, [ensureUserInDb]);
 
   useEffect(() => {
-    // DEV AUTO LOGIN — No tocar Supabase; estado inicial ya tiene user/isLoadingAuth
-    if (isDevAutoLogin()) {
+    // DEV AUTO LOGIN — Solo saltar Supabase cuando usamos mock (no bypass)
+    // Con VITE_DEV_BYPASS_AUTH=true necesitamos el flujo real para login Google en Simulator
+    if (isDevAutoLogin() && !isDevBypassAuth()) {
       return;
     }
 
@@ -197,7 +208,9 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'INITIAL_SESSION') {
         setIsLoadingAuth(false);
         return;
@@ -224,7 +237,7 @@ export const AuthProvider = ({ children }) => {
               .select('*')
               .eq('id', session.user.id)
               .maybeSingle();
-            if (profileError) console.error("PROFILE LOAD ERROR:", profileError);
+            if (profileError) console.error('PROFILE LOAD ERROR:', profileError);
             if (profileData) setProfile(profileData);
             else setProfile({});
             setIsAuthenticated(true);
@@ -251,7 +264,8 @@ export const AuthProvider = ({ children }) => {
       const access_token = params.get('access_token');
       const refresh_token = params.get('refresh_token');
       if (access_token && refresh_token) {
-        supabase.auth.setSession({ access_token, refresh_token })
+        supabase.auth
+          .setSession({ access_token, refresh_token })
           .then(() => {
             window.history.replaceState(null, '', window.location.pathname + '#/');
           })
@@ -274,11 +288,7 @@ export const AuthProvider = ({ children }) => {
     const supabase = getSupabase();
     if (!supabase || !user?.id) return;
     try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       setProfile(data ?? {});
     } catch (err) {
       console.error('refreshProfile failed:', err);
@@ -317,15 +327,21 @@ export const AuthProvider = ({ children }) => {
       checkUserAuth,
       refreshProfile,
     }),
-    [user, profile, isAuthenticated, isLoadingAuth, authError, logout, navigateToLogin, checkUserAuth, refreshProfile]
+    [
+      user,
+      profile,
+      isAuthenticated,
+      isLoadingAuth,
+      authError,
+      logout,
+      navigateToLogin,
+      checkUserAuth,
+      refreshProfile,
+    ]
   );
 
   RENDER_LOG('AuthProvider RENDER', { user: !!user?.id, isLoadingAuth, isAuthenticated });
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

@@ -33,6 +33,8 @@ echo ""
 
 export CAPACITOR_USE_DEV_SERVER=true
 export CAPACITOR_DEV_SERVER_URL="$URL"
+# Login Google real en Simulator: sin mock, auth real
+export VITE_DEV_BYPASS_AUTH=true
 
 # 3. dist existe (cap copy lo requiere)
 if [ ! -d dist ]; then
@@ -45,4 +47,4 @@ npx cap copy ios
 
 # 5. Arrancar Vite + Capacitor (live reload)
 # cap run ios: lanza en Simulator por defecto; si hay iPhone conectado, Xcode puede usarlo
-exec npx concurrently "vite --host --port ${PORT}" "npx cap run ios --live-reload --host ${IP} --port ${PORT}"
+exec npx concurrently "VITE_DEV_BYPASS_AUTH=true vite --host --port ${PORT}" "npx cap run ios --live-reload --host ${IP} --port ${PORT}"
