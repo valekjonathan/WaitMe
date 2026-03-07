@@ -10,30 +10,14 @@ import {
 } from '@/stores/carsMovementStore';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
-function createUserMarkerHtml() {
-  return `
-    <div style="position:relative;width:40px;height:60px;">
-      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:35px;background:#a855f7;"></div>
-      <div style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:#a855f7;border-radius:50%;box-shadow:0 0 15px rgba(168,85,247,0.8);animation:pulse-purple 1.5s ease-in-out infinite;"></div>
-    </div>
-  `;
-}
-
-function createBuyerMarkerHtml() {
-  return `
-    <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:3px solid white;border-radius:50%;box-shadow:0 4px 12px rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 19h20L12 2z"/></svg>
-    </div>
-  `;
-}
+import { addUserLocationLayer, addWaitMeCarLayer } from '@/lib/mapLayers';
 
 export default function SellerLocationTracker({ alertId, userLocation }) {
   const [alert, setAlert] = useState(null);
   const [carsMode, setCarsMode] = useState(getCarsMovementMode);
+  const [mapReady, setMapReady] = useState(false);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
-  const markersRef = useRef([]);
 
   useEffect(() => {
     return subscribeToCarsMovementMode(setCarsMode);
@@ -105,38 +89,38 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
     map.on('load', () => {
       mapRef.current = map;
       map.resize();
+      setMapReady(true);
     });
     mapRef.current = map;
 
     return () => {
-      markersRef.current.forEach((m) => m?.remove?.());
-      markersRef.current = [];
+      setMapReady(false);
       map.remove();
       mapRef.current = null;
     };
   }, [alert?.id]);
 
+  const userLocForLayer = userLocation ? { lat: userLocation[0], lng: userLocation[1] } : null;
+
+  const buyerLocForLayer =
+    carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE && buyerLocations?.length > 0
+      ? {
+          lat: buyerLocations[0].latitude ?? buyerLocations[0].lat,
+          lng: buyerLocations[0].longitude ?? buyerLocations[0].lng,
+        }
+      : null;
+
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded?.() || !alert) return;
+    if (!mapReady || !map || !map.isStyleLoaded?.() || !alert) return;
+    addUserLocationLayer(map, userLocForLayer);
+  }, [mapReady, alert, userLocForLayer]);
 
-    markersRef.current.forEach((m) => m?.remove?.());
-    markersRef.current = [];
-
-    const addMarker = (lngLat, html) => {
-      const el = document.createElement('div');
-      el.innerHTML = html;
-      const marker = new mapboxgl.Marker({ element: el.firstElementChild || el })
-        .setLngLat([lngLat[1], lngLat[0]])
-        .addTo(map);
-      markersRef.current.push(marker);
-    };
-
-    if (userLocation) addMarker(userLocation, createUserMarkerHtml());
-    buyerLocations.forEach((loc) =>
-      addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml())
-    );
-  }, [alert, userLocation, buyerLocations]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !map.isStyleLoaded?.() || !alert) return;
+    addWaitMeCarLayer(map, buyerLocForLayer, carsMode, 'azul');
+  }, [mapReady, alert, buyerLocForLayer, carsMode]);
 
   useEffect(() => {
     const map = mapRef.current;

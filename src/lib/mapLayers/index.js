@@ -7,5 +7,10 @@
  */
 
 export { alertsToGeoJSON, userLocationToFeature } from './geojsonUtils.js';
-export { addStaticCarsLayer, addUserLocationLayer } from './layers.js';
+export {
+  addStaticCarsLayer,
+  addUserLocationLayer,
+  addSellerLocationLayer,
+  addSelectedPositionLayer,
+} from './layers.js';
 export { addWaitMeCarLayer } from './waitMeCarLayer.js';

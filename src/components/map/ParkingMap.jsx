@@ -1,27 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { getCarIconHtml, getCarWithPriceHtml } from '@/lib/vehicleIcons';
-
-function createUserLocationHtml() {
-  return `
-    <div style="position:relative;width:40px;height:100px;">
-      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
-      <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;box-shadow:0 0 18px rgba(168,85,247,0.9);animation:pulse-purple 1.5s ease-in-out infinite;"></div>
-    </div>
-  `;
-}
-
-function createBuyerMarkerHtml() {
-  return `<div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:3px solid white;border-radius:50%;box-shadow:0 4px 12px rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 19h20L12 2z"/></svg></div>`;
-}
-
-function createSellerMarkerHtml(sellerPhotoHtml) {
-  if (sellerPhotoHtml) {
-    return `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);">${sellerPhotoHtml}</div>`;
-  }
-  return `<div style="width:40px;height:40px;background:linear-gradient(135deg,#22c55e,#16a34a);border:4px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>`;
-}
+import {
+  addStaticCarsLayer,
+  addUserLocationLayer,
+  addSellerLocationLayer,
+  addSelectedPositionLayer,
+  addWaitMeCarLayer,
+} from '@/lib/mapLayers';
+import {
+  getCarsMovementMode,
+  CARS_MOVEMENT_MODE,
+  subscribeToCarsMovementMode,
+} from '@/stores/carsMovementStore';
 
 export default function ParkingMap({
   alerts = [],
@@ -38,20 +29,19 @@ export default function ParkingMap({
   buyerLocations = [],
   userLocationOffsetY: _userLocationOffsetY = 0,
   useCenterPin = false,
-  sellerPhotoHtml = null,
+  sellerPhotoHtml: _sellerPhotoHtml = null,
   onMapMove,
   onMapMoveEnd,
-  userAsCar = false,
-  userCarColor = 'gris',
-  userCarPrice = 0,
+  userAsCar: _userAsCar = false,
+  userCarColor: _userCarColor = 'gris',
+  userCarPrice: _userCarPrice = 0,
   showSellerMarker = false,
   onRouteLoaded = null,
-  userPhotoHtml = null,
+  userPhotoHtml: _userPhotoHtml = null,
 }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
-  const markersRef = useRef([]);
-  const _routeSourceRef = useRef(null);
+  const [carsMode, setCarsMode] = useState(getCarsMovementMode);
 
   const normalizedUserLocation = userLocation
     ? Array.isArray(userLocation)
@@ -61,6 +51,7 @@ export default function ParkingMap({
 
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
   const [, setRouteDistance] = useState(null);
   const [, setRouteDuration] = useState(null);
   const lastRouteFetchRef = useRef(0);
@@ -127,80 +118,77 @@ export default function ParkingMap({
     map.on('load', () => {
       mapRef.current = map;
       map.resize();
+      setMapReady(true);
     });
 
     return () => {
-      markersRef.current.forEach((m) => m?.remove?.());
-      markersRef.current = [];
+      setMapReady(false);
       map.remove();
       mapRef.current = null;
     };
   }, []);
 
   useEffect(() => {
+    return subscribeToCarsMovementMode(setCarsMode);
+  }, []);
+
+  const userLocForLayer =
+    normalizedUserLocation && !useCenterPin
+      ? { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] }
+      : null;
+
+  const buyerLocForLayer =
+    carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE && buyerLocations?.length > 0
+      ? {
+          lat: buyerLocations[0].latitude ?? buyerLocations[0].lat,
+          lng: buyerLocations[0].longitude ?? buyerLocations[0].lng,
+        }
+      : null;
+
+  const sellerLocForLayer =
+    sellerLocation && (showRoute || showSellerMarker)
+      ? Array.isArray(sellerLocation)
+        ? { lat: sellerLocation[0], lng: sellerLocation[1] }
+        : {
+            lat: sellerLocation.lat ?? sellerLocation.latitude,
+            lng: sellerLocation.lng ?? sellerLocation.longitude,
+          }
+      : null;
+
+  const selectedPosForLayer =
+    isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0]
+      ? selectedPosition
+      : null;
+
+  useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded?.()) return;
+    if (!mapReady || !map || !map.isStyleLoaded?.()) return;
+    addStaticCarsLayer(map, alerts, onAlertClick);
+  }, [mapReady, alerts, onAlertClick]);
 
-    markersRef.current.forEach((m) => m?.remove?.());
-    markersRef.current = [];
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !map.isStyleLoaded?.()) return;
+    addUserLocationLayer(map, userLocForLayer);
+  }, [mapReady, userLocForLayer]);
 
-    const addMarker = (lngLat, html, onClick) => {
-      const el = document.createElement('div');
-      el.innerHTML = html;
-      el.className = 'mapbox-marker';
-      const marker = new mapboxgl.Marker({ element: el.firstElementChild || el })
-        .setLngLat([lngLat[1], lngLat[0]])
-        .addTo(map);
-      if (onClick) marker.getElement().addEventListener('click', onClick);
-      markersRef.current.push(marker);
-    };
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !map.isStyleLoaded?.()) return;
+    addWaitMeCarLayer(map, buyerLocForLayer, carsMode, 'azul');
+  }, [mapReady, buyerLocForLayer, carsMode]);
 
-    if (normalizedUserLocation && !useCenterPin) {
-      const html = userPhotoHtml
-        ? `<div style="width:44px;height:44px;overflow:hidden;">${userPhotoHtml}</div>`
-        : userAsCar
-          ? getCarIconHtml(userCarColor)
-          : createUserLocationHtml();
-      addMarker(normalizedUserLocation, html);
-    }
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !map.isStyleLoaded?.()) return;
+    addSellerLocationLayer(map, sellerLocForLayer);
+  }, [mapReady, sellerLocForLayer]);
 
-    buyerLocations.forEach((loc) => {
-      addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml());
-    });
-
-    if (sellerLocation && (showRoute || showSellerMarker)) {
-      addMarker(sellerLocation, createSellerMarkerHtml(sellerPhotoHtml));
-    }
-
-    if (isSelecting && selectedPosition && selectedPosition.lat !== normalizedUserLocation?.[0]) {
-      addMarker([selectedPosition.lat, selectedPosition.lng], createUserLocationHtml());
-    }
-
-    alerts.forEach((alert) => {
-      const type = alert.vehicle_type || 'car';
-      const color = alert.vehicle_color ?? alert.color ?? 'gray';
-      const price = alert.price ?? 0;
-      addMarker([alert.latitude, alert.longitude], getCarWithPriceHtml(type, color, price), () =>
-        onAlertClick?.(alert)
-      );
-    });
-  }, [
-    normalizedUserLocation,
-    useCenterPin,
-    userPhotoHtml,
-    userAsCar,
-    userCarColor,
-    userCarPrice,
-    buyerLocations,
-    sellerLocation,
-    showRoute,
-    showSellerMarker,
-    sellerPhotoHtml,
-    isSelecting,
-    selectedPosition,
-    alerts,
-    onAlertClick,
-  ]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !map.isStyleLoaded?.()) return;
+    addSelectedPositionLayer(map, selectedPosForLayer);
+  }, [mapReady, selectedPosForLayer]);
 
   useEffect(() => {
     const map = mapRef.current;

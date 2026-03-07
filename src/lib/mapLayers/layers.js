@@ -1,6 +1,6 @@
 /**
- * Capas GeoJSON para Mapbox — base para migración de DOM markers.
- * No se usan aún; MapboxMap sigue con markers. Listas para activar cuando se migre.
+ * Capas GeoJSON para Mapbox — arquitectura unificada.
+ * Usado por MapboxMap, ParkingMap y SellerLocationTracker.
  *
  * @module mapLayers/layers
  */
@@ -11,6 +11,10 @@ const STATIC_CARS_SOURCE = 'waitme-static-cars';
 const STATIC_CARS_LAYER = 'waitme-static-cars-layer';
 const USER_LOCATION_SOURCE = 'waitme-user-location';
 const USER_LOCATION_LAYER = 'waitme-user-location-layer';
+const SELLER_LOCATION_SOURCE = 'waitme-seller-location';
+const SELLER_LOCATION_LAYER = 'waitme-seller-layer';
+const SELECTED_POSITION_SOURCE = 'waitme-selected-position';
+const SELECTED_POSITION_LAYER = 'waitme-selected-position-layer';
 
 /**
  * Añade o actualiza capa de coches estáticos (GeoJSON).
@@ -79,6 +83,70 @@ export function addUserLocationLayer(map, userLoc) {
       id: USER_LOCATION_LAYER,
       type: 'circle',
       source: USER_LOCATION_SOURCE,
+      paint: {
+        'circle-radius': 10,
+        'circle-color': '#a855f7',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#fff',
+      },
+    });
+  }
+}
+
+/**
+ * Añade o actualiza capa de ubicación del vendedor (GeoJSON).
+ * @param {import('mapbox-gl').Map} map
+ * @param {{lat:number,lng:number}|[number,number]|null} sellerLoc
+ */
+export function addSellerLocationLayer(map, sellerLoc) {
+  if (!map?.getStyle?.()) return;
+  const feature = userLocationToFeature(sellerLoc);
+  const geojson = feature
+    ? { type: 'FeatureCollection', features: [feature] }
+    : { type: 'FeatureCollection', features: [] };
+
+  if (map.getSource(SELLER_LOCATION_SOURCE)) {
+    map.getSource(SELLER_LOCATION_SOURCE).setData(geojson);
+    return;
+  }
+  if (feature) {
+    map.addSource(SELLER_LOCATION_SOURCE, { type: 'geojson', data: geojson });
+    map.addLayer({
+      id: SELLER_LOCATION_LAYER,
+      type: 'circle',
+      source: SELLER_LOCATION_SOURCE,
+      paint: {
+        'circle-radius': 12,
+        'circle-color': '#22c55e',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#fff',
+      },
+    });
+  }
+}
+
+/**
+ * Añade o actualiza capa de posición seleccionada (pin al elegir ubicación).
+ * @param {import('mapbox-gl').Map} map
+ * @param {{lat:number,lng:number}|[number,number]|null} pos
+ */
+export function addSelectedPositionLayer(map, pos) {
+  if (!map?.getStyle?.()) return;
+  const feature = userLocationToFeature(pos);
+  const geojson = feature
+    ? { type: 'FeatureCollection', features: [feature] }
+    : { type: 'FeatureCollection', features: [] };
+
+  if (map.getSource(SELECTED_POSITION_SOURCE)) {
+    map.getSource(SELECTED_POSITION_SOURCE).setData(geojson);
+    return;
+  }
+  if (feature) {
+    map.addSource(SELECTED_POSITION_SOURCE, { type: 'geojson', data: geojson });
+    map.addLayer({
+      id: SELECTED_POSITION_LAYER,
+      type: 'circle',
+      source: SELECTED_POSITION_SOURCE,
       paint: {
         'circle-radius': 10,
         'circle-color': '#a855f7',
