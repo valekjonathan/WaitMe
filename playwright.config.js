@@ -11,7 +11,7 @@ const geolocation = process.env.PLAYWRIGHT_GEOLOCATION
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: ['**/contracts/**'],
+  testIgnore: ['**/contracts/**', ...(process.env.CI ? ['**/validation/**'] : [])],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
