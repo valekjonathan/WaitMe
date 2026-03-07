@@ -5,8 +5,8 @@ import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
-// capacitor://localhost estándar Capacitor. com.waitme.app:// a veces mejor handoff en iOS Simulator.
-const OAUTH_REDIRECT_CAPACITOR = import.meta.env.VITE_OAUTH_REDIRECT_IOS || 'capacitor://localhost';
+// com.waitme.app:// mejor handoff en iOS Simulator que capacitor://localhost
+const OAUTH_REDIRECT_CAPACITOR = import.meta.env.VITE_OAUTH_REDIRECT_IOS || 'com.waitme.app://';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);

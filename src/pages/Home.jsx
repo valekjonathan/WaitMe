@@ -769,7 +769,7 @@ export default function Home() {
             style={{ width: '100%', height: '100%' }}
             alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
-            locationFromEngine={initialLocation ? (engineLocation ?? userLocation) : null}
+            locationFromEngine={engineLocation ?? userLocation ?? null}
             initialLocation={initialLocation}
             interactive={!!mode}
             onMapLoad={(map) => {

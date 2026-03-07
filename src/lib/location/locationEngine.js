@@ -2,18 +2,18 @@
  * Motor de ubicación único de WaitMe.
  * Fuente única de verdad para la ubicación actual del usuario.
  *
- * - Basado en watchPosition (no solo getCurrentPosition)
- * - Pipeline opcional: fraud → movement → kalman → smoothing → map matching
- * - Smoothing legacy opcional (locationSmoothing)
+ * - Primera posición: getPreciseInitialLocation (alta precisión, sin pipeline)
+ * - Luego: watchPosition + pipeline opcional
  *
  * @module locationEngine
  */
 
+import { getPreciseInitialLocation } from './getPreciseInitialLocation.js';
 import { createLocationSmoother } from './locationSmoothing.js';
 import { processLocation, resetPipeline } from '@/lib/locationPipeline/locationPipeline.js';
 
 const OVIEDO_FALLBACK = { lat: 43.3619, lng: -5.8494, accuracy: 500 };
-const GPS_TIMEOUT_MS = 8000;
+const GPS_TIMEOUT_MS = 12000;
 const DEFAULT_OPTIONS = {
   enableHighAccuracy: true,
   maximumAge: 0,
@@ -72,11 +72,12 @@ function normalizePosition(pos) {
 /**
  * Notifica a todos los suscriptores.
  * Si pipeline activo: procesa por pipeline; si fraude, no actualiza.
- * Si no: aplica smoothing legacy si está activo.
+ * skipPipeline: true para primera posición (getPreciseInitialLocation), no Kalman.
  * @param {LocationUpdate} loc
+ * @param {{ skipPipeline?: boolean }} [opts]
  */
-function notify(loc) {
-  if (usePipeline) {
+function notify(loc, opts = {}) {
+  if (usePipeline && !opts.skipPipeline) {
     const processed = processLocation({
       ...loc,
       mock: false,
@@ -121,26 +122,25 @@ export function startLocationEngine(opts = {}) {
     return;
   }
 
-  // getCurrentPosition inicial para arranque rápido
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
+  // Primera posición: getPreciseInitialLocation (alta precisión, sin pipeline)
+  getPreciseInitialLocation()
+    .then((loc) => {
+      if (watchId == null) return;
       resolved = true;
       if (timeoutRef) {
         clearTimeout(timeoutRef);
         timeoutRef = null;
       }
-      notify(normalizePosition(pos));
-    },
-    () => {
+      notify({ ...loc, timestamp: loc.timestamp ?? Date.now() }, { skipPipeline: true });
+    })
+    .catch(() => {
       resolved = true;
       if (timeoutRef) {
         clearTimeout(timeoutRef);
         timeoutRef = null;
       }
       notify({ ...OVIEDO_FALLBACK, timestamp: Date.now() });
-    },
-    { enableHighAccuracy: false, timeout: 4000, maximumAge: 30 * 1000 }
-  );
+    });
 
   timeoutRef = setTimeout(() => {
     if (resolved) return;
