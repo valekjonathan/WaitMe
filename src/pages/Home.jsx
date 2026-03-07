@@ -49,6 +49,7 @@ import { haversineKm } from '@/utils/carUtils';
 import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
 import { useLocationEngine } from '@/hooks/useLocationEngine';
 import { getPreciseInitialLocation } from '@/lib/location';
+import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 
 // DEV kill switch: disable map (render simple block instead)
 const isMapDisabled = () => import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
@@ -716,6 +717,7 @@ export default function Home() {
     (coords) => {
       if (coords?.lat == null || coords?.lng == null) return;
       const { lat, lng } = coords;
+      setUserLocation([lat, lng]);
       setSelectedPosition({ lat, lng });
       reverseGeocode(lat, lng);
     },
@@ -971,7 +973,22 @@ export default function Home() {
                   <Button
                     onClick={() =>
                       guard(() => {
-                        getCurrentLocation();
+                        getCurrentLocation((loc) => {
+                          if (modeRef.current === 'create' && mapRef.current) {
+                            const padding = getMapLayoutPadding() ?? {
+                              top: 69,
+                              bottom: 300,
+                              left: 0,
+                              right: 0,
+                            };
+                            mapRef.current.easeTo?.({
+                              center: [loc.lng, loc.lat],
+                              zoom: 17,
+                              duration: 800,
+                              padding,
+                            });
+                          }
+                        });
                         setMode('create');
                       })
                     }

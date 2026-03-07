@@ -332,6 +332,12 @@ export default function MapboxMap({
   }, [mapReady, error, interactive]);
 
   const lastFlownCenterRef = useRef(null);
+
+  // Reset hasFlownToUserRef when exiting center-pin mode so we fly again on re-entry
+  useEffect(() => {
+    if (!useCenterPin) hasFlownToUserRef.current = false;
+  }, [useCenterPin]);
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
     const map = mapRef.current;
@@ -349,7 +355,8 @@ export default function MapboxMap({
     }
 
     if (useCenterPin) {
-      if (skipAutoFlyWhenCenterPin) return;
+      // Allow first fly when entering create/search; skip only after we've flown once
+      if (skipAutoFlyWhenCenterPin && hasFlownToUserRef.current) return;
       const padding = getMapPadding();
       const opts = {
         center: [lng, lat],
@@ -363,6 +370,7 @@ export default function MapboxMap({
       } else {
         map.flyTo(opts);
       }
+      hasFlownToUserRef.current = true;
       return;
     }
 
