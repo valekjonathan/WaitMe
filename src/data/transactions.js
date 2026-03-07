@@ -8,3 +8,4 @@ import * as provider from '@/services/transactionsSupabase';
 
 export const createTransaction = provider.createTransaction;
 export const listTransactions = provider.listTransactions;
+export const releasePayment = provider.releasePayment;

@@ -26,7 +26,7 @@ function normalizeTransaction(row, { buyerProfile, sellerProfile, alert } = {}) 
     seller_photo_url: meta.seller_photo_url ?? sellerProfile?.avatar_url ?? null,
     buyer_name: meta.buyer_name ?? buyerProfile?.full_name ?? 'Usuario',
     buyer_photo_url: meta.buyer_photo_url ?? buyerProfile?.avatar_url ?? null,
-    seller_car: meta.seller_car ?? ((`${alert?.brand || ''} ${alert?.model || ''}`.trim()) || null),
+    seller_car: meta.seller_car ?? (`${alert?.brand || ''} ${alert?.model || ''}`.trim() || null),
     seller_brand: meta.seller_brand ?? alert?.brand ?? null,
     seller_model: meta.seller_model ?? alert?.model ?? null,
     seller_plate: meta.seller_plate ?? alert?.plate ?? alertMeta?.reserved_by_plate ?? null,
@@ -68,11 +68,7 @@ export async function createTransaction(payload) {
   if (payload.seller_plate) row.metadata.seller_plate = payload.seller_plate;
   if (payload.buyer_plate) row.metadata.buyer_plate = payload.buyer_plate;
 
-  const { data, error } = await supabase
-    .from(TABLE)
-    .insert(row)
-    .select()
-    .single();
+  const { data, error } = await supabase.from(TABLE).insert(row).select().single();
 
   if (error) return { data: null, error };
   return { data: normalizeTransaction(data), error: null };
@@ -105,7 +101,10 @@ export async function listTransactions(userId, opts = {}) {
   const alertIds = [...new Set(rows.map((r) => r.alert_id).filter(Boolean))];
 
   const [profilesRes, alertsRes] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, avatar_url').in('id', [...buyerIds, ...sellerIds]),
+    supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', [...buyerIds, ...sellerIds]),
     alertIds.length
       ? supabase.from('parking_alerts').select('id, metadata, address_text').in('id', alertIds)
       : { data: [] },
@@ -122,4 +121,42 @@ export async function listTransactions(userId, opts = {}) {
     })
   );
   return { data, error: null };
+}
+
+/**
+ * Libera el pago tras validación de proximidad en backend.
+ * Llama a la Edge Function release-payment.
+ *
+ * @param {Object} payload
+ * @param {string} payload.alertId
+ * @param {string} payload.userAId — vendedor
+ * @param {string} payload.userBId — comprador
+ * @param {number} payload.distance — metros (cliente)
+ * @param {number} [payload.timestamp]
+ * @param {string} [payload.idempotencyKey]
+ * @param {number} [payload.accuracyUserA]
+ * @param {number} [payload.accuracyUserB]
+ * @returns {{ data: { ok: boolean, transactionId?: string } | null, error: Error|null }}
+ */
+export async function releasePayment(payload) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase no configurado') };
+
+  const { data, error } = await supabase.functions.invoke('release-payment', {
+    body: {
+      alertId: payload.alertId,
+      userAId: payload.userAId,
+      userBId: payload.userBId,
+      distance: payload.distance,
+      timestamp: payload.timestamp ?? Date.now(),
+      idempotencyKey: payload.idempotencyKey,
+      accuracyUserA: payload.accuracyUserA,
+      accuracyUserB: payload.accuracyUserB,
+    },
+  });
+
+  if (error) return { data: null, error };
+  const result = data?.data ?? data;
+  if (result?.error) return { data: null, error: new Error(result.error) };
+  return { data: result ?? { ok: true }, error: null };
 }

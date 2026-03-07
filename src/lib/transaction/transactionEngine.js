@@ -88,8 +88,9 @@ export function startTransactionMonitoring(opts) {
         stabilityStartMs = now;
       } else if (now - stabilityStartMs >= STABILITY_DURATION_MS) {
         stopTransactionMonitoring();
+        const ctx = { distance, accuracyA: accA, accuracyB: accB };
         try {
-          onCompleted();
+          onCompleted(ctx);
         } catch (e) {
           if (import.meta.env.DEV) console.warn('[transactionEngine] onCompleted error', e);
         }
