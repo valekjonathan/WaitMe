@@ -55,7 +55,7 @@ export default function SearchMapOverlay({
   return (
     <div
       ref={overlayRef}
-      className="absolute left-0 right-0 bottom-0 top-[var(--header-h,69px)] flex flex-col pointer-events-none z-10"
+      className="absolute inset-0 flex flex-col pointer-events-none z-10"
       style={{ overflow: 'hidden' }}
       aria-hidden="true"
     >
@@ -67,8 +67,11 @@ export default function SearchMapOverlay({
         </div>
       )}
 
-      {/* Top: search en browse, distancia+ETA en arriving */}
-      <div ref={topRef} className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
+      {/* Top: search en browse, distancia+ETA en arriving — misma coordenada que create (pt para no solapar header) */}
+      <div
+        ref={topRef}
+        className="px-4 pt-[calc(var(--header-h,69px)+8px)] pb-2 flex-shrink-0 pointer-events-auto"
+      >
         {isArriving ? (
           <div className="flex gap-3">
             <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
@@ -89,9 +92,9 @@ export default function SearchMapOverlay({
         )}
       </div>
 
-      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create) */}
+      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create: cardShiftUp=10, gap 20px) */}
       <div className="flex-1 min-h-0 overflow-hidden flex items-end pointer-events-auto">
-        <MapScreenPanel>
+        <MapScreenPanel cardShiftUp={10}>
           <div ref={cardRef}>{alertCard}</div>
         </MapScreenPanel>
       </div>
