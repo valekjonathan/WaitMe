@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
+import { getPreciseInitialLocation } from '@/lib/location';
 
 const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {
@@ -27,6 +28,7 @@ export default function MapboxMap({
   onRecenterRef,
   mapRef: externalMapRef,
   locationFromEngine = null,
+  initialLocation = null,
   useCenterPin = false,
   skipAutoFlyWhenCenterPin = false,
   centerPinFromOverlay = false,
@@ -59,11 +61,17 @@ export default function MapboxMap({
     timestamp: null,
   }));
 
+  const [hasShownInitial, setHasShownInitial] = useState(false);
   const engineCenter =
     Array.isArray(locationFromEngine) && locationFromEngine.length >= 2
       ? [locationFromEngine[1], locationFromEngine[0]]
       : null;
+  const initialCenter =
+    initialLocation?.lat != null && initialLocation?.lng != null
+      ? [initialLocation.lng, initialLocation.lat]
+      : null;
   const effectiveCenter =
+    (!hasShownInitial && initialCenter) ??
     engineCenter ??
     (location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER);
 
@@ -132,32 +140,24 @@ export default function MapboxMap({
       return;
     }
 
-    // Obtener ubicación al cargar para centrar mapa inmediatamente
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        setLocation({
-          lat: latitude,
-          lng: longitude,
-          accuracy: typeof accuracy === 'number' ? accuracy : 100,
-          timestamp: Date.now(),
-        });
-      },
-      () => {
-        setLocation({ lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() });
-      },
-      { enableHighAccuracy: true, maximumAge: 30000, timeout: 8000 }
-    );
+    // Posición inicial precisa (getCurrentPosition con alta precisión, sin pipeline)
+    let cancelled = false;
+    getPreciseInitialLocation().then((result) => {
+      if (cancelled) return;
+      setLocation({
+        lat: result.lat,
+        lng: result.lng,
+        accuracy: result.accuracy ?? 100,
+        timestamp: Date.now(),
+      });
+    });
 
-    let resolved = false;
     gpsTimeoutRef.current = setTimeout(() => {
-      if (resolved) return;
-      resolved = true;
       setLocation((prev) => {
         if (prev.lat != null && prev.lng != null) return prev;
         return { lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() };
       });
-    }, GPS_TIMEOUT_MS);
+    }, 12000);
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -169,22 +169,20 @@ export default function MapboxMap({
           accuracy: acc,
           timestamp: Date.now(),
         });
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(gpsTimeoutRef.current);
-        }
+        clearTimeout(gpsTimeoutRef.current);
       },
       () => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(gpsTimeoutRef.current);
-          setLocation({ lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() });
-        }
+        clearTimeout(gpsTimeoutRef.current);
+        setLocation((prev) => {
+          if (prev.lat != null && prev.lng != null) return prev;
+          return { lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() };
+        });
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
     );
 
     return () => {
+      cancelled = true;
       clearTimeout(gpsTimeoutRef.current);
       if (watchIdRef.current != null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -350,13 +348,17 @@ export default function MapboxMap({
     if (!mapReady || !mapRef.current || error) return;
     const map = mapRef.current;
     const [lng, lat] = effectiveCenter;
-    const accuracy = location.accuracy ?? 50;
+    const accuracy = initialLocation?.accuracy ?? location.accuracy ?? 50;
     centerRef.current = [lng, lat];
     accuracyRef.current = accuracy;
 
     const key = `${lng.toFixed(5)}_${lat.toFixed(5)}`;
     if (lastFlownCenterRef.current === key) return;
     lastFlownCenterRef.current = key;
+
+    if (initialCenter && !hasShownInitial) {
+      setHasShownInitial(true);
+    }
 
     if (useCenterPin) {
       if (skipAutoFlyWhenCenterPin) return;
@@ -399,6 +401,8 @@ export default function MapboxMap({
   }, [
     mapReady,
     effectiveCenter,
+    initialCenter,
+    hasShownInitial,
     location.accuracy,
     error,
     useCenterPin,

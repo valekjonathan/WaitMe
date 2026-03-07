@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
-import { getCurrentLocation } from '@/lib/location';
+import { getPreciseInitialLocation } from '@/lib/location';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
@@ -24,7 +24,7 @@ export default function CreateAlertCard({
 
   const handleLocate = async () => {
     if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
-    const loc = await getCurrentLocation();
+    const loc = await getPreciseInitialLocation();
     const { lat, lng } = loc;
     onRecenter?.({ lat, lng });
     const padding = getMapLayoutPadding();

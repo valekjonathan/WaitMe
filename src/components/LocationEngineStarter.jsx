@@ -7,7 +7,7 @@ import { startLocationEngine, stopLocationEngine } from '@/lib/location';
 
 export default function LocationEngineStarter() {
   useEffect(() => {
-    startLocationEngine({ smoothing: true });
+    startLocationEngine({ pipeline: true });
     return () => stopLocationEngine();
   }, []);
   return null;

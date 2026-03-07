@@ -32,3 +32,5 @@ export {
   getLocationFraudLogs,
   clearLocationFraudLogs,
 } from './locationFraudLogs.js';
+
+export { getPreciseInitialLocation } from './getPreciseInitialLocation.js';

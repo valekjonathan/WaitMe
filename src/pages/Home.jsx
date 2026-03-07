@@ -48,7 +48,7 @@ if (typeof window !== 'undefined') {
 import { haversineKm } from '@/utils/carUtils';
 import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
 import { useLocationEngine } from '@/hooks/useLocationEngine';
-import { getCurrentLocation as engineGetCurrent } from '@/lib/location';
+import { getPreciseInitialLocation } from '@/lib/location';
 
 // DEV kill switch: disable map (render simple block instead)
 const isMapDisabled = () => import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
@@ -136,7 +136,14 @@ export default function Home() {
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const { location: engineLocation } = useLocationEngine();
+  const [initialLocation, setInitialLocation] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    getPreciseInitialLocation().then((loc) => {
+      setInitialLocation(loc);
+    });
+  }, []);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
   const [_searchQuery, setSearchQuery] = useState('');
@@ -347,10 +354,10 @@ export default function Home() {
     [reverseGeocode]
   );
 
-  // One-shot: usado al pulsar mirilla. Usa motor de ubicación.
+  // One-shot: usado al pulsar mirilla. Usa posición precisa (sin pipeline).
   const getCurrentLocation = useCallback(
     async (onReady) => {
-      const loc = await engineGetCurrent();
+      const loc = await getPreciseInitialLocation();
       setUserLocation([loc.lat, loc.lng]);
       setSelectedPosition({ lat: loc.lat, lng: loc.lng });
       reverseGeocode(loc.lat, loc.lng);
@@ -762,7 +769,8 @@ export default function Home() {
             style={{ width: '100%', height: '100%' }}
             alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
-            locationFromEngine={engineLocation ?? userLocation}
+            locationFromEngine={initialLocation ? (engineLocation ?? userLocation) : null}
+            initialLocation={initialLocation}
             interactive={!!mode}
             onMapLoad={(map) => {
               mapRef.current = map;
