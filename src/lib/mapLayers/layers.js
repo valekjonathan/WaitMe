@@ -19,7 +19,7 @@ const USER_LOCATION_LAYER = 'waitme-user-location-layer';
  * @param {(alert: object) => void} [onAlertClick]
  */
 export function addStaticCarsLayer(map, alerts, onAlertClick) {
-  if (!map?.getStyle) return;
+  if (!map?.getStyle?.()) return;
   const geojson = alertsToGeoJSON(alerts || []);
 
   if (map.getSource(STATIC_CARS_SOURCE)) {
@@ -30,6 +30,7 @@ export function addStaticCarsLayer(map, alerts, onAlertClick) {
       id: STATIC_CARS_LAYER,
       type: 'circle',
       source: STATIC_CARS_SOURCE,
+      minzoom: 0,
       paint: {
         'circle-radius': 12,
         'circle-color': [
@@ -59,6 +60,12 @@ export function addStaticCarsLayer(map, alerts, onAlertClick) {
         'circle-stroke-color': '#fff',
       },
     });
+    map.on('mouseenter', STATIC_CARS_LAYER, () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', STATIC_CARS_LAYER, () => {
+      map.getCanvas().style.cursor = '';
+    });
   }
 
   if (onAlertClick && map.getLayer(STATIC_CARS_LAYER)) {
@@ -81,7 +88,7 @@ export function addStaticCarsLayer(map, alerts, onAlertClick) {
  * @param {{lat:number,lng:number}|[number,number]|null} userLoc
  */
 export function addUserLocationLayer(map, userLoc) {
-  if (!map?.getStyle) return;
+  if (!map?.getStyle?.()) return;
   const feature = userLocationToFeature(userLoc);
 
   if (map.getSource(USER_LOCATION_SOURCE)) {

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 import { getPreciseInitialLocation, toLatLngArray } from '@/lib/location';
+import { addStaticCarsLayer, addUserLocationLayer } from '@/lib/mapLayers';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const DEFAULT_ZOOM = 16.5;
@@ -413,61 +413,31 @@ export default function MapboxMap({
         ? { lat: location.lat, lng: location.lng }
         : null;
 
+  // GeoJSON: coches estáticos (reemplaza DOM markers)
   useEffect(() => {
-    if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;
+    if (!mapReady || !mapRef.current || error) return;
     const map = mapRef.current;
-    const mapboxgl = mapboxglRef.current;
+    if (!map.getStyle?.()?.layers) return;
+    addStaticCarsLayer(map, alerts, onAlertClick);
+  }, [mapReady, error, alerts, onAlertClick]);
 
+  // GeoJSON: ubicación usuario (reemplaza DOM marker cuando !useCenterPin)
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error) return;
+    const map = mapRef.current;
+    if (!map.getStyle?.()?.layers) return;
+    const userLoc =
+      userCoordsForMarker && !useCenterPin
+        ? { lat: userCoordsForMarker.lat, lng: userCoordsForMarker.lng }
+        : null;
+    addUserLocationLayer(map, userLoc);
+  }, [mapReady, error, userCoordsForMarker, useCenterPin]);
+
+  // Limpiar markers DOM legacy (ya no usado; se mantiene ref vacío por compatibilidad)
+  useEffect(() => {
     markersRef.current.forEach((m) => m?.remove?.());
     markersRef.current = [];
-
-    const userLat = userCoordsForMarker?.lat;
-    const userLng = userCoordsForMarker?.lng;
-    if (userLat != null && userLng != null && !useCenterPin) {
-      const userPinHtml = `<div style="position:relative;width:40px;height:100px;">
-        <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
-        <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:20px;height:20px;background:#a855f7;border-radius:50%;"></div>
-      </div>`;
-      const userEl = document.createElement('div');
-      userEl.innerHTML = userPinHtml;
-      const userMarkerEl = userEl.firstElementChild || userEl;
-      const userMarker = new mapboxgl.Marker({ element: userMarkerEl, anchor: 'bottom' })
-        .setLngLat([userLng, userLat])
-        .addTo(map);
-      markersRef.current.push(userMarker);
-    }
-
-    const list = Array.isArray(alerts) ? alerts : [];
-    list.forEach((alert) => {
-      const lat = alert.latitude ?? alert.lat;
-      const lng = alert.longitude ?? alert.lng;
-      if (lat == null || lng == null) return;
-
-      const type = alert.vehicle_type || 'car';
-      const color = alert.vehicle_color ?? alert.color ?? 'gray';
-      const price = alert.price ?? 0;
-      const html = getCarWithPriceHtml(type, color, price);
-
-      const el = document.createElement('div');
-      el.innerHTML = html;
-      const markerEl = el.firstElementChild || el;
-      markerEl.className = 'mapboxgl-marker-vehicle';
-
-      const marker = new mapboxgl.Marker({ element: markerEl }).setLngLat([lng, lat]).addTo(map);
-
-      if (onAlertClick) {
-        markerEl.style.cursor = 'pointer';
-        markerEl.addEventListener('click', () => onAlertClick(alert));
-      }
-
-      markersRef.current.push(marker);
-    });
-
-    return () => {
-      markersRef.current.forEach((m) => m?.remove?.());
-      markersRef.current = [];
-    };
-  }, [mapReady, error, alerts, onAlertClick, userCoordsForMarker, useCenterPin]);
+  }, [mapReady, error]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
