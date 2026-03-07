@@ -231,6 +231,9 @@ export const AuthProvider = ({ children }) => {
         try {
           const appUser = await ensureUserInDb(session.user);
           if (appUser?.id) {
+            if (import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+              console.log('[Auth] usuario autenticado:', appUser.email, 'id:', appUser.id);
+            }
             setUser(appUser);
             const { data: profileData, error: profileError } = await supabase
               .from('profiles')

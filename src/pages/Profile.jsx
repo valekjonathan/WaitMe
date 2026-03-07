@@ -114,6 +114,9 @@ export default function Profile() {
         return;
       }
       if (data) {
+        if (import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+          console.log('[Profile] datos reales de Supabase:', data.full_name, data.email);
+        }
         setFormData({
           full_name: data.full_name || '',
           brand: data.brand || '',
