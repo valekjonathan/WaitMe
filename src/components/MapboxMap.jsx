@@ -32,6 +32,7 @@ export default function MapboxMap({
   centerPaddingBottom = 0,
   onMapMove,
   onMapMoveEnd,
+  interactive = true,
   children,
   ...rest
 }) {
@@ -213,9 +214,9 @@ export default function MapboxMap({
             bearing: 0,
             antialias: true,
             attributionControl: false,
-            dragPan: true,
-            touchZoomRotate: true,
-            scrollZoom: true,
+            dragPan: interactive,
+            touchZoomRotate: interactive,
+            scrollZoom: interactive,
           });
 
           if (mapRef) mapRef.current = map;
@@ -312,6 +313,22 @@ export default function MapboxMap({
       setMapReady(false);
     };
   }, []);
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error) return;
+    const map = mapRef.current;
+    try {
+      if (interactive) {
+        map.dragPan?.enable?.();
+        map.touchZoomRotate?.enable?.();
+        map.scrollZoom?.enable?.();
+      } else {
+        map.dragPan?.disable?.();
+        map.touchZoomRotate?.disable?.();
+        map.scrollZoom?.disable?.();
+      }
+    } catch {}
+  }, [mapReady, error, interactive]);
 
   const lastFlownCenterRef = useRef(null);
   useEffect(() => {

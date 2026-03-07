@@ -19,6 +19,7 @@ import OverlayLayer from '@/system/layout/OverlayLayer';
 
 export default function MapViewportShell({ mode = 'home', panel, children, mapNode }) {
   const isCreate = mode === 'create';
+  const isHome = !mode || mode === 'home';
   return (
     <div
       className="relative w-full overflow-hidden"
@@ -32,6 +33,15 @@ export default function MapViewportShell({ mode = 'home', panel, children, mapNo
       <MapLayer>{mapNode}</MapLayer>
 
       <OverlayLayer>{panel}</OverlayLayer>
+
+      {/* Capa tenue en Home: apaga el mapa para foco en logo y botones */}
+      {isHome && (
+        <div
+          className="absolute inset-0 z-[15] pointer-events-none"
+          style={{ background: 'rgba(0,0,0,0.35)' }}
+          aria-hidden="true"
+        />
+      )}
 
       {children}
     </div>

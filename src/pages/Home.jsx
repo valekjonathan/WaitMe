@@ -803,6 +803,7 @@ export default function Home() {
             style={{ width: '100%', height: '100%' }}
             alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
+            interactive={!!mode}
             onMapLoad={(map) => {
               mapRef.current = map;
             }}
@@ -892,8 +893,10 @@ export default function Home() {
                 !showFilters && (
                   <Button
                     onClick={() => setShowFilters(true)}
-                    className="bg-black/60 backdrop-blur-sm border border-purple-500/30 text-white hover:bg-purple-600"
+                    type="button"
+                    variant="secondary"
                     size="icon"
+                    className="h-9 w-9 rounded-lg border border-purple-500/50 text-white bg-purple-600/50 hover:bg-purple-600/70"
                   >
                     <SlidersHorizontal className="w-5 h-5" />
                   </Button>
@@ -943,9 +946,9 @@ export default function Home() {
         }
       />
 
-      {/* En modo create/search: no cubrir el mapa; eventos pasan al canvas */}
+      {/* En modo create/search: sin scroll, eventos pasan al canvas */}
       <div
-        className={`relative z-10 flex flex-col min-h-screen ${mode ? 'pointer-events-none' : ''}`}
+        className={`relative z-10 flex flex-col ${mode ? 'h-0 overflow-hidden pointer-events-none' : 'min-h-screen'}`}
         style={mode ? { pointerEvents: 'none' } : undefined}
       >
         <main
