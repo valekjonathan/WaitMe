@@ -16,11 +16,7 @@ import { getSupabase } from '@/lib/supabaseClient';
 const OAuthDebug = import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true';
 
 async function processOAuthUrl(url, onSuccess) {
-  if (OAuthDebug)
-    console.log(
-      '[OAuth] processOAuthUrl called, url:',
-      url ? url.slice(0, 80) + (url.length > 80 ? '...' : '') : '(empty)'
-    );
+  if (OAuthDebug) console.log('[OAuth] processOAuthUrl called, url:', url || '(empty)');
 
   const allowed = [
     'capacitor://localhost',
@@ -68,6 +64,7 @@ async function processOAuthUrl(url, onSuccess) {
           const { data: s } = await supabase.auth.getSession();
           console.log('[OAuth] getSession after exchange:', !!s?.session);
         }
+        if (OAuthDebug) console.log('[OAuth] onSuccess → checkUserAuth + navigate');
         onSuccess?.();
         return true;
       }
@@ -137,11 +134,7 @@ export default function App() {
       await processOAuthUrl(url, onOAuthSuccess);
     };
     const handleAppUrlOpen = ({ url }) => {
-      if (OAuthDebug)
-        console.log(
-          '[OAuth] appUrlOpen received:',
-          url ? url.slice(0, 80) + (url.length > 80 ? '...' : '') : '(empty)'
-        );
+      if (OAuthDebug) console.log('[OAuth] appUrlOpen received:', url || '(empty)');
       handleUrl(url);
     };
     (async () => {

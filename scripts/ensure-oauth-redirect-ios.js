@@ -12,10 +12,9 @@ import { resolve } from 'path';
 const IOS_REDIRECT = 'com.waitme.app://auth/callback';
 const API_BASE = 'https://api.supabase.com/v1';
 
-function loadEnv() {
+function loadEnvFile(path) {
   try {
-    const envPath = resolve(process.cwd(), '.env');
-    const content = readFileSync(envPath, 'utf8');
+    const content = readFileSync(path, 'utf8');
     const env = {};
     for (const line of content.split('\n')) {
       const m = line.match(/^([^#=]+)=(.*)$/);
@@ -25,6 +24,13 @@ function loadEnv() {
   } catch {
     return {};
   }
+}
+
+function loadEnv() {
+  const cwd = process.cwd();
+  const env = { ...loadEnvFile(resolve(cwd, '.env')) };
+  const local = loadEnvFile(resolve(cwd, '.env.local'));
+  return { ...env, ...local }; // .env.local overrides .env
 }
 
 function extractProjectRef(url) {
