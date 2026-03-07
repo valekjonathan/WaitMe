@@ -1,7 +1,9 @@
 // @ts-check
 /**
  * Smoke tests: SAFE MODE.
- * Ejecutar con: VITE_SAFE_MODE=true npm run test:e2e tests/smoke/safe-mode.spec.js
+ * Suite condicional: solo corre cuando VITE_SAFE_MODE=true.
+ * Ejecutar: VITE_SAFE_MODE=true npm run test tests/smoke/safe-mode.spec.js
+ * Ver docs/TESTS_SKIPPED.md
  */
 import { test, expect } from '@playwright/test';
 

@@ -35,7 +35,7 @@ test.describe('Visual - Create card position', () => {
   });
 
   test('screenshot: tarjeta create + menú inferior', async ({ page }) => {
-    test.skip(!!process.env.CI, 'Screenshot test skip en CI: layout variable');
+    test.skip(!!process.env.CI, 'CI: layout variable para screenshot (docs/TESTS_SKIPPED.md)');
     const card = page
       .locator('[class*="rounded-2xl"]')
       .filter({ hasText: /me voy en|minutos|euros/i })

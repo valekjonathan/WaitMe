@@ -61,7 +61,7 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
   test('gap entre tarjeta y menú inferior es 15px ± 1px (o ≥0 sin solapamiento)', async ({
     page,
   }) => {
-    test.skip(!!process.env.CI, 'Gap test skip en CI: geometría card-nav pendiente');
+    test.skip(!!process.env.CI, 'CI: geometría card-nav variable (docs/TESTS_SKIPPED.md)');
     const m = await page.evaluate(measureLayoutInPage);
     if (m.gapCardNav >= 14 && m.gapCardNav <= 16) return;
     expect(
@@ -71,7 +71,10 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
   });
 
   test('punta del pin en centro esperado ± 2px', async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI: pin/overlay no fiables en webkit-mobile (pinTop/card timing)');
+    test.skip(
+      !!process.env.CI,
+      'CI: pin/overlay no fiables en webkit-mobile (docs/TESTS_SKIPPED.md)'
+    );
     const m = await page.evaluate(measureLayoutInPage);
     expect(m.pinBottomY, 'pin debe estar visible').not.toBeNull();
     const diff = Math.abs(m.pinBottomY - m.centerGapExpected);
@@ -83,7 +86,7 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
   });
 
   test('medidas completas registradas para auditoría', async ({ page }) => {
-    test.skip(!!process.env.CI, 'Gap assert skip en CI');
+    test.skip(!!process.env.CI, 'CI: geometría variable (docs/TESTS_SKIPPED.md)');
     const m = await page.evaluate(measureLayoutInPage);
     expect(m.headerBottom).toBeDefined();
     expect(m.cardTop).toBeDefined();
@@ -102,7 +105,10 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
   });
 
   test('botones de zoom están 5px más arriba que antes (top=75 en overlay)', async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI: zoom controls no visibles en webkit-mobile');
+    test.skip(
+      !!process.env.CI,
+      'CI: zoom controls no visibles en webkit-mobile (docs/TESTS_SKIPPED.md)'
+    );
     const zoomEl = page.locator('[data-zoom-controls]');
     await expect(zoomEl).toBeVisible({ timeout: 5000 });
     const box = await zoomEl.boundingBox();
@@ -117,7 +123,10 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
   });
 
   test('Ubícate ejecuta geolocalización y recentra mapa', async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI: __WAITME_MAP__/geolocation no fiables en headless WebKit');
+    test.skip(
+      !!process.env.CI,
+      'CI: geolocalización no fiable en headless (docs/TESTS_SKIPPED.md)'
+    );
     const locateBtn = page
       .locator('[data-create-alert-card] button')
       .filter({ has: page.locator('svg') })
@@ -132,10 +141,7 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
       return { lng: c.lng, lat: c.lat };
     });
     if (!mapCenter) {
-      test.skip(
-        true,
-        '__WAITME_MAP__ no disponible (mapa puede estar en estado loading en headless)'
-      );
+      test.skip(true, '__WAITME_MAP__ no disponible en headless (docs/TESTS_SKIPPED.md)');
       return;
     }
     expect(mapCenter).toBeTruthy();

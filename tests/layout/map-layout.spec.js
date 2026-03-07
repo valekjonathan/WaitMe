@@ -51,14 +51,17 @@ test.describe('Layout - Mapa (gap 15px, pin centrado)', () => {
   });
 
   test('gap tarjeta / menú inferior = 15px ±1', async ({ page }) => {
-    test.skip(!!process.env.CI, 'Gap test skip en CI: geometría pendiente');
+    test.skip(!!process.env.CI, 'CI: geometría card-nav variable (docs/TESTS_SKIPPED.md)');
     const m = await page.evaluate(measureLayoutInPage);
     const gapOk = Math.abs(m.gapCardNav - 15) <= 1;
     expect(gapOk, `gapCardNav=${m.gapCardNav}px, esperado 14-16px (|gap-15|≤1)`).toBe(true);
   });
 
   test('pin centrado entre header y tarjeta ±2px', async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI: pin/overlay no fiables en webkit-mobile');
+    test.skip(
+      !!process.env.CI,
+      'CI: pin/overlay no fiables en webkit-mobile (docs/TESTS_SKIPPED.md)'
+    );
     const m = await page.evaluate(measureLayoutInPage);
     expect(m.pinBottomY, 'pin debe estar visible').not.toBeNull();
     const diff = Math.abs(m.pinBottomY - m.centerExpected);

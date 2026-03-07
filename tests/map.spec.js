@@ -37,7 +37,7 @@ test.describe('Mapa', () => {
   test('realtime no rompe la app', async ({ page }) => {
     test.skip(
       !!process.env.CI,
-      'CI: headless WebKit + Mapbox/Realtime pueden disparar ErrorBoundary; verificar localmente con env'
+      'CI: Mapbox/Realtime no fiables en headless (docs/TESTS_SKIPPED.md)'
     );
     await page.goto('/');
     await page.waitForLoadState('networkidle');

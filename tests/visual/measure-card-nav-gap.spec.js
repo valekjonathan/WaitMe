@@ -8,7 +8,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Measure - Card to Nav gap', () => {
-  test.skip(!!process.env.CI, 'Gap test skip en CI: geometría card-nav pendiente de estabilizar');
+  test.skip(!!process.env.CI, 'CI: geometría card-nav variable (docs/TESTS_SKIPPED.md)');
   test('medir gap real cardBottom vs navTop', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
