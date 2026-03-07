@@ -49,7 +49,8 @@
     "env:guard": "bash scripts/environment-guard.sh",
     "pwa:validate": "node scripts/pwa-icon-validator.mjs",
     "supabase:redirect-urls": "node scripts/print-supabase-redirect-urls.js",
-    "supabase:ensure-oauth-ios": "node scripts/ensure-oauth-redirect-ios.js"
+    "supabase:ensure-oauth-ios": "node scripts/ensure-oauth-redirect-ios.js",
+    "cleanup:tests": "pkill -f chrome-headless-shell 2>/dev/null || true; pkill -f playwright 2>/dev/null || true"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",

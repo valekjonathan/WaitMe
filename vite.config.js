@@ -20,6 +20,7 @@ export default defineConfig({
       deny: ['**/ios__backup*/**', '**/DerivedData/**', '**/ios/**'],
     },
     watch: {
+      usePolling: false,
       ignored: ['**/ios__backup*/**', '**/DerivedData/**', '**/ios/**'],
     },
   },
@@ -47,6 +48,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
+    poolOptions: { forks: { maxForks: 2 } },
+    threads: false,
     projects: [
       {
         extends: true,

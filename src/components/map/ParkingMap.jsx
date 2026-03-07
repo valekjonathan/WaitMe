@@ -13,6 +13,7 @@ import {
   CARS_MOVEMENT_MODE,
   subscribeToCarsMovementMode,
 } from '@/stores/carsMovementStore';
+import { useVehicleInterpolation } from '@/hooks/useVehicleInterpolation';
 
 export default function ParkingMap({
   alerts = [],
@@ -137,13 +138,14 @@ export default function ParkingMap({
       ? { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] }
       : null;
 
-  const buyerLocForLayer =
+  const rawBuyerLoc =
     carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE && buyerLocations?.length > 0
       ? {
           lat: buyerLocations[0].latitude ?? buyerLocations[0].lat,
           lng: buyerLocations[0].longitude ?? buyerLocations[0].lng,
         }
       : null;
+  const buyerLocForLayer = useVehicleInterpolation(rawBuyerLoc);
 
   const sellerLocForLayer =
     sellerLocation && (showRoute || showSellerMarker)
