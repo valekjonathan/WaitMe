@@ -27,6 +27,7 @@ export default function MapboxMap({
   onRecenterRef,
   mapRef: externalMapRef,
   useCenterPin = false,
+  skipAutoFlyWhenCenterPin = false,
   centerPinFromOverlay = false,
   centerPaddingBottom = 0,
   onMapMove,
@@ -326,6 +327,7 @@ export default function MapboxMap({
     lastFlownCenterRef.current = key;
 
     if (useCenterPin) {
+      if (skipAutoFlyWhenCenterPin) return;
       const padding = getMapPadding();
       const opts = {
         center: [lng, lat],
@@ -362,7 +364,15 @@ export default function MapboxMap({
         speed: 0.8,
       });
     }
-  }, [mapReady, effectiveCenter, location.accuracy, error, useCenterPin, centerPaddingBottom]);
+  }, [
+    mapReady,
+    effectiveCenter,
+    location.accuracy,
+    error,
+    useCenterPin,
+    skipAutoFlyWhenCenterPin,
+    centerPaddingBottom,
+  ]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;

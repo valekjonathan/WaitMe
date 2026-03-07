@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
-import { reverseGeocode } from '@/lib/reverseGeocode';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
@@ -22,46 +21,14 @@ export default function CreateAlertCard({
     onCreateAlert({ price, minutes });
   };
 
-  const flyToCoords = (lng, lat) => {
-    if (!mapRef?.current) return;
-    const padding = getMapLayoutPadding();
-    const map = mapRef.current;
-    if (typeof map.easeTo === 'function') {
-      map.easeTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
-    } else if (typeof map.flyTo === 'function') {
-      map.flyTo({ center: [lng, lat], zoom: 17, duration: 1200, padding });
-    }
-  };
-
-  const fallbackToMapCenter = () => {
-    if (!mapRef?.current) return;
-    try {
-      const c = mapRef.current.getCenter?.();
-      if (c && typeof c.lat === 'number' && typeof c.lng === 'number') {
-        onRecenter?.({ lat: c.lat, lng: c.lng });
-        const padding = getMapLayoutPadding();
-        const map = mapRef.current;
-        if (typeof map.easeTo === 'function') {
-          map.easeTo({ center: [c.lng, c.lat], zoom: 17, duration: 1200, padding });
-        } else if (typeof map.flyTo === 'function') {
-          map.flyTo({ center: [c.lng, c.lat], zoom: 17, duration: 1200, padding });
-        }
-      }
-    } catch (err) {
-      // fallback silencioso
-    }
-  };
-
   const handleLocate = () => {
     if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         onRecenter?.({ lat, lng });
-        const address = await reverseGeocode(lat, lng);
-        if (address) onAddressChange?.(address);
         const padding = getMapLayoutPadding();
         const map = mapRef?.current;
         if (map && typeof map.easeTo === 'function') {
