@@ -1,22 +1,33 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginUnusedImports from "eslint-plugin-unused-imports";
-import pluginPrettier from "eslint-plugin-prettier";
-import configPrettier from "eslint-config-prettier";
+import globals from 'globals';
+import pluginJs from '@eslint/js';
+import pluginReact from 'eslint-plugin-react';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginUnusedImports from 'eslint-plugin-unused-imports';
+import pluginPrettier from 'eslint-plugin-prettier';
+import configPrettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ["dist", "node_modules", "ios", "ios__*", "**/DerivedData/**", "build", "coverage"] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      'ios',
+      'ios__*',
+      '**/DerivedData/**',
+      'build',
+      'coverage',
+      'storybook-static',
+    ],
+  },
   configPrettier,
   {
     files: [
-      "src/components/**/*.{js,mjs,cjs,jsx}",
-      "src/pages/**/*.{js,mjs,cjs,jsx}",
-      "src/Layout.jsx",
-      "src/App.jsx",
-      "tests/**/*.js",
-      "playwright.config.js",
+      'src/components/**/*.{js,mjs,cjs,jsx}',
+      'src/pages/**/*.{js,mjs,cjs,jsx}',
+      'src/Layout.jsx',
+      'src/App.jsx',
+      'tests/**/*.js',
+      'playwright.config.js',
     ],
     ...pluginJs.configs.recommended,
     ...pluginReact.configs.flat.recommended,
@@ -24,7 +35,7 @@ export default [
       globals: globals.browser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: "module",
+        sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
         },
@@ -32,36 +43,33 @@ export default [
     },
     settings: {
       react: {
-        version: "detect",
+        version: 'detect',
       },
     },
     plugins: {
       react: pluginReact,
-      "react-hooks": pluginReactHooks,
-      "unused-imports": pluginUnusedImports,
+      'react-hooks': pluginReactHooks,
+      'unused-imports': pluginUnusedImports,
       prettier: pluginPrettier,
     },
     rules: {
-      "no-unused-vars": "off",
-      "react/jsx-uses-vars": "error",
-      "unused-imports/no-unused-imports": "error",
-      "unused-imports/no-unused-vars": [
-        "warn",
+      'no-unused-vars': 'off',
+      'react/jsx-uses-vars': 'error',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
         {
-          vars: "all",
-          varsIgnorePattern: "^_",
-          args: "after-used",
-          argsIgnorePattern: "^_",
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
         },
       ],
-      "react/prop-types": "off",
-      "react/react-in-jsx-scope": "off",
-      "react/no-unknown-property": [
-        "error",
-        { ignore: ["cmdk-input-wrapper", "toast-close"] },
-      ],
-      "react-hooks/rules-of-hooks": "error",
-      "prettier/prettier": "off",
+      'react/prop-types': 'off',
+      'react/react-in-jsx-scope': 'off',
+      'react/no-unknown-property': ['error', { ignore: ['cmdk-input-wrapper', 'toast-close'] }],
+      'react-hooks/rules-of-hooks': 'error',
+      'prettier/prettier': 'off',
     },
   },
 ];

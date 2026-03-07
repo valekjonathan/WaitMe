@@ -7,7 +7,8 @@ import { test, expect } from '@playwright/test';
 
 const isSafeMode = process.env.VITE_SAFE_MODE === 'true';
 
-test.describe('Smoke - Safe Mode', { skip: !isSafeMode }, () => {
+const describe = isSafeMode ? test.describe : test.describe.skip;
+describe('Smoke - Safe Mode', () => {
   test('SAFE MODE carga y muestra shell', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');

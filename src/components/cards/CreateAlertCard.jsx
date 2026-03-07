@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
+import { reverseGeocode } from '@/lib/reverseGeocode';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
@@ -55,11 +56,29 @@ export default function CreateAlertCard({
     if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         onRecenter?.({ lat, lng });
-        flyToCoords(lng, lat);
+        const address = await reverseGeocode(lat, lng);
+        if (address) onAddressChange?.(address);
+        const padding = getMapLayoutPadding();
+        const map = mapRef?.current;
+        if (map && typeof map.easeTo === 'function') {
+          map.easeTo({
+            center: [lng, lat],
+            zoom: 17,
+            duration: 1200,
+            padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
+          });
+        } else if (map && typeof map.flyTo === 'function') {
+          map.flyTo({
+            center: [lng, lat],
+            zoom: 17,
+            duration: 1200,
+            padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
+          });
+        }
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 }
