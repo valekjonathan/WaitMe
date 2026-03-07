@@ -5,6 +5,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getMetersBetween } from '@/lib/location';
 import { startTransactionMonitoring, stopTransactionMonitoring } from '@/lib/transaction';
+import { clearLocationFraudLogs } from '@/lib/location/locationFraudLogs';
+import { clearPositionHistory } from '@/lib/location';
+import * as arrivalEngine from '@/lib/transaction/arrivalConfidenceEngine';
 
 const POINT_A = [43.3619, -5.8494];
 
@@ -15,11 +18,21 @@ function pointAtDistanceMeters(from, distanceM) {
 
 describe('transactionEngine', () => {
   beforeEach(() => {
+    stopTransactionMonitoring();
     vi.useFakeTimers();
+    clearLocationFraudLogs();
+    clearPositionHistory();
+    vi.spyOn(arrivalEngine, 'getArrivalConfidence').mockReturnValue({
+      score: 90,
+      invalid: false,
+      details: {},
+    });
+    vi.spyOn(arrivalEngine, 'getRecentFraudFlags').mockReturnValue([]);
   });
 
   afterEach(() => {
     stopTransactionMonitoring();
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -33,6 +46,8 @@ describe('transactionEngine', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onArrived,
       onCompleted,
     });
@@ -68,6 +83,8 @@ describe('transactionEngine', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onArrived,
       onCompleted,
     });
@@ -85,6 +102,8 @@ describe('transactionEngine', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onArrived,
       onCompleted,
     });
@@ -101,6 +120,8 @@ describe('transactionEngine', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => usePointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onCompleted,
     });
 
@@ -167,6 +188,8 @@ describe('transactionEngine', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onCompleted,
     });
 

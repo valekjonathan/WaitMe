@@ -12,6 +12,7 @@ import UserAlertCard from '@/components/cards/UserAlertCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
 import { useLocationEngine } from '@/hooks/useLocationEngine';
+import { useTransactionMonitoring } from '@/hooks/useTransactionMonitoring';
 import { getMetersBetween } from '@/lib/location';
 import { getMockNavigateCars } from '@/lib/mockNavigateCars';
 
@@ -360,51 +361,44 @@ export default function Navigate() {
     return Math.max(1, Math.round(remainingKm / speedKmPerSec / 60));
   })();
 
-  useEffect(() => {
-    if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
-    const isSellerHere =
-      String(alert.user_id) === String(user?.id) ||
-      String(alert.user_email) === String(user?.email);
-    if (isSellerHere) return;
-    if ((distanceMeters === null || distanceMeters > 5) && !forceRelease) return;
-    if (forceRelease) setForceRelease(false);
-
-    const releasePayment = async () => {
+  const doReleasePayment = useCallback(
+    async (a, u) => {
+      if (!a || !u || hasReleasedPaymentRef.current) return;
       hasReleasedPaymentRef.current = true;
-      const amount = Number(alert?.price ?? 0);
-      const sellerId = alert?.user_id ?? alert?.user_email;
-      const buyerId = user?.id;
+      const amount = Number(a?.price ?? 0);
+      const sellerId = a?.user_id ?? a?.user_email;
+      const buyerId = u?.id;
       if (Number.isFinite(amount) && sellerId && buyerId) {
         finalize({ outcome: OUTCOME.FINALIZADA_OK, amount, sellerId, buyerId });
       }
-      const isDemo = String(alert.id).startsWith('demo_');
+      const isDemo = String(a.id).startsWith('demo_');
       if (!isDemo) {
-        await alerts.updateAlert(alert.id, { status: 'completed' });
-        const sellerEarnings = alert.price * 0.67;
-        const platformFee = alert.price * 0.33;
+        await alerts.updateAlert(a.id, { status: 'completed' });
+        const sellerEarnings = a.price * 0.67;
+        const platformFee = a.price * 0.33;
         const { error: txErr } = await transactions.createTransaction({
-          alert_id: alert.id,
-          seller_id: alert.user_id ?? alert.seller_id,
-          buyer_id: user.id,
-          seller_name: alert.user_name ?? 'Usuario',
-          buyer_name: user.full_name?.split(' ')[0] || 'Usuario',
-          amount: alert.price,
+          alert_id: a.id,
+          seller_id: a.user_id ?? a.seller_id,
+          buyer_id: u.id,
+          seller_name: a.user_name ?? 'Usuario',
+          buyer_name: u.full_name?.split(' ')[0] || 'Usuario',
+          amount: a.price,
           seller_earnings: sellerEarnings,
           platform_fee: platformFee,
           status: 'completed',
-          address: alert.address ?? alert.address_text,
+          address: a.address ?? a.address_text,
         });
         if (txErr) console.error('Error creando transacción:', txErr);
         const { data: conv } = await chat.createConversation({
-          buyerId: user.id,
-          sellerId: alert.user_id || alert.seller_id,
-          alertId: alert.id,
+          buyerId: u.id,
+          sellerId: a.user_id || a.seller_id,
+          alertId: a.id,
         });
         if (conv?.id) {
           await chat.sendMessage({
             conversationId: conv.id,
-            senderId: user.id,
-            body: `✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`,
+            senderId: u.id,
+            body: `✅ Pago liberado: ${a.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`,
           });
         }
       }
@@ -413,7 +407,7 @@ export default function Navigate() {
       try {
         window.dispatchEvent(
           new CustomEvent('waitme:paymentReleased', {
-            detail: { amount: Number(alert?.price ?? 0) },
+            detail: { amount: Number(a?.price ?? 0) },
           })
         );
       } catch {}
@@ -423,9 +417,40 @@ export default function Navigate() {
       setTimeout(() => {
         window.location.href = createPageUrl('History');
       }, 3000);
-    };
-    releasePayment();
-  }, [distanceMeters, alert, user, paymentReleased, queryClient, forceRelease]);
+    },
+    [queryClient]
+  );
+
+  const isSellerHere =
+    alert &&
+    user &&
+    (String(alert.user_id) === String(user?.id) ||
+      String(alert.user_email) === String(user?.email));
+
+  useTransactionMonitoring({
+    enabled: !!(alert && user && !isSellerHere && !paymentReleased && !forceRelease),
+    getUserALocation: () =>
+      sellerLocation && sellerLocation.length >= 2
+        ? { lat: sellerLocation[0], lng: sellerLocation[1] }
+        : null,
+    getUserBLocation: () =>
+      userLocation && userLocation.length >= 2
+        ? { lat: userLocation[0], lng: userLocation[1] }
+        : null,
+    getAlertLocation: () =>
+      alert?.latitude != null && alert?.longitude != null
+        ? { lat: alert.latitude, lng: alert.longitude }
+        : null,
+    onCompleted: () => doReleasePayment(alert, user),
+  });
+
+  useEffect(() => {
+    if (!forceRelease || !alert || !user || hasReleasedPaymentRef.current || paymentReleased)
+      return;
+    if (isSellerHere) return;
+    setForceRelease(false);
+    doReleasePayment(alert, user);
+  }, [forceRelease, alert, user, paymentReleased, isSellerHere, doReleasePayment]);
 
   const displayAlert = alert;
   const isBrowseMode = !alertId && !alert;

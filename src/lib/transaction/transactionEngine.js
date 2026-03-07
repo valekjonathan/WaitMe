@@ -2,18 +2,23 @@
  * Motor de transacción basado en proximidad.
  * Reglas antifraude: distance ≤6m, accuracy ≤20m, speed ≤3kmh, durante ≥10s.
  * Verificación doble: distance(userA,userB) Y distance(userB,alertLocation).
+ * Requiere arrivalConfidence >= 80 para liberar pago.
  *
  * @module transactionEngine
  */
 
 import { getMetersBetween } from '@/lib/location';
 import { checkLocationFraud } from '@/lib/location/locationFraudDetector.js';
+import { getArrivalConfidence, getRecentFraudFlags } from './arrivalConfidenceEngine.js';
+import { logArrivalConfidence } from './arrivalConfidenceLogger.js';
 
 const ARRIVAL_THRESHOLD_M = 6;
-const CANCEL_THRESHOLD_M = 8;
+const CANCEL_THRESHOLD_M = 7;
+const RESET_DISTANCE_M = 7;
 const STABILITY_DURATION_MS = 10000;
 const MAX_ACCURACY_M = 20;
 const MAX_SPEED_KMH = 3;
+const ARRIVAL_CONFIDENCE_THRESHOLD = 80;
 const POLL_INTERVAL_MS = 500;
 
 /** @type {ReturnType<typeof setInterval>|null} */
@@ -61,6 +66,7 @@ export function startTransactionMonitoring(opts) {
   stabilityStartMs = null;
 
   intervalId = setInterval(() => {
+    const now = Date.now();
     const locA = getUserALocation?.();
     const locB = getUserBLocation?.();
     const alertLoc = getAlertLocation?.();
@@ -95,7 +101,37 @@ export function startTransactionMonitoring(opts) {
     const alertOk = !alertLoc || distanceBAlert <= ARRIVAL_THRESHOLD_M;
     const bothOk = distanceOk && alertOk;
 
-    if (distanceAB > CANCEL_THRESHOLD_M || (alertLoc && distanceBAlert > CANCEL_THRESHOLD_M)) {
+    if (distanceAB > RESET_DISTANCE_M || (alertLoc && distanceBAlert > RESET_DISTANCE_M)) {
+      stabilityStartMs = null;
+      return;
+    }
+
+    const recentFraud = getRecentFraudFlags();
+    const stabilityMs = stabilityStartMs != null ? now - stabilityStartMs : 0;
+    const { score: arrivalScore, invalid } = getArrivalConfidence({
+      userALocation: locA,
+      userBLocation: locB,
+      alertLocation: alertLoc,
+      accuracyA: accA,
+      accuracyB: accB,
+      speedB,
+      stabilityMs,
+      recentFraudFlags: recentFraud,
+    });
+
+    logArrivalConfidence({
+      timestamp: Date.now(),
+      score: arrivalScore,
+      distanceAB,
+      distanceBAlert: alertLoc ? distanceBAlert : null,
+      accuracyA: accA,
+      accuracyB: accB,
+      speedB,
+      stabilityMs,
+      fraudFlags: recentFraud.length ? recentFraud : null,
+    });
+
+    if (invalid || arrivalScore < ARRIVAL_CONFIDENCE_THRESHOLD) {
       stabilityStartMs = null;
       return;
     }
@@ -110,7 +146,6 @@ export function startTransactionMonitoring(opts) {
         }
       }
 
-      const now = Date.now();
       if (stabilityStartMs == null) {
         stabilityStartMs = now;
       } else if (now - stabilityStartMs >= STABILITY_DURATION_MS) {
@@ -121,6 +156,7 @@ export function startTransactionMonitoring(opts) {
           accuracyA: accA,
           accuracyB: accB,
           speedB,
+          arrivalConfidence: arrivalScore,
         };
         try {
           onCompleted(ctx);

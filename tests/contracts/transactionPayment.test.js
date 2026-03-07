@@ -5,9 +5,12 @@
  * Nota: estos tests mockean la API release-payment. Para tests E2E contra Supabase,
  * usar tests e2e con proyecto real.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getMetersBetween } from '@/lib/location';
 import { startTransactionMonitoring, stopTransactionMonitoring } from '@/lib/transaction';
+import { clearLocationFraudLogs } from '@/lib/location/locationFraudLogs';
+import { clearPositionHistory } from '@/lib/location';
+import * as arrivalEngine from '@/lib/transaction/arrivalConfidenceEngine';
 
 const POINT_A = [43.3619, -5.8494];
 
@@ -18,11 +21,21 @@ function pointAtDistanceMeters(from, distanceM) {
 
 describe('transactionPayment', () => {
   beforeEach(() => {
+    stopTransactionMonitoring();
     vi.useFakeTimers();
+    clearLocationFraudLogs();
+    clearPositionHistory();
+    vi.spyOn(arrivalEngine, 'getArrivalConfidence').mockReturnValue({
+      score: 90,
+      invalid: false,
+      details: {},
+    });
+    vi.spyOn(arrivalEngine, 'getRecentFraudFlags').mockReturnValue([]);
   });
 
   afterEach(() => {
     stopTransactionMonitoring();
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -34,6 +47,8 @@ describe('transactionPayment', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onCompleted,
     });
 
@@ -69,6 +84,8 @@ describe('transactionPayment', () => {
     startTransactionMonitoring({
       getUserALocation: () => POINT_A,
       getUserBLocation: () => pointB,
+      getUserAAccuracy: () => 10,
+      getUserBAccuracy: () => 10,
       onCompleted,
     });
 
