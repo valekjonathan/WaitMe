@@ -136,14 +136,7 @@ export default function Home() {
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const { location: engineLocation } = useLocationEngine();
-  const [initialLocation, setInitialLocation] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-
-  useEffect(() => {
-    getPreciseInitialLocation().then((loc) => {
-      setInitialLocation(loc);
-    });
-  }, []);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
   const [_searchQuery, setSearchQuery] = useState('');
@@ -770,7 +763,7 @@ export default function Home() {
             alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
             locationFromEngine={engineLocation ?? userLocation ?? null}
-            initialLocation={initialLocation}
+            suppressInternalWatcher
             interactive={!!mode}
             onMapLoad={(map) => {
               mapRef.current = map;

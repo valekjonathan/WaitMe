@@ -24,6 +24,15 @@ const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
 const GPS_TIMEOUT_MS = 2500;
 const ACCURACY_RECENTER_THRESHOLD = 80;
 
+/** Normaliza locationFromEngine a [lat, lng] o null. Acepta array o objeto. */
+function toLatLngArray(loc) {
+  if (!loc) return null;
+  const lat = Array.isArray(loc) ? loc[0] : (loc?.lat ?? loc?.latitude);
+  const lng = Array.isArray(loc) ? loc[1] : (loc?.lng ?? loc?.longitude);
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return [lat, lng];
+}
+
 export default function MapboxMap({
   className = '',
   alerts = [],
@@ -33,6 +42,7 @@ export default function MapboxMap({
   mapRef: externalMapRef,
   locationFromEngine = null,
   initialLocation = null,
+  suppressInternalWatcher = false,
   useCenterPin = false,
   skipAutoFlyWhenCenterPin = false,
   centerPinFromOverlay = false,
@@ -66,10 +76,8 @@ export default function MapboxMap({
   }));
 
   const [hasShownInitial, setHasShownInitial] = useState(false);
-  const engineCenter =
-    Array.isArray(locationFromEngine) && locationFromEngine.length >= 2
-      ? [locationFromEngine[1], locationFromEngine[0]]
-      : null;
+  const engineArr = toLatLngArray(locationFromEngine);
+  const engineCenter = engineArr ? [engineArr[1], engineArr[0]] : null;
   const initialCenter =
     initialLocation?.lat != null && initialLocation?.lng != null
       ? [initialLocation.lng, initialLocation.lat]
@@ -84,12 +92,11 @@ export default function MapboxMap({
     return getMapLayoutPadding();
   }, [centerPaddingBottom]);
 
-  const fallbackCoords =
-    Array.isArray(locationFromEngine) && locationFromEngine.length >= 2
-      ? { lat: locationFromEngine[0], lng: locationFromEngine[1] }
-      : location.lat != null && location.lng != null
-        ? { lat: location.lat, lng: location.lng }
-        : null;
+  const fallbackCoords = engineArr
+    ? { lat: engineArr[0], lng: engineArr[1] }
+    : location.lat != null && location.lng != null
+      ? { lat: location.lat, lng: location.lng }
+      : null;
 
   const flyToUser = useCallback(
     (coords) => {
@@ -137,6 +144,7 @@ export default function MapboxMap({
   }, [flyToUser]);
 
   useEffect(() => {
+    if (suppressInternalWatcher) return;
     if (locationFromEngine != null) return;
 
     if (!navigator.geolocation) {
@@ -193,7 +201,7 @@ export default function MapboxMap({
         watchIdRef.current = null;
       }
     };
-  }, [locationFromEngine]);
+  }, [locationFromEngine, suppressInternalWatcher]);
 
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -414,6 +422,13 @@ export default function MapboxMap({
     centerPaddingBottom,
   ]);
 
+  const userCoordsForMarker =
+    suppressInternalWatcher && engineArr
+      ? { lat: engineArr[0], lng: engineArr[1] }
+      : location.lat != null && location.lng != null
+        ? { lat: location.lat, lng: location.lng }
+        : null;
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !mapboxglRef.current) return;
     const map = mapRef.current;
@@ -422,8 +437,8 @@ export default function MapboxMap({
     markersRef.current.forEach((m) => m?.remove?.());
     markersRef.current = [];
 
-    const userLng = location.lng;
-    const userLat = location.lat;
+    const userLat = userCoordsForMarker?.lat;
+    const userLng = userCoordsForMarker?.lng;
     if (userLat != null && userLng != null && !useCenterPin) {
       const userPinHtml = `<div style="position:relative;width:40px;height:100px;">
         <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:2px;height:45px;background:#a855f7;"></div>
@@ -468,7 +483,7 @@ export default function MapboxMap({
       markersRef.current.forEach((m) => m?.remove?.());
       markersRef.current = [];
     };
-  }, [mapReady, error, alerts, onAlertClick, location.lat, location.lng, useCenterPin]);
+  }, [mapReady, error, alerts, onAlertClick, userCoordsForMarker, useCenterPin]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;

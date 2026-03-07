@@ -17,8 +17,9 @@ export default class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const { error } = this.state;
+      const { error, info } = this.state;
       const isDev = import.meta.env.DEV;
+      const stack = info?.componentStack;
       return (
         <div
           style={{
@@ -48,6 +49,23 @@ export default class ErrorBoundary extends React.Component {
               }}
             >
               {error?.message || String(error)}
+            </pre>
+          )}
+          {isDev && stack && (
+            <pre
+              style={{
+                fontSize: 11,
+                color: '#64748b',
+                maxWidth: '100%',
+                overflow: 'auto',
+                padding: 12,
+                background: '#1a1a1a',
+                borderRadius: 8,
+                marginBottom: 16,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {stack}
             </pre>
           )}
           <a
