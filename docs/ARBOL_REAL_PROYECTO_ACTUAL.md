@@ -1,7 +1,7 @@
 # Árbol real del proyecto WaitMe — Snapshot actual
 
-**Fecha:** 2025-03-07  
-**ZIP:** `tmp/waitme-full-audit-snapshot.zip`
+**Fecha:** 2026-03-07  
+**ZIP:** `tmp/waitme-master-audit-snapshot.zip`
 
 ---
 
@@ -44,7 +44,36 @@ WaitMenuevo/
 │   │   ├── transactionEngine.js
 │   │   ├── utils.js
 │   │   ├── vehicleIcons.js
-│   │   └── waitmeRequests.js
+│   │   ├── waitmeRequests.js
+│   │   ├── location/
+│   │   │   ├── distanceEngine.js
+│   │   │   ├── etaEngine.js
+│   │   │   ├── getPreciseInitialLocation.js
+│   │   │   ├── locationEngine.js
+│   │   │   ├── locationFraudDetector.js
+│   │   │   ├── locationFraudLogs.js
+│   │   │   ├── locationMovementValidator.js
+│   │   │   ├── locationSmoothing.js
+│   │   │   ├── proximityEngine.js
+│   │   │   └── index.js
+│   │   ├── locationPipeline/
+│   │   │   ├── index.js
+│   │   │   ├── locationDiagnosticsLogger.js
+│   │   │   ├── locationFraudDetector.js
+│   │   │   ├── locationKalmanFilter.js
+│   │   │   ├── locationMapMatcher.js
+│   │   │   ├── locationMovementValidator.js
+│   │   │   ├── locationPipeline.js
+│   │   │   ├── locationPrediction.js
+│   │   │   └── locationSmoothingAdvanced.js
+│   │   ├── stripe/
+│   │   │   ├── README.md
+│   │   │   └── stripeService.js
+│   │   └── transaction/
+│   │       ├── index.js
+│   │       ├── transactionEngine.js
+│   │       ├── transactionLogger.js
+│   │       └── transactionStates.js
 │   ├── data/
 │   │   ├── alerts.js
 │   │   ├── chat.js
@@ -63,8 +92,10 @@ WaitMenuevo/
 │   │   └── userLocationsSupabase.js
 │   ├── hooks/
 │   │   ├── useArrivingAnimation.js
+│   │   ├── useLocationEngine.js
 │   │   ├── useMyAlerts.js
-│   │   └── useProfileGuard.ts
+│   │   ├── useProfileGuard.ts
+│   │   └── useTransactionMonitoring.js
 │   ├── components/
 │   │   ├── AddressAutocompleteInput.jsx
 │   │   ├── BottomNav.jsx
@@ -74,6 +105,7 @@ WaitMenuevo/
 │   │   ├── DemoFlowManager.jsx
 │   │   ├── Header.jsx
 │   │   ├── IncomingRequestModal.jsx
+│   │   ├── LocationEngineStarter.jsx
 │   │   ├── Logo.jsx
 │   │   ├── MapboxMap.jsx
 │   │   ├── MapZoomControls.jsx
@@ -129,44 +161,40 @@ WaitMenuevo/
 │   ├── assets/
 │   │   ├── d2ae993d3_WaitMe.png
 │   │   └── react.svg
+│   ├── stories/
+│   │   ├── Button.jsx
+│   │   ├── Button.stories.js
+│   │   ├── Header.jsx
+│   │   ├── Header.stories.js
+│   │   ├── Page.jsx
+│   │   └── Page.stories.js
+│   ├── utils/
+│   │   ├── carUtils.js
+│   │   └── index.ts
 │   └── styles/
 │       └── no-zoom.css
 ├── docs/
-│   ├── (60+ archivos .md)
-│   └── audit-icono/
+│   └── (60+ archivos .md)
+├── tests/
+│   ├── contracts/
+│   ├── layout/
+│   ├── smoke/
+│   └── visual/
+├── scripts/
 ├── quarantine/
 │   ├── README.md
 │   ├── realtime/
-│   │   ├── alertsRealtime.js
-│   │   ├── appStore.js
-│   │   └── useRealtimeAlerts.js
 │   ├── components/
-│   │   ├── ActiveAlertCard.jsx
-│   │   ├── ErrorBoundary.jsx
-│   │   └── UserNotRegisteredError.jsx
 │   ├── hooks/
-│   │   ├── useAlertsQuery.js
-│   │   ├── useDebouncedSave.js
-│   │   ├── use-mobile.jsx
-│   │   └── useMapMatch.js
 │   ├── lib/
-│   │   ├── logger.js
-│   │   ├── PageNotFound.jsx
-│   │   ├── query-client.js
-│   │   └── maps/
-│   │       ├── carUtils.js
-│   │       ├── mapConstants.js
-│   │       └── mapMarkers.js
 │   ├── services/
-│   │   └── alertService.js
-│   ├── github-workflows/
-│   │   ├── README.md
-│   │   └── ci.yml
-│   └── pages.config.js
-├── ios/
-├── functions/
+│   └── github-workflows/
+├── supabase/
+│   └── functions/
+│       ├── map-match/
+│       └── release-payment/
 ├── tmp/
-│   └── waitme-audit-snapshot.zip
+│   └── waitme-master-audit-snapshot.zip
 └── (config: package.json, vite.config, etc.)
 ```
 
@@ -188,11 +216,12 @@ WaitMenuevo/
 
 ---
 
-## Componentes de mapa (Home)
+## Componentes de mapa
 
 | Componente | Función |
 |------------|---------|
-| MapboxMap | Mapa Mapbox GL JS |
+| MapboxMap | Mapa Mapbox GL JS (solo Home) |
+| ParkingMap | Mapas en modos search/create y Navigate |
 | MapViewportShell | Viewport del mapa |
 | MapLayer | Capa absoluta del mapa |
 | OverlayLayer | Capa de overlays |
@@ -210,28 +239,19 @@ WaitMenuevo/
 |------|-----|
 | useProfileGuard | Guard de perfil |
 | useMyAlerts | Alertas del usuario |
+| useLocationEngine | Ubicación del motor (Home, Navigate) |
 | useArrivingAnimation | Animación de llegada |
+| useTransactionMonitoring | Monitoreo de proximidad para pago |
 
 ---
 
-## Scripts (package.json)
+## Motor de ubicación
 
-- `dev` — Vite dev server
-- `build` — Build producción
-- `test` — Vitest
-- `lint` — ESLint
-- `typecheck` — tsc
-
----
-
-## Tests
-
-- Vitest en `*.test.js`, `*.spec.js`
-- Storybook en `*.stories.jsx`
-
----
-
-## Quarantine
-
-Código desactivado o migrado:
-- realtime, components, hooks, lib, services, github-workflows
+| Módulo | Función |
+|--------|---------|
+| locationEngine | watchPosition, pipeline, subscribeToLocation |
+| getPreciseInitialLocation | getCurrentPosition alta precisión, 3 reintentos |
+| locationPipeline | fraud → movement → kalman → smoothing → map matching |
+| locationMapMatcher | snapToRoad (identity o Mapbox API) |
+| locationFraudDetector | Antifraude |
+| locationMovementValidator | Validación de movimiento |

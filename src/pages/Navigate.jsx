@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPageUrl } from '@/utils';
 import * as alerts from '@/data/alerts';
 import * as chat from '@/data/chat';
@@ -13,6 +13,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
 import { useLocationEngine } from '@/hooks/useLocationEngine';
 import { getMetersBetween } from '@/lib/location';
+import { getMockNavigateCars } from '@/lib/mockNavigateCars';
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 function getAlertIdFromLocation() {
   const hash = window.location.hash || '';
@@ -212,6 +223,22 @@ export default function Navigate() {
     if (alertId) fetchAlert();
   }, [alertId]);
 
+  // Modo browse: 20 coches mock cuando no hay alertId. Usuario más cercano por defecto.
+  const browseAlerts = useMemo(() => getMockNavigateCars(userLocation), [userLocation]);
+  const nearestBrowseAlert = useMemo(() => {
+    if (browseAlerts.length === 0) return null;
+    const [uLat, uLng] = Array.isArray(userLocation)
+      ? userLocation
+      : [userLocation?.lat, userLocation?.lng];
+    if (uLat == null || uLng == null) return browseAlerts[0];
+    const sorted = [...browseAlerts].sort((a, b) => {
+      const da = haversineKm(uLat, uLng, a.latitude ?? a.lat, a.longitude ?? a.lng);
+      const db = haversineKm(uLat, uLng, b.latitude ?? b.lat, b.longitude ?? b.lng);
+      return da - db;
+    });
+    return sorted[0];
+  }, [browseAlerts, userLocation]);
+
   const startTracking = () => {
     setIsTracking(true);
     try {
@@ -401,6 +428,8 @@ export default function Navigate() {
   }, [distanceMeters, alert, user, paymentReleased, queryClient, forceRelease]);
 
   const displayAlert = alert;
+  const isBrowseMode = !alertId && !alert;
+  const displayAlertOrNearest = displayAlert || (isBrowseMode ? nearestBrowseAlert : null);
   const isSeller =
     displayAlert &&
     user &&
@@ -413,16 +442,20 @@ export default function Navigate() {
       String(displayAlert.reserved_by_email) === String(user?.email));
 
   const sellerName =
-    (isBuyer
-      ? displayAlert?.user_name
-      : displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario'
+    (isBrowseMode
+      ? displayAlertOrNearest?.user_name
+      : isBuyer
+        ? displayAlert?.user_name
+        : displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario'
     )?.split(' ')[0] || 'Usuario';
-  const sellerPhoto = isBuyer
-    ? displayAlert?.user_photo || null
-    : displayAlert?.reserved_by_photo ||
-      (displayAlert?.reserved_by_name
-        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128`
-        : null);
+  const sellerPhoto = isBrowseMode
+    ? displayAlertOrNearest?.user_photo || null
+    : isBuyer
+      ? displayAlert?.user_photo || null
+      : displayAlert?.reserved_by_photo ||
+        (displayAlert?.reserved_by_name
+          ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128`
+          : null);
 
   // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde) + icono coche
   const userCarIcon = displayAlert?.color
@@ -445,7 +478,7 @@ export default function Navigate() {
     : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #22c55e;box-shadow:0 0 14px rgba(34,197,94,0.9);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:#22c55e;">Yo${userCarIcon}</div>`;
 
   // Icono del vendedor: foto cuadrada con bordes redondeados + icono coche
-  const sellerCarIcon = displayAlert?.color
+  const sellerCarIcon = (displayAlertOrNearest || displayAlert)?.color
     ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
         <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
@@ -464,21 +497,34 @@ export default function Navigate() {
     : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#a855f7;">${sellerName.charAt(0)}${sellerCarIcon}</div>`;
 
   // Construir alert en formato compatible con UserAlertCard
-  const alertForCard = displayAlert
+  const alertForCard = displayAlertOrNearest
     ? {
-        ...displayAlert,
-        // Para UserAlertCard siempre mostramos los datos del vendedor (la otra persona)
+        ...displayAlertOrNearest,
         user_name: sellerName,
         user_photo: sellerPhoto,
-        brand: isBuyer ? displayAlert.brand : displayAlert.reserved_by_car?.split(' ')[0] || '',
-        model: isBuyer
-          ? displayAlert.model
-          : displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || '',
-        plate: isBuyer ? displayAlert.plate : displayAlert.reserved_by_plate || '',
-        color: isBuyer ? displayAlert.color : displayAlert.reserved_by_car_color || 'gris',
-        phone: isBuyer ? displayAlert.phone || null : null,
-        allow_phone_calls: isBuyer ? displayAlert.allow_phone_calls : false,
-        wait_until: displayAlert.expires_at, // Para mostrar la hora hasta que expira
+        brand: isBrowseMode
+          ? displayAlertOrNearest.brand
+          : isBuyer
+            ? displayAlert.brand
+            : displayAlert.reserved_by_car?.split(' ')[0] || '',
+        model: isBrowseMode
+          ? displayAlertOrNearest.model
+          : isBuyer
+            ? displayAlert.model
+            : displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || '',
+        plate: isBrowseMode
+          ? displayAlertOrNearest.plate
+          : isBuyer
+            ? displayAlert.plate
+            : displayAlert.reserved_by_plate || '',
+        color: isBrowseMode
+          ? displayAlertOrNearest.color
+          : isBuyer
+            ? displayAlert.color
+            : displayAlert.reserved_by_car_color || 'gris',
+        phone: isBrowseMode ? null : isBuyer ? displayAlert.phone || null : null,
+        allow_phone_calls: isBrowseMode ? false : isBuyer ? displayAlert.allow_phone_calls : false,
+        wait_until: displayAlertOrNearest.expires_at || displayAlertOrNearest.wait_until,
       }
     : null;
 
@@ -604,46 +650,48 @@ export default function Navigate() {
         </motion.div>
       )}
 
-      {/* MAPA */}
+      {/* MAPA: browse = 20 coches estáticos; con alerta = ruta y marcadores */}
       <div className="fixed left-0 right-0 z-0" style={{ top: '56px', bottom: '0' }}>
         <ParkingMap
-          alerts={[]}
+          alerts={isBrowseMode ? browseAlerts : []}
           userLocation={userLocation}
-          selectedAlert={displayAlert}
-          showRoute={true}
+          selectedAlert={displayAlertOrNearest}
+          showRoute={!isBrowseMode && !!displayAlert}
           sellerLocation={sellerLocation?.length >= 2 ? sellerLocation : [43.362, -5.849]}
           zoomControl={false}
           className="h-full w-full"
           userAsCar={false}
-          showSellerMarker={true}
+          showSellerMarker={!isBrowseMode}
           onRouteLoaded={onRouteLoaded}
           userPhotoHtml={userMapIcon}
           sellerPhotoHtml={sellerMapIcon}
         />
       </div>
 
-      {/* Botones flotantes: Distancia y ETA — encima del mapa */}
-      <div
-        className="fixed left-0 right-0 z-40 px-4 flex gap-2"
-        style={{ top: 'calc(56px + 15px)' }}
-      >
-        <div className="flex-1 bg-gray-900/50 backdrop-blur-md rounded-2xl px-3 py-2 flex items-center gap-2 shadow-xl border border-gray-700/30">
-          <Navigation className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          <div>
-            <p className="text-white font-black text-base leading-none">{distLabel}</p>
-            <p className="text-gray-400 text-[10px] mt-0.5">Distancia</p>
+      {/* Botones flotantes: Distancia y ETA — solo cuando navegando a alerta */}
+      {!isBrowseMode && (
+        <div
+          className="fixed left-0 right-0 z-40 px-4 flex gap-2"
+          style={{ top: 'calc(56px + 15px)' }}
+        >
+          <div className="flex-1 bg-gray-900/50 backdrop-blur-md rounded-2xl px-3 py-2 flex items-center gap-2 shadow-xl border border-gray-700/30">
+            <Navigation className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            <div>
+              <p className="text-white font-black text-base leading-none">{distLabel}</p>
+              <p className="text-gray-400 text-[10px] mt-0.5">Distancia</p>
+            </div>
+          </div>
+          <div className="flex-1 bg-gray-900/50 backdrop-blur-md rounded-2xl px-3 py-2 flex items-center gap-2 shadow-xl border border-gray-700/30">
+            <Clock className="w-4 h-4 text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-white font-black text-base leading-none">
+                {etaMinutes != null ? `${etaMinutes} min` : '--'}
+              </p>
+              <p className="text-gray-400 text-[10px] mt-0.5">Tiempo estimado</p>
+            </div>
           </div>
         </div>
-        <div className="flex-1 bg-gray-900/50 backdrop-blur-md rounded-2xl px-3 py-2 flex items-center gap-2 shadow-xl border border-gray-700/30">
-          <Clock className="w-4 h-4 text-green-400 flex-shrink-0" />
-          <div>
-            <p className="text-white font-black text-base leading-none">
-              {etaMinutes != null ? `${etaMinutes} min` : '--'}
-            </p>
-            <p className="text-gray-400 text-[10px] mt-0.5">Tiempo estimado</p>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* BOTTOM PANEL */}
       <div className="fixed left-0 right-0 z-50" style={{ bottom: 'var(--bottom-nav-h)' }}>
@@ -698,7 +746,7 @@ export default function Navigate() {
               >
                 {alertForCard && (
                   <div className="relative">
-                    {isSeller && displayAlert?.status === 'reserved' && (
+                    {!isBrowseMode && isSeller && displayAlert?.status === 'reserved' && (
                       <button
                         onClick={() => setShowCancelWarning(true)}
                         className="absolute top-3 right-3 w-6 h-6 rounded-md bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500/30 transition-colors z-10"
@@ -731,6 +779,14 @@ export default function Navigate() {
                         if (phone) window.location.href = `tel:${phone}`;
                       }}
                     />
+                    {isBrowseMode && (
+                      <a
+                        href={createPageUrl('/')}
+                        className="block w-full mt-3 py-2.5 rounded-xl bg-purple-600/50 border border-purple-500/50 text-center text-sm font-semibold text-purple-200 hover:bg-purple-600/70 transition-colors"
+                      >
+                        Ir a Mapa para reservar
+                      </a>
+                    )}
                   </div>
                 )}
                 {!isSeller &&
