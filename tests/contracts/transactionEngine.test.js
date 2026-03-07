@@ -164,7 +164,7 @@ describe('transactionEngine', () => {
   });
 
   it('verificación doble: userB lejos de alertLocation → no onCompleted', () => {
-    const alertLoc = POINT_A;
+    const _alertLoc = POINT_A;
     const userA = POINT_A;
     const userB = pointAtDistanceMeters(POINT_A, 4);
     const alertFar = pointAtDistanceMeters(POINT_A, 50);

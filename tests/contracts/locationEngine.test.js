@@ -151,7 +151,7 @@ describe('locationSmoothing', () => {
     const smoother = createLocationSmoother();
     const loc1 = { lat: 43.36, lng: -5.85, accuracy: 50 };
     const loc2 = { lat: 43.37, lng: -5.86, accuracy: 50 };
-    const out = smoother.update(loc1);
+    smoother.update(loc1);
     const out2 = smoother.update(loc2);
     expect(out2.lat).toBe(loc2.lat);
     expect(out2.lng).toBe(loc2.lng);

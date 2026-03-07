@@ -97,7 +97,7 @@ export default function AddressAutocompleteInput({
           : [];
 
         setOptions(mapped);
-      } catch (_e) {
+      } catch {
         // Abort o red: silencioso
       }
     }, 200);

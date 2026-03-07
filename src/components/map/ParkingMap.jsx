@@ -36,7 +36,7 @@ export default function ParkingMap({
   className = '',
   zoomControl = true,
   buyerLocations = [],
-  userLocationOffsetY = 0,
+  userLocationOffsetY: _userLocationOffsetY = 0,
   useCenterPin = false,
   sellerPhotoHtml = null,
   onMapMove,
@@ -51,7 +51,7 @@ export default function ParkingMap({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
-  const routeSourceRef = useRef(null);
+  const _routeSourceRef = useRef(null);
 
   const normalizedUserLocation = userLocation
     ? Array.isArray(userLocation)
@@ -61,8 +61,8 @@ export default function ParkingMap({
 
   const defaultCenter = normalizedUserLocation || [43.3619, -5.8494];
   const [route, setRoute] = useState(null);
-  const [routeDistance, setRouteDistance] = useState(null);
-  const [routeDuration, setRouteDuration] = useState(null);
+  const [, setRouteDistance] = useState(null);
+  const [, setRouteDuration] = useState(null);
   const lastRouteFetchRef = useRef(0);
   const ROUTE_REFETCH_MS = 8000;
 
@@ -73,7 +73,8 @@ export default function ParkingMap({
       setRouteDuration(null);
       return;
     }
-    const targetLocation = sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
+    const targetLocation =
+      sellerLocation || (selectedAlert ? [selectedAlert.latitude, selectedAlert.longitude] : null);
     if (!targetLocation) {
       setRoute(null);
       return;
@@ -85,7 +86,9 @@ export default function ParkingMap({
     const start = { lat: normalizedUserLocation[0], lng: normalizedUserLocation[1] };
     const end = { lat: targetLocation[0], lng: targetLocation[1] };
 
-    fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`)
+    fetch(
+      `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.routes?.[0]) {
@@ -94,7 +97,8 @@ export default function ParkingMap({
           setRoute(coords);
           setRouteDistance((r.distance / 1000).toFixed(2));
           setRouteDuration(r.duration || 0);
-          if (onRouteLoaded) onRouteLoaded({ distanceKm: r.distance / 1000, durationSec: r.duration || 0 });
+          if (onRouteLoaded)
+            onRouteLoaded({ distanceKm: r.distance / 1000, durationSec: r.duration || 0 });
         }
       })
       .catch(() => {});
@@ -176,10 +180,8 @@ export default function ParkingMap({
       const type = alert.vehicle_type || 'car';
       const color = alert.vehicle_color ?? alert.color ?? 'gray';
       const price = alert.price ?? 0;
-      addMarker(
-        [alert.latitude, alert.longitude],
-        getCarWithPriceHtml(type, color, price),
-        () => onAlertClick?.(alert)
+      addMarker([alert.latitude, alert.longitude], getCarWithPriceHtml(type, color, price), () =>
+        onAlertClick?.(alert)
       );
     });
   }, [
@@ -236,7 +238,11 @@ export default function ParkingMap({
     if (!map || !map.isStyleLoaded?.()) return;
 
     if (normalizedUserLocation) {
-      map.flyTo({ center: [normalizedUserLocation[1], normalizedUserLocation[0]], zoom: 16, duration: 500 });
+      map.flyTo({
+        center: [normalizedUserLocation[1], normalizedUserLocation[0]],
+        zoom: 16,
+        duration: 500,
+      });
     }
   }, [normalizedUserLocation]);
 
@@ -298,18 +304,28 @@ export default function ParkingMap({
   const token = import.meta.env.VITE_MAPBOX_TOKEN;
   if (!token || token === 'PEGA_AQUI_EL_TOKEN') {
     return (
-      <div className={`absolute inset-0 flex items-center justify-center bg-[#1a1a1a] text-gray-500 text-sm ${className}`}>
+      <div
+        className={`absolute inset-0 flex items-center justify-center bg-[#1a1a1a] text-gray-500 text-sm ${className}`}
+      >
         Configura VITE_MAPBOX_TOKEN en .env
       </div>
     );
   }
 
   return (
-    <div className={`absolute inset-0 ${className}`} style={{ zIndex: 1000, transform: 'translateZ(0)' }}>
+    <div
+      className={`absolute inset-0 ${className}`}
+      style={{ zIndex: 1000, transform: 'translateZ(0)' }}
+    >
       {useCenterPin && (
         <div
           className="absolute z-[2000] pointer-events-none flex flex-col items-center"
-          style={{ left: '50%', top: '50%', transform: 'translate(-50%, calc(-100% - 10px))', width: 18 }}
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, calc(-100% - 10px))',
+            width: 18,
+          }}
         >
           <div
             style={{

@@ -64,7 +64,7 @@ const getCarFillThinking = (color) => {
 
 export default function Alertas() {
   const { user } = useAuth();
-  const [userLocation, setUserLocation] = useState(null);
+  const [userLocation, _setUserLocation] = useState(null);
   const [nowTs, setNowTs] = useState(Date.now());
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancelConfirmAlert, setCancelConfirmAlert] = useState(null);
@@ -584,7 +584,7 @@ export default function Alertas() {
   const deleteAlertSafe = async (id) => {
     try {
       await alerts.deleteAlert(id);
-    } catch (e) {}
+    } catch {}
   };
 
   // ====== Effects ======
@@ -811,7 +811,7 @@ export default function Alertas() {
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
 
-  const isLoading = loadingAlerts || loadingTransactions;
+  const _isLoading = loadingAlerts || loadingTransactions;
 
   // ====== Mutations ======
   const cancelAlertMutation = useMutation({

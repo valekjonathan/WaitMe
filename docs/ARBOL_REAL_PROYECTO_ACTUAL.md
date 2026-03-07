@@ -1,7 +1,7 @@
 # Árbol real del proyecto WaitMe — Snapshot actual
 
 **Fecha:** 2026-03-07  
-**ZIP:** `tmp/waitme-master-audit-snapshot.zip`
+**ZIP:** `tmp/waitme-master-full-audit.zip`
 
 ---
 
@@ -55,6 +55,10 @@ WaitMenuevo/
 │   │   │   ├── locationMovementValidator.js
 │   │   │   ├── locationSmoothing.js
 │   │   │   ├── proximityEngine.js
+│   │   │   ├── toLatLngArray.js
+│   │   │   └── index.js
+│   │   ├── mapLayers/
+│   │   │   ├── geojsonUtils.js
 │   │   │   └── index.js
 │   │   ├── locationPipeline/
 │   │   │   ├── index.js
@@ -194,7 +198,7 @@ WaitMenuevo/
 │       ├── map-match/
 │       └── release-payment/
 ├── tmp/
-│   └── waitme-master-audit-snapshot.zip
+│   └── waitme-master-full-audit.zip
 └── (config: package.json, vite.config, etc.)
 ```
 

@@ -85,7 +85,7 @@ const isFinalChatStatus = (status) => {
 };
 
 // ====== Estilos sincronizados (CHATS / CHAT / NOTIFICACIONES) ======
-const PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
+const _PURPLE_ACTIVE_BORDER = 'border-purple-400/70';
 const PURPLE_ACTIVE_TEXT = 'text-purple-400';
 const PURPLE_ACTIVE_TEXT_DIM = 'text-purple-400/70';
 
@@ -218,7 +218,7 @@ const pickCoords = (obj, latKey = 'latitude', lonKey = 'longitude') => {
   return { lat, lon };
 };
 
-const PriceChip = ({ amount, direction }) => {
+const _PriceChip = ({ amount, direction }) => {
   const n = Number(amount || 0);
   const amountText = `${Math.floor(Math.abs(n))}€`;
   const isGreen = direction === 'up';
@@ -250,7 +250,7 @@ export default function Chats() {
   const [selectedProrroga, setSelectedProrroga] = useState(null);
   const [currentExpiredAlert, setCurrentExpiredAlert] = useState(null);
 
-  const [etaMap, setEtaMap] = useState({});
+  const [etaMap] = useState({});
 
   const expiredHandledRef = useRef(new Set());
   const hasEverHadTimeRef = useRef(new Map());
@@ -332,7 +332,7 @@ export default function Chats() {
     return map;
   }, [alertsData]);
 
-  const totalUnread = useMemo(() => {
+  const _totalUnread = useMemo(() => {
     return conversations.reduce((sum, conv) => {
       const isP1 = conv.participant1_id === user?.id;
       const unread = isP1 ? conv.unread_count_p1 : conv.unread_count_p2;
@@ -382,7 +382,7 @@ export default function Chats() {
           new Date(b.last_message_at || b.created_date) -
           new Date(a.last_message_at || a.created_date)
       );
-      const [activeBuyer, ...restBuyer] = buyerReservations;
+      const [_activeBuyer, ...restBuyer] = buyerReservations;
       filtered = filtered.map((conv) => {
         if (restBuyer.find((c) => c.id === conv.id)) {
           const alert = alertsMap.get(conv.alert_id);
@@ -400,7 +400,7 @@ export default function Chats() {
           new Date(b.last_message_at || b.created_date) -
           new Date(a.last_message_at || a.created_date)
       );
-      const [activeSeller, ...restSeller] = sellerReservations;
+      const [_activeSeller, ...restSeller] = sellerReservations;
       filtered = filtered.map((conv) => {
         if (restSeller.find((c) => c.id === conv.id)) {
           const alert = alertsMap.get(conv.alert_id);
@@ -535,7 +535,7 @@ export default function Chats() {
     window.location.href = url;
   };
 
-  const getRemainingMsForAlert = (alert, isBuyer) => {
+  const getRemainingMsForAlert = (alert, _isBuyer) => {
     const entry = etaMap?.[alert?.id];
 
     if (entry && Number.isFinite(entry.etaSeconds)) {
@@ -568,12 +568,12 @@ export default function Chats() {
       const remainingMs = getRemainingMsForAlert(alert, isBuyer);
       const statusLabel = getChatStatusLabel(alert?.status);
       const isCompletedOrCanceled = statusLabel === 'COMPLETADA' || statusLabel === 'CANCELADA';
-      const isThinking = statusLabel === 'ME LO PIENSO';
-      const isProrroga = statusLabel === 'PRÓRROGA';
+      const _isThinking = statusLabel === 'ME LO PIENSO';
+      const _isProrroga = statusLabel === 'PRÓRROGA';
 
       const isSeller = alert?.user_id === user?.id;
 
-      const badgeCls = isCompletedOrCanceled
+      const _badgeCls = isCompletedOrCanceled
         ? 'bg-red-500/20 text-red-400 border-red-500/30'
         : isBuyer
           ? 'bg-purple-500/20 text-purple-300 border-purple-400/50'

@@ -61,8 +61,6 @@ export default function Chat() {
   // ======================
   // DEMO: estado en memoria (sin cargas)
   // ======================
-  const [, forceTick] = useState(0);
-
   // useEffect(() => {
   //   if (!isDemo) return;
   //   startDemoFlow();
@@ -258,7 +256,7 @@ export default function Chat() {
   // ======================
   // RESPUESTAS AUTOMÁTICAS DEMO
   // ======================
-  const autoRespond = (convId, userMessage) => {
+  const autoRespond = (convId, _userMessage) => {
     const responses = {
       mock_reservaste_1: [
         'Perfecto, ya voy de camino 🚗',
@@ -400,7 +398,6 @@ export default function Chat() {
             { url: URL.createObjectURL(file), type: file.type, name: file.name },
           ]);
         } else {
-          const ext = file.name.split('.').pop() || 'bin';
           const safeName = (file.name || 'file').replace(/[^a-zA-Z0-9.-]/g, '_').slice(0, 50);
           const path = `chat/${user?.id || 'anon'}/${Date.now()}_${safeName}`;
           const { file_url, url, error } = await uploads.uploadFile(file, path);
