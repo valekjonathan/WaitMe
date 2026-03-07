@@ -1,0 +1,97 @@
+/**
+ * 10 coches mock para modo "Dónde quieres aparcar" (navigate/search).
+ * Dispersos en radio pequeño alrededor del usuario.
+ * Estructura compatible con MapboxMap y UserAlertCard.
+ */
+
+const OVIEDO_CENTER = { lat: 43.3619, lng: -5.8494 };
+
+const NAMES = [
+  'Sofía',
+  'Hugo',
+  'Nuria',
+  'Iván',
+  'Marco',
+  'Laura',
+  'Dani',
+  'Paula',
+  'Álvaro',
+  'Claudia',
+];
+const COLORS = ['white', 'black', 'blue', 'red', 'gray', 'green', 'purple', 'orange'];
+const VEHICLE_TYPES = ['car', 'car', 'car', 'suv', 'van']; // mayoría coches
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomInt(min, max) {
+  return Math.floor(min + Math.random() * (max - min + 1));
+}
+
+/**
+ * Genera 10 coches mock dispersos en radio pequeño (~200m) alrededor del usuario.
+ * @param {number[]|{lat:number,lng:number}[]} userLocation - [lat, lng] o {lat, lng}
+ * @returns {Array} 10 alertas con id, nombre, precio, distancia, tiempo restante
+ */
+export function getMockNavigateCars(userLocation) {
+  const baseLat = Array.isArray(userLocation)
+    ? userLocation[0]
+    : (userLocation?.lat ?? OVIEDO_CENTER.lat);
+  const baseLng = Array.isArray(userLocation)
+    ? userLocation[1]
+    : (userLocation?.lng ?? OVIEDO_CENTER.lng);
+
+  const now = Date.now();
+  const result = [];
+
+  // Radio pequeño: ~200m (lat/lng ± 0.002 ≈ 220m)
+  const RADIUS = 0.002;
+
+  for (let i = 0; i < 10; i++) {
+    const angle = (i / 10) * 2 * Math.PI + Math.random() * 0.5;
+    const r = RADIUS * (0.3 + Math.random() * 0.7);
+    const dLat = r * Math.cos(angle);
+    const dLng = r * Math.sin(angle);
+    const lat = baseLat + dLat;
+    const lng = baseLng + dLng;
+
+    const price = randomInt(2, 8);
+    const available_in_minutes = [5, 10, 15, 20][i % 4];
+    const created = now - (i + 1) * 30 * 1000;
+    const waitUntil = new Date(created + available_in_minutes * 60 * 1000);
+
+    const name = NAMES[i % NAMES.length];
+
+    result.push({
+      id: `mock_nav_${i}`,
+      user_id: `mock_u${i + 1}`,
+      user_name: name,
+      user_photo: null,
+
+      vehicle_type: pick(VEHICLE_TYPES),
+      vehicle_color: pick(COLORS),
+      color: pick(COLORS),
+      brand: 'Mock',
+      model: 'Coche',
+
+      address: `Calle ${name}, ${randomInt(1, 30)}, Oviedo`,
+
+      latitude: lat,
+      longitude: lng,
+      lat,
+      lng,
+
+      price,
+      available_in_minutes,
+      availableInMinutes: available_in_minutes,
+      created_date: created,
+      wait_until: waitUntil.toISOString(),
+      status: 'active',
+
+      is_mock: true,
+    });
+  }
+
+  return result;
+}

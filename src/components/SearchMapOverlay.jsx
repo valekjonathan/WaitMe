@@ -64,14 +64,8 @@ export default function SearchMapOverlay({
       </div>
 
       {/* StreetSearch */}
-      <div
-        ref={searchRef}
-        className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto"
-      >
-        <StreetSearch
-          onSelect={onStreetSelect}
-          placeholder="Buscar calle o dirección..."
-        />
+      <div ref={searchRef} className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
+        <StreetSearch onSelect={onStreetSelect} placeholder="Buscar calle o dirección..." />
       </div>
 
       {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create) */}
@@ -84,8 +78,8 @@ export default function SearchMapOverlay({
       {/* Pin fijo */}
       {pinTop != null && <CenterPin top={pinTop} />}
 
-      {/* Zoom controls */}
-      <MapZoomControls mapRef={mapRef} />
+      {/* Zoom controls — misma posición que CreateMapOverlay (left-[4%]) */}
+      <MapZoomControls mapRef={mapRef} className="left-[4%]" />
     </div>
   );
 }

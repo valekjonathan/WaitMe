@@ -22,7 +22,7 @@ import MapboxMap from '@/components/MapboxMap';
 import CreateMapOverlay from '@/components/CreateMapOverlay';
 import SearchMapOverlay from '@/components/SearchMapOverlay';
 import MapViewportShell from '@/system/map/MapViewportShell';
-import { getMockOviedoAlerts } from '@/lib/mockOviedoAlerts';
+import { getMockNavigateCars } from '@/lib/mockNavigateCars';
 import MapFilters from '@/components/map/MapFilters';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelectors';
@@ -437,26 +437,11 @@ export default function Home() {
     return filteredAlerts || [];
   }, [mode, filteredAlerts]);
 
-  const MOCK_THRESHOLD = 15;
-
-  const homeMapAlerts = useMemo(() => {
-    const base =
-      mode === 'search'
-        ? searchAlerts || []
-        : mode === null
-          ? Array.isArray(rawAlerts)
-            ? rawAlerts
-            : []
-          : [];
-    if (mode === 'search' || mode === null) {
-      if (base.length < MOCK_THRESHOLD) {
-        const mock = getMockOviedoAlerts(userLocation);
-        const toAdd = Math.min(mock.length, Math.max(0, 50 - base.length));
-        return [...base, ...mock.slice(0, toAdd)];
-      }
-    }
-    return base;
-  }, [mode, searchAlerts, rawAlerts, userLocation]);
+  // Modo navigate: 10 coches mock dispersos en radio pequeño. Home/create: sin coches.
+  const navigateMapAlerts = useMemo(() => {
+    if (mode !== 'search') return [];
+    return getMockNavigateCars(userLocation);
+  }, [mode, userLocation]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -764,7 +749,7 @@ export default function Home() {
           <MapboxMap
             className="w-full h-full"
             style={{ width: '100%', height: '100%' }}
-            alerts={mode === 'create' ? [] : homeMapAlerts}
+            alerts={!mode || mode === 'create' ? [] : navigateMapAlerts}
             mapRef={mapRef}
             onMapLoad={(map) => {
               mapRef.current = map;
@@ -875,7 +860,9 @@ export default function Home() {
                         filters={filters}
                         onFilterChange={setFilters}
                         onClose={() => setShowFilters(false)}
-                        alertsCount={searchAlerts.length}
+                        alertsCount={
+                          mode === 'search' ? navigateMapAlerts.length : searchAlerts.length
+                        }
                       />
                     </>
                   )}
