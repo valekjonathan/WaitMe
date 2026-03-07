@@ -97,7 +97,7 @@ Ambos usan `MapZoomControls` con `className="left-[4%]"` y `style={{ top: 75 }}`
 
 ## 9. Cantidad de coches en navigate
 
-Actualmente: **10 coches** (mockNavigateCars). Requerido: **20 coches**.
+**Aplicado:** 20 coches (mockNavigateCars).
 
 ---
 
