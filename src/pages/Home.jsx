@@ -47,6 +47,8 @@ if (typeof window !== 'undefined') {
 }
 import { haversineKm } from '@/utils/carUtils';
 import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
+import { useLocationEngine } from '@/hooks/useLocationEngine';
+import { getCurrentLocation as engineGetCurrent } from '@/lib/location';
 
 // DEV kill switch: disable map (render simple block instead)
 const isMapDisabled = () => import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
@@ -62,9 +64,6 @@ const RENDER_LOG = (msg, extra) => {
 // ======================
 // Helpers
 // ======================
-const FALLBACK_LAT = 43.3623; // Oviedo
-const FALLBACK_LNG = -5.8489; // Oviedo
-
 const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
   <svg viewBox="0 0 48 24" className={size} fill="none">
     {/* Cuerpo del coche - vista lateral */}
@@ -136,6 +135,7 @@ export default function Home() {
   const [pendingPublishPayload, setPendingPublishPayload] = useState(null);
   const [oneActiveAlertOpen, setOneActiveAlertOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState(null);
+  const { location: engineLocation } = useLocationEngine();
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
@@ -347,68 +347,27 @@ export default function Home() {
     [reverseGeocode]
   );
 
-  // One-shot: usado al pulsar mirilla. onReady(lat, lng) se llama cuando la posición está lista.
+  // One-shot: usado al pulsar mirilla. Usa motor de ubicación.
   const getCurrentLocation = useCallback(
-    (onReady) => {
-      if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setUserLocation([latitude, longitude]);
-          setSelectedPosition({ lat: latitude, lng: longitude });
-          reverseGeocode(latitude, longitude);
-          onReady?.({ lat: latitude, lng: longitude });
-        },
-        () => {},
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-      );
+    async (onReady) => {
+      const loc = await engineGetCurrent();
+      setUserLocation([loc.lat, loc.lng]);
+      setSelectedPosition({ lat: loc.lat, lng: loc.lng });
+      reverseGeocode(loc.lat, loc.lng);
+      onReady?.({ lat: loc.lat, lng: loc.lng });
     },
     [reverseGeocode]
   );
 
-  // Watcher GPS continuo tipo Uber — arranca al montar, limpia al desmontar
+  // Ubicación desde motor único — sustituye watchPosition duplicado
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
-      setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
-      setAddress('Oviedo');
-      return;
+    if (!engineLocation) return;
+    setUserLocation(engineLocation);
+    if (modeRef.current !== 'create') {
+      setSelectedPosition({ lat: engineLocation[0], lng: engineLocation[1] });
+      reverseGeocode(engineLocation[0], engineLocation[1]);
     }
-
-    // Fix rápido de baja precisión para que el mapa no arranque en blanco
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserLocation([latitude, longitude]);
-        setSelectedPosition({ lat: latitude, lng: longitude });
-        reverseGeocode(latitude, longitude);
-      },
-      () => {
-        setUserLocation([FALLBACK_LAT, FALLBACK_LNG]);
-        setSelectedPosition({ lat: FALLBACK_LAT, lng: FALLBACK_LNG });
-        setAddress('Oviedo');
-      },
-      { enableHighAccuracy: false, timeout: 4000, maximumAge: 30 * 1000 }
-    );
-
-    // Watcher de alta precisión continuo
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        if (accuracy > 30) return;
-        setUserLocation([latitude, longitude]);
-        // En modo create, selectedPosition viene del mapa/mirilla; no sobrescribir con GPS
-        if (modeRef.current !== 'create') {
-          setSelectedPosition({ lat: latitude, lng: longitude });
-          reverseGeocode(latitude, longitude);
-        }
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [reverseGeocode]);
+  }, [engineLocation, reverseGeocode]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -803,6 +762,7 @@ export default function Home() {
             style={{ width: '100%', height: '100%' }}
             alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
+            locationFromEngine={engineLocation ?? userLocation}
             interactive={!!mode}
             onMapLoad={(map) => {
               mapRef.current = map;

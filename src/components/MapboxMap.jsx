@@ -26,6 +26,7 @@ export default function MapboxMap({
   onMapLoad,
   onRecenterRef,
   mapRef: externalMapRef,
+  locationFromEngine = null,
   useCenterPin = false,
   skipAutoFlyWhenCenterPin = false,
   centerPinFromOverlay = false,
@@ -58,13 +59,25 @@ export default function MapboxMap({
     timestamp: null,
   }));
 
+  const engineCenter =
+    Array.isArray(locationFromEngine) && locationFromEngine.length >= 2
+      ? [locationFromEngine[1], locationFromEngine[0]]
+      : null;
   const effectiveCenter =
-    location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER;
+    engineCenter ??
+    (location.lat != null && location.lng != null ? [location.lng, location.lat] : OVIEDO_CENTER);
 
   const getMapPadding = useCallback(() => {
     if (centerPaddingBottom <= 0) return undefined;
     return getMapLayoutPadding();
   }, [centerPaddingBottom]);
+
+  const fallbackCoords =
+    Array.isArray(locationFromEngine) && locationFromEngine.length >= 2
+      ? { lat: locationFromEngine[0], lng: locationFromEngine[1] }
+      : location.lat != null && location.lng != null
+        ? { lat: location.lat, lng: location.lng }
+        : null;
 
   const flyToUser = useCallback(
     (coords) => {
@@ -75,8 +88,8 @@ export default function MapboxMap({
           ? [coords[1], coords[0]]
           : coords?.lat != null && coords?.lng != null
             ? [coords.lng, coords.lat]
-            : location.lat != null && location.lng != null
-              ? [location.lng, location.lat]
+            : fallbackCoords
+              ? [fallbackCoords.lng, fallbackCoords.lat]
               : OVIEDO_CENTER;
       const c = [lng, lat];
       const padding = getMapPadding();
@@ -95,7 +108,7 @@ export default function MapboxMap({
         map.flyTo(opts);
       }
     },
-    [location.lat, location.lng, getMapPadding]
+    [location.lat, location.lng, locationFromEngine, getMapPadding]
   );
 
   useEffect(() => {
@@ -112,6 +125,8 @@ export default function MapboxMap({
   }, [flyToUser]);
 
   useEffect(() => {
+    if (locationFromEngine != null) return;
+
     if (!navigator.geolocation) {
       setLocation({ lat: 43.3619, lng: -5.8494, accuracy: 500, timestamp: Date.now() });
       return;
@@ -176,7 +191,7 @@ export default function MapboxMap({
         watchIdRef.current = null;
       }
     };
-  }, []);
+  }, [locationFromEngine]);
 
   useEffect(() => {
     const token = import.meta.env.VITE_MAPBOX_TOKEN;

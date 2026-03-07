@@ -11,6 +11,8 @@ import ParkingMap from '@/components/map/ParkingMap';
 import UserAlertCard from '@/components/cards/UserAlertCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { finalize, OUTCOME } from '@/lib/transactionEngine';
+import { useLocationEngine } from '@/hooks/useLocationEngine';
+import { getMetersBetween } from '@/lib/location';
 
 function getAlertIdFromLocation() {
   const hash = window.location.hash || '';
@@ -159,9 +161,16 @@ export default function Navigate() {
   const alertId = getAlertIdFromLocation();
 
   const [user, setUser] = useState(null);
+  const { location: engineLocation } = useLocationEngine();
   const [userLocation, setUserLocation] = useState([43.367, -5.844]);
   const [sellerLocation, setSellerLocation] = useState([43.362, -5.849]);
   const [isTracking, setIsTracking] = useState(false);
+
+  useEffect(() => {
+    if (!isTracking && engineLocation && engineLocation.length >= 2) {
+      setUserLocation(engineLocation);
+    }
+  }, [engineLocation, isTracking]);
   const [paymentReleased, setPaymentReleased] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [forceRelease, setForceRelease] = useState(false);
@@ -282,13 +291,8 @@ export default function Navigate() {
 
   const calculateDistanceBetweenUsers = () => {
     if (!userLocation || !sellerLocation) return null;
-    const R = 6371000;
-    const lat1 = (userLocation[0] * Math.PI) / 180;
-    const lat2 = (sellerLocation[0] * Math.PI) / 180;
-    const dLat = ((sellerLocation[0] - userLocation[0]) * Math.PI) / 180;
-    const dLon = ((sellerLocation[1] - userLocation[1]) * Math.PI) / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const m = getMetersBetween(userLocation, sellerLocation);
+    return Number.isFinite(m) ? m : null;
   };
 
   const distanceMeters = calculateDistanceBetweenUsers();

@@ -7,6 +7,7 @@ import { AppDeviceFrame } from '@/system/layout';
 import Layout from './Layout';
 import Login from '@/pages/Login';
 import DemoFlowManager from '@/components/DemoFlowManager';
+import LocationEngineStarter from '@/components/LocationEngineStarter';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
@@ -46,6 +47,7 @@ function AuthRouter() {
 
   return (
     <>
+      <LocationEngineStarter />
       <DemoFlowManager />
       <WaitMeRequestScheduler />
       <IncomingRequestModal />
