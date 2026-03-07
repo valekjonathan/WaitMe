@@ -46,6 +46,7 @@ if (typeof window !== 'undefined') {
   } catch {}
 }
 import { haversineKm } from '@/utils/carUtils';
+import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
 
 // DEV kill switch: disable map (render simple block instead)
 const isMapDisabled = () => import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
@@ -142,6 +143,10 @@ export default function Home() {
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
+  // Navigate: browse | arriving
+  const [navigateViewState, setNavigateViewState] = useState('browse');
+  const [arrivingAlertId, setArrivingAlertId] = useState(null);
+
   const [filters, setFilters] = useState({
     maxPrice: 10,
     maxMinutes: 30,
@@ -158,6 +163,11 @@ export default function Home() {
   useEffect(() => {
     modeRef.current = mode;
     if (mode === 'create') lastGeocodeRef.current = { lat: null, lng: null };
+    if (mode !== 'search') {
+      setNavigateViewState('browse');
+      setArrivingAlertId(null);
+      setSelectedAlert(null);
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -442,6 +452,48 @@ export default function Home() {
     if (mode !== 'search') return [];
     return getMockNavigateCars(userLocation);
   }, [mode, userLocation]);
+
+  // Al entrar en search: seleccionar coche más cercano por defecto
+  useEffect(() => {
+    if (mode !== 'search' || navigateMapAlerts.length === 0 || selectedAlert) return;
+    const [uLat, uLng] = Array.isArray(userLocation)
+      ? userLocation
+      : [userLocation?.lat, userLocation?.lng];
+    if (uLat == null || uLng == null) return;
+    const sorted = [...navigateMapAlerts].sort((a, b) => {
+      const da = haversineKm(uLat, uLng, a.latitude ?? a.lat, a.longitude ?? a.lng);
+      const db = haversineKm(uLat, uLng, b.latitude ?? b.lat, b.longitude ?? b.lng);
+      return da - db;
+    });
+    setSelectedAlert(sorted[0]);
+  }, [mode, navigateMapAlerts, userLocation]);
+
+  const arrivingAlert = useMemo(
+    () => (arrivingAlertId ? navigateMapAlerts.find((a) => a.id === arrivingAlertId) : null),
+    [arrivingAlertId, navigateMapAlerts]
+  );
+  const { position: arrivingCarPosition, metrics: arrivalMetrics } = useArrivingAnimation(
+    arrivingAlert,
+    userLocation,
+    navigateViewState === 'arriving' && !!arrivingAlert
+  );
+
+  // Alerts para el mapa: browse = 10 coches, arriving = solo el coche en movimiento
+  const mapAlertsForNavigate = useMemo(() => {
+    if (mode !== 'search') return [];
+    if (navigateViewState === 'arriving' && arrivingAlert && arrivingCarPosition) {
+      return [
+        {
+          ...arrivingAlert,
+          latitude: arrivingCarPosition.lat,
+          longitude: arrivingCarPosition.lng,
+          lat: arrivingCarPosition.lat,
+          lng: arrivingCarPosition.lng,
+        },
+      ];
+    }
+    return navigateMapAlerts;
+  }, [mode, navigateViewState, arrivingAlert, arrivingCarPosition, navigateMapAlerts]);
 
   const createAlertMutation = useMutation({
     mutationFn: async (data) => {
@@ -749,7 +801,7 @@ export default function Home() {
           <MapboxMap
             className="w-full h-full"
             style={{ width: '100%', height: '100%' }}
-            alerts={!mode || mode === 'create' ? [] : navigateMapAlerts}
+            alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
             mapRef={mapRef}
             onMapLoad={(map) => {
               mapRef.current = map;
@@ -834,6 +886,8 @@ export default function Home() {
             <SearchMapOverlay
               onStreetSelect={handleStreetSelect}
               mapRef={mapRef}
+              navigateViewState={navigateViewState}
+              arrivalMetrics={arrivalMetrics}
               filtersButton={
                 !showFilters && (
                   <Button
@@ -875,8 +929,13 @@ export default function Home() {
                   onBuyAlert={handleBuyAlert}
                   onChat={handleChat}
                   onCall={handleCall}
+                  onStartArriving={(a) => {
+                    setNavigateViewState('arriving');
+                    setArrivingAlertId(a?.id ?? null);
+                  }}
                   isLoading={buyAlertMutation.isPending}
                   userLocation={userLocation}
+                  showArrivingButton={navigateViewState === 'browse' && !!selectedAlert}
                 />
               }
             />

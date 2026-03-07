@@ -15,6 +15,7 @@ function UserAlertCard({
   onChat,
   onCall,
   onReject,
+  onStartArriving,
   isLoading = false,
   isEmpty = false,
   userLocation,
@@ -22,6 +23,7 @@ function UserAlertCard({
   hideBuy = false,
   showDistanceInMeters = false,
   showCountdownTimer: _showCountdownTimer = false,
+  showArrivingButton = false,
 }) {
   // Normaliza userLocation para evitar errores cuando llega como array u objeto
   // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
@@ -386,7 +388,15 @@ function UserAlertCard({
               <Navigation className="w-4 h-4" />
               <span className="font-semibold text-sm">Ir</span>
             </Button>
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col gap-1.5">
+              {showArrivingButton && onStartArriving ? (
+                <Button
+                  className="w-full h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold border-2 border-blue-400/50"
+                  onClick={() => onStartArriving(alert)}
+                >
+                  Ver viniendo hacia ti
+                </Button>
+              ) : null}
               <Button
                 className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
                 onClick={handleBuy}

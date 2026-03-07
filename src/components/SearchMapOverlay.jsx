@@ -1,11 +1,9 @@
 /**
- * Overlay "¿Dónde quieres aparcar?" — CON StreetSearch arriba.
- * Pin fijo entre buscador y tarjeta. Mapa arrastrable. Zoom controls.
- *
- * Usa MapScreenPanel (fuente única de verdad) para la tarjeta UserAlertCard.
- * Misma geometría que CreateMapOverlay para consistencia web/iOS.
+ * Overlay "¿Dónde quieres aparcar?" — browse (search + filtros) o arriving (distancia + ETA).
+ * Pin fijo entre top y tarjeta. Misma geometría que CreateMapOverlay.
  */
 import { useEffect, useRef, useState } from 'react';
+import { Navigation, Clock } from 'lucide-react';
 import StreetSearch from '@/components/StreetSearch';
 import CenterPin from '@/components/CenterPin';
 import MapZoomControls from '@/components/MapZoomControls';
@@ -19,25 +17,29 @@ export default function SearchMapOverlay({
   filtersButton,
   filtersContent,
   alertCard,
+  navigateViewState = 'browse',
+  arrivalMetrics = { distanceMeters: 0, etaMinutes: 0 },
 }) {
   const overlayRef = useRef(null);
-  const searchRef = useRef(null);
+  const topRef = useRef(null);
   const cardRef = useRef(null);
   const [pinTop, setPinTop] = useState(null);
 
+  const isArriving = navigateViewState === 'arriving';
+
   useEffect(() => {
     const overlay = overlayRef.current;
-    const search = searchRef.current;
+    const top = topRef.current;
     const card = cardRef.current;
-    if (!overlay || !search || !card) return;
+    if (!overlay || !top || !card) return;
 
     const updatePinPosition = () => {
       const overlayRect = overlay.getBoundingClientRect();
-      const searchRect = search.getBoundingClientRect();
+      const topRect = top.getBoundingClientRect();
       const cardRect = card.getBoundingClientRect();
-      const searchBottom = searchRect.bottom;
+      const topBottom = topRect.bottom;
       const cardTop = cardRect.top;
-      const midPoint = (searchBottom + cardTop) / 2;
+      const midPoint = (topBottom + cardTop) / 2;
       const pinTopFromOverlay = midPoint - overlayRect.top - PIN_HEIGHT;
       setPinTop(Math.max(0, pinTopFromOverlay));
     };
@@ -45,10 +47,10 @@ export default function SearchMapOverlay({
     updatePinPosition();
     const ro = new ResizeObserver(updatePinPosition);
     ro.observe(overlay);
-    ro.observe(search);
+    ro.observe(top);
     ro.observe(card);
     return () => ro.disconnect();
-  }, []);
+  }, [isArriving]);
 
   return (
     <div
@@ -57,15 +59,34 @@ export default function SearchMapOverlay({
       style={{ overflow: 'hidden' }}
       aria-hidden="true"
     >
-      {/* Botón filtros */}
-      <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
-        {filtersButton}
-        {filtersContent}
-      </div>
+      {/* Filtros: solo en browse */}
+      {!isArriving && (
+        <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
+          {filtersButton}
+          {filtersContent}
+        </div>
+      )}
 
-      {/* StreetSearch */}
-      <div ref={searchRef} className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
-        <StreetSearch onSelect={onStreetSelect} placeholder="Buscar calle o dirección..." />
+      {/* Top: search en browse, distancia+ETA en arriving */}
+      <div ref={topRef} className="px-4 pt-3 pb-2 flex-shrink-0 pointer-events-auto">
+        {isArriving ? (
+          <div className="flex gap-3">
+            <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              <span className="text-white font-bold text-sm">
+                {arrivalMetrics.distanceMeters} m
+              </span>
+            </div>
+            <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-purple-400 flex-shrink-0" />
+              <span className="text-white font-bold text-sm">
+                {arrivalMetrics.etaMinutes > 0 ? `${arrivalMetrics.etaMinutes} min` : 'Llegando'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <StreetSearch onSelect={onStreetSelect} placeholder="Buscar calle o dirección..." />
+        )}
       </div>
 
       {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create) */}
