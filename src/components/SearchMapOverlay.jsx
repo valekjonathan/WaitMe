@@ -85,7 +85,7 @@ export default function SearchMapOverlay({
 
       {/* Misma estructura que CreateMapOverlay: MapScreenPanel sin offsets */}
       <div ref={cardRef} className="pointer-events-none">
-        <MapScreenPanel overflowHidden measureLabel="navigate">
+        <MapScreenPanel overflowHidden measureLabel="navigate" cardShiftUp={7}>
           <div className="pointer-events-auto">{alertCard}</div>
         </MapScreenPanel>
       </div>

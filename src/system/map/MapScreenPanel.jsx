@@ -53,7 +53,9 @@ export default function MapScreenPanel({
         className="w-[92%] max-w-[460px] pointer-events-auto min-h-[200px]"
         style={{
           transform: 'translateY(0)',
-          maxHeight: 'min(55vh, 340px)',
+          ...(measureLabel === 'create' || measureLabel === 'navigate'
+            ? { minHeight: 260, maxHeight: 300 }
+            : { maxHeight: 'min(55vh, 340px)' }),
           overflowY: overflowHidden ? 'hidden' : 'auto',
           overscrollBehavior: overflowHidden ? 'none' : 'contain',
           touchAction: overflowHidden ? 'none' : 'pan-y',

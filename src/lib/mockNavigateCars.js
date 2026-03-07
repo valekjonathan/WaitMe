@@ -71,8 +71,8 @@ export function getMockNavigateCars(userLocation) {
   const now = Date.now();
   const result = [];
 
-  // Radio pequeño: ~200m (lat/lng ± 0.002 ≈ 220m)
-  const RADIUS = 0.002;
+  // Radio inicial 1 km (0.009° ≈ 1 km en latitud a 43°N)
+  const RADIUS = 0.009;
 
   for (let i = 0; i < 20; i++) {
     const angle = (i / 20) * 2 * Math.PI + Math.random() * 0.5;

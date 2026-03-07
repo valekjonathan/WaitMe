@@ -19,9 +19,10 @@ export function alertsToGeoJSON(alerts) {
       if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
       return {
         type: 'Feature',
-        id: a.id ?? `alert-${lat}-${lng}`,
+        id: a.id ?? a.user_id ?? `alert-${lat}-${lng}`,
         geometry: { type: 'Point', coordinates: [lng, lat] },
         properties: {
+          id: a.id ?? a.user_id,
           vehicle_type: a.vehicle_type ?? 'car',
           color: a.vehicle_color ?? a.color ?? 'gray',
           price: a.price ?? 0,

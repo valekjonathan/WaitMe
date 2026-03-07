@@ -777,7 +777,7 @@ export default function Home() {
             }}
             useCenterPin={mode === 'create' || mode === 'search'}
             centerPinFromOverlay={mode === 'create' || mode === 'search'}
-            centerPaddingBottom={mode === 'create' ? 280 : mode === 'search' ? 120 : 0}
+            centerPaddingBottom={mode === 'create' || mode === 'search' ? 280 : 0}
             onMapMove={mode === 'create' ? handleMapMove : undefined}
             onMapMoveEnd={
               mode === 'create'

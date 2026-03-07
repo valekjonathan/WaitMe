@@ -1,9 +1,10 @@
 /**
  * Capas del mapa — base para arquitectura GeoJSON.
- * StaticCarsLayer, WaitMeCarLayer, UserLocationLayer se implementan
- * como funciones que actualizan sources/layers del mapa.
+ * StaticCarsLayer, UserLocationLayer listas para migración.
+ * MapboxMap sigue con DOM markers; activar cuando se migre.
  *
  * @module mapLayers
  */
 
 export { alertsToGeoJSON, userLocationToFeature } from './geojsonUtils.js';
+export { addStaticCarsLayer, addUserLocationLayer } from './layers.js';
