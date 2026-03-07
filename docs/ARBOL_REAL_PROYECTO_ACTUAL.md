@@ -1,7 +1,7 @@
 # Árbol real del proyecto WaitMe — Snapshot actual
 
 **Fecha:** 2026-03-07  
-**ZIP:** `tmp/waitme-master-fix-all.zip`
+**ZIP:** `tmp/waitme-auditoria-maestra.zip`
 
 ---
 
@@ -198,7 +198,7 @@ WaitMenuevo/
 │       ├── map-match/
 │       └── release-payment/
 ├── tmp/
-│   └── waitme-master-full-audit.zip
+│   └── waitme-auditoria-maestra.zip
 └── (config: package.json, vite.config, etc.)
 ```
 

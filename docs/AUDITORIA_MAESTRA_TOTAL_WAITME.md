@@ -1,0 +1,119 @@
+# Auditoría Maestra Total — WaitMe
+
+**Fecha:** 2026-03-07  
+**ZIP:** `tmp/waitme-auditoria-maestra.zip`
+
+---
+
+## 1. Estado general
+
+| Área | Estado |
+|------|--------|
+| Lint | OK |
+| Typecheck | OK |
+| Build | OK |
+| Tests | 24 passed, 13 skipped |
+| CI | Verde (run #197 success) |
+| Boot | MissingEnvScreen cuando env inválidas; ErrorBoundary en DEV |
+| Ubicación | Motor único, getPreciseInitialLocation, MapboxMap sin watcher si locationFromEngine |
+| Mapa | GeoJSON layers activas (StaticCarsLayer, UserLocationLayer) |
+
+---
+
+## 2. Qué sobra
+
+| Elemento | Ubicación | Acción |
+|----------|-----------|--------|
+| quarantine/ | Raíz | Código deprecado; no en build |
+| workflows_disabled/ | .github | No ejecutados; mantener por referencia |
+| runtimeConfig.resetRuntimeConfig | lib/runtimeConfig.js | Export no usado; mantener para tests |
+| ios_run_last.log | Raíz | Log generado; añadir a .gitignore si molesta |
+
+---
+
+## 3. Qué está duplicado
+
+| Duplicado | Ubicación | Estado |
+|-----------|-----------|--------|
+| locationMovementValidator | lib/location/ y lib/locationPipeline/ | Pipeline es activo; lib usado por transactionEngine |
+| locationFraudDetector | lib/location/ y lib/locationPipeline/ | Idem |
+| transactionEngine | lib/ (balance/finalize) y lib/transaction/ (proximity) | Nombres distintos; roles distintos |
+| haversineKm, getCarColor, formatPlate | Navigate, History, Profile | Duplicados locales; carUtils centralizado |
+| getCarFill, getCarFillThinking | History | Pasados a HistorySellerView; carUtils tiene getCarFill |
+
+---
+
+## 4. Qué está mal / frágil
+
+| Problema | Archivo | Fix sugerido |
+|----------|---------|--------------|
+| userLocationsSupabase retorna [] en error | services/userLocationsSupabase.js | Retornar { data: [], error } para consistencia |
+| AddressAutocompleteInput: fetch sin abort | AddressAutocompleteInput.jsx | AbortController en cleanup |
+| Empty catch {} en muchos archivos | BottomNav, IncomingRequestModal, etc. | Logging en DEV; no romper |
+| locationMapMatcher positionBuffer | locationPipeline/locationMapMatcher.js | Buffer compartido; posible race |
+
+---
+
+## 5. Qué impide 10/10
+
+1. **Duplicidad location:** Unificar validators/fraud entre lib/location y pipeline
+2. **Duplicidad carUtils:** Navigate, History, Profile deberían importar de @/utils/carUtils
+3. **Error handling:** Muchos catch vacíos; mejorar en fases
+4. **Login Google Simulator:** Requiere validación manual con VITE_DEV_BYPASS_AUTH=true
+
+---
+
+## 6. Qué puede limpiarse sin riesgo
+
+- Imports no usados (lint:fix)
+- ~~Unificar haversineKm en Navigate~~ → **Aplicado:** Navigate importa haversineKm de @/utils/carUtils
+- getCarColor en Navigate: mantiene mapeo extendido (blanca, negra, etc.); carUtils.getCarFill tiene subset
+- Documentar resetRuntimeConfig como test-only
+
+---
+
+## 7. Boot / Arranque
+
+- **main.jsx:** getRuntimeConfig → MissingEnvScreen si !canBoot; ErrorBoundary envuelve App
+- **runtimeConfig:** Valida VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_MAPBOX_TOKEN
+- **canBoot:** true si hasSupabase (no requiere Mapbox para arrancar)
+- **ErrorBoundary:** Muestra error + stack en DEV; link a modo seguro
+- **MissingEnvScreen:** Lista variables faltantes; clara
+
+---
+
+## 8. Ubicación exacta
+
+- **locationEngine:** getPreciseInitialLocation (skipPipeline:true) → watchPosition
+- **useLocationEngine:** subscribeToLocation
+- **Home:** locationFromEngine={engineLocation ?? userLocation}, suppressInternalWatcher
+- **MapboxMap:** No watchPosition si locationFromEngine != null
+- **Ubícate:** getPreciseInitialLocation directo
+- **Race:** firstPreciseReceived evita emitir hasta tener primera posición
+
+---
+
+## 9. Mapa tipo Uber
+
+- **StaticCarsLayer:** addStaticCarsLayer en MapboxMap (líneas 416-422)
+- **UserLocationLayer:** addUserLocationLayer (líneas 424-434, cuando !useCenterPin)
+- **DOM markers:** Eliminados; markersRef vacío
+- **Click:** onAlertClick en layers.js
+- **WaitMeCarLayer:** No implementada; opcional
+
+---
+
+## 10. CI / Vercel / Supabase
+
+- **CI:** ubuntu-22.04, Chromium, verde (run #197)
+- **Supabase migrations:** Repo NO ejecuta; emails de integración externa Dashboard
+- **Vercel:** npm run build, dist; env: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_MAPBOX_TOKEN
+
+---
+
+## 11. Reglas fijas verificadas
+
+- Coches NO se mueven (mockNavigateCars estáticos)
+- Solo coche dinámico con WAITME_ACTIVE en "Estoy aparcado aquí"
+- MapboxMap no duplicado
+- Home no tocado salvo necesario
