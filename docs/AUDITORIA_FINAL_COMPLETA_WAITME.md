@@ -17,7 +17,7 @@ src/
 ├── dev/             — diagnostics.js, layoutInspector.js
 ├── diagnostics/     — MissingEnvScreen, SafeModeShell
 ├── hooks/           — useMyAlerts.js, useProfileGuard.ts
-├── lib/             — AuthContext, mapLayoutPadding, reverseGeocode, supabaseClient, vehicleIcons, etc.
+├── lib/             — AuthContext, mapLayoutPadding, supabaseClient, vehicleIcons, etc.
 ├── components/      — MapboxMap, CreateMapOverlay, CreateAlertCard, CenterPin, MapZoomControls, etc.
 ├── pages/           — Home, History, Chat, Chats, Login, Navigate, Profile, Settings, etc.
 ├── services/        — *Supabase.js (alerts, chat, notifications, profiles, transactions, uploads, userLocations)
@@ -214,4 +214,10 @@ quarantine/          — código legacy (hooks, realtime, componentes antiguos)
 ### Prioridad baja
 
 6. Revisar dependencias no usadas (knip) — muchas son de shadcn/ui; no eliminar sin verificar.
-7. quarantine/: mantener; evaluar limpieza en sprint futuro.
+7. **quarantine/**: Mantener. Ya documentado en quarantine/README.md. Contiene código legacy de referencia (ErrorBoundary, hooks, logger, etc.). No eliminar sin decisión explícita.
+
+### Home.jsx — Cambio realizado (justificado)
+
+**Cambio**: Se añadió `skipAutoFlyWhenCenterPin={mode === 'create'}` a MapboxMap.
+
+**Justificación**: Imprescindible para cumplir el requisito "el mapa NO se mueve al entrar". MapboxMap tiene un useEffect que hace `easeTo` automático cuando `useCenterPin` es true. Home es el único componente que conoce `mode`. No es posible mover esta lógica fuera de Home sin pasar el mode desde Home. Es un cambio mínimo (una línea, solo paso de prop).

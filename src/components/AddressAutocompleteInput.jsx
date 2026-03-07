@@ -16,7 +16,10 @@ export default function AddressAutocompleteInput({
   idPrefix = 'addr',
   limit = 6,
 }) {
-  const listId = useMemo(() => `${idPrefix}-datalist-${Math.random().toString(36).slice(2)}`, [idPrefix]);
+  const listId = useMemo(
+    () => `${idPrefix}-datalist-${Math.random().toString(36).slice(2)}`,
+    [idPrefix]
+  );
   const [options, setOptions] = useState([]);
   const lastQueryRef = useRef('');
   const abortRef = useRef(null);
@@ -58,7 +61,7 @@ export default function AddressAutocompleteInput({
           signal: controller.signal,
           headers: {
             // Nominatim recomienda identificar el cliente; sin emails/keys aquí.
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
         });
         if (!res.ok) return;
@@ -70,7 +73,17 @@ export default function AddressAutocompleteInput({
               const type = String(it?.type || '').toLowerCase();
               if (cls !== 'highway') return false;
               // Tipos de vía comunes
-              return ['residential','tertiary','primary','secondary','unclassified','living_street','service','road','pedestrian'].includes(type);
+              return [
+                'residential',
+                'tertiary',
+                'primary',
+                'secondary',
+                'unclassified',
+                'living_street',
+                'service',
+                'road',
+                'pedestrian',
+              ].includes(type);
             })
           : [];
         // Evita respuestas viejas si el usuario siguió escribiendo
@@ -84,7 +97,7 @@ export default function AddressAutocompleteInput({
           : [];
 
         setOptions(mapped);
-      } catch (e) {
+      } catch (_e) {
         // Abort o red: silencioso
       }
     }, 200);

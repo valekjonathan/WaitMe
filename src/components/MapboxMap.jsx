@@ -12,7 +12,7 @@ const RENDER_LOG = (msg, extra) => {
 };
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
-const FALLBACK_ZOOM = 14;
+const _FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 16.5;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';

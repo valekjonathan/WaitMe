@@ -13,14 +13,14 @@ function MarcoCard({
   statusText = 'COMPLETADA',
   address,
   timeLine,
-  priceChip,
+  priceChip: _priceChip,
   phoneEnabled = false,
   onCall,
   statusEnabled = false,
   bright = false,
   dimmed = false,
-  conversationId,
-  role,
+  conversationId: _conversationId,
+  role: _role,
 }) {
   const stUpper = String(statusText || '')
     .trim()

@@ -32,7 +32,7 @@ export default function Notifications() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [tick, setTick] = useState(0);
+  const [tick, _setTick] = useState(0);
 
   const { data: realNotifications = [] } = useQuery({
     queryKey: ['notifications', user?.id],

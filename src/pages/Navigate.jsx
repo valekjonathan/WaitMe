@@ -22,25 +22,30 @@ function getAlertIdFromLocation() {
 
 const getCarColor = (color) => {
   const colorMap = {
-    blanco: '#f5f5f5', blanca: '#f5f5f5',
-    negro: '#1a1a1a', negra: '#1a1a1a',
-    rojo: '#dc2626', roja: '#dc2626',
+    blanco: '#f5f5f5',
+    blanca: '#f5f5f5',
+    negro: '#1a1a1a',
+    negra: '#1a1a1a',
+    rojo: '#dc2626',
+    roja: '#dc2626',
     azul: '#2563eb',
     verde: '#16a34a',
-    gris: '#6b7280', grisáceo: '#6b7280',
+    gris: '#6b7280',
+    grisáceo: '#6b7280',
     amarillo: '#eab308',
     naranja: '#f97316',
     rosa: '#ec4899',
     morado: '#9333ea',
     plateado: '#c0c0c0',
     dorado: '#d97706',
-    marrón: '#8b4513', marron: '#8b4513',
+    marrón: '#8b4513',
+    marron: '#8b4513',
   };
   return colorMap[String(color || '').toLowerCase()] || '#808080';
 };
 
 const DEMO_ALERTS = {
-  'demo_1': {
+  demo_1: {
     id: 'demo_1',
     user_name: 'Sofía',
     user_photo: 'https://randomuser.me/api/portraits/women/44.jpg',
@@ -56,21 +61,106 @@ const DEMO_ALERTS = {
     phone: '600123123',
     allow_phone_calls: true,
     price: 3,
-    available_in_minutes: 6
+    available_in_minutes: 6,
   },
-  'demo_2': { id:'demo_2', user_name:'Marco', user_photo:'https://randomuser.me/api/portraits/men/32.jpg', user_id:'seller-2', user_email:'seller2@test.com', brand:'Volkswagen', model:'Golf', color:'negro', plate:'5678 HJP', address:'Calle Fray Ceferino, Oviedo', latitude:43.3612, longitude:-5.8502, phone:'600456789', allow_phone_calls:true, price:5, available_in_minutes:10 },
-  'demo_3': { id:'demo_3', user_name:'Nerea', user_photo:'https://randomuser.me/api/portraits/women/68.jpg', user_id:'seller-3', user_email:'seller3@test.com', brand:'Toyota', model:'RAV4', color:'azul', plate:'9012 LSR', address:'Calle Campoamor, Oviedo', latitude:43.363, longitude:-5.8489, phone:'600789012', allow_phone_calls:true, price:7, available_in_minutes:14 },
-  'demo_4': { id:'demo_4', user_name:'David', user_photo:'https://randomuser.me/api/portraits/men/19.jpg', user_id:'seller-4', user_email:'seller4@test.com', brand:'Renault', model:'Trafic', color:'gris', plate:'3456 JTZ', address:'Plaza de la Escandalera, Oviedo', latitude:43.3609, longitude:-5.8501, phone:'600234567', allow_phone_calls:true, price:4, available_in_minutes:4 },
-  'demo_5': { id:'demo_5', user_name:'Lucía', user_photo:'https://randomuser.me/api/portraits/women/12.jpg', user_id:'seller-5', user_email:'seller5@test.com', brand:'Peugeot', model:'208', color:'rojo', plate:'7788 MNB', address:'Calle Rosal, Oviedo', latitude:43.3623, longitude:-5.8483, phone:'600345678', allow_phone_calls:true, price:2, available_in_minutes:3 },
-  'demo_6': { id:'demo_6', user_name:'Álvaro', user_photo:'https://randomuser.me/api/portraits/men/61.jpg', user_id:'seller-6', user_email:'seller6@test.com', brand:'Kia', model:'Sportage', color:'verde', plate:'2468 GHT', address:'Calle Jovellanos, Oviedo', latitude:43.3615, longitude:-5.8505, phone:'600567890', allow_phone_calls:true, price:6, available_in_minutes:18 }
+  demo_2: {
+    id: 'demo_2',
+    user_name: 'Marco',
+    user_photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+    user_id: 'seller-2',
+    user_email: 'seller2@test.com',
+    brand: 'Volkswagen',
+    model: 'Golf',
+    color: 'negro',
+    plate: '5678 HJP',
+    address: 'Calle Fray Ceferino, Oviedo',
+    latitude: 43.3612,
+    longitude: -5.8502,
+    phone: '600456789',
+    allow_phone_calls: true,
+    price: 5,
+    available_in_minutes: 10,
+  },
+  demo_3: {
+    id: 'demo_3',
+    user_name: 'Nerea',
+    user_photo: 'https://randomuser.me/api/portraits/women/68.jpg',
+    user_id: 'seller-3',
+    user_email: 'seller3@test.com',
+    brand: 'Toyota',
+    model: 'RAV4',
+    color: 'azul',
+    plate: '9012 LSR',
+    address: 'Calle Campoamor, Oviedo',
+    latitude: 43.363,
+    longitude: -5.8489,
+    phone: '600789012',
+    allow_phone_calls: true,
+    price: 7,
+    available_in_minutes: 14,
+  },
+  demo_4: {
+    id: 'demo_4',
+    user_name: 'David',
+    user_photo: 'https://randomuser.me/api/portraits/men/19.jpg',
+    user_id: 'seller-4',
+    user_email: 'seller4@test.com',
+    brand: 'Renault',
+    model: 'Trafic',
+    color: 'gris',
+    plate: '3456 JTZ',
+    address: 'Plaza de la Escandalera, Oviedo',
+    latitude: 43.3609,
+    longitude: -5.8501,
+    phone: '600234567',
+    allow_phone_calls: true,
+    price: 4,
+    available_in_minutes: 4,
+  },
+  demo_5: {
+    id: 'demo_5',
+    user_name: 'Lucía',
+    user_photo: 'https://randomuser.me/api/portraits/women/12.jpg',
+    user_id: 'seller-5',
+    user_email: 'seller5@test.com',
+    brand: 'Peugeot',
+    model: '208',
+    color: 'rojo',
+    plate: '7788 MNB',
+    address: 'Calle Rosal, Oviedo',
+    latitude: 43.3623,
+    longitude: -5.8483,
+    phone: '600345678',
+    allow_phone_calls: true,
+    price: 2,
+    available_in_minutes: 3,
+  },
+  demo_6: {
+    id: 'demo_6',
+    user_name: 'Álvaro',
+    user_photo: 'https://randomuser.me/api/portraits/men/61.jpg',
+    user_id: 'seller-6',
+    user_email: 'seller6@test.com',
+    brand: 'Kia',
+    model: 'Sportage',
+    color: 'verde',
+    plate: '2468 GHT',
+    address: 'Calle Jovellanos, Oviedo',
+    latitude: 43.3615,
+    longitude: -5.8505,
+    phone: '600567890',
+    allow_phone_calls: true,
+    price: 6,
+    available_in_minutes: 18,
+  },
 };
 
 export default function Navigate() {
   const alertId = getAlertIdFromLocation();
 
   const [user, setUser] = useState(null);
-  const [userLocation, setUserLocation] = useState([43.3670, -5.8440]);
-  const [sellerLocation, setSellerLocation] = useState([43.3620, -5.8490]);
+  const [userLocation, setUserLocation] = useState([43.367, -5.844]);
+  const [sellerLocation, setSellerLocation] = useState([43.362, -5.849]);
   const [isTracking, setIsTracking] = useState(false);
   const [paymentReleased, setPaymentReleased] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
@@ -78,7 +168,7 @@ export default function Navigate() {
   const [showAbandonWarning, setShowAbandonWarning] = useState(false);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const watchIdRef = useRef(null);
+  const _watchIdRef = useRef(null);
   const queryClient = useQueryClient();
   const hasReleasedPaymentRef = useRef(false);
   const animationRef = useRef(null);
@@ -122,47 +212,64 @@ export default function Navigate() {
     } catch {}
 
     const moveTowardsDestination = () => {
-      setUserLocation(prevLoc => {
+      setUserLocation((prevLoc) => {
         if (!prevLoc || !sellerLocation) return prevLoc;
-        const lat1 = prevLoc[0], lon1 = prevLoc[1];
-        const lat2 = sellerLocation[0], lon2 = sellerLocation[1];
+        const lat1 = prevLoc[0],
+          lon1 = prevLoc[1];
+        const lat2 = sellerLocation[0],
+          lon2 = sellerLocation[1];
         const R = 6371000;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        const distM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) ** 2;
+        const distM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         if (distM < 5) return prevLoc;
         const stepSize = 15 / R;
         const fraction = Math.min(stepSize / (distM / R), 1);
-        return [lat1 + (lat2-lat1)*fraction, lon1 + (lon2-lon1)*fraction];
+        return [lat1 + (lat2 - lat1) * fraction, lon1 + (lon2 - lon1) * fraction];
       });
 
       // Mover al vendedor también hacia el usuario
-      setSellerLocation(prevLoc => {
+      setSellerLocation((prevLoc) => {
         if (!prevLoc || !userLocation) return prevLoc;
-        const lat1 = prevLoc[0], lon1 = prevLoc[1];
-        const lat2 = userLocation[0], lon2 = userLocation[1];
+        const lat1 = prevLoc[0],
+          lon1 = prevLoc[1];
+        const lat2 = userLocation[0],
+          lon2 = userLocation[1];
         const R = 6371000;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        const distM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dLat = ((lat2 - lat1) * Math.PI) / 180;
+        const dLon = ((lon2 - lon1) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos((lat1 * Math.PI) / 180) *
+            Math.cos((lat2 * Math.PI) / 180) *
+            Math.sin(dLon / 2) ** 2;
+        const distM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         if (distM < 5) return prevLoc;
         const stepSize = 12 / R;
         const fraction = Math.min(stepSize / (distM / R), 1);
-        return [lat1 + (lat2-lat1)*fraction, lon1 + (lon2-lon1)*fraction];
+        return [lat1 + (lat2 - lat1) * fraction, lon1 + (lon2 - lon1) * fraction];
       });
     };
     animationRef.current = setInterval(moveTowardsDestination, 400);
   };
 
   const stopTracking = () => {
-    if (animationRef.current) { clearInterval(animationRef.current); animationRef.current = null; }
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+      animationRef.current = null;
+    }
     setIsTracking(false);
   };
 
   useEffect(() => {
-    return () => { if (animationRef.current) clearInterval(animationRef.current); };
+    return () => {
+      if (animationRef.current) clearInterval(animationRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -176,39 +283,57 @@ export default function Navigate() {
   const calculateDistanceBetweenUsers = () => {
     if (!userLocation || !sellerLocation) return null;
     const R = 6371000;
-    const lat1 = userLocation[0] * Math.PI / 180;
-    const lat2 = sellerLocation[0] * Math.PI / 180;
-    const dLat = (sellerLocation[0] - userLocation[0]) * Math.PI / 180;
-    const dLon = (sellerLocation[1] - userLocation[1]) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const lat1 = (userLocation[0] * Math.PI) / 180;
+    const lat2 = (sellerLocation[0] * Math.PI) / 180;
+    const dLat = ((sellerLocation[0] - userLocation[0]) * Math.PI) / 180;
+    const dLon = ((sellerLocation[1] - userLocation[1]) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
   const distanceMeters = calculateDistanceBetweenUsers();
 
   useEffect(() => {
-    const sellerHere = alert && user && (String(alert.user_id)===String(user?.id) || String(alert.user_email)===String(user?.email));
+    const sellerHere =
+      alert &&
+      user &&
+      (String(alert.user_id) === String(user?.id) ||
+        String(alert.user_email) === String(user?.email));
     if (!alert || sellerHere || paymentReleased) return;
     if (distanceMeters === null) return;
-    if (distanceMeters <= 5) { wasWithin5mRef.current = true; setShowAbandonWarning(false); }
-    else if (wasWithin5mRef.current) setShowAbandonWarning(true);
+    if (distanceMeters <= 5) {
+      wasWithin5mRef.current = true;
+      setShowAbandonWarning(false);
+    } else if (wasWithin5mRef.current) setShowAbandonWarning(true);
   }, [distanceMeters, alert, user, paymentReleased]);
 
-  const distLabel = distanceMeters != null
-    ? distanceMeters < 1000 ? `${Math.round(distanceMeters)} m` : `${(distanceMeters/1000).toFixed(1)} km`
-    : '--';
+  const distLabel =
+    distanceMeters != null
+      ? distanceMeters < 1000
+        ? `${Math.round(distanceMeters)} m`
+        : `${(distanceMeters / 1000).toFixed(1)} km`
+      : '--';
 
   const etaMinutes = (() => {
-    if (distanceMeters == null || distanceMeters <= 0 || !routeDistanceKm || routeDistanceKm <= 0 || !routeDurationSec) return null;
+    if (
+      distanceMeters == null ||
+      distanceMeters <= 0 ||
+      !routeDistanceKm ||
+      routeDistanceKm <= 0 ||
+      !routeDurationSec
+    )
+      return null;
     const remainingKm = distanceMeters / 1000;
     const speedKmPerSec = routeDistanceKm / routeDurationSec;
     if (!speedKmPerSec) return null;
-    return Math.max(1, Math.round((remainingKm / speedKmPerSec) / 60));
+    return Math.max(1, Math.round(remainingKm / speedKmPerSec / 60));
   })();
 
   useEffect(() => {
     if (!alert || !user || hasReleasedPaymentRef.current || paymentReleased) return;
-    const isSellerHere = String(alert.user_id)===String(user?.id) || String(alert.user_email)===String(user?.email);
+    const isSellerHere =
+      String(alert.user_id) === String(user?.id) ||
+      String(alert.user_email) === String(user?.email);
     if (isSellerHere) return;
     if ((distanceMeters === null || distanceMeters > 5) && !forceRelease) return;
     if (forceRelease) setForceRelease(false);
@@ -242,35 +367,58 @@ export default function Navigate() {
         const { data: conv } = await chat.createConversation({
           buyerId: user.id,
           sellerId: alert.user_id || alert.seller_id,
-          alertId: alert.id
+          alertId: alert.id,
         });
         if (conv?.id) {
           await chat.sendMessage({
             conversationId: conv.id,
             senderId: user.id,
-            body: `✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`
+            body: `✅ Pago liberado: ${alert.price.toFixed(2)}€. El vendedor recibirá ${sellerEarnings.toFixed(2)}€`,
           });
         }
       }
       setPaymentReleased(true);
       setShowPaymentSuccess(true);
-      try { window.dispatchEvent(new CustomEvent('waitme:paymentReleased', { detail: { amount: Number(alert?.price ?? 0) } })); } catch {}
+      try {
+        window.dispatchEvent(
+          new CustomEvent('waitme:paymentReleased', {
+            detail: { amount: Number(alert?.price ?? 0) },
+          })
+        );
+      } catch {}
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['navigationAlert'] });
       queryClient.invalidateQueries({ queryKey: ['myTransactions'] });
-      setTimeout(() => { window.location.href = createPageUrl('History'); }, 3000);
+      setTimeout(() => {
+        window.location.href = createPageUrl('History');
+      }, 3000);
     };
     releasePayment();
   }, [distanceMeters, alert, user, paymentReleased, queryClient, forceRelease]);
 
   const displayAlert = alert;
-  const isSeller = displayAlert && user && (String(displayAlert.user_id)===String(user?.id) || String(displayAlert.user_email)===String(user?.email));
-  const isBuyer = displayAlert && user && (String(displayAlert.reserved_by_id)===String(user?.id) || String(displayAlert.reserved_by_email)===String(user?.email));
+  const isSeller =
+    displayAlert &&
+    user &&
+    (String(displayAlert.user_id) === String(user?.id) ||
+      String(displayAlert.user_email) === String(user?.email));
+  const isBuyer =
+    displayAlert &&
+    user &&
+    (String(displayAlert.reserved_by_id) === String(user?.id) ||
+      String(displayAlert.reserved_by_email) === String(user?.email));
 
-  const sellerName = (isBuyer ? displayAlert?.user_name : (displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario'))?.split(' ')[0] || 'Usuario';
+  const sellerName =
+    (isBuyer
+      ? displayAlert?.user_name
+      : displayAlert?.reserved_by_name || displayAlert?.user_name || 'Usuario'
+    )?.split(' ')[0] || 'Usuario';
   const sellerPhoto = isBuyer
-    ? (displayAlert?.user_photo || null)
-    : (displayAlert?.reserved_by_photo || (displayAlert?.reserved_by_name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128` : null));
+    ? displayAlert?.user_photo || null
+    : displayAlert?.reserved_by_photo ||
+      (displayAlert?.reserved_by_name
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayAlert.reserved_by_name)}&background=7c3aed&color=fff&size=128`
+        : null);
 
   // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde) + icono coche
   const userCarIcon = displayAlert?.color
@@ -312,36 +460,47 @@ export default function Navigate() {
     : `<div style="position:relative;width:44px;height:44px;border-radius:10px;border:3px solid #a855f7;box-shadow:0 0 12px rgba(168,85,247,0.8);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;color:#a855f7;">${sellerName.charAt(0)}${sellerCarIcon}</div>`;
 
   // Construir alert en formato compatible con UserAlertCard
-  const alertForCard = displayAlert ? {
-    ...displayAlert,
-    // Para UserAlertCard siempre mostramos los datos del vendedor (la otra persona)
-    user_name: sellerName,
-    user_photo: sellerPhoto,
-    brand: isBuyer ? displayAlert.brand : (displayAlert.reserved_by_car?.split(' ')[0] || ''),
-    model: isBuyer ? displayAlert.model : (displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || ''),
-    plate: isBuyer ? displayAlert.plate : (displayAlert.reserved_by_plate || ''),
-    color: isBuyer ? displayAlert.color : (displayAlert.reserved_by_car_color || 'gris'),
-    phone: isBuyer ? (displayAlert.phone || null) : null,
-    allow_phone_calls: isBuyer ? displayAlert.allow_phone_calls : false,
-    wait_until: displayAlert.expires_at, // Para mostrar la hora hasta que expira
-  } : null;
+  const alertForCard = displayAlert
+    ? {
+        ...displayAlert,
+        // Para UserAlertCard siempre mostramos los datos del vendedor (la otra persona)
+        user_name: sellerName,
+        user_photo: sellerPhoto,
+        brand: isBuyer ? displayAlert.brand : displayAlert.reserved_by_car?.split(' ')[0] || '',
+        model: isBuyer
+          ? displayAlert.model
+          : displayAlert.reserved_by_car?.split(' ').slice(1).join(' ') || '',
+        plate: isBuyer ? displayAlert.plate : displayAlert.reserved_by_plate || '',
+        color: isBuyer ? displayAlert.color : displayAlert.reserved_by_car_color || 'gris',
+        phone: isBuyer ? displayAlert.phone || null : null,
+        allow_phone_calls: isBuyer ? displayAlert.allow_phone_calls : false,
+        wait_until: displayAlert.expires_at, // Para mostrar la hora hasta que expira
+      }
+    : null;
 
   return (
     <div className="min-h-[100dvh] bg-black text-white flex flex-col">
-
       {/* Payment success overlay */}
       {showPaymentSuccess && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 mx-6 text-center shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 mx-6 text-center shadow-2xl"
+          >
             <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-5xl">✅</span>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">¡Pago liberado!</h2>
             <p className="text-green-100 mb-4">Estás a menos de 5 metros</p>
             <div className="bg-white/20 rounded-xl p-3">
-              <p className="text-white font-bold text-2xl">{alert?.price != null ? Number(alert.price).toFixed(2) : '0.00'}€</p>
+              <p className="text-white font-bold text-2xl">
+                {alert?.price != null ? Number(alert.price).toFixed(2) : '0.00'}€
+              </p>
               <p className="text-green-100 text-sm">Transacción completada</p>
             </div>
           </motion.div>
@@ -350,13 +509,24 @@ export default function Navigate() {
 
       {/* Abandon warning */}
       {showAbandonWarning && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4">
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-            className="bg-amber-500/20 border-2 border-amber-500 rounded-2xl p-6 max-w-sm text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-amber-500/20 border-2 border-amber-500 rounded-2xl p-6 max-w-sm text-center"
+          >
             <p className="text-amber-400 font-bold text-lg">Estás abandonando el lugar...</p>
-            <p className="text-gray-300 text-sm mt-2">Vuelve a menos de 5 m para completar la entrega.</p>
-            <Button className="mt-4 bg-amber-600 hover:bg-amber-700 text-white" onClick={() => setShowAbandonWarning(false)}>
+            <p className="text-gray-300 text-sm mt-2">
+              Vuelve a menos de 5 m para completar la entrega.
+            </p>
+            <Button
+              className="mt-4 bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => setShowAbandonWarning(false)}
+            >
               Entendido
             </Button>
           </motion.div>
@@ -365,10 +535,16 @@ export default function Navigate() {
 
       {/* Cancel warning (reserved alert) */}
       {showCancelWarning && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[150] bg-black/70">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[150] flex items-end">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[150] bg-black/70"
+        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[150] flex items-end"
+          >
             <div className="w-full bg-gray-950 rounded-t-3xl shadow-2xl border-t border-gray-800 border-b-2 border-b-purple-500">
               {/* Close button */}
               <button
@@ -388,9 +564,7 @@ export default function Navigate() {
 
                 {/* Message */}
                 <div className="text-center">
-                  <p className="text-white font-bold text-base">
-                    La alerta está reservada.
-                  </p>
+                  <p className="text-white font-bold text-base">La alerta está reservada.</p>
                   <p className="text-gray-400 text-sm mt-1">
                     {sellerName} está en camino. Si la cancelas, perderás la reserva.
                   </p>
@@ -406,9 +580,14 @@ export default function Navigate() {
                   </Button>
                   <Button
                     onClick={async () => {
-                      await alerts.updateAlert(displayAlert.id, { status: 'cancelled', cancel_reason: 'user_cancelled' });
+                      await alerts.updateAlert(displayAlert.id, {
+                        status: 'cancelled',
+                        cancel_reason: 'user_cancelled',
+                      });
                       setShowCancelWarning(false);
-                      setTimeout(() => { window.location.href = createPageUrl('Home'); }, 500);
+                      setTimeout(() => {
+                        window.location.href = createPageUrl('Home');
+                      }, 500);
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white rounded-lg h-9"
                   >
@@ -440,7 +619,10 @@ export default function Navigate() {
       </div>
 
       {/* Botones flotantes: Distancia y ETA — encima del mapa */}
-      <div className="fixed left-0 right-0 z-40 px-4 flex gap-2" style={{ top: 'calc(56px + 15px)' }}>
+      <div
+        className="fixed left-0 right-0 z-40 px-4 flex gap-2"
+        style={{ top: 'calc(56px + 15px)' }}
+      >
         <div className="flex-1 bg-gray-900/50 backdrop-blur-md rounded-2xl px-3 py-2 flex items-center gap-2 shadow-xl border border-gray-700/30">
           <Navigation className="w-4 h-4 text-blue-400 flex-shrink-0" />
           <div>
@@ -462,10 +644,9 @@ export default function Navigate() {
       {/* BOTTOM PANEL */}
       <div className="fixed left-0 right-0 z-50" style={{ bottom: 'var(--bottom-nav-h)' }}>
         <div className="bg-gray-950 rounded-t-3xl shadow-2xl border-t border-gray-800">
-          
           {/* Toggle button: flecha abajo/arriba */}
           <button
-            onClick={() => setPanelCollapsed(c => !c)}
+            onClick={() => setPanelCollapsed((c) => !c)}
             className="w-full flex items-center justify-center py-2 focus:outline-none"
           >
             {panelCollapsed ? (
@@ -487,10 +668,17 @@ export default function Navigate() {
                 className="flex items-center gap-3 px-4 pb-3"
               >
                 <div className="w-10 h-10 rounded-[6px] overflow-hidden border-2 border-purple-500/50 flex-shrink-0">
-                  {sellerPhoto
-                    ? <img src={sellerPhoto} alt={sellerName} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-lg font-bold text-purple-400">{sellerName.charAt(0)}</div>
-                  }
+                  {sellerPhoto ? (
+                    <img
+                      src={sellerPhoto}
+                      alt={sellerName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-lg font-bold text-purple-400">
+                      {sellerName.charAt(0)}
+                    </div>
+                  )}
                 </div>
                 <p className="font-bold text-white">{sellerName}</p>
               </motion.div>
@@ -519,7 +707,7 @@ export default function Navigate() {
                       hideBuy={true}
                       userLocation={userLocation}
                       showDistanceInMeters={true}
-                      buyLabel={isSeller ? 'He desaparcado ✓' : (!isTracking ? '▶ IR' : 'Detener')}
+                      buyLabel={isSeller ? 'He desaparcado ✓' : !isTracking ? '▶ IR' : 'Detener'}
                       onBuyAlert={() => {
                         if (isSeller) {
                           window.location.href = createPageUrl('History');
@@ -530,7 +718,9 @@ export default function Navigate() {
                         }
                       }}
                       onChat={() => {
-                        window.location.href = createPageUrl(`Chat?alertId=${alertId}&userId=${displayAlert?.user_email || displayAlert?.user_id}`);
+                        window.location.href = createPageUrl(
+                          `Chat?alertId=${alertId}&userId=${displayAlert?.user_email || displayAlert?.user_id}`
+                        );
                       }}
                       onCall={() => {
                         const phone = isBuyer ? displayAlert?.phone : null;
@@ -539,14 +729,17 @@ export default function Navigate() {
                     />
                   </div>
                 )}
-                {!isSeller && displayAlert && String(displayAlert.id).startsWith('demo_') && !paymentReleased && (
-                  <button
-                    onClick={() => setForceRelease(true)}
-                    className="w-full mt-2 h-7 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-xs hover:bg-amber-500/10 transition-colors"
-                  >
-                    Simular llegada (demo)
-                  </button>
-                )}
+                {!isSeller &&
+                  displayAlert &&
+                  String(displayAlert.id).startsWith('demo_') &&
+                  !paymentReleased && (
+                    <button
+                      onClick={() => setForceRelease(true)}
+                      className="w-full mt-2 h-7 rounded-xl border border-dashed border-amber-500/50 text-amber-400 text-xs hover:bg-amber-500/10 transition-colors"
+                    >
+                      Simular llegada (demo)
+                    </button>
+                  )}
               </motion.div>
             )}
           </AnimatePresence>

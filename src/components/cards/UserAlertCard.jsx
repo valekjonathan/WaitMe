@@ -21,7 +21,7 @@ function UserAlertCard({
   buyLabel = 'WaitMe!',
   hideBuy = false,
   showDistanceInMeters = false,
-  showCountdownTimer = false,
+  showCountdownTimer: _showCountdownTimer = false,
 }) {
   // Normaliza userLocation para evitar errores cuando llega como array u objeto
   // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
@@ -101,7 +101,7 @@ function UserAlertCard({
 
   const phoneEnabled = Boolean(alert?.phone && alert?.allow_phone_calls !== false);
 
-  const isDemo = Boolean(alert?.is_demo);
+  const _isDemo = Boolean(alert?.is_demo);
   const handleChat = () => {
     onChat?.(alert);
   };

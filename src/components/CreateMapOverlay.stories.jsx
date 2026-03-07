@@ -3,7 +3,6 @@ import CreateMapOverlay from './CreateMapOverlay';
 const defaultArgs = {
   address: 'C/ Campoamor, 13',
   onAddressChange: () => {},
-  onUseCurrentLocation: () => {},
   onRecenter: () => {},
   onCreateAlert: () => {},
   isLoading: false,

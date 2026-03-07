@@ -2,7 +2,7 @@
 /**
  * Mide el gap REAL entre la tarjeta "Estoy aparcado aquí" y el menú inferior.
  * gap = navTop - cardBottom (en px)
- * Objetivo: gap ≈ 10px (aceptable 8-14px)
+ * Objetivo: gap = 20px ±1 (alineado con mapLayoutPadding y layout-map-create)
  */
 import { test, expect } from '@playwright/test';
 
@@ -24,7 +24,10 @@ test.describe('Measure - Card to Nav gap', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
 
-    const card = page.locator('[class*="rounded-2xl"]').filter({ hasText: /me voy en|minutos|euros/i }).first();
+    const card = page
+      .locator('[class*="rounded-2xl"]')
+      .filter({ hasText: /me voy en|minutos|euros/i })
+      .first();
     const nav = page.locator('[data-waitme-nav]');
 
     await card.waitFor({ state: 'visible', timeout: 5000 });
@@ -46,18 +49,21 @@ test.describe('Measure - Card to Nav gap', () => {
       cardBottom: Math.round(cardBottom),
       navTop: Math.round(navTop),
       gap,
-      ok: gap >= 8 && gap <= 14,
+      ok: gap >= 19 && gap <= 21,
     };
 
     console.log('\n=== GAP CARD-NAV (px) ===');
     console.log('cardBottom:', output.cardBottom);
     console.log('navTop:', output.navTop);
     console.log('gap (navTop - cardBottom):', output.gap);
-    console.log('ok (8-14px):', output.ok);
+    console.log('ok (19-21px):', output.ok);
     console.log('========================\n');
 
-    // Assert: gap debe estar entre 8 y 14px
-    expect(gap, `gap=${gap}px (debe ser 8-14). cardBottom=${output.cardBottom}, navTop=${output.navTop}`).toBeGreaterThanOrEqual(8);
-    expect(gap, `gap=${gap}px (debe ser 8-14)`).toBeLessThanOrEqual(14);
+    // Assert: gap debe ser 20px ±1 (alineado con mapLayoutPadding)
+    expect(
+      gap,
+      `gap=${gap}px (debe ser 19-21). cardBottom=${output.cardBottom}, navTop=${output.navTop}`
+    ).toBeGreaterThanOrEqual(19);
+    expect(gap, `gap=${gap}px (debe ser 19-21)`).toBeLessThanOrEqual(21);
   });
 });

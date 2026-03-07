@@ -138,7 +138,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [address, setAddress] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, alert: null });
 
@@ -221,7 +221,7 @@ export default function Home() {
     return unsub;
   }, [user?.id, queryClient]);
 
-  const { data: unreadCount } = useQuery({
+  const { data: _unreadCount } = useQuery({
     queryKey: ['unreadCount', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -584,7 +584,7 @@ export default function Home() {
       const buyerPlate = user?.plate || '';
       const buyerVehicleType = user?.vehicle_type || 'car';
 
-      const { data: reservedAlert, error: reserveErr } = await alerts.reserveAlert(
+      const { data: _reservedAlert, error: reserveErr } = await alerts.reserveAlert(
         alert.id,
         user?.id,
         {
@@ -729,7 +729,7 @@ export default function Home() {
   const handleStreetSelect = useCallback(
     (result) => {
       if (result?.lng == null || result?.lat == null) return;
-      const { lng, lat, place_name } = result;
+      const { lng, lat } = result;
       mapRef.current?.flyTo({
         center: [lng, lat],
         zoom: 17,
@@ -792,7 +792,6 @@ export default function Home() {
             <CreateMapOverlay
               address={address}
               onAddressChange={setAddress}
-              onUseCurrentLocation={getCurrentLocation}
               onRecenter={handleRecenter}
               mapRef={mapRef}
               onCreateAlert={async (data) => {

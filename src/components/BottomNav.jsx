@@ -7,11 +7,11 @@ import { getVisibleActiveSellerAlerts, readHiddenKeys } from '@/lib/alertSelecto
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 const BASE_BTN =
-  'flex-1 flex flex-col items-center justify-center text-purple-400 ' +
-  'h-[60px] rounded-lg mx-1';
+  'flex-1 flex flex-col items-center justify-center text-purple-400 ' + 'h-[60px] rounded-lg mx-1';
 const ACTIVE_STYLE = 'bg-purple-700/30 border border-purple-500/50';
 const LABEL_CLASS = 'text-[10px] font-bold leading-none mt-[2px] whitespace-nowrap';
-const LABEL_CLASS_LONG = 'text-[9px] font-bold leading-none mt-[2px] whitespace-nowrap tracking-tight';
+const _LABEL_CLASS_LONG =
+  'text-[9px] font-bold leading-none mt-[2px] whitespace-nowrap tracking-tight';
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -59,7 +59,10 @@ export default function BottomNav() {
   }, [queryClient]);
 
   const handleChatsClick = useCallback(() => {
-    try { localStorage.setItem('waitme:chat_unread', '0'); setChatUnread(0); } catch {}
+    try {
+      localStorage.setItem('waitme:chat_unread', '0');
+      setChatUnread(0);
+    } catch {}
   }, []);
 
   const divider = <div className="w-px h-8 bg-gray-700" />;
@@ -78,7 +81,17 @@ export default function BottomNav() {
   );
 
   return (
-    <nav data-waitme-nav className="fixed bottom-0 left-0 right-0 px-4 pt-[6px] z-[2147483647] pointer-events-auto" style={{ backgroundColor: '#0B0B0F', borderTop: '1px solid rgba(255,255,255,0.05)', paddingBottom: 'calc(4px + env(safe-area-inset-bottom, 0px))', paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))', paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))' }}>
+    <nav
+      data-waitme-nav
+      className="fixed bottom-0 left-0 right-0 px-4 pt-[6px] z-[2147483647] pointer-events-auto"
+      style={{
+        backgroundColor: '#0B0B0F',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        paddingBottom: 'calc(4px + env(safe-area-inset-bottom, 0px))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+      }}
+    >
       <div className="flex items-center max-w-md mx-auto pointer-events-auto">
         <NavLink
           to="/history"
