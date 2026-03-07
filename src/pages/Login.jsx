@@ -5,8 +5,9 @@ import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
-// com.waitme.app:// mejor handoff en iOS Simulator que capacitor://localhost
-const OAUTH_REDIRECT_CAPACITOR = import.meta.env.VITE_OAUTH_REDIRECT_IOS || 'com.waitme.app://';
+// Supabase recomienda path para deep linking: com.app://auth/callback
+const OAUTH_REDIRECT_CAPACITOR =
+  import.meta.env.VITE_OAUTH_REDIRECT_IOS || 'com.waitme.app://auth/callback';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);

@@ -32,6 +32,9 @@ let lastKnown = null;
 /** @type {boolean} */
 let resolved = false;
 
+/** @type {boolean} — ignora watchPosition hasta que getPreciseInitialLocation entregue la primera posición */
+let firstPreciseReceived = false;
+
 /** @type {ReturnType<typeof setTimeout>|null} */
 let timeoutRef = null;
 
@@ -127,6 +130,7 @@ export function startLocationEngine(opts = {}) {
     .then((loc) => {
       if (watchId == null) return;
       resolved = true;
+      firstPreciseReceived = true;
       if (timeoutRef) {
         clearTimeout(timeoutRef);
         timeoutRef = null;
@@ -135,6 +139,7 @@ export function startLocationEngine(opts = {}) {
     })
     .catch(() => {
       resolved = true;
+      firstPreciseReceived = true;
       if (timeoutRef) {
         clearTimeout(timeoutRef);
         timeoutRef = null;
@@ -145,12 +150,14 @@ export function startLocationEngine(opts = {}) {
   timeoutRef = setTimeout(() => {
     if (resolved) return;
     resolved = true;
+    firstPreciseReceived = true;
     if (lastKnown) return;
     notify({ ...OVIEDO_FALLBACK, timestamp: Date.now() });
   }, GPS_TIMEOUT_MS);
 
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
+      if (!firstPreciseReceived) return;
       if (!resolved) {
         resolved = true;
         if (timeoutRef) {
@@ -192,6 +199,7 @@ export function stopLocationEngine() {
   if (usePipeline) resetPipeline();
   usePipeline = false;
   resolved = false;
+  firstPreciseReceived = false;
 }
 
 /**

@@ -14,7 +14,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
 
 async function processOAuthUrl(url, onSuccess) {
-  const allowed = ['capacitor://localhost', 'com.waitme.app://'];
+  const allowed = ['capacitor://localhost', 'com.waitme.app://', 'com.waitme.app://auth/callback'];
   if (!url || !allowed.some((p) => url.startsWith(p))) return false;
   try {
     await Browser.close();
