@@ -28,9 +28,13 @@ function loadEnvFile(path) {
 
 function loadEnv() {
   const cwd = process.cwd();
-  const env = { ...loadEnvFile(resolve(cwd, '.env')) };
-  const local = loadEnvFile(resolve(cwd, '.env.local'));
-  return { ...env, ...local }; // .env.local overrides .env
+  const paths = ['.env', '.env.local', '.env.development'];
+  let env = {};
+  for (const p of paths) {
+    const loaded = loadEnvFile(resolve(cwd, p));
+    env = { ...env, ...loaded };
+  }
+  return env;
 }
 
 function extractProjectRef(url) {
@@ -53,14 +57,17 @@ async function main() {
 
   if (!token) {
     console.log('\n=== CONFIGURACIÓN OAUTH iOS (obligatoria) ===\n');
-    console.log('URL que DEBE estar en Supabase Redirect URLs:');
+    console.log('Bloqueo: SUPABASE_ACCESS_TOKEN no encontrado.');
+    console.log('Buscado en: process.env, .env, .env.local, .env.development');
+    console.log('\nURL que DEBE estar en Supabase Redirect URLs:');
     console.log('  ', IOS_REDIRECT);
     console.log('\nPara añadirla automáticamente:');
     console.log('  1. Crea un token en https://supabase.com/dashboard/account/tokens');
     console.log('  2. Añade a .env: SUPABASE_ACCESS_TOKEN=tu_token');
     console.log('  3. Ejecuta: node scripts/ensure-oauth-redirect-ios.js');
-    console.log('\nO manualmente:');
+    console.log('\nO manualmente (único bloqueo externo):');
     console.log('  ', `https://supabase.com/dashboard/project/${ref}/auth/url-configuration`);
+    console.log('  Añade:', IOS_REDIRECT);
     console.log('\n');
     process.exit(0);
   }
