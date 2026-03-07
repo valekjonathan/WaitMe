@@ -1,7 +1,7 @@
 /**
  * Capas del mapa — base para arquitectura GeoJSON.
  * StaticCarsLayer, UserLocationLayer listas para migración.
- * WaitMeCarLayer preparada (no implementada) para coche dinámico WAITME_ACTIVE.
+ * WaitMeCarLayer implementada: coche dinámico (comprador) solo con WAITME_ACTIVE.
  *
  * @module mapLayers
  */

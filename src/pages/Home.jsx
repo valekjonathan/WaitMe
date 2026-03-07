@@ -50,6 +50,12 @@ import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
 import { useLocationEngine } from '@/hooks/useLocationEngine';
 import { getPreciseInitialLocation } from '@/lib/location';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
+import {
+  getCarsMovementMode,
+  subscribeToCarsMovementMode,
+  CARS_MOVEMENT_MODE,
+} from '@/stores/carsMovementStore';
+import * as userLocations from '@/data/userLocations';
 
 // DEV kill switch: disable map (render simple block instead)
 const isMapDisabled = () => import.meta.env.DEV && import.meta.env.VITE_DISABLE_MAP === 'true';
@@ -292,6 +298,36 @@ export default function Home() {
     const hiddenKeys = readHiddenKeys();
     return getVisibleActiveSellerAlerts(myAlerts, user?.id, user?.email, hiddenKeys);
   }, [myAlerts, user?.id, user?.email]);
+
+  const reservedAlert = useMemo(
+    () => myActiveAlerts.find((a) => String(a.status || '').toLowerCase() === 'reserved'),
+    [myActiveAlerts]
+  );
+
+  const [carsMode, setCarsMode] = useState(getCarsMovementMode);
+  useEffect(() => {
+    return subscribeToCarsMovementMode(setCarsMode);
+  }, []);
+
+  const { data: buyerLocationsRaw = [] } = useQuery({
+    queryKey: ['buyerLocations', reservedAlert?.id],
+    queryFn: () => userLocations.getLocationsByAlert(reservedAlert.id),
+    enabled:
+      !!reservedAlert?.id && mode === 'create' && carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE,
+    refetchInterval:
+      mode === 'create' && carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE ? 5000 : false,
+  });
+  const waitMeCarBuyerLocation =
+    mode === 'create' &&
+    carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE &&
+    buyerLocationsRaw?.length > 0
+      ? {
+          lat: buyerLocationsRaw[0].latitude,
+          lng: buyerLocationsRaw[0].longitude,
+        }
+      : null;
+  const waitMeCarColor =
+    reservedAlert?.reserved_by_car_color || reservedAlert?.reserved_by?.color || 'azul';
 
   useEffect(() => {
     if (!user?.id && !user?.email) return;
@@ -786,6 +822,9 @@ export default function Home() {
                   ? handleMapMoveSearch
                   : undefined
             }
+            waitMeCarMode={mode === 'create' ? carsMode : null}
+            waitMeCarBuyerLocation={mode === 'create' ? waitMeCarBuyerLocation : null}
+            waitMeCarColor={waitMeCarColor}
           />
         }
         panel={

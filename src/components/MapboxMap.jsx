@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 import { getPreciseInitialLocation, toLatLngArray } from '@/lib/location';
-import { addStaticCarsLayer, addUserLocationLayer } from '@/lib/mapLayers';
+import { addStaticCarsLayer, addUserLocationLayer, addWaitMeCarLayer } from '@/lib/mapLayers';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
 const DEFAULT_ZOOM = 16.5;
@@ -27,6 +27,9 @@ export default function MapboxMap({
   onMapMove,
   onMapMoveEnd,
   interactive = true,
+  waitMeCarMode = null,
+  waitMeCarBuyerLocation = null,
+  waitMeCarColor = 'azul',
   children,
   ...rest
 }) {
@@ -432,6 +435,14 @@ export default function MapboxMap({
         : null;
     addUserLocationLayer(map, userLoc);
   }, [mapReady, error, userCoordsForMarker, useCenterPin]);
+
+  // GeoJSON: coche dinámico (solo WAITME_ACTIVE + buyerLocation)
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || error) return;
+    const map = mapRef.current;
+    if (!map.getStyle?.()?.layers) return;
+    addWaitMeCarLayer(map, waitMeCarBuyerLocation, waitMeCarMode, waitMeCarColor);
+  }, [mapReady, error, waitMeCarMode, waitMeCarBuyerLocation, waitMeCarColor]);
 
   // Limpiar markers DOM legacy (ya no usado; se mantiene ref vacío por compatibilidad)
   useEffect(() => {

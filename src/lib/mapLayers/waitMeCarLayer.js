@@ -1,39 +1,82 @@
 /**
- * WaitMeCarLayer — capa para el coche dinámico (comprador navegando).
- *
- * DECISIÓN TÉCNICA (B): Preparada y aislada para el siguiente paso.
- * No implementada porque:
- * - El flujo actual usa SellerLocationTracker con su propio mapa y DOM markers
- * - Integrar requeriría unificar MapboxMap + SellerLocationTracker
- * - Solo 1 coche dinámico, solo con WAITME_ACTIVE, solo en "Estoy aparcado aquí"
- *
- * Cuando se implemente:
- * - Usar source/layer GeoJSON limpio (sin DOM markers)
- * - Solo visible cuando carsMovementMode === WAITME_ACTIVE
- * - Datos de buyerLocations desde userLocations.getLocationsByAlert
+ * WaitMeCarLayer — capa GeoJSON para el coche dinámico (comprador navegando).
+ * Solo visible cuando WAITME_ACTIVE y hay buyerLocation.
+ * 1 source, 1 layer, 1 feature máximo.
  *
  * @module mapLayers/waitMeCarLayer
  */
 
-const WAITME_CAR_SOURCE = 'waitme-car-dynamic';
-const WAITME_CAR_LAYER = 'waitme-car-dynamic-layer';
+import { getCarFill } from '@/utils/carUtils';
+
+const WAITME_CAR_SOURCE = 'waitme-car-source';
+const WAITME_CAR_LAYER = 'waitme-car-layer';
+
+const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] };
 
 /**
- * Añade o actualiza capa del coche dinámico (comprador en ruta).
- * Por ahora no-op: preparada para implementación futura.
+ * Crea feature GeoJSON para el coche dinámico.
+ * @param {{ lat: number, lng: number } | [number, number]} loc
+ * @param {string} [color] - color del coche (ej. "azul", "gris")
+ * @returns {import('geojson').Feature|null}
+ */
+function buyerLocationToFeature(loc, color = 'azul') {
+  if (!loc) return null;
+  const lat = Array.isArray(loc) ? loc[0] : (loc?.lat ?? loc?.latitude);
+  const lng = Array.isArray(loc) ? loc[1] : (loc?.lng ?? loc?.longitude);
+  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const fill = getCarFill(color);
+  return {
+    type: 'Feature',
+    id: 'waitme-car-dynamic',
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+    properties: {
+      type: 'waitme_car',
+      color: fill,
+      lat,
+      lng,
+    },
+  };
+}
+
+/**
+ * Añade o actualiza capa del coche dinámico.
+ * Solo con WAITME_ACTIVE y buyerLocation válida.
  *
  * @param {import('mapbox-gl').Map} map
- * @param {Array<{ latitude: number, longitude: number }>} buyerLocations
+ * @param {{ lat: number, lng: number } | [number, number] | null} buyerLocation - posición del comprador (1 solo)
  * @param {string} carsMode - CARS_MOVEMENT_MODE
+ * @param {string} [carColor] - color del coche del comprador
  */
-export function addWaitMeCarLayer(map, buyerLocations, carsMode) {
+export function addWaitMeCarLayer(map, buyerLocation, carsMode, carColor = 'azul') {
   if (!map?.getStyle?.()) return;
-  // Solo con WAITME_ACTIVE; por ahora no implementado
-  if (carsMode !== 'WAITME_ACTIVE' || !buyerLocations?.length) {
-    if (map.getSource(WAITME_CAR_SOURCE)) {
-      map.getSource(WAITME_CAR_SOURCE).setData({ type: 'FeatureCollection', features: [] });
-    }
+
+  const showLayer =
+    carsMode === 'WAITME_ACTIVE' &&
+    buyerLocation != null &&
+    (Array.isArray(buyerLocation)
+      ? buyerLocation.length >= 2
+      : (buyerLocation?.lat ?? buyerLocation?.latitude) != null &&
+        (buyerLocation?.lng ?? buyerLocation?.longitude) != null);
+
+  const feature = showLayer ? buyerLocationToFeature(buyerLocation, carColor) : null;
+  const geojson = feature ? { type: 'FeatureCollection', features: [feature] } : EMPTY_GEOJSON;
+
+  if (map.getSource(WAITME_CAR_SOURCE)) {
+    map.getSource(WAITME_CAR_SOURCE).setData(geojson);
     return;
   }
-  // TODO: crear GeoJSON, addSource, addLayer cuando se migre SellerLocationTracker
+
+  map.addSource(WAITME_CAR_SOURCE, { type: 'geojson', data: geojson });
+  map.addLayer({
+    id: WAITME_CAR_LAYER,
+    type: 'circle',
+    source: WAITME_CAR_SOURCE,
+    minzoom: 0,
+    paint: {
+      'circle-radius': 12,
+      'circle-color': ['get', 'color'],
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#fff',
+    },
+  });
 }
