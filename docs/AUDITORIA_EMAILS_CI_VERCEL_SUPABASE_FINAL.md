@@ -16,16 +16,8 @@
 **WebKit en Ubuntu 24.04** — `ubuntu-latest` en GitHub Actions usa Ubuntu 24.04. Playwright WebKit tiene dependencias incompatibles (libicu, libvpx) en Ubuntu 24.04, causando fallos en el step "Install Playwright browsers" o en la ejecución de tests con webkit-mobile.
 
 ### Fix aplicado
-Cambio en `.github/workflows/ci.yml`:
-```yaml
-runs-on: ubuntu-22.04  # ubuntu-latest=24.04 tiene WebKit con deps incompatibles
-```
-
-**Fallback si sigue fallando:** En `playwright.config.js`, cambiar en CI a Chromium:
-```js
-projects: process.env.CI
-  ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } } }]
-```
+1. `.github/workflows/ci.yml`: `runs-on: ubuntu-22.04` + `npx playwright install chromium --with-deps`
+2. `playwright.config.js`: En CI usa Chromium (viewport 390x844) en vez de WebKit — Chromium estable en runners
 
 ### Validación
 Tras push, el workflow debe completar en verde. Los pasos Lint, Typecheck, Build ya pasaban; solo Playwright tests fallaba.
