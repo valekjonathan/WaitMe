@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
+import { InAppBrowser } from '@capacitor/inappbrowser';
 import { getSupabase } from '@/lib/supabaseClient';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
@@ -34,7 +34,7 @@ export default function Login() {
         });
         if (oauthError) throw oauthError;
         if (data?.url) {
-          await Browser.open({ url: data.url });
+          await InAppBrowser.openInExternalBrowser({ url: data.url });
         } else {
           setError('No se pudo obtener la URL de login');
         }

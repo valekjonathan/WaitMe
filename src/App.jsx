@@ -13,7 +13,15 @@ import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
 
+const OAuthDebug = import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true';
+
 async function processOAuthUrl(url, onSuccess) {
+  if (OAuthDebug)
+    console.log(
+      '[OAuth] processOAuthUrl called, url:',
+      url ? url.slice(0, 80) + (url.length > 80 ? '...' : '') : '(empty)'
+    );
+
   const allowed = [
     'capacitor://localhost',
     'com.waitme.app://',
@@ -21,14 +29,20 @@ async function processOAuthUrl(url, onSuccess) {
     'http://localhost:5173',
     'http://localhost:5173/',
   ];
-  if (!url || !allowed.some((p) => url.startsWith(p))) return false;
+  if (!url || !allowed.some((p) => url.startsWith(p))) {
+    if (OAuthDebug && url) console.log('[OAuth] URL rejected (not in allowed)');
+    return false;
+  }
   try {
     await Browser.close();
   } catch {
     /* no-op */
   }
   const supabase = getSupabase();
-  if (!supabase) return false;
+  if (!supabase) {
+    if (OAuthDebug) console.error('[OAuth] getSupabase() returned null');
+    return false;
+  }
 
   const hashIdx = url.indexOf('#');
   const queryIdx = url.indexOf('?');
@@ -39,14 +53,14 @@ async function processOAuthUrl(url, onSuccess) {
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
     if (code) {
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession executing...');
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession OK, session:', !!data?.session);
         onSuccess?.();
         return true;
       }
-      if (import.meta.env.DEV) {
-        console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
-      }
+      if (OAuthDebug) console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
     }
   }
 
@@ -111,17 +125,28 @@ export default function App() {
     const handleUrl = async (url) => {
       await processOAuthUrl(url, onOAuthSuccess);
     };
-    const handleAppUrlOpen = ({ url }) => handleUrl(url);
+    const handleAppUrlOpen = ({ url }) => {
+      if (OAuthDebug)
+        console.log(
+          '[OAuth] appUrlOpen received:',
+          url ? url.slice(0, 80) + (url.length > 80 ? '...' : '') : '(empty)'
+        );
+      handleUrl(url);
+    };
     (async () => {
       try {
         capacitorSubRef.current = await CapacitorApp.addListener('appUrlOpen', handleAppUrlOpen);
+        if (OAuthDebug) console.log('[OAuth] appUrlOpen listener registered');
       } catch (e) {
         console.error('Capacitor listener error', e);
       }
     })();
     CapacitorApp.getLaunchUrl()
       .then((result) => {
-        if (result?.url) handleUrl(result.url);
+        if (result?.url) {
+          if (OAuthDebug) console.log('[OAuth] getLaunchUrl:', result.url?.slice(0, 80));
+          handleUrl(result.url);
+        }
       })
       .catch(() => {});
     return () => capacitorSubRef.current?.remove?.();

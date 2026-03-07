@@ -39,7 +39,7 @@ else
 fi
 
 echo "[ios:run] 2. Build..."
-npm run build
+VITE_DEBUG_OAUTH=true npm run build
 
 echo "[ios:run] 2b. Validar dist..."
 if [ ! -f "dist/index.html" ]; then
