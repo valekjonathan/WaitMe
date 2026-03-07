@@ -55,7 +55,8 @@ Configurar en: Supabase Dashboard → Edge Functions → Secrets.
 | Variable | Uso |
 |----------|-----|
 | VITE_SENTRY_DSN | Sentry |
-| VITE_PUBLIC_APP_URL | OAuth redirect |
+| VITE_PUBLIC_APP_URL | OAuth redirect (web) |
+| VITE_OAUTH_REDIRECT_IOS | OAuth redirect (iOS). Default: capacitor://localhost. Si falla handoff, probar: com.waitme.app:// |
 | VITE_USE_MAP_MATCHING | Map Matching |
 
 ---

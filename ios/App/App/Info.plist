@@ -61,6 +61,16 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>WaitMe Auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.waitme.app</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
 	</array>
 </dict>
 </plist>

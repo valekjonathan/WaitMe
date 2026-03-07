@@ -4,8 +4,12 @@ import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 import { getPreciseInitialLocation } from '@/lib/location';
 
+const _lastLog = { t: 0 };
 const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {
+    const now = Date.now();
+    if (now - _lastLog.t < 3000) return;
+    _lastLog.t = now;
     try {
       console.log(`[RENDER:MapboxMap] ${msg}`, extra ?? '');
     } catch {}
