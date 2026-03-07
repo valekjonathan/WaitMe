@@ -179,7 +179,7 @@ function LayoutShell() {
         onTitleClick={merged.onTitleClick}
         titleClassName={merged.titleClassName}
       />
-      <main className="flex-1 min-h-0 flex flex-col pt-[69px] pb-24">
+      <main className={`flex-1 min-h-0 flex flex-col pt-[69px] ${isHomeRoute ? 'pb-0' : 'pb-24'}`}>
         <div className="flex-1 min-h-0 flex flex-col">
           <Suspense
             fallback={

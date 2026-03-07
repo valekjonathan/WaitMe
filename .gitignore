@@ -43,3 +43,7 @@ test-results/
 *storybook.log
 storybook-static
 ios_run_last.log
+
+# Audit snapshots (large zips)
+tmp/*.zip
+tmp/*.zip

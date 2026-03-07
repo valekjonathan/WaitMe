@@ -4,8 +4,8 @@
  *
  * Reglas:
  * - centerGapExpected = (headerBottom + cardTop) / 2 — punto medio entre header y tarjeta
- * - gapCardNav = 20px exactos
- * - padding mapa: top = headerBottom, bottom = cardHeight + 20 + navHeight
+ * - gapCardNav = 15px exactos (FASE 3)
+ * - padding mapa: top = headerBottom, bottom = cardHeight + 15 + navHeight
  */
 const HEADER_H = 69; // --header-h en globals.css
 
@@ -24,7 +24,7 @@ export function getMapLayoutPadding() {
   const top = headerRect?.bottom ?? HEADER_H;
   const cardHeight = panelRect?.height ?? 200;
   const navHeight = navRect ? window.innerHeight - navRect.top : 80;
-  const bottom = cardHeight + 20 + navHeight;
+  const bottom = cardHeight + 15 + navHeight;
   return { top, bottom, left: 0, right: 0 };
 }
 
@@ -65,7 +65,7 @@ export function measureMapLayout() {
     centerGapExpected,
     gapCardNav,
     ok: {
-      gap: Math.abs(gapCardNav - 20) <= 1,
+      gap: Math.abs(gapCardNav - 15) <= 1,
       pin: pinBottomY != null && Math.abs(pinBottomY - centerGapExpected) <= 2,
     },
   };

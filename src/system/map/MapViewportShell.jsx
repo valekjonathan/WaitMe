@@ -23,8 +23,8 @@ export default function MapViewportShell({ mode = 'home', panel, children, mapNo
     <div
       className="relative w-full overflow-hidden"
       style={{
-        minHeight: '100dvh',
-        height: '100%',
+        height: 'calc(100dvh - var(--header-h, 69px))',
+        minHeight: 0,
       }}
       data-map-viewport-shell
       data-map-mode={mode}

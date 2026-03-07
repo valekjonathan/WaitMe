@@ -2,7 +2,7 @@
 /**
  * Mide el gap REAL entre la tarjeta "Estoy aparcado aquí" y el menú inferior.
  * gap = navTop - cardBottom (en px)
- * Objetivo: gap = 20px ±1 (alineado con mapLayoutPadding y layout-map-create)
+ * Objetivo: gap = 15px ±1 (alineado con mapLayoutPadding y layout-map-create)
  * NOTA: Skip en CI hasta resolver geometría card-nav en viewports variables.
  */
 import { test, expect } from '@playwright/test';
@@ -51,21 +51,21 @@ test.describe('Measure - Card to Nav gap', () => {
       cardBottom: Math.round(cardBottom),
       navTop: Math.round(navTop),
       gap,
-      ok: gap >= 19 && gap <= 21,
+      ok: gap >= 14 && gap <= 16,
     };
 
     console.log('\n=== GAP CARD-NAV (px) ===');
     console.log('cardBottom:', output.cardBottom);
     console.log('navTop:', output.navTop);
     console.log('gap (navTop - cardBottom):', output.gap);
-    console.log('ok (19-21px):', output.ok);
+    console.log('ok (14-16px):', output.ok);
     console.log('========================\n');
 
-    // Assert: gap objetivo 20px ±1. Tolerancia: ≥0 sin solapamiento (CI/viewports variables)
-    if (gap >= 19 && gap <= 21) return;
+    // Assert: gap objetivo 15px ±1. Tolerancia: ≥0 sin solapamiento (CI/viewports variables)
+    if (gap >= 14 && gap <= 16) return;
     expect(
       gap,
-      `gap=${gap}px (objetivo 19-21, mínimo 0). cardBottom=${output.cardBottom}, navTop=${output.navTop}`
+      `gap=${gap}px (objetivo 14-16, mínimo 0). cardBottom=${output.cardBottom}, navTop=${output.navTop}`
     ).toBeGreaterThanOrEqual(0);
   });
 });

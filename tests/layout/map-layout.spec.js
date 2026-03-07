@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Test de layout: gap tarjeta/nav = 20px ±1, pin centrado ±2px.
+ * Test de layout: gap tarjeta/nav = 15px ±1, pin centrado ±2px.
  * Ejecuta en CI para validar que cambios no rompen el layout del mapa.
  */
 import { test, expect } from '@playwright/test';
@@ -38,7 +38,7 @@ function measureLayoutInPage() {
   };
 }
 
-test.describe('Layout - Mapa (gap 20px, pin centrado)', () => {
+test.describe('Layout - Mapa (gap 15px, pin centrado)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
@@ -50,11 +50,11 @@ test.describe('Layout - Mapa (gap 20px, pin centrado)', () => {
     await page.waitForTimeout(400);
   });
 
-  test('gap tarjeta / menú inferior = 20px ±1', async ({ page }) => {
+  test('gap tarjeta / menú inferior = 15px ±1', async ({ page }) => {
     test.skip(!!process.env.CI, 'Gap test skip en CI: geometría pendiente');
     const m = await page.evaluate(measureLayoutInPage);
-    const gapOk = Math.abs(m.gapCardNav - 20) <= 1;
-    expect(gapOk, `gapCardNav=${m.gapCardNav}px, esperado 19-21px (|gap-20|≤1)`).toBe(true);
+    const gapOk = Math.abs(m.gapCardNav - 15) <= 1;
+    expect(gapOk, `gapCardNav=${m.gapCardNav}px, esperado 14-16px (|gap-15|≤1)`).toBe(true);
   });
 
   test('pin centrado entre header y tarjeta ±2px', async ({ page }) => {

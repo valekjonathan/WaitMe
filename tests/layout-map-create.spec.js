@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * Test de layout: geometría mapa/pin/tarjeta/nav en modo "Estoy aparcado aquí".
- * Falla si gapCardNav != 20px ± 1px o pin no centrado ± 2px.
+ * Falla si gapCardNav != 15px ± 1px o pin no centrado ± 2px.
  */
 import { test, expect } from '@playwright/test';
 
@@ -37,7 +37,7 @@ function measureLayoutInPage() {
     centerGapExpected,
     gapCardNav,
     ok: {
-      gap: Math.abs(gapCardNav - 20) <= 1,
+      gap: Math.abs(gapCardNav - 15) <= 1,
       pin: pinBottomY != null && Math.abs(pinBottomY - centerGapExpected) <= 2,
     },
   };
@@ -58,15 +58,15 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
     await page.waitForTimeout(400);
   });
 
-  test('gap entre tarjeta y menú inferior es 20px ± 1px (o ≥0 sin solapamiento)', async ({
+  test('gap entre tarjeta y menú inferior es 15px ± 1px (o ≥0 sin solapamiento)', async ({
     page,
   }) => {
     test.skip(!!process.env.CI, 'Gap test skip en CI: geometría card-nav pendiente');
     const m = await page.evaluate(measureLayoutInPage);
-    if (m.gapCardNav >= 19 && m.gapCardNav <= 21) return;
+    if (m.gapCardNav >= 14 && m.gapCardNav <= 16) return;
     expect(
       m.gapCardNav,
-      `gapCardNav=${m.gapCardNav}px (objetivo 19-21, mínimo 0 sin solapamiento)`
+      `gapCardNav=${m.gapCardNav}px (objetivo 14-16, mínimo 0 sin solapamiento)`
     ).toBeGreaterThanOrEqual(0);
   });
 

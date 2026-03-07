@@ -5,7 +5,8 @@ import { useEffect } from 'react';
  * Controla: anchura, separación respecto al menú inferior, safe area.
  * Usado por CreateAlertCard y UserAlertCard (search).
  *
- * paddingBottom = (20 - cardShiftUp)px (gap) + --bottom-nav-h
+ * paddingBottom = (15 - cardShiftUp)px (gap) + --bottom-nav-h
+ * Gap objetivo: 15px entre tarjeta y menú inferior (FASE 3).
  */
 export default function MapScreenPanel({
   children,
@@ -16,7 +17,7 @@ export default function MapScreenPanel({
   measureLabel,
   ...rest
 }) {
-  const gapPx = Math.max(0, 20 - cardShiftUp);
+  const gapPx = Math.max(0, 15 - cardShiftUp);
 
   useEffect(() => {
     if (!measureLabel || !import.meta.env.DEV) return;
