@@ -63,7 +63,7 @@ async function main() {
     console.log('  ', IOS_REDIRECT);
     console.log('\nPara añadirla automáticamente:');
     console.log('  1. Crea un token en https://supabase.com/dashboard/account/tokens');
-    console.log('  2. Añade a .env: SUPABASE_ACCESS_TOKEN=tu_token');
+    console.log('  2. Crea .env.local con: SUPABASE_ACCESS_TOKEN=tu_token');
     console.log('  3. Ejecuta: node scripts/ensure-oauth-redirect-ios.js');
     console.log('\nO manualmente (único bloqueo externo):');
     console.log('  ', `https://supabase.com/dashboard/project/${ref}/auth/url-configuration`);
@@ -72,15 +72,20 @@ async function main() {
     process.exit(0);
   }
 
+  const endpoint = `${API_BASE}/projects/${ref}/config/auth`;
+  console.log('[ensure-oauth] project ref:', ref);
+  console.log('[ensure-oauth] endpoint:', endpoint);
+
   try {
-    const res = await fetch(`${API_BASE}/projects/${ref}/config/auth`, {
+    const res = await fetch(endpoint, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });
+    const resText = await res.text();
     if (!res.ok) {
-      throw new Error(`GET auth config failed: ${res.status} ${await res.text()}`);
+      throw new Error(`GET auth config failed: ${res.status} ${resText}`);
     }
-    const config = await res.json();
+    const config = JSON.parse(resText);
     const current = config.uri_allow_list || '';
     const urls = current
       ? current
@@ -90,24 +95,28 @@ async function main() {
       : [];
     if (urls.includes(IOS_REDIRECT)) {
       console.log('[ensure-oauth] OK: com.waitme.app://auth/callback ya está en Redirect URLs');
+      console.log('[ensure-oauth] uri_allow_list actual:', current || '(vacío)');
       process.exit(0);
     }
     urls.push(IOS_REDIRECT);
     const newList = urls.join(',');
+    const payload = { uri_allow_list: newList };
+    console.log('[ensure-oauth] payload PATCH:', JSON.stringify(payload, null, 2));
 
-    const patchRes = await fetch(`${API_BASE}/projects/${ref}/config/auth`, {
+    const patchRes = await fetch(endpoint, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ uri_allow_list: newList }),
+      body: JSON.stringify(payload),
     });
+    const patchText = await patchRes.text();
     if (!patchRes.ok) {
-      const errText = await patchRes.text();
-      throw new Error(`PATCH auth config failed: ${patchRes.status} ${errText}`);
+      throw new Error(`PATCH auth config failed: ${patchRes.status} ${patchText}`);
     }
     console.log('[ensure-oauth] OK: com.waitme.app://auth/callback añadido a Redirect URLs');
+    console.log('[ensure-oauth] respuesta Supabase:', patchText || '(vacía)');
   } catch (err) {
     console.error('[ensure-oauth] ERROR:', err.message);
     console.error('\nFallback manual:');
