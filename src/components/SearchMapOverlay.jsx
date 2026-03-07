@@ -1,6 +1,6 @@
 /**
- * Overlay "¿Dónde quieres aparcar?" — browse (search + filtros) o arriving (distancia + ETA).
- * Pin fijo entre top y tarjeta. Misma geometría que CreateMapOverlay.
+ * Overlay "¿Dónde quieres aparcar?" — misma estructura que CreateMapOverlay.
+ * Buscador/filtros en contenedor absolute independiente (no empuja layout).
  */
 import { useEffect, useRef, useState } from 'react';
 import { Navigation, Clock } from 'lucide-react';
@@ -10,6 +10,7 @@ import MapZoomControls from '@/components/MapZoomControls';
 import MapScreenPanel from '@/system/map/MapScreenPanel';
 
 const PIN_HEIGHT = 54;
+const HEADER_BOTTOM = 69;
 
 export default function SearchMapOverlay({
   onStreetSelect,
@@ -20,48 +21,39 @@ export default function SearchMapOverlay({
   navigateViewState = 'browse',
   arrivalMetrics = { distanceMeters: 0, etaMinutes: 0 },
 }) {
-  const overlayRef = useRef(null);
-  const topRef = useRef(null);
   const cardRef = useRef(null);
   const [pinTop, setPinTop] = useState(null);
 
   const isArriving = navigateViewState === 'arriving';
 
   useEffect(() => {
-    const overlay = overlayRef.current;
-    const top = topRef.current;
     const card = cardRef.current;
-    if (!overlay || !top || !card) return;
+    if (!card) return;
 
     const updatePinPosition = () => {
-      const overlayRect = overlay.getBoundingClientRect();
-      const topRect = top.getBoundingClientRect();
-      const cardRect = card.getBoundingClientRect();
-      const topBottom = topRect.bottom;
-      const cardTop = cardRect.top;
-      const midPoint = (topBottom + cardTop) / 2;
-      const pinTopFromOverlay = midPoint - overlayRect.top - PIN_HEIGHT;
-      setPinTop(Math.max(0, pinTopFromOverlay));
+      const headerEl = document.querySelector('[data-waitme-header]');
+      const panelInner = document.querySelector('[data-map-screen-panel-inner]');
+      const headerBottom = headerEl?.getBoundingClientRect()?.bottom ?? HEADER_BOTTOM;
+      const cardRect = (panelInner ?? card)?.getBoundingClientRect?.();
+      if (!cardRect) return;
+      const midPoint = (headerBottom + cardRect.top) / 2;
+      const pinTopViewport = midPoint - PIN_HEIGHT;
+      const pinTopInOverlay = pinTopViewport - HEADER_BOTTOM;
+      setPinTop(Math.max(0, pinTopInOverlay));
     };
 
     updatePinPosition();
     const ro = new ResizeObserver(updatePinPosition);
-    ro.observe(overlay);
-    ro.observe(top);
     ro.observe(card);
     return () => ro.disconnect();
   }, [isArriving]);
 
   return (
-    <div
-      ref={overlayRef}
-      className="absolute inset-0 flex flex-col pointer-events-none z-10 h-full overflow-hidden"
-      aria-hidden="true"
-    >
-      {/* Top: buscador pegado al header, filtros misma altura a la derecha */}
+    <div className="absolute inset-0 z-10 pointer-events-none" aria-hidden="true">
+      {/* Buscador/filtros: absolute, debajo del header, no afecta MapScreenPanel */}
       <div
-        ref={topRef}
-        className="px-4 pt-[calc(var(--header-h,69px)+8px)] pb-2 flex-shrink-0 pointer-events-auto flex items-start gap-2"
+        className="absolute top-0 left-0 right-0 px-4 pt-[calc(var(--header-h,69px)+8px)] pb-2 flex items-start gap-2 pointer-events-auto z-[1000]"
+        style={{ pointerEvents: 'auto' }}
       >
         <div className="flex-1 min-w-0">
           {isArriving ? (
@@ -84,24 +76,26 @@ export default function SearchMapOverlay({
           )}
         </div>
         {!isArriving && (
-          <div className="flex-shrink-0 z-[1000] pointer-events-auto">
+          <div className="flex-shrink-0">
             {filtersButton}
             {filtersContent}
           </div>
         )}
       </div>
 
-      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create: cardShiftUp=10, gap 20px, sin scroll) */}
-      <div className="flex-1 min-h-0 overflow-hidden flex items-end pointer-events-auto">
-        <MapScreenPanel cardShiftUp={10} overflowHidden>
-          <div ref={cardRef}>{alertCard}</div>
+      {/* Misma estructura que CreateMapOverlay: MapScreenPanel sin offsets */}
+      <div ref={cardRef} className="pointer-events-none">
+        <MapScreenPanel overflowHidden measureLabel="navigate">
+          <div className="pointer-events-auto">{alertCard}</div>
         </MapScreenPanel>
       </div>
 
-      {/* Pin fijo */}
-      {pinTop != null && <CenterPin top={pinTop} />}
+      {pinTop != null && (
+        <div className="absolute left-0 right-0 z-10 pointer-events-none" style={{ top: 0 }}>
+          <CenterPin top={pinTop} />
+        </div>
+      )}
 
-      {/* Zoom controls — misma posición que CreateMapOverlay (left-[4%]) */}
       <MapZoomControls mapRef={mapRef} className="left-[4%]" />
     </div>
   );

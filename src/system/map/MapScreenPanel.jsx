@@ -1,10 +1,11 @@
+import { useEffect } from 'react';
+
 /**
  * FUENTE ÚNICA DE VERDAD para posicionamiento de paneles flotantes.
  * Controla: anchura, separación respecto al menú inferior, safe area.
  * Usado por CreateAlertCard y UserAlertCard (search).
  *
  * paddingBottom = (20 - cardShiftUp)px (gap) + --bottom-nav-h
- * cardShiftUp: sube la tarjeta N px manteniendo gap 20px (bottom + paddingBottom)
  */
 export default function MapScreenPanel({
   children,
@@ -12,9 +13,29 @@ export default function MapScreenPanel({
   style = {},
   cardShiftUp = 0,
   overflowHidden = false,
+  measureLabel,
   ...rest
 }) {
   const gapPx = Math.max(0, 20 - cardShiftUp);
+
+  useEffect(() => {
+    if (!measureLabel || !import.meta.env.DEV) return;
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector('[data-map-screen-panel-inner]');
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const key = measureLabel === 'create' ? 'createCardBottom' : 'navigateCardBottom';
+      const prev = window.__WAITME_CARD_MEASURE || {};
+      const next = { ...prev, [key]: rect.bottom };
+      window.__WAITME_CARD_MEASURE = next;
+      console.log(`[MapScreenPanel] ${key}=${rect.bottom.toFixed(2)}`);
+      if (next.createCardBottom != null && next.navigateCardBottom != null) {
+        const d = Math.abs(next.createCardBottom - next.navigateCardBottom);
+        console.log(`[MapScreenPanel] difference=${d.toFixed(2)}px ${d <= 1 ? '✓' : '✗'}`);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [measureLabel]);
   return (
     <div
       className={`absolute left-0 right-0 bottom-0 flex justify-center pointer-events-none z-20 ${className}`.trim()}
