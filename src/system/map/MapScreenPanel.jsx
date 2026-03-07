@@ -11,6 +11,7 @@ export default function MapScreenPanel({
   className = '',
   style = {},
   cardShiftUp = 0,
+  overflowHidden = false,
   ...rest
 }) {
   const gapPx = Math.max(0, 20 - cardShiftUp);
@@ -31,7 +32,7 @@ export default function MapScreenPanel({
         style={{
           transform: 'translateY(0)',
           maxHeight: 'min(55vh, 340px)',
-          overflowY: 'auto',
+          overflowY: overflowHidden ? 'hidden' : 'auto',
         }}
       >
         {children}

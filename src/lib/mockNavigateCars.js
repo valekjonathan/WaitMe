@@ -1,7 +1,7 @@
 /**
  * 10 coches mock para modo "Dónde quieres aparcar" (navigate/search).
  * Dispersos en radio pequeño alrededor del usuario.
- * Estructura compatible con MapboxMap y UserAlertCard.
+ * Datos nunca vacíos: foto, nombre, coche, matrícula mock obligatorios.
  */
 
 const OVIEDO_CENTER = { lat: 43.3619, lng: -5.8494 };
@@ -19,7 +19,9 @@ const NAMES = [
   'Claudia',
 ];
 const COLORS = ['white', 'black', 'blue', 'red', 'gray', 'green', 'purple', 'orange'];
-const VEHICLE_TYPES = ['car', 'car', 'car', 'suv', 'van']; // mayoría coches
+const VEHICLE_TYPES = ['car', 'car', 'car', 'suv', 'van'];
+const BRANDS = ['Seat', 'Volkswagen', 'Renault', 'Peugeot', 'Ford', 'Opel', 'Toyota', 'Hyundai'];
+const MODELS = ['León', 'Golf', 'Clio', '208', 'Focus', 'Corsa', 'Corolla', 'i20'];
 
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -27,6 +29,20 @@ function pick(arr) {
 
 function randomInt(min, max) {
   return Math.floor(min + Math.random() * (max - min + 1));
+}
+
+function spanishPlate() {
+  const digits = String(randomInt(1000, 9999));
+  const letters = 'BCDFGHJKLMNPRSTVWXYZ';
+  const L = letters[randomInt(0, letters.length - 1)];
+  const L2 = letters[randomInt(0, letters.length - 1)];
+  const L3 = letters[randomInt(0, letters.length - 1)];
+  return `${digits} ${L}${L2}${L3}`;
+}
+
+function avatarUrl(name) {
+  const encoded = encodeURIComponent(name || 'U');
+  return `https://ui-avatars.com/api/?name=${encoded}&background=8b5cf6&color=fff&size=128`;
 }
 
 /**
@@ -67,13 +83,14 @@ export function getMockNavigateCars(userLocation) {
       id: `mock_nav_${i}`,
       user_id: `mock_u${i + 1}`,
       user_name: name,
-      user_photo: null,
+      user_photo: avatarUrl(name),
 
       vehicle_type: pick(VEHICLE_TYPES),
       vehicle_color: pick(COLORS),
       color: pick(COLORS),
-      brand: 'Mock',
-      model: 'Coche',
+      brand: pick(BRANDS),
+      model: pick(MODELS),
+      plate: spanishPlate(),
 
       address: `Calle ${name}, ${randomInt(1, 30)}, Oviedo`,
 

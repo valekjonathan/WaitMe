@@ -15,7 +15,6 @@ function UserAlertCard({
   onChat,
   onCall,
   onReject,
-  onStartArriving,
   isLoading = false,
   isEmpty = false,
   userLocation,
@@ -23,7 +22,7 @@ function UserAlertCard({
   hideBuy = false,
   showDistanceInMeters = false,
   showCountdownTimer: _showCountdownTimer = false,
-  showArrivingButton = false,
+  isOperationAccepted = false,
 }) {
   // Normaliza userLocation para evitar errores cuando llega como array u objeto
   // Formatos aceptados: [lat, lng] | { latitude, longitude } | { lat, lng }
@@ -115,7 +114,7 @@ function UserAlertCard({
     onBuyAlert?.(alert);
   };
 
-  const carLabel = `${alert?.brand || ''} ${alert?.model || ''}`.trim() || 'Sin datos';
+  const carLabel = `${alert?.brand || ''} ${alert?.model || ''}`.trim() || 'Coche';
 
   const CardHeaderRow = ({ left, dateText, right }) => (
     <div className="flex items-center gap-2 mb-2">
@@ -200,17 +199,14 @@ function UserAlertCard({
 
       <div className="flex gap-2.5">
         <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-          {alert?.user_photo ? (
-            <img
-              src={alert.user_photo}
-              alt={alert.user_name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl text-gray-300">
-              👤
-            </div>
-          )}
+          <img
+            src={
+              alert?.user_photo ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent((alert?.user_name || 'U').charAt(0))}&background=8b5cf6&color=fff&size=128`
+            }
+            alt={alert?.user_name || 'Usuario'}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="flex-1 h-[85px] flex flex-col">
@@ -222,16 +218,18 @@ function UserAlertCard({
           </p>
 
           <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-            <div className="flex-shrink-0">
-              <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
-                <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
-                  <span className="text-white text-[8px] font-bold">E</span>
+            {isOperationAccepted && (
+              <div className="flex-shrink-0">
+                <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
+                  <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
+                    <span className="text-white text-[8px] font-bold">E</span>
+                  </div>
+                  <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
+                    {formatPlate(alert?.plate)}
+                  </span>
                 </div>
-                <span className="px-2 text-black font-mono font-bold text-sm tracking-wider">
-                  {formatPlate(alert?.plate)}
-                </span>
               </div>
-            </div>
+            )}
 
             <div className="flex-1 flex justify-center">
               <div className="flex-shrink-0 relative top-[2px]">
@@ -314,26 +312,31 @@ function UserAlertCard({
               </Button>
             )}
 
-            {/* 3. Ir – azul parpadeante con animación */}
+            {/* 3. Ir – icono solo, parpadea cuando operación aceptada */}
             <style>{`
               @keyframes pulse-navigate {
                 0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.8); }
                 50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2); }
               }
-              .btn-navigate { animation: pulse-navigate 2s infinite; }
+              .btn-ir-navigate { animation: pulse-navigate 2s infinite; }
             `}</style>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 w-full flex items-center justify-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed border border-blue-400/50 btn-navigate"
-              disabled={!alert?.latitude || !alert?.longitude}
+              className={`h-8 w-full flex items-center justify-center rounded-lg border border-blue-400/50 ${
+                isOperationAccepted
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white btn-ir-navigate'
+                  : 'bg-gray-700/50 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
+              disabled={!isOperationAccepted || !alert?.latitude || !alert?.longitude}
               onClick={() => {
-                window.open(
-                  `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
-                  '_blank'
-                );
+                if (isOperationAccepted && alert?.latitude && alert?.longitude) {
+                  window.open(
+                    `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
+                    '_blank'
+                  );
+                }
               }}
             >
               <Navigation className="w-4 h-4" />
-              <span className="font-semibold text-sm">Ir</span>
             </Button>
 
             {/* 4. Contador – estilo ActiveAlertCard */}
@@ -372,12 +375,23 @@ function UserAlertCard({
                 <PhoneOff className="w-4 h-4 text-white" />
               </Button>
             )}
+            <style>{`
+              @keyframes pulse-navigate {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.8); }
+                50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2); }
+              }
+              .btn-ir-navigate { animation: pulse-navigate 2s infinite; }
+            `}</style>
             <Button
               size="icon"
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-3 flex items-center justify-center gap-1 disabled:opacity-40"
-              disabled={!alert?.latitude || !alert?.longitude}
+              className={`h-8 w-[42px] flex items-center justify-center rounded-lg border border-blue-400/50 ${
+                isOperationAccepted
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white btn-ir-navigate'
+                  : 'bg-gray-700/50 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
+              disabled={!isOperationAccepted || !alert?.latitude || !alert?.longitude}
               onClick={() => {
-                if (alert?.latitude && alert?.longitude) {
+                if (isOperationAccepted && alert?.latitude && alert?.longitude) {
                   window.open(
                     `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
                     '_blank'
@@ -386,17 +400,8 @@ function UserAlertCard({
               }}
             >
               <Navigation className="w-4 h-4" />
-              <span className="font-semibold text-sm">Ir</span>
             </Button>
-            <div className="flex-1 flex flex-col gap-1.5">
-              {showArrivingButton && onStartArriving ? (
-                <Button
-                  className="w-full h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold border-2 border-blue-400/50"
-                  onClick={() => onStartArriving(alert)}
-                >
-                  Ver viniendo hacia ti
-                </Button>
-              ) : null}
+            <div className="flex-1">
               <Button
                 className="w-full h-8 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold border-2 border-purple-500/40"
                 onClick={handleBuy}

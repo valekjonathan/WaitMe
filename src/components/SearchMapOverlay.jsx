@@ -55,46 +55,45 @@ export default function SearchMapOverlay({
   return (
     <div
       ref={overlayRef}
-      className="absolute inset-0 flex flex-col pointer-events-none z-10"
-      style={{ overflow: 'hidden' }}
+      className="absolute inset-0 flex flex-col pointer-events-none z-10 h-full overflow-hidden"
       aria-hidden="true"
     >
-      {/* Filtros: solo en browse */}
-      {!isArriving && (
-        <div className="absolute top-3 right-3 z-[1000] pointer-events-auto">
-          {filtersButton}
-          {filtersContent}
-        </div>
-      )}
-
-      {/* Top: search en browse, distancia+ETA en arriving — misma coordenada que create (pt para no solapar header) */}
+      {/* Top: buscador pegado al header, filtros misma altura a la derecha */}
       <div
         ref={topRef}
-        className="px-4 pt-[calc(var(--header-h,69px)+8px)] pb-2 flex-shrink-0 pointer-events-auto"
+        className="px-4 pt-[calc(var(--header-h,69px)+8px)] pb-2 flex-shrink-0 pointer-events-auto flex items-start gap-2"
       >
-        {isArriving ? (
-          <div className="flex gap-3">
-            <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-purple-400 flex-shrink-0" />
-              <span className="text-white font-bold text-sm">
-                {arrivalMetrics.distanceMeters} m
-              </span>
+        <div className="flex-1 min-w-0">
+          {isArriving ? (
+            <div className="flex gap-3">
+              <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
+                <Navigation className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                <span className="text-white font-bold text-sm">
+                  {arrivalMetrics.distanceMeters} m
+                </span>
+              </div>
+              <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                <span className="text-white font-bold text-sm">
+                  {arrivalMetrics.etaMinutes > 0 ? `${arrivalMetrics.etaMinutes} min` : 'Llegando'}
+                </span>
+              </div>
             </div>
-            <div className="flex-1 bg-black/60 backdrop-blur-sm border border-purple-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-purple-400 flex-shrink-0" />
-              <span className="text-white font-bold text-sm">
-                {arrivalMetrics.etaMinutes > 0 ? `${arrivalMetrics.etaMinutes} min` : 'Llegando'}
-              </span>
-            </div>
+          ) : (
+            <StreetSearch onSelect={onStreetSelect} placeholder="Buscar calle o dirección..." />
+          )}
+        </div>
+        {!isArriving && (
+          <div className="flex-shrink-0 z-[1000] pointer-events-auto">
+            {filtersButton}
+            {filtersContent}
           </div>
-        ) : (
-          <StreetSearch onSelect={onStreetSelect} placeholder="Buscar calle o dirección..." />
         )}
       </div>
 
-      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create: cardShiftUp=10, gap 20px) */}
+      {/* Área UserAlertCard — MapScreenPanel (misma geometría que Create: cardShiftUp=10, gap 20px, sin scroll) */}
       <div className="flex-1 min-h-0 overflow-hidden flex items-end pointer-events-auto">
-        <MapScreenPanel cardShiftUp={10}>
+        <MapScreenPanel cardShiftUp={10} overflowHidden>
           <div ref={cardRef}>{alertCard}</div>
         </MapScreenPanel>
       </div>
