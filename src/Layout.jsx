@@ -62,15 +62,37 @@ function LayoutShell() {
     const body = document.body;
     const root = document.getElementById('root');
     if (isHome) {
+      html.setAttribute('data-waitme-home', 'true');
       html.style.overflow = 'hidden';
+      html.style.height = '100dvh';
+      html.style.maxHeight = '100dvh';
       body.style.overflow = 'hidden';
       body.style.overscrollBehavior = 'none';
-      if (root) root.style.overflow = 'hidden';
+      body.style.touchAction = 'none';
+      body.style.height = '100dvh';
+      body.style.maxHeight = '100dvh';
+      if (root) {
+        root.style.overflow = 'hidden';
+        root.style.touchAction = 'none';
+        root.style.height = '100dvh';
+        root.style.maxHeight = '100dvh';
+      }
     } else {
+      html.removeAttribute('data-waitme-home');
       html.style.overflow = '';
+      html.style.height = '';
+      html.style.maxHeight = '';
       body.style.overflow = '';
       body.style.overscrollBehavior = '';
-      if (root) root.style.overflow = '';
+      body.style.touchAction = '';
+      body.style.height = '';
+      body.style.maxHeight = '';
+      if (root) {
+        root.style.overflow = '';
+        root.style.touchAction = '';
+        root.style.height = '';
+        root.style.maxHeight = '';
+      }
     }
     if (isHome && import.meta.env.DEV) {
       const check = () => {
@@ -96,17 +118,37 @@ function LayoutShell() {
       const t = setTimeout(check, 500);
       return () => {
         clearTimeout(t);
-        html.style.overflow = '';
-        body.style.overflow = '';
-        body.style.overscrollBehavior = '';
-        if (root) root.style.overflow = '';
+        html.removeAttribute('data-waitme-home');
+        html.style.overflow = html.style.height = html.style.maxHeight = '';
+        body.style.overflow =
+          body.style.overscrollBehavior =
+          body.style.touchAction =
+          body.style.height =
+          body.style.maxHeight =
+            '';
+        if (root)
+          root.style.overflow =
+            root.style.touchAction =
+            root.style.height =
+            root.style.maxHeight =
+              '';
       };
     }
     return () => {
-      html.style.overflow = '';
-      body.style.overflow = '';
-      body.style.overscrollBehavior = '';
-      if (root) root.style.overflow = '';
+      html.removeAttribute('data-waitme-home');
+      html.style.overflow = html.style.height = html.style.maxHeight = '';
+      body.style.overflow =
+        body.style.overscrollBehavior =
+        body.style.touchAction =
+        body.style.height =
+        body.style.maxHeight =
+          '';
+      if (root)
+        root.style.overflow =
+          root.style.touchAction =
+          root.style.height =
+          root.style.maxHeight =
+            '';
     };
   }, [path]);
   RENDER_LOG('LayoutShell ENTER', { path });

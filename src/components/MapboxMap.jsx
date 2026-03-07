@@ -528,7 +528,7 @@ export default function MapboxMap({
     height: '100%',
     minHeight: '100dvh',
     minWidth: '100%',
-    touchAction: 'manipulation',
+    touchAction: interactive ? 'pan-x pan-y' : 'none',
   };
 
   const { style: restStyle, ...restProps } = rest;

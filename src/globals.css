@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* App nativa: bloqueo scroll global en Home (Layout aplica overflow via JS) */
 html, body {
   touch-action: manipulation;
 }
@@ -73,6 +74,15 @@ html, body {
 /* DVH GLOBAL FIX (iOS PWA / Safari) */
 html, body, #root { height: 100%; }
 body { min-height: 100dvh; background: #0B0B0F; }
+
+/* Home route: bloqueo total scroll (Layout aplica data-home-route) */
+html[data-waitme-home="true"],
+html[data-waitme-home="true"] body,
+html[data-waitme-home="true"] #root {
+  overflow: hidden !important;
+  touch-action: none;
+  overscroll-behavior: none;
+}
 
 /* ── Safe-area (iPhone Dynamic Island / notch) ── */
 :root {
