@@ -2,36 +2,13 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { getCarWithPriceHtml } from '@/lib/vehicleIcons';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
-import { getPreciseInitialLocation } from '@/lib/location';
-
-const _lastLog = { t: 0 };
-const RENDER_LOG = (msg, extra) => {
-  if (import.meta.env.DEV) {
-    const now = Date.now();
-    if (now - _lastLog.t < 3000) return;
-    _lastLog.t = now;
-    try {
-      console.log(`[RENDER:MapboxMap] ${msg}`, extra ?? '');
-    } catch {}
-  }
-};
+import { getPreciseInitialLocation, toLatLngArray } from '@/lib/location';
 
 const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
-const _FALLBACK_ZOOM = 14;
 const DEFAULT_ZOOM = 16.5;
 const DEFAULT_PITCH = 30;
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
-const GPS_TIMEOUT_MS = 2500;
 const ACCURACY_RECENTER_THRESHOLD = 80;
-
-/** Normaliza locationFromEngine a [lat, lng] o null. Acepta array o objeto. */
-function toLatLngArray(loc) {
-  if (!loc) return null;
-  const lat = Array.isArray(loc) ? loc[0] : (loc?.lat ?? loc?.latitude);
-  const lng = Array.isArray(loc) ? loc[1] : (loc?.lng ?? loc?.longitude);
-  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return [lat, lng];
-}
 
 export default function MapboxMap({
   className = '',
@@ -53,7 +30,6 @@ export default function MapboxMap({
   children,
   ...rest
 }) {
-  RENDER_LOG('MapboxMap ENTER');
   const containerRef = useRef(null);
   const internalMapRef = useRef(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -540,7 +516,6 @@ export default function MapboxMap({
   }, [mapReady, error, useCenterPin]);
 
   if (error) {
-    RENDER_LOG('MapboxMap RETURNS error state', error);
     return (
       <div
         style={{
@@ -570,7 +545,6 @@ export default function MapboxMap({
   };
 
   const { style: restStyle, ...restProps } = rest;
-  RENDER_LOG('MapboxMap RETURNS map container', { mapReady });
   return (
     <div
       ref={containerRef}

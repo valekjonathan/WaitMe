@@ -28,7 +28,7 @@
     "prepare": "husky",
     "preview": "vite preview --host --port 4173",
     "dev:ios": "bash scripts/dev-ios.sh",
-    "ios:dev": "npm run dev:ios",
+    "ios:dev": "CAPACITOR_USE_DEV_SERVER=true npx cap run ios",
     "ios:sync:dev": "npm run build && CAPACITOR_USE_DEV_SERVER=true npx cap sync ios",
     "ios:sync": "npm run build && npx cap sync ios",
     "ios:open": "npx cap open ios",

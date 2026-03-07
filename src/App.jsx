@@ -21,14 +21,31 @@ async function processOAuthUrl(url, onSuccess) {
   } catch {
     /* no-op */
   }
-  const hash = url.split('#')[1];
+  const supabase = getSupabase();
+  if (!supabase) return false;
+
+  const hashIdx = url.indexOf('#');
+  const queryIdx = url.indexOf('?');
+
+  if (queryIdx !== -1) {
+    const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
+    const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
+    const code = params.get('code');
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) {
+        onSuccess?.();
+        return true;
+      }
+    }
+  }
+
+  const hash = hashIdx !== -1 ? url.slice(hashIdx + 1) : '';
   if (!hash) return false;
   const params = new URLSearchParams(hash);
   const access_token = params.get('access_token');
   const refresh_token = params.get('refresh_token');
   if (!access_token || !refresh_token) return false;
-  const supabase = getSupabase();
-  if (!supabase) return false;
   const { error } = await supabase.auth.setSession({ access_token, refresh_token });
   if (error) return false;
   onSuccess?.();

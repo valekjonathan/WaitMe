@@ -31,7 +31,11 @@ function getAuthOptions() {
   };
   try {
     if (Capacitor?.isNativePlatform?.()) {
-      return { ...base, storage: capacitorStorage };
+      return {
+        ...base,
+        storage: capacitorStorage,
+        flowType: 'pkce',
+      };
     }
   } catch {
     /* Capacitor no disponible: usar storage por defecto */

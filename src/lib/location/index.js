@@ -34,3 +34,5 @@ export {
 } from './locationFraudLogs.js';
 
 export { getPreciseInitialLocation } from './getPreciseInitialLocation.js';
+
+export { toLatLngArray } from './toLatLngArray.js';

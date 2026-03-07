@@ -20,17 +20,16 @@ export const nearbyAlertsKey = (locationKey) => ['alerts', 'nearby', locationKey
 /** Prefix key — invalidates ALL alert query variants at once. */
 export const alertsPrefix = ['alerts'];
 
+import { toLatLngArray } from '@/lib/location';
+
 /**
  * Extrae lat/lng de userLocation (array o objeto).
  * @param {[number,number]|{lat,lng,latitude,longitude}} userLocation
  * @returns {{ lat: number, lng: number }|null}
  */
 export function extractLatLng(userLocation) {
-  if (!userLocation) return null;
-  const lat = Array.isArray(userLocation) ? userLocation[0] : userLocation?.latitude ?? userLocation?.lat;
-  const lng = Array.isArray(userLocation) ? userLocation[1] : userLocation?.longitude ?? userLocation?.lng;
-  if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return { lat, lng };
+  const arr = toLatLngArray(userLocation);
+  return arr ? { lat: arr[0], lng: arr[1] } : null;
 }
 
 /**
