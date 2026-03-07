@@ -66,7 +66,7 @@ export default function CreateMapOverlay({
         </div>
       )}
 
-      <MapZoomControls mapRef={mapRef} className="left-[4%]" />
+      <MapZoomControls mapRef={mapRef} className="left-[4%]" measureLabel="create" />
     </div>
   );
 }

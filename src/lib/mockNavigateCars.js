@@ -1,5 +1,5 @@
 /**
- * 10 coches mock para modo "Dónde quieres aparcar" (navigate/search).
+ * 20 coches mock para modo "Dónde quieres aparcar" (navigate/search).
  * Dispersos en radio pequeño alrededor del usuario.
  * Datos nunca vacíos: foto, nombre, coche, matrícula mock obligatorios.
  */
@@ -17,6 +17,16 @@ const NAMES = [
   'Paula',
   'Álvaro',
   'Claudia',
+  'Carlos',
+  'Elena',
+  'Miguel',
+  'Ana',
+  'Pablo',
+  'Lucía',
+  'David',
+  'Carmen',
+  'Javier',
+  'Isabel',
 ];
 const COLORS = ['white', 'black', 'blue', 'red', 'gray', 'green', 'purple', 'orange'];
 const VEHICLE_TYPES = ['car', 'car', 'car', 'suv', 'van'];
@@ -46,9 +56,9 @@ function avatarUrl(name) {
 }
 
 /**
- * Genera 10 coches mock dispersos en radio pequeño (~200m) alrededor del usuario.
+ * Genera 20 coches mock dispersos en radio pequeño (~200m) alrededor del usuario.
  * @param {number[]|{lat:number,lng:number}[]} userLocation - [lat, lng] o {lat, lng}
- * @returns {Array} 10 alertas con id, nombre, precio, distancia, tiempo restante
+ * @returns {Array} 20 alertas con id, nombre, precio, distancia, tiempo restante
  */
 export function getMockNavigateCars(userLocation) {
   const baseLat = Array.isArray(userLocation)
@@ -64,8 +74,8 @@ export function getMockNavigateCars(userLocation) {
   // Radio pequeño: ~200m (lat/lng ± 0.002 ≈ 220m)
   const RADIUS = 0.002;
 
-  for (let i = 0; i < 10; i++) {
-    const angle = (i / 10) * 2 * Math.PI + Math.random() * 0.5;
+  for (let i = 0; i < 20; i++) {
+    const angle = (i / 20) * 2 * Math.PI + Math.random() * 0.5;
     const r = RADIUS * (0.3 + Math.random() * 0.7);
     const dLat = r * Math.cos(angle);
     const dLng = r * Math.sin(angle);

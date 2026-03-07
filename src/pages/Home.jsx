@@ -447,7 +447,7 @@ export default function Home() {
     return filteredAlerts || [];
   }, [mode, filteredAlerts]);
 
-  // Modo navigate: 10 coches mock dispersos en radio pequeño. Home/create: sin coches.
+  // Modo navigate: 20 coches mock dispersos en radio pequeño. Home/create: sin coches.
   const navigateMapAlerts = useMemo(() => {
     if (mode !== 'search') return [];
     return getMockNavigateCars(userLocation);
@@ -478,7 +478,7 @@ export default function Home() {
     navigateViewState === 'arriving' && !!arrivingAlert
   );
 
-  // Alerts para el mapa: browse = 10 coches, arriving = solo el coche en movimiento
+  // Alerts para el mapa: browse = 20 coches, arriving = solo el coche en movimiento
   const mapAlertsForNavigate = useMemo(() => {
     if (mode !== 'search') return [];
     if (navigateViewState === 'arriving' && arrivingAlert && arrivingCarPosition) {

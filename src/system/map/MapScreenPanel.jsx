@@ -54,6 +54,8 @@ export default function MapScreenPanel({
           transform: 'translateY(0)',
           maxHeight: 'min(55vh, 340px)',
           overflowY: overflowHidden ? 'hidden' : 'auto',
+          overscrollBehavior: 'contain',
+          touchAction: 'pan-y',
         }}
       >
         {children}

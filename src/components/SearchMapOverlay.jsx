@@ -96,7 +96,7 @@ export default function SearchMapOverlay({
         </div>
       )}
 
-      <MapZoomControls mapRef={mapRef} className="left-[4%]" />
+      <MapZoomControls mapRef={mapRef} className="left-[4%]" measureLabel="navigate" />
     </div>
   );
 }

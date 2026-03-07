@@ -18,14 +18,13 @@ import MapLayer from '@/system/layout/MapLayer';
 import OverlayLayer from '@/system/layout/OverlayLayer';
 
 export default function MapViewportShell({ mode = 'home', panel, children, mapNode }) {
-  const isCreate = mode === 'create';
   const isHome = !mode || mode === 'home';
   return (
     <div
       className="relative w-full overflow-hidden"
       style={{
-        minHeight: isCreate ? undefined : '100dvh',
-        height: isCreate ? 'calc(100dvh - var(--header-h, 69px) - 7px)' : '100%',
+        minHeight: '100dvh',
+        height: '100%',
       }}
       data-map-viewport-shell
       data-map-mode={mode}

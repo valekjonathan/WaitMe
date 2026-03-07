@@ -2,6 +2,7 @@
  * Botones de zoom (+/-) para el mapa.
  * Usa mapRef.current (instancia visible real). Fallback a easeTo si zoomIn/zoomOut no existen.
  */
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
 
@@ -23,7 +24,25 @@ function zoomOut(map) {
   }
 }
 
-export default function MapZoomControls({ mapRef, className = '' }) {
+export default function MapZoomControls({ mapRef, className = '', measureLabel }) {
+  useEffect(() => {
+    if (!measureLabel || !import.meta.env.DEV) return;
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector('[data-zoom-controls]');
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const key = measureLabel === 'create' ? 'createZoomTop' : 'navigateZoomTop';
+      const prev = window.__WAITME_ZOOM_MEASURE || {};
+      const next = { ...prev, [key]: rect.top };
+      window.__WAITME_ZOOM_MEASURE = next;
+      console.log(`[MapZoomControls] ${key}=${rect.top.toFixed(2)}`);
+      if (next.createZoomTop != null && next.navigateZoomTop != null) {
+        const d = Math.abs(next.createZoomTop - next.navigateZoomTop);
+        console.log(`[MapZoomControls] differenceZoom=${d.toFixed(2)}px ${d <= 1 ? '✓' : '✗'}`);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [measureLabel]);
   return (
     <div
       data-zoom-controls
