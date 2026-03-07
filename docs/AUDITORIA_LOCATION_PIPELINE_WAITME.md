@@ -61,11 +61,14 @@ GPS raw
 
 ---
 
-## 5. Map matching (preparado)
+## 5. Map matching (integrado)
 
 - **Función:** `snapToRoad(position)` / `snapToRoadSync(position)`
-- **Estado actual:** Identity (devuelve posición tal cual).
-- **Preparado para:** Mapbox Map Matching API (snap to road).
+- **Feature flag:** `VITE_USE_MAP_MATCHING=true` activa Mapbox Map Matching vía Supabase Edge Function `map-match`
+- **Con flag:** Llama a `map-match` con buffer de posiciones; usa geometría en caché para proyectar
+- **Sin flag / fallback:** Identity (devuelve posición tal cual)
+- **Timeout:** 5 s; no bloquea la app si falla
+- **Requisitos:** Edge Function desplegada, `MAPBOX_SECRET_TOKEN` en Supabase
 
 ---
 

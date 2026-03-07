@@ -44,11 +44,18 @@ export default class ErrorBoundary extends React.Component {
                 padding: 12,
                 background: '#1a1a1a',
                 borderRadius: 8,
+                marginBottom: 16,
               }}
             >
               {error?.message || String(error)}
             </pre>
           )}
+          <a
+            href="?VITE_SAFE_MODE=true"
+            style={{ color: '#a78bfa', textDecoration: 'underline', fontSize: 14 }}
+          >
+            Abrir en modo seguro
+          </a>
         </div>
       );
     }
