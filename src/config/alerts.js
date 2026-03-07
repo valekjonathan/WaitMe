@@ -11,3 +11,12 @@ export const NEARBY_REFRESH_THRESHOLD_M = 150;
 
 /** Minutos máximos para llegar tras reservar; pasado este tiempo la alerta vuelve a active. */
 export const RESERVATION_TIMEOUT_MINUTES = 10;
+
+/** Densidad de coches en mapa por zoom: bajo zoom → menos coches. */
+export const VIEWPORT_ALERTS_LIMIT_LOW_ZOOM = 10;
+
+/** Densidad de coches en mapa por zoom: alto zoom → más coches. */
+export const VIEWPORT_ALERTS_LIMIT_HIGH_ZOOM = 20;
+
+/** Zoom por debajo del cual se usa límite bajo (menos coches). */
+export const ZOOM_VIEWPORT_THRESHOLD = 15;

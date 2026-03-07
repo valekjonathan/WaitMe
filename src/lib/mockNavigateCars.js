@@ -122,3 +122,84 @@ export function getMockNavigateCars(userLocation) {
 
   return result;
 }
+
+/**
+ * Genera coches mock dentro del viewport (bounds).
+ * Optimizado para carga por viewport: solo coches visibles.
+ * @param {{ swLat: number, swLng: number, neLat: number, neLng: number }} bounds
+ * @param {number} [limit=20] - máximo de coches a generar
+ * @returns {Array} alertas mock dentro del bounds
+ */
+export function getMockNavigateCarsInBounds(bounds, limit = 20) {
+  const swLat = bounds?.swLat ?? bounds?.sw?.lat;
+  const swLng = bounds?.swLng ?? bounds?.sw?.lng;
+  const neLat = bounds?.neLat ?? bounds?.ne?.lat;
+  const neLng = bounds?.neLng ?? bounds?.ne?.lng;
+
+  if (
+    swLat == null ||
+    swLng == null ||
+    neLat == null ||
+    neLng == null ||
+    !Number.isFinite(swLat) ||
+    !Number.isFinite(swLng) ||
+    !Number.isFinite(neLat) ||
+    !Number.isFinite(neLng)
+  ) {
+    return [];
+  }
+
+  const latMin = Math.min(swLat, neLat);
+  const latMax = Math.max(swLat, neLat);
+  const lngMin = Math.min(swLng, neLng);
+  const lngMax = Math.max(swLng, neLng);
+
+  const now = Date.now();
+  const result = [];
+  const n = Math.min(limit, 50);
+
+  for (let i = 0; i < n; i++) {
+    const lat = latMin + Math.random() * (latMax - latMin);
+    const lng = lngMin + Math.random() * (lngMax - lngMin);
+
+    const price = randomInt(2, 8);
+    const available_in_minutes = [5, 10, 15, 20][i % 4];
+    const created = now - (i + 1) * 30 * 1000;
+    const waitUntil = new Date(created + available_in_minutes * 60 * 1000);
+
+    const name = NAMES[i % NAMES.length];
+
+    const boundsKey = `${latMin.toFixed(4)}_${lngMin.toFixed(4)}_${latMax.toFixed(4)}_${lngMax.toFixed(4)}`;
+    result.push({
+      id: `mock_nav_vp_${boundsKey}_${i}`,
+      user_id: `mock_u${i + 1}`,
+      user_name: name,
+      user_photo: avatarUrl(name),
+
+      vehicle_type: pick(VEHICLE_TYPES),
+      vehicle_color: pick(COLORS),
+      color: pick(COLORS),
+      brand: pick(BRANDS),
+      model: pick(MODELS),
+      plate: spanishPlate(),
+
+      address: `Calle ${name}, ${randomInt(1, 30)}, Oviedo`,
+
+      latitude: lat,
+      longitude: lng,
+      lat,
+      lng,
+
+      price,
+      available_in_minutes,
+      availableInMinutes: available_in_minutes,
+      created_date: created,
+      wait_until: waitUntil.toISOString(),
+      status: 'active',
+
+      is_mock: true,
+    });
+  }
+
+  return result;
+}

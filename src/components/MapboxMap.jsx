@@ -494,7 +494,21 @@ export default function MapboxMap({
     };
     const onMoveEnd = () => {
       const c = map.getCenter();
-      onMapMoveEndRef.current?.([c.lat, c.lng]);
+      const b = map.getBounds?.();
+      const zoom = map.getZoom?.();
+      const payload = {
+        center: [c.lat, c.lng],
+        bounds: b
+          ? {
+              swLat: b.getSouth(),
+              swLng: b.getWest(),
+              neLat: b.getNorth(),
+              neLng: b.getEast(),
+            }
+          : null,
+        zoom: typeof zoom === 'number' ? zoom : null,
+      };
+      onMapMoveEndRef.current?.(payload);
     };
     map.on('move', onMove);
     map.on('moveend', onMoveEnd);

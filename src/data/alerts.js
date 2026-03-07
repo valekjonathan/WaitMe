@@ -17,4 +17,5 @@ export const updateAlert = provider.updateAlert;
 export const deleteAlert = provider.deleteAlert;
 export const subscribeAlerts = provider.subscribeAlerts;
 export const getNearbyAlerts = provider.getNearbyAlerts;
+export const getAlertsInBounds = provider.getAlertsInBounds;
 export const reserveAlert = provider.reserveAlert;

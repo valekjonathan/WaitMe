@@ -72,7 +72,9 @@ export async function createAlert(payload) {
   const lat = payload.lat ?? payload.latitude;
   const lng = payload.lng ?? payload.longitude;
   const addressText = payload.addressText ?? payload.address;
-  const priceCents = payload.priceCents ?? (typeof payload.price === 'number' ? Math.round(payload.price * 100) : null);
+  const priceCents =
+    payload.priceCents ??
+    (typeof payload.price === 'number' ? Math.round(payload.price * 100) : null);
   const expiresAt = payload.expiresAt ?? payload.wait_until;
   const metadata = payload.metadata ?? {};
   if (payload.vehicle_type) metadata.vehicle_type = payload.vehicle_type;
@@ -128,16 +130,21 @@ export async function updateAlert(alertId, updates) {
   if (updates.addressText != null) row.address_text = updates.addressText;
   if (updates.address != null) row.address_text = updates.address;
   if (updates.metadata != null) row.metadata = updates.metadata;
-  const needsMeta = updates.reserved_by_name != null || updates.reserved_by_car != null ||
-    updates.reserved_by_plate != null || updates.cancel_reason != null;
+  const needsMeta =
+    updates.reserved_by_name != null ||
+    updates.reserved_by_car != null ||
+    updates.reserved_by_plate != null ||
+    updates.cancel_reason != null;
   if (needsMeta) {
     const { data: cur } = await supabase.from(TABLE).select('metadata').eq('id', alertId).single();
     const meta = { ...(cur?.metadata || {}) };
     if (updates.reserved_by_name != null) meta.reserved_by_name = updates.reserved_by_name;
     if (updates.reserved_by_car != null) meta.reserved_by_car = updates.reserved_by_car;
     if (updates.reserved_by_plate != null) meta.reserved_by_plate = updates.reserved_by_plate;
-    if (updates.reserved_by_car_color != null) meta.reserved_by_car_color = updates.reserved_by_car_color;
-    if (updates.reserved_by_vehicle_type != null) meta.reserved_by_vehicle_type = updates.reserved_by_vehicle_type;
+    if (updates.reserved_by_car_color != null)
+      meta.reserved_by_car_color = updates.reserved_by_car_color;
+    if (updates.reserved_by_vehicle_type != null)
+      meta.reserved_by_vehicle_type = updates.reserved_by_vehicle_type;
     if (updates.cancel_reason != null) meta.cancel_reason = updates.cancel_reason;
     row.metadata = meta;
   }
@@ -180,22 +187,28 @@ export async function reserveAlert(alertId, userId, metadata = {}) {
     .eq('id', alertId)
     .single();
 
-  if (fetchErr || !current) return { data: null, error: fetchErr || new Error('Alerta no encontrada') };
+  if (fetchErr || !current)
+    return { data: null, error: fetchErr || new Error('Alerta no encontrada') };
   if (current.status !== 'active') {
-    return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+    return {
+      data: null,
+      error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }),
+    };
   }
   const ownerId = current.seller_id ?? current.user_id;
   if (ownerId === userId) {
     return { data: null, error: new Error('No puedes reservar tu propia alerta') };
   }
 
-  const reservedUntil = new Date(Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000).toISOString();
+  const reservedUntil = new Date(
+    Date.now() + RESERVATION_TIMEOUT_MINUTES * 60 * 1000
+  ).toISOString();
   const mergedMeta = { ...(current.metadata || {}), ...metadata };
   const updatePayload = {
     status: 'reserved',
     reserved_by: userId,
     reserved_until: reservedUntil,
-    metadata: Object.keys(mergedMeta).length ? mergedMeta : (current.metadata || {}),
+    metadata: Object.keys(mergedMeta).length ? mergedMeta : current.metadata || {},
   };
 
   const { data, error } = await supabase
@@ -208,7 +221,10 @@ export async function reserveAlert(alertId, userId, metadata = {}) {
 
   if (error) {
     if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
-      return { data: null, error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }) };
+      return {
+        data: null,
+        error: Object.assign(new Error('ALREADY_RESERVED'), { code: 'ALREADY_RESERVED' }),
+      };
     }
     return { data: null, error };
   }
@@ -287,6 +303,50 @@ export async function getNearbyAlerts(lat, lng, radiusKm = NEARBY_RADIUS_KM) {
 }
 
 /**
+ * Obtiene alertas activas dentro de un bounding box (viewport).
+ * Optimizado para carga por viewport: solo coches visibles en pantalla.
+ * @param {number} swLat - Latitud esquina suroeste
+ * @param {number} swLng - Longitud esquina suroeste
+ * @param {number} neLat - Latitud esquina noreste
+ * @param {number} neLng - Longitud esquina noreste
+ * @param {{ limit?: number }} [opts] - limit: máximo de alertas a devolver (densidad por zoom)
+ * @returns {{ data: Array, error }}
+ */
+export async function getAlertsInBounds(swLat, swLng, neLat, neLng, opts = {}) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
+
+  await expireReservations();
+
+  const latMin = Math.min(swLat, neLat);
+  const latMax = Math.max(swLat, neLat);
+  const lngMin = Math.min(swLng, neLng);
+  const lngMax = Math.max(swLng, neLng);
+
+  let query = supabase
+    .from(TABLE)
+    .select('*')
+    .eq('status', 'active')
+    .gte('lat', latMin)
+    .lte('lat', latMax)
+    .gte('lng', lngMin)
+    .lte('lng', lngMax)
+    .order('created_at', { ascending: false });
+
+  const limit = opts?.limit;
+  if (typeof limit === 'number' && limit > 0) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) return { data: [], error };
+
+  const normalized = (data ?? []).map(normalizeAlert).filter(Boolean);
+  return { data: normalized, error: null };
+}
+
+/**
  * Obtiene alertas del vendedor (mis alertas).
  * @param {string} sellerId
  * @returns {{ data: Array, error }}
@@ -344,10 +404,7 @@ export async function getAlertsReservedByMe(buyerId) {
  * @returns {{ data: Array, error }}
  */
 export async function getAlertsForChats(userId) {
-  const [mine, reserved] = await Promise.all([
-    getMyAlerts(userId),
-    getAlertsReservedByMe(userId),
-  ]);
+  const [mine, reserved] = await Promise.all([getMyAlerts(userId), getAlertsReservedByMe(userId)]);
   const err = mine.error || reserved.error;
   if (err) return { data: [], error: err };
   const seen = new Set();

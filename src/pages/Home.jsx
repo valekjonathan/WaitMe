@@ -32,10 +32,17 @@ import { useMyAlerts } from '@/hooks/useMyAlerts';
 import {
   alertsPrefix,
   nearbyAlertsKey,
+  viewportAlertsKey,
   getLocationKeyForNearby,
+  getBoundsKeyForViewport,
   extractLatLng,
 } from '@/lib/alertsQueryKey';
-import { NEARBY_RADIUS_KM } from '@/config/alerts';
+import {
+  NEARBY_RADIUS_KM,
+  VIEWPORT_ALERTS_LIMIT_LOW_ZOOM,
+  VIEWPORT_ALERTS_LIMIT_HIGH_ZOOM,
+  ZOOM_VIEWPORT_THRESHOLD,
+} from '@/config/alerts';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 // Preload logo eagerly so it's always instant on first render
@@ -154,6 +161,10 @@ export default function Home() {
   const [navigateViewState, setNavigateViewState] = useState('browse');
   const [arrivingAlertId, setArrivingAlertId] = useState(null);
 
+  // Viewport para carga de coches por bounds (optimización escala)
+  const [viewportBounds, setViewportBounds] = useState(null);
+  const [viewportZoom, setViewportZoom] = useState(null);
+
   const [filters, setFilters] = useState({
     maxPrice: 10,
     maxMinutes: 30,
@@ -174,6 +185,8 @@ export default function Home() {
       setNavigateViewState('browse');
       setArrivingAlertId(null);
       setSelectedAlert(null);
+      setViewportBounds(null);
+      setViewportZoom(null);
     }
   }, [mode]);
 
@@ -283,13 +296,51 @@ export default function Home() {
     const unsub = alerts.subscribeAlerts({
       onUpsert: () => {
         queryClient.invalidateQueries({ queryKey: ['alerts', 'nearby'] });
+        queryClient.invalidateQueries({ queryKey: ['alerts', 'viewport'] });
       },
       onDelete: () => {
         queryClient.invalidateQueries({ queryKey: ['alerts', 'nearby'] });
+        queryClient.invalidateQueries({ queryKey: ['alerts', 'viewport'] });
       },
     });
     return unsub;
   }, [queryClient]);
+
+  // Densidad por zoom: bajo zoom → menos coches, alto zoom → más
+  const viewportLimit = useMemo(() => {
+    const zoom = viewportZoom;
+    if (zoom == null) return VIEWPORT_ALERTS_LIMIT_HIGH_ZOOM;
+    return zoom < ZOOM_VIEWPORT_THRESHOLD
+      ? VIEWPORT_ALERTS_LIMIT_LOW_ZOOM
+      : VIEWPORT_ALERTS_LIMIT_HIGH_ZOOM;
+  }, [viewportZoom]);
+
+  const viewportBoundsKey = useMemo(
+    () => (viewportBounds ? getBoundsKeyForViewport(viewportBounds) : null),
+    [viewportBounds]
+  );
+
+  // Viewport alerts: carga por bounds (real o mock)
+  const { data: viewportAlertsRaw = [] } = useQuery({
+    queryKey: viewportAlertsKey(viewportBoundsKey, viewportLimit),
+    enabled: mode === 'search' && !!viewportBoundsKey,
+    queryFn: async () => {
+      const { swLat, swLng, neLat, neLng } = viewportBounds;
+      const { data, error } = await alerts.getAlertsInBounds(swLat, swLng, neLat, neLng, {
+        limit: viewportLimit,
+      });
+      if (error) {
+        console.warn('[getAlertsInBounds]', error);
+        return [];
+      }
+      if (data?.length > 0) return data;
+      return getMockNavigateCarsInBounds(viewportBounds, viewportLimit);
+    },
+    staleTime: 10_000,
+    gcTime: 5 * 60 * 1000,
+    refetchInterval: false,
+    placeholderData: (prev) => prev,
+  });
 
   // Una sola fuente de verdad (también alimenta la bolita del BottomNav)
   const { data: myAlerts = [] } = useMyAlerts();
@@ -443,11 +494,18 @@ export default function Home() {
     return filteredAlerts || [];
   }, [mode, filteredAlerts]);
 
-  // Modo navigate: 20 coches mock dispersos en radio pequeño. Home/create: sin coches.
+  // Modo navigate: viewport (bounds) cuando hay, sino fallback a radio desde userLocation
   const navigateMapAlerts = useMemo(() => {
     if (mode !== 'search') return [];
+    if (viewportBoundsKey && viewportAlertsRaw?.length > 0) {
+      const list = [...viewportAlertsRaw];
+      if (selectedAlert && !list.some((a) => a?.id === selectedAlert?.id)) {
+        list.push(selectedAlert);
+      }
+      return list;
+    }
     return getMockNavigateCars(userLocation);
-  }, [mode, userLocation]);
+  }, [mode, userLocation, viewportBoundsKey, viewportAlertsRaw, selectedAlert]);
 
   // Al entrar en search: seleccionar coche más cercano por defecto
   useEffect(() => {
@@ -734,7 +792,8 @@ export default function Home() {
   }, []);
 
   const handleMapMoveEnd = useCallback(
-    (center) => {
+    (payload) => {
+      const center = Array.isArray(payload) ? payload : payload?.center;
       if (!Array.isArray(center) || center.length < 2) return;
       const [lat, lng] = center;
       if (typeof lat !== 'number' || typeof lng !== 'number') return;
@@ -744,9 +803,13 @@ export default function Home() {
     [debouncedReverseGeocode]
   );
 
-  const handleMapMoveSearch = useCallback((center) => {
+  const handleMapMoveSearch = useCallback((payload) => {
+    const center = Array.isArray(payload) ? payload : payload?.center;
+    if (!Array.isArray(center) || center.length < 2) return;
     const [lat, lng] = center;
     setUserLocation([lat, lng]);
+    if (payload?.bounds) setViewportBounds(payload.bounds);
+    if (typeof payload?.zoom === 'number') setViewportZoom(payload.zoom);
   }, []);
 
   const handleRecenter = useCallback(
