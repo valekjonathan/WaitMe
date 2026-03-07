@@ -14,6 +14,8 @@
     "lint:fix": "eslint . --fix",
     "lint:fast": "biome check src tests",
     "test": "playwright test",
+    "test:all": "playwright test && VITE_SAFE_MODE=true playwright test tests/smoke/safe-mode.spec.js",
+    "test:safe-mode": "VITE_SAFE_MODE=true playwright test tests/smoke/safe-mode.spec.js",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:contracts": "vitest run tests/contracts",

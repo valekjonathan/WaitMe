@@ -133,7 +133,7 @@ test.describe('Layout - Mapa Create (pin + tarjeta + nav)', () => {
       .first();
     await expect(locateBtn).toBeVisible();
     await locateBtn.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000); // Mapbox puede tardar en headless
     const mapCenter = await page.evaluate(() => {
       const map = window.__WAITME_MAP__;
       if (!map?.getCenter) return null;

@@ -1,20 +1,19 @@
 # Tests Skipped — Justificación Técnica
 
-Documento de referencia para los tests que se ejecutan condicionalmente o se omiten en CI.
+Documento de referencia para los tests que se ejecutan condicionalmente o se omiten.
 
 ---
 
-## Resumen
+## Resumen (ejecución local `npm run test`)
 
-| Tipo | Cantidad | Motivo |
-|------|----------|--------|
-| CI (geometría/viewport) | 8 | Geometría pixel-perfect no reproducible en CI (Chromium headless, viewport variable) |
-| CI (geolocalización) | 1 | `__WAITME_MAP__` / geolocation no fiables en headless WebKit |
-| CI (Mapbox/Realtime) | 1 | Mapbox/Realtime pueden disparar ErrorBoundary en headless |
-| CI (screenshot) | 1 | Layout variable en CI para comparación visual |
-| Safe Mode (condicional) | 3 | Requieren `VITE_SAFE_MODE=true` para ejecutarse |
+| Tipo | Cantidad | Archivo(s) | Motivo |
+|------|----------|------------|--------|
+| Safe Mode (suite condicional) | 6 | smoke/safe-mode.spec.js | Requieren `VITE_SAFE_MODE=true`. Ejecutar: `npm run test:safe-mode` |
+| Ubícate / __WAITME_MAP__ | 2 | layout-map-create.spec.js:125 | Mapbox no expone `__WAITME_MAP__` en headless WebKit/Chromium |
 
-**Total: 13 tests skipped** cuando se ejecuta con `CI=true` (p. ej. GitHub Actions o entorno con CI=1).
+**Total: 8 tests skipped** en `npm run test` estándar.
+
+**Para ejecutar todos:** `npm run test:all` (incluye safe-mode en segundo paso).
 
 ---
 
@@ -69,7 +68,7 @@ Documento de referencia para los tests que se ejecutan condicionalmente o se omi
 
 **Ejecutar:**
 ```bash
-VITE_SAFE_MODE=true npm run test tests/smoke/safe-mode.spec.js
+npm run test:safe-mode
 ```
 
 ---
