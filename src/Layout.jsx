@@ -58,7 +58,20 @@ function LayoutShell() {
 
   useEffect(() => {
     const isHome = path === '/' || path === '/home' || path === '/Home';
-    document.body.style.overflow = isHome ? 'hidden' : '';
+    const html = document.documentElement;
+    const body = document.body;
+    const root = document.getElementById('root');
+    if (isHome) {
+      html.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      body.style.overscrollBehavior = 'none';
+      if (root) root.style.overflow = 'hidden';
+    } else {
+      html.style.overflow = '';
+      body.style.overflow = '';
+      body.style.overscrollBehavior = '';
+      if (root) root.style.overflow = '';
+    }
     if (isHome && import.meta.env.DEV) {
       const check = () => {
         const docScroll = document.documentElement.scrollHeight > window.innerHeight;
@@ -66,15 +79,34 @@ function LayoutShell() {
         if (docScroll || bodyScroll) {
           console.warn('[WaitMe] Scroll detectado en Home:', { docScroll, bodyScroll });
         }
+        window.__WAITME_VALIDATE_SCROLL = () => {
+          const d = document.documentElement;
+          const b = document.body;
+          return {
+            docScroll: d.scrollHeight > window.innerHeight,
+            bodyScroll: b.scrollHeight > window.innerHeight,
+            htmlOverflow: d.style.overflow,
+            bodyOverflow: b.style.overflow,
+            scrollTop: d.scrollTop || b.scrollTop,
+            cardMeasure: window.__WAITME_CARD_MEASURE || {},
+            zoomMeasure: window.__WAITME_ZOOM_MEASURE || {},
+          };
+        };
       };
       const t = setTimeout(check, 500);
       return () => {
         clearTimeout(t);
-        document.body.style.overflow = '';
+        html.style.overflow = '';
+        body.style.overflow = '';
+        body.style.overscrollBehavior = '';
+        if (root) root.style.overflow = '';
       };
     }
     return () => {
-      document.body.style.overflow = '';
+      html.style.overflow = '';
+      body.style.overflow = '';
+      body.style.overscrollBehavior = '';
+      if (root) root.style.overflow = '';
     };
   }, [path]);
   RENDER_LOG('LayoutShell ENTER', { path });
@@ -94,6 +126,7 @@ function LayoutShell() {
   return (
     <div
       className={`flex flex-col bg-black ${isHomeRoute ? 'h-[100dvh] overflow-hidden' : 'min-h-[100dvh]'}`}
+      style={isHomeRoute ? { overscrollBehavior: 'none' } : undefined}
       data-home-route={isHomeRoute}
     >
       <Header
