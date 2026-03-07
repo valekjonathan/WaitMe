@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import * as alerts from '@/data/alerts';
 import * as userLocations from '@/data/userLocations';
 import { motion } from 'framer-motion';
+import {
+  getCarsMovementMode,
+  CARS_MOVEMENT_MODE,
+  subscribeToCarsMovementMode,
+} from '@/stores/carsMovementStore';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -25,44 +30,58 @@ function createBuyerMarkerHtml() {
 
 export default function SellerLocationTracker({ alertId, userLocation }) {
   const [alert, setAlert] = useState(null);
+  const [carsMode, setCarsMode] = useState(getCarsMovementMode);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
 
   useEffect(() => {
+    return subscribeToCarsMovementMode(setCarsMode);
+  }, []);
+
+  useEffect(() => {
     if (!alertId) return;
     let cancelled = false;
-    alerts.getAlert(alertId).then(({ data }) => {
-      if (!cancelled && data) setAlert(data);
-    }).catch(() => {});
-    return () => { cancelled = true; };
+    alerts
+      .getAlert(alertId)
+      .then(({ data }) => {
+        if (!cancelled && data) setAlert(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [alertId]);
 
-  const { data: buyerLocations = [] } = useQuery({
+  const { data: buyerLocationsRaw = [] } = useQuery({
     queryKey: ['buyerLocations', alertId],
     queryFn: async () => {
       return await userLocations.getLocationsByAlert(alertId);
     },
-    enabled: !!alertId,
-    refetchInterval: 5000,
+    enabled: !!alertId && carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE,
+    refetchInterval: carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE ? 5000 : false,
   });
+  const buyerLocations = carsMode === CARS_MOVEMENT_MODE.WAITME_ACTIVE ? buyerLocationsRaw : [];
 
-  const calculateDistance = useCallback((buyerLoc) => {
-    if (!userLocation) return null;
-    const R = 6371;
-    const dLat = ((buyerLoc.latitude - userLocation[0]) * Math.PI) / 180;
-    const dLon = ((buyerLoc.longitude - userLocation[1]) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((userLocation[0] * Math.PI) / 180) *
-        Math.cos((buyerLoc.latitude * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distanceKm = R * c;
-    if (distanceKm < 1) return { value: Math.round(distanceKm * 1000), unit: 'm' };
-    return { value: distanceKm.toFixed(1), unit: 'km' };
-  }, [userLocation]);
+  const calculateDistance = useCallback(
+    (buyerLoc) => {
+      if (!userLocation) return null;
+      const R = 6371;
+      const dLat = ((buyerLoc.latitude - userLocation[0]) * Math.PI) / 180;
+      const dLon = ((buyerLoc.longitude - userLocation[1]) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((userLocation[0] * Math.PI) / 180) *
+          Math.cos((buyerLoc.latitude * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distanceKm = R * c;
+      if (distanceKm < 1) return { value: Math.round(distanceKm * 1000), unit: 'm' };
+      return { value: distanceKm.toFixed(1), unit: 'km' };
+    },
+    [userLocation]
+  );
 
   const closestBuyer = buyerLocations.length > 0 ? buyerLocations[0] : null;
   const distance = closestBuyer ? calculateDistance(closestBuyer) : null;
@@ -114,7 +133,9 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
     };
 
     if (userLocation) addMarker(userLocation, createUserMarkerHtml());
-    buyerLocations.forEach((loc) => addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml()));
+    buyerLocations.forEach((loc) =>
+      addMarker([loc.latitude, loc.longitude], createBuyerMarkerHtml())
+    );
   }, [alert, userLocation, buyerLocations]);
 
   useEffect(() => {

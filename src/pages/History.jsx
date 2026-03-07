@@ -13,14 +13,22 @@ import {
   MessageCircle,
   PhoneOff,
   Phone,
-  Navigation
+  Navigation,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import SellerLocationTracker from '@/components/SellerLocationTracker';
 import { useAuth } from '@/lib/AuthContext';
+import { setCarsMovementMode, CARS_MOVEMENT_MODE } from '@/stores/carsMovementStore';
 import HistorySellerView from './HistorySellerView';
 import HistoryBuyerView from './HistoryBuyerView';
 import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
@@ -28,8 +36,28 @@ import { stampFinalizedAt, getFinalizedAtMap } from '@/lib/finalizedAtStore';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
 
 const getCarFillThinking = (color) => {
-  const map = { blanco:'#ffffff',negro:'#1a1a1a',gris:'#9ca3af',plata:'#d1d5db',rojo:'#ef4444',azul:'#3b82f6',verde:'#22c55e',amarillo:'#eab308',naranja:'#f97316',morado:'#7c3aed',rosa:'#ec4899',beige:'#d4b483' };
-  return map[String(color||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')] || '#9ca3af';
+  const map = {
+    blanco: '#ffffff',
+    negro: '#1a1a1a',
+    gris: '#9ca3af',
+    plata: '#d1d5db',
+    rojo: '#ef4444',
+    azul: '#3b82f6',
+    verde: '#22c55e',
+    amarillo: '#eab308',
+    naranja: '#f97316',
+    morado: '#7c3aed',
+    rosa: '#ec4899',
+    beige: '#d4b483',
+  };
+  return (
+    map[
+      String(color || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+    ] || '#9ca3af'
+  );
 };
 
 // toMs is imported from @/lib/alertSelectors
@@ -47,16 +75,26 @@ export default function Alertas() {
 
   // "Me lo pienso" requests shown in Activas
   const [thinkingRequests, setThinkingRequests] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]'); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]');
+    } catch {
+      return [];
+    }
   });
   // Rejected requests shown in Finalizadas
   const [rejectedRequests, setRejectedRequests] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]'); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]');
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {
     const reload = () => {
-      try { setThinkingRequests(JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]')); } catch {}
+      try {
+        setThinkingRequests(JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]'));
+      } catch {}
     };
     window.addEventListener('waitme:thinkingUpdated', reload);
     return () => window.removeEventListener('waitme:thinkingUpdated', reload);
@@ -64,20 +102,22 @@ export default function Alertas() {
 
   useEffect(() => {
     const reload = () => {
-      try { setRejectedRequests(JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]')); } catch {}
+      try {
+        setRejectedRequests(JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]'));
+      } catch {}
     };
     window.addEventListener('waitme:rejectedUpdated', reload);
     return () => window.removeEventListener('waitme:rejectedUpdated', reload);
   }, []);
 
-useEffect(() => {
-  const id = setInterval(() => {
-    setNowTs(Date.now());
-  }, 1000);
-  return () => clearInterval(id);
-}, []);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNowTs(Date.now());
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
   // ====== UI helpers ======
   const labelNoClick = 'cursor-default select-none pointer-events-none';
@@ -86,11 +126,12 @@ const queryClient = useQueryClient();
 
   // ====== Fotos fijas (NO rotan) ======
   const fixedAvatars = {
-    Sofía: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=face',
+    Sofía:
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=face',
     Hugo: 'https://randomuser.me/api/portraits/men/32.jpg',
     Nuria: 'https://randomuser.me/api/portraits/women/44.jpg',
     Iván: 'https://randomuser.me/api/portraits/men/75.jpg',
-    Marco: 'https://randomuser.me/api/portraits/men/12.jpg'
+    Marco: 'https://randomuser.me/api/portraits/men/12.jpg',
   };
   const avatarFor = (name) => fixedAvatars[String(name || '').trim()] || null;
 
@@ -104,9 +145,9 @@ const queryClient = useQueryClient();
       month: 'long',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     });
-    
+
     const formatted = madridDateStr
       .replace(' de ', ' ')
       .replace(',', ' -')
@@ -114,7 +155,7 @@ const queryClient = useQueryClient();
         const cap = month.charAt(0).toUpperCase() + month.slice(1);
         return `${day} ${cap}`;
       });
-    
+
     return formatted;
   };
   const formatPriceInt = (v) => {
@@ -122,7 +163,6 @@ const queryClient = useQueryClient();
     if (!Number.isFinite(n)) return '0 €';
     return `${Math.trunc(n)} €`;
   };
-
 
   // ====== Dirección formato: "Calle Gran Vía, n1, Oviedo" ======
   const formatAddress = (addr) => {
@@ -149,7 +189,7 @@ const queryClient = useQueryClient();
     { value: 'rojo', fill: '#ef4444' },
     { value: 'azul', fill: '#3b82f6' },
     { value: 'amarillo', fill: '#facc15' },
-    { value: 'gris', fill: '#6b7280' }
+    { value: 'gris', fill: '#6b7280' },
   ];
 
   const getCarFill = (colorValue) => {
@@ -158,7 +198,9 @@ const queryClient = useQueryClient();
   };
 
   const formatPlate = (plate) => {
-    const p = String(plate || '').replace(/\s+/g, '').toUpperCase();
+    const p = String(plate || '')
+      .replace(/\s+/g, '')
+      .toUpperCase();
     if (!p) return '0000 XXX';
     const a = p.slice(0, 4);
     const b = p.slice(4);
@@ -199,65 +241,60 @@ const queryClient = useQueryClient();
 
   // ====== Timestamps robustos ======
   const createdFallbackRef = useRef(new Map());
-const getCreatedTs = (alert) => {
-  if (!alert?.id) return Date.now();
+  const getCreatedTs = (alert) => {
+    if (!alert?.id) return Date.now();
 
-  const key = `alert-created-${alert.id}`;
+    const key = `alert-created-${alert.id}`;
 
-  // 0) Cache en memoria (evita leer localStorage en cada render)
-  const cached = createdFallbackRef.current.get(key);
-  if (typeof cached === 'number' && cached > 0) return cached;
+    // 0) Cache en memoria (evita leer localStorage en cada render)
+    const cached = createdFallbackRef.current.get(key);
+    if (typeof cached === 'number' && cached > 0) return cached;
 
-  // 1) Si ya existe en localStorage, usarlo SIEMPRE
-  const stored = localStorage.getItem(key);
-  if (stored) {
-    const t = Number(stored);
-    if (Number.isFinite(t) && t > 0) {
-      createdFallbackRef.current.set(key, t);
-      return t;
+    // 1) Si ya existe en localStorage, usarlo SIEMPRE
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const t = Number(stored);
+      if (Number.isFinite(t) && t > 0) {
+        createdFallbackRef.current.set(key, t);
+        return t;
+      }
     }
-  }
 
-  // 2) Guardar SOLO la primera vez
-  const candidates = [
-    alert?.created_date,
-    alert?.created_at,
-    alert?.createdAt,
-    alert?.created,
-    alert?.updated_date
-  ];
+    // 2) Guardar SOLO la primera vez
+    const candidates = [
+      alert?.created_date,
+      alert?.created_at,
+      alert?.createdAt,
+      alert?.created,
+      alert?.updated_date,
+    ];
 
-  for (const v of candidates) {
-    const t = toMs(v);
-    if (typeof t === 'number' && t > 0) {
-      localStorage.setItem(key, String(t));
-      createdFallbackRef.current.set(key, t);
-      return t;
+    for (const v of candidates) {
+      const t = toMs(v);
+      if (typeof t === 'number' && t > 0) {
+        localStorage.setItem(key, String(t));
+        createdFallbackRef.current.set(key, t);
+        return t;
+      }
     }
-  }
 
-  // 3) Último fallback (una sola vez)
-  const now = Date.now();
-  localStorage.setItem(key, String(now));
-  createdFallbackRef.current.set(key, now);
-  return now;
-};
+    // 3) Último fallback (una sola vez)
+    const now = Date.now();
+    localStorage.setItem(key, String(now));
+    createdFallbackRef.current.set(key, now);
+    return now;
+  };
 
   const getWaitUntilTs = (alert) => {
-  const created = getCreatedTs(alert);
-  const mins = Number(alert?.available_in_minutes);
+    const created = getCreatedTs(alert);
+    const mins = Number(alert?.available_in_minutes);
 
-  if (
-    typeof created === 'number' &&
-    created > 0 &&
-    Number.isFinite(mins) &&
-    mins > 0
-  ) {
-    return created + mins * 60 * 1000;
-  }
+    if (typeof created === 'number' && created > 0 && Number.isFinite(mins) && mins > 0) {
+      return created + mins * 60 * 1000;
+    }
 
-  return null;
-};
+    return null;
+  };
 
   const formatRemaining = (ms) => {
     const totalSec = Math.floor(ms / 1000);
@@ -280,12 +317,12 @@ const getCreatedTs = (alert) => {
     <div
       className={[
         'w-full h-9 rounded-lg border-2 flex items-center justify-center px-3',
-        dimmed
-          ? 'border-purple-500/30 bg-purple-600/10'
-          : 'border-purple-400/70 bg-purple-600/25'
+        dimmed ? 'border-purple-500/30 bg-purple-600/10' : 'border-purple-400/70 bg-purple-600/25',
       ].join(' ')}
     >
-      <span className={`text-sm font-mono font-extrabold ${dimmed ? 'text-gray-400/70' : 'text-purple-100'}`}>
+      <span
+        className={`text-sm font-mono font-extrabold ${dimmed ? 'text-gray-400/70' : 'text-purple-100'}`}
+      >
         {text}
       </span>
     </div>
@@ -312,21 +349,28 @@ const getCreatedTs = (alert) => {
   const CardHeaderRow = ({ left, dateText, dateClassName, right }) => (
     <div className="flex items-center gap-2 mb-2">
       <div className="flex-shrink-0">{left}</div>
-      <div className={`flex-1 text-center text-xs whitespace-nowrap ${dateClassName || ''}`}>{dateText}</div>
+      <div className={`flex-1 text-center text-xs whitespace-nowrap ${dateClassName || ''}`}>
+        {dateText}
+      </div>
       <div className="flex-shrink-0">{right}</div>
     </div>
   );
 
   // ====== Chips de dinero ======
-  const MoneyChip = ({ mode = 'neutral', amountText, showDownIcon = false, showUpIcon = false }) => {
+  const MoneyChip = ({
+    mode = 'neutral',
+    amountText,
+    showDownIcon = false,
+    showUpIcon = false,
+  }) => {
     const isGreen = mode === 'green';
     const isRed = mode === 'red';
 
     const wrapCls = isGreen
       ? 'bg-green-500/20 border border-green-500/30'
       : isRed
-      ? 'bg-red-500/20 border border-red-500/30'
-      : 'bg-gray-500/10 border border-gray-600';
+        ? 'bg-red-500/20 border border-red-500/30'
+        : 'bg-gray-500/10 border border-gray-600';
 
     const textCls = isGreen ? 'text-green-400' : isRed ? 'text-red-400' : 'text-gray-400';
 
@@ -355,9 +399,11 @@ const getCreatedTs = (alert) => {
     onCall,
     statusEnabled = false,
     bright = false,
-    dimIcons = false
+    dimIcons = false,
   }) => {
-    const stUpper = String(statusText || '').trim().toUpperCase();
+    const stUpper = String(statusText || '')
+      .trim()
+      .toUpperCase();
     const isCountdownLike =
       typeof statusText === 'string' && /^\d{2}:\d{2}(?::\d{2})?$/.test(String(statusText).trim());
     const isCompleted = stUpper === 'COMPLETADA';
@@ -396,8 +442,8 @@ const getCreatedTs = (alert) => {
       ? isCountdownLike
         ? 'text-purple-100'
         : isDimStatus
-        ? 'text-gray-400/70'
-        : 'text-purple-300'
+          ? 'text-gray-400/70'
+          : 'text-purple-300'
       : 'text-gray-400 opacity-70';
 
     return (
@@ -443,18 +489,24 @@ const getCreatedTs = (alert) => {
           <div className={bright ? 'space-y-1.5' : 'space-y-1.5 opacity-80'}>
             {address ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <MapPin className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
+                <MapPin
+                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`}
+                />
                 <span className={lineTextCls + ' line-clamp-1'}>{formatAddress(address)}</span>
               </div>
             ) : null}
 
             {timeLine ? (
               <div className="flex items-start gap-1.5 text-xs">
-                <Clock className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`} />
+                <Clock
+                  className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dimIcons ? 'text-gray-500' : 'text-purple-400'}`}
+                />
                 {isTimeObj ? (
                   <span className={lineTextCls}>
                     {timeLine.main}{' '}
-                    <span className={bright ? 'text-purple-400' : lineTextCls}>{timeLine.accent}</span>
+                    <span className={bright ? 'text-purple-400' : lineTextCls}>
+                      {timeLine.accent}
+                    </span>
                   </span>
                 ) : (
                   <span className={lineTextCls}>{timeLine}</span>
@@ -539,47 +591,45 @@ const getCreatedTs = (alert) => {
   const autoFinalizedRef = useRef(new Set());
   const autoFinalizedReservationsRef = useRef(new Set());
 
-  
+  const { data: myAlerts = [], isLoading: loadingAlerts } = useMyAlerts();
 
-const {
-  data: myAlerts = [],
-  isLoading: loadingAlerts
-} = useMyAlerts();
+  const { data: transactionsData = [], isLoading: loadingTransactions } = useQuery({
+    queryKey: ['myTransactions', user?.id],
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    placeholderData: (prev) => prev,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    queryFn: async () => {
+      try {
+        const { data, error } = await transactions.listTransactions(user?.id, { limit: 5000 });
+        if (error) throw error;
+        return data ?? [];
+      } catch {
+        return [];
+      }
+    },
+  });
 
-const { data: transactionsData = [], isLoading: loadingTransactions } = useQuery({
-  queryKey: ['myTransactions', user?.id],
-  enabled: !!user?.id,
-  staleTime: 5 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
-  refetchInterval: false,
-  placeholderData: (prev) => prev,
-  refetchOnWindowFocus: false,
-  refetchOnReconnect: false,
-  refetchOnMount: false,
-  queryFn: async () => {
-    try {
-      const { data, error } = await transactions.listTransactions(user?.id, { limit: 5000 });
-      if (error) throw error;
-      return data ?? [];
-    } catch {
-      return [];
-    }
-  }
-});
- 
+  const myActiveAlerts = useMemo(
+    () => getActiveSellerAlerts(myAlerts, user?.id, user?.email),
+    [myAlerts, user?.id, user?.email]
+  );
 
+  const hasReservedAlerts = myActiveAlerts.filter((a) => a.status === 'reserved').length > 0;
+  useEffect(() => {
+    setCarsMovementMode(
+      hasReservedAlerts ? CARS_MOVEMENT_MODE.WAITME_ACTIVE : CARS_MOVEMENT_MODE.STATIC
+    );
+    return () => setCarsMovementMode(CARS_MOVEMENT_MODE.STATIC);
+  }, [hasReservedAlerts]);
 
-
-const myActiveAlerts = useMemo(
-  () => getActiveSellerAlerts(myAlerts, user?.id, user?.email),
-  [myAlerts, user?.id, user?.email]
-);
-
-
-
-const visibleActiveAlerts = useMemo(() => {
-  return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
-}, [myActiveAlerts, hiddenKeys]);
+  const visibleActiveAlerts = useMemo(() => {
+    return myActiveAlerts.filter((a) => !hiddenKeys.has(`active-${a.id}`));
+  }, [myActiveAlerts, hiddenKeys]);
 
   // ====== Auto-expirar alertas activas cuando el contador llega a 0. Tarjetas CANCELADA/EXPIRADA no se tocan. ======
   useEffect(() => {
@@ -608,8 +658,7 @@ const visibleActiveAlerts = useMemo(() => {
       const uid = user?.id;
       const email = user?.email;
       const isMine =
-        (uid && (a.user_id === uid || a.created_by === uid)) ||
-        (email && a.user_email === email);
+        (uid && (a.user_id === uid || a.created_by === uid)) || (email && a.user_email === email);
       return isMine;
     });
 
@@ -622,7 +671,10 @@ const visibleActiveAlerts = useMemo(() => {
 
     Promise.all(
       others.map((a) =>
-        alerts.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
+        alerts
+          .updateAlert(a.id, { status: 'expired' })
+          .then(() => null)
+          .catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -631,25 +683,23 @@ const visibleActiveAlerts = useMemo(() => {
     });
   }, [nowTs, visibleActiveAlerts, queryClient, user?.id, user?.email]);
 
-const myFinalizedAlerts = useMemo(() => {
-  const finalized = myAlerts.filter((a) => {
-    if (!a) return false;
+  const myFinalizedAlerts = useMemo(() => {
+    const finalized = myAlerts.filter((a) => {
+      if (!a) return false;
 
-    const isMine =
-      (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
-      (user?.email && a.user_email === user.email);
+      const isMine =
+        (user?.id && (a.user_id === user.id || a.created_by === user.id)) ||
+        (user?.email && a.user_email === user.email);
 
-    if (!isMine) return false;
+      if (!isMine) return false;
 
-    return ['cancelled', 'completed', 'expired'].includes(
-      String(a.status || '').toLowerCase()
-    );
-  });
-  
-  // Sin sort aquí: myFinalizedAll aplica el único sort final
-  return finalized;
-}, [myAlerts, user?.id, user?.email]);
-    
+      return ['cancelled', 'completed', 'expired'].includes(String(a.status || '').toLowerCase());
+    });
+
+    // Sin sort aquí: myFinalizedAll aplica el único sort final
+    return finalized;
+  }, [myAlerts, user?.id, user?.email]);
+
   // Reservas (tuyas como comprador)
   const myReservationsReal = useMemo(() => {
     return myAlerts.filter((a) => {
@@ -687,7 +737,10 @@ const myFinalizedAlerts = useMemo(() => {
 
     Promise.all(
       toExpire.map((a) =>
-        alerts.updateAlert(a.id, { status: 'expired' }).then(() => null).catch(() => null)
+        alerts
+          .updateAlert(a.id, { status: 'expired' })
+          .then(() => null)
+          .catch(() => null)
       )
     ).finally(() => {
       queryClient.setQueryData(['myAlerts'], (prev = []) =>
@@ -695,7 +748,6 @@ const myFinalizedAlerts = useMemo(() => {
       );
     });
   }, [nowTs, reservationsActiveAll, queryClient]);
-
 
   // Sin sort aquí: myFinalizedAll aplica el único sort final
   const myFinalizedAsSellerTx = useMemo(
@@ -714,20 +766,20 @@ const myFinalizedAlerts = useMemo(() => {
         type: 'alert',
         id: `final-alert-${a.id}`,
         finalized_at: a.finalized_at || fatMap[a.id] || getBestFinalizedTs(a),
-        data: a
+        data: a,
       })),
       ...myFinalizedAsSellerTx.map((t) => ({
         type: 'transaction',
         id: `final-tx-${t.id}`,
         finalized_at: fatMap[t.id] || getBestFinalizedTs(t),
-        data: t
+        data: t,
       })),
       ...rejectedRequests.map((i) => ({
         type: 'rejected',
         id: `rejected-${i.id}`,
         finalized_at: i.finalized_at || i.savedAt || 0,
-        data: i
-      }))
+        data: i,
+      })),
     ].sort((a, b) => b.finalized_at - a.finalized_at);
   }, [myFinalizedAlerts, myFinalizedAsSellerTx, rejectedRequests]);
 
@@ -737,27 +789,24 @@ const myFinalizedAlerts = useMemo(() => {
     [myFinalizedAll, hiddenKeys]
   );
 
- 
-    
-
   const reservationsFinalAllBase = [
-  ...myAlerts
-    .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
-    .map((a) => ({
-      type: 'alert',
-      id: `res-final-alert-${a.id}`,
-      created_date: a.created_date,
-      data: a
-    })),
-  ...transactionsData
-    .filter((t) => t.buyer_id === user?.id)
-    .map((t) => ({
-      type: 'transaction',
-      id: `res-final-tx-${t.id}`,
-      created_date: t.created_date,
-      data: t
-    })),
-];
+    ...myAlerts
+      .filter((a) => a.reserved_by_id === user?.id && a.status !== 'reserved')
+      .map((a) => ({
+        type: 'alert',
+        id: `res-final-alert-${a.id}`,
+        created_date: a.created_date,
+        data: a,
+      })),
+    ...transactionsData
+      .filter((t) => t.buyer_id === user?.id)
+      .map((t) => ({
+        type: 'transaction',
+        id: `res-final-tx-${t.id}`,
+        created_date: t.created_date,
+        data: t,
+      })),
+  ];
   const reservationsFinalAll = reservationsFinalAllBase.sort(
     (a, b) => (toMs(b.created_date) || 0) - (toMs(a.created_date) || 0)
   );
@@ -780,27 +829,41 @@ const myFinalizedAlerts = useMemo(() => {
       await Promise.all(
         mine
           .filter((a) => a.id && a.id !== alertId)
-          .map((a) => alerts.updateAlert(a.id, { status: 'cancelled' }).then(() => null).catch(() => null))
+          .map((a) =>
+            alerts
+              .updateAlert(a.id, { status: 'cancelled' })
+              .then(() => null)
+              .catch(() => null)
+          )
       );
     },
-  onMutate: async (alertId) => {
+    onMutate: async (alertId) => {
       // Quitar la activa y la bolita EN EL MISMO INSTANTE
       queryClient.setQueryData(['myAlerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
+        const list = Array.isArray(old) ? old : old?.data || [];
         const now = Date.now();
         return list.map((a) => {
           if (a?.id !== alertId) return a;
           stampFinalizedAt(alertId);
-          return { ...a, status: 'cancelled', finalized_at: now, updated_date: new Date(now).toISOString() };
+          return {
+            ...a,
+            status: 'cancelled',
+            finalized_at: now,
+            updated_date: new Date(now).toISOString(),
+          };
         });
       });
 
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      try {
+        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      } catch {}
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    }
+      try {
+        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      } catch {}
+    },
   });
 
   const expireAlertMutation = useMutation({
@@ -810,16 +873,17 @@ const myFinalizedAlerts = useMemo(() => {
     onMutate: async (alertId) => {
       // Marcar como expirada en cache (badge se recalcula desde myAlerts)
       queryClient.setQueryData(['myAlerts'], (old) => {
-        const list = Array.isArray(old) ? old : (old?.data || []);
+        const list = Array.isArray(old) ? old : old?.data || [];
         return list.map((a) => (a?.id === alertId ? { ...a, status: 'expired' } : a));
       });
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+      try {
+        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      } catch {}
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
-    }
+    },
   });
-
 
   const repeatAlertMutation = useMutation({
     mutationFn: async (alert) => {
@@ -854,10 +918,11 @@ const myFinalizedAlerts = useMemo(() => {
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
-      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-    }
+      try {
+        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+      } catch {}
+    },
   });
-
 
   // ====== Estado de prórroga cuando expira (para tarjetas "reservado por:") ======
   const [expiredAlertExtend, setExpiredAlertExtend] = useState({});
@@ -890,13 +955,17 @@ const myFinalizedAlerts = useMemo(() => {
           {[
             { mins: '5 min', price: '2 €', addMins: 5 },
             { mins: '10 min', price: '3 €', addMins: 10 },
-            { mins: '15 min', price: '5 €', addMins: 15 }
+            { mins: '15 min', price: '5 €', addMins: 15 },
           ].map((opt) => (
             <button
               key={opt.addMins}
               className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 hover:bg-purple-600/40 transition-colors flex flex-col items-center justify-center"
               onClick={() => {
-                setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+                setExpiredAlertExtend((prev) => {
+                  const n = { ...prev };
+                  delete n[alert.id];
+                  return n;
+                });
                 setExpiredAlertModalId(null);
                 const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
                 alerts.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
@@ -905,19 +974,27 @@ const myFinalizedAlerts = useMemo(() => {
               }}
             >
               <span className="text-white text-[11px] font-bold leading-none">{opt.mins} ·</span>
-              <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">{opt.price}</span>
+              <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">
+                {opt.price}
+              </span>
             </button>
           ))}
         </div>
         <Button
           className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
           onClick={() => {
-            setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
+            setExpiredAlertExtend((prev) => {
+              const n = { ...prev };
+              delete n[alert.id];
+              return n;
+            });
             setExpiredAlertModalId(null);
             stampFinalizedAt(alert.id);
             alerts.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
               queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-              try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
+              try {
+                window.dispatchEvent(new Event('waitme:badgeRefresh'));
+              } catch {}
             });
           }}
         >
@@ -933,7 +1010,7 @@ const myFinalizedAlerts = useMemo(() => {
     waitUntilLabel,
     countdownText,
     onNavigateClick,
-    onCancelClick
+    onCancelClick,
   }) => {
     const reservedByName = alert.reserved_by_name || 'Usuario';
     const reservedByPhoto =
@@ -949,9 +1026,13 @@ const myFinalizedAlerts = useMemo(() => {
     const plate = alert.reserved_by_plate || '';
     const carFill = getCarFill(carColor);
 
-    const stUpper = String(countdownText || '').trim().toUpperCase();
+    const stUpper = String(countdownText || '')
+      .trim()
+      .toUpperCase();
     const isCountdownLike = /^\d{2}:\d{2}(?::\d{2})?$/.test(stUpper);
-    const statusBoxCls = isCountdownLike ? 'border-purple-400/70 bg-purple-600/25' : 'border-purple-500/30 bg-purple-600/10';
+    const statusBoxCls = isCountdownLike
+      ? 'border-purple-400/70 bg-purple-600/25'
+      : 'border-purple-500/30 bg-purple-600/10';
     const statusTextCls = isCountdownLike ? 'text-purple-100' : 'text-purple-300';
 
     return (
@@ -965,12 +1046,14 @@ const myFinalizedAlerts = useMemo(() => {
             </div>
             <div className="flex items-center gap-1">
               <div className="bg-black/40 border border-purple-500/30 rounded-full px-2 py-0.5 flex items-center gap-1 h-7">
-                <Navigation className="w-3 h-3 text-purple-400"/>
+                <Navigation className="w-3 h-3 text-purple-400" />
                 <span className="text-white font-bold text-xs">300m</span>
               </div>
               <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1 h-7">
-                <TrendingUp className="w-4 h-4 text-green-400"/>
-                <span className="text-green-400 font-bold text-sm">{formatPriceInt(alert.price)}</span>
+                <TrendingUp className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 font-bold text-sm">
+                  {formatPriceInt(alert.price)}
+                </span>
               </div>
               {onCancelClick && (
                 <button
@@ -983,34 +1066,54 @@ const myFinalizedAlerts = useMemo(() => {
             </div>
           </div>
 
-          <div className="border-t border-gray-700/80 mb-2"/>
+          <div className="border-t border-gray-700/80 mb-2" />
 
           {/* Foto + nombre + matrícula + coche */}
           <div className="flex gap-2.5">
             <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-              <img src={reservedByPhoto} alt={reservedByName} className="w-full h-full object-cover"/>
+              <img
+                src={reservedByPhoto}
+                alt={reservedByName}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="flex-1 h-[85px] flex flex-col">
-              <p className="font-bold text-xl text-white leading-none">{String(reservedByName).split(' ')[0]}</p>
-              <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
+              <p className="font-bold text-xl text-white leading-none">
+                {String(reservedByName).split(' ')[0]}
+              </p>
+              <p className="text-sm font-medium text-gray-200 flex-1 flex items-center truncate relative top-[6px]">
+                {carLabel}
+              </p>
               <div className="flex items-end gap-2 mt-1 min-h-[28px]">
                 <div className="flex-shrink-0">
                   <div className="bg-white rounded-md flex items-center overflow-hidden border-2 border-gray-400 h-7">
                     <div className="bg-blue-600 h-full w-5 flex items-center justify-center">
                       <span className="text-white text-[8px] font-bold">E</span>
                     </div>
-                    <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">{formatPlate(plate)}</span>
+                    <span className="px-1.5 text-black font-mono font-bold text-sm tracking-wider">
+                      {formatPlate(plate)}
+                    </span>
                   </div>
                 </div>
                 <div className="flex-1 flex justify-center">
                   <div className="flex-shrink-0 relative top-[2px]">
                     <svg viewBox="0 0 48 24" className="w-16 h-10" fill="none">
-                      <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill={carFill} stroke="white" strokeWidth="1.5"/>
-                      <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" strokeWidth="0.5"/>
-                      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                      <circle cx="14" cy="18" r="2" fill="#666"/>
-                      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1"/>
-                      <circle cx="36" cy="18" r="2" fill="#666"/>
+                      <path
+                        d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z"
+                        fill={carFill}
+                        stroke="white"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M16 9 L18 12 L30 12 L32 9 Z"
+                        fill="rgba(255,255,255,0.3)"
+                        stroke="white"
+                        strokeWidth="0.5"
+                      />
+                      <circle cx="14" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                      <circle cx="14" cy="18" r="2" fill="#666" />
+                      <circle cx="36" cy="18" r="4" fill="#333" stroke="white" strokeWidth="1" />
+                      <circle cx="36" cy="18" r="2" fill="#666" />
                     </svg>
                   </div>
                 </div>
@@ -1021,56 +1124,80 @@ const myFinalizedAlerts = useMemo(() => {
           {/* Dirección y tiempo */}
           <div className="pt-1.5 border-t border-gray-700/80 mt-2 space-y-1.5">
             <div className="flex items-center gap-1.5 text-xs min-h-[20px]">
-              <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400"/>
-              <span className="text-gray-200 line-clamp-1 leading-none">{formatAddress(alert.address)}</span>
+              <MapPin className="w-4 h-4 flex-shrink-0 text-purple-400" />
+              <span className="text-gray-200 line-clamp-1 leading-none">
+                {formatAddress(alert.address)}
+              </span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] min-h-[20px]">
-              <Clock className="w-4 h-4 flex-shrink-0 text-purple-400"/>
+              <Clock className="w-4 h-4 flex-shrink-0 text-purple-400" />
               <span className="leading-none">
                 <span className="text-white">Te vas en {alert.available_in_minutes} min · </span>
-                <span className="text-purple-400">Debes esperar hasta las:</span>
-                {' '}<span className="text-white font-bold" style={{fontSize:'14px'}}>{waitUntilLabel}</span>
+                <span className="text-purple-400">Debes esperar hasta las:</span>{' '}
+                <span className="text-white font-bold" style={{ fontSize: '14px' }}>
+                  {waitUntilLabel}
+                </span>
               </span>
             </div>
           </div>
 
           {/* Botones — mismos tamaños que el modal, IR parpadeante en azul */}
           <div className="mt-2 flex items-center gap-2">
-            <Button size="icon" className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400"
-              style={{width:'46px',flexShrink:0}}
-              onClick={() => (window.location.href = createPageUrl(`Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`))}>
-              <MessageCircle className="w-4 h-4"/>
+            <Button
+              size="icon"
+              className="h-8 bg-green-500 hover:bg-green-600 text-white rounded-lg border-2 border-green-400"
+              style={{ width: '46px', flexShrink: 0 }}
+              onClick={() =>
+                (window.location.href = createPageUrl(
+                  `Chat?alertId=${alert.id}&userId=${alert.reserved_by_email || alert.reserved_by_id}`
+                ))
+              }
+            >
+              <MessageCircle className="w-4 h-4" />
             </Button>
 
             {phoneEnabled ? (
-              <Button size="icon" className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300"
-                style={{width:'46px',flexShrink:0}}
-                onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}>
-                <Phone className="w-4 h-4"/>
+              <Button
+                size="icon"
+                className="h-8 bg-white hover:bg-gray-200 text-black rounded-lg border-2 border-gray-300"
+                style={{ width: '46px', flexShrink: 0 }}
+                onClick={() => alert.phone && (window.location.href = `tel:${alert.phone}`)}
+              >
+                <Phone className="w-4 h-4" />
               </Button>
             ) : (
-              <Button size="icon" className="h-8 border-2 border-white/30 bg-white/10 text-white rounded-lg opacity-70"
-                style={{width:'46px',flexShrink:0}} disabled>
-                <PhoneOff className="w-4 h-4"/>
+              <Button
+                size="icon"
+                className="h-8 border-2 border-white/30 bg-white/10 text-white rounded-lg opacity-70"
+                style={{ width: '46px', flexShrink: 0 }}
+                disabled
+              >
+                <PhoneOff className="w-4 h-4" />
               </Button>
             )}
 
             {/* IR: parpadeante en azul cuando hay navigate, desactivado sino */}
-            <Button size="icon"
+            <Button
+              size="icon"
               className={`h-8 rounded-lg border-2 flex items-center justify-center ${
                 onNavigateClick
                   ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400 animate-pulse shadow-lg shadow-blue-500/50'
                   : 'bg-blue-600/40 text-blue-300 border-blue-400/30 opacity-50 cursor-not-allowed'
               }`}
-              style={{width:'46px',flexShrink:0}}
+              style={{ width: '46px', flexShrink: 0 }}
               disabled={!onNavigateClick}
-              onClick={onNavigateClick || undefined}>
-              <Navigation className="w-4 h-4"/>
+              onClick={onNavigateClick || undefined}
+            >
+              <Navigation className="w-4 h-4" />
             </Button>
 
             <div className="flex-1">
-              <div className={`w-full h-8 rounded-lg border-2 flex items-center justify-center ${statusBoxCls}`}>
-                <span className={`font-mono font-extrabold text-sm ${statusTextCls}`}>{countdownText}</span>
+              <div
+                className={`w-full h-8 rounded-lg border-2 flex items-center justify-center ${statusBoxCls}`}
+              >
+                <span className={`font-mono font-extrabold text-sm ${statusTextCls}`}>
+                  {countdownText}
+                </span>
               </div>
             </div>
           </div>
@@ -1110,62 +1237,72 @@ const myFinalizedAlerts = useMemo(() => {
     <div className="min-h-[100dvh] text-white flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
       <main className="flex-1 flex flex-col min-h-0 overflow-auto pt-[56px] pb-20 px-4">
         <Tabs defaultValue="alerts" className="w-full">
-          <div className="fixed top-[56px] left-0 right-0 z-40 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800" style={{ backgroundColor: 'rgba(11,11,11,0.93)' }}>
+          <div
+            className="fixed top-[56px] left-0 right-0 z-40 backdrop-blur-sm px-4 pt-3 pb-2 border-b border-gray-800"
+            style={{ backgroundColor: 'rgba(11,11,11,0.93)' }}
+          >
             <TabsList className="w-full bg-gray-900 border-0 shadow-none ring-0 mt-[4px] mb-[2px] h-auto p-0 flex justify-between">
-              <TabsTrigger value="alerts" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
+              <TabsTrigger
+                value="alerts"
+                className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]"
+              >
                 Tus alertas
               </TabsTrigger>
-              <TabsTrigger value="reservations" className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]">
+              <TabsTrigger
+                value="reservations"
+                className="flex-1 text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white h-auto py-[10px]"
+              >
                 Tus reservas
               </TabsTrigger>
             </TabsList>
           </div>
           <div className="h-[59px]" />
 
-          <HistorySellerView sellerContext={{
-            finalItems,
-            noScrollBar,
-            SectionTag,
-            thinkingRequests,
-            setThinkingRequests,
-            visibleActiveAlerts,
-            nowTs,
-            formatRemaining,
-            getCreatedTs,
-            getWaitUntilTs,
-            hiddenKeys,
-            hideKey,
-            formatCardDate,
-            formatPriceInt,
-            formatAddress,
-            getCarFill,
-            getCarFillThinking,
-            CarIconProfile,
-            PlateProfile,
-            badgePhotoWidth,
-            labelNoClick,
-            cancelAlertMutation,
-            queryClient,
-            ReservedByContent,
-            CardHeaderRow,
-            MoneyChip,
-            CountdownButton,
-            statusLabelFrom,
-            MarcoContent,
-            deleteAlertSafe,
-            user,
-            setCancelReservedAlert,
-            setCancelReservedOpen,
-            expiredAlertExtend,
-            setExpiredAlertExtend,
-            setExpiredAlertModalId,
-            ExpiredBlock,
-            toMs,
-            avatarFor,
-            formatPlate,
-            reservationMoneyModeFromStatus,
-          }} />
-
+          <HistorySellerView
+            sellerContext={{
+              finalItems,
+              noScrollBar,
+              SectionTag,
+              thinkingRequests,
+              setThinkingRequests,
+              visibleActiveAlerts,
+              nowTs,
+              formatRemaining,
+              getCreatedTs,
+              getWaitUntilTs,
+              hiddenKeys,
+              hideKey,
+              formatCardDate,
+              formatPriceInt,
+              formatAddress,
+              getCarFill,
+              getCarFillThinking,
+              CarIconProfile,
+              PlateProfile,
+              badgePhotoWidth,
+              labelNoClick,
+              cancelAlertMutation,
+              queryClient,
+              ReservedByContent,
+              CardHeaderRow,
+              MoneyChip,
+              CountdownButton,
+              statusLabelFrom,
+              MarcoContent,
+              deleteAlertSafe,
+              user,
+              setCancelReservedAlert,
+              setCancelReservedOpen,
+              expiredAlertExtend,
+              setExpiredAlertExtend,
+              setExpiredAlertModalId,
+              ExpiredBlock,
+              toMs,
+              avatarFor,
+              formatPlate,
+              reservationMoneyModeFromStatus,
+            }}
+          />
 
           <HistoryBuyerView
             noScrollBar={noScrollBar}
@@ -1194,12 +1331,15 @@ const myFinalizedAlerts = useMemo(() => {
             deleteAlertSafe={deleteAlertSafe}
             statusLabelFrom={statusLabelFrom}
           />
-                    </Tabs>
-                    </main>
+        </Tabs>
+      </main>
 
       {/* Dialog: cancelar alerta RESERVADA (penalización) — pantalla completa estilo IncomingRequestModal */}
       {cancelReservedOpen && (
-        <div className="fixed inset-0 z-[9999] flex flex-col" style={{ backgroundColor: '#0b0b0b' }}>
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col"
+          style={{ backgroundColor: '#0b0b0b' }}
+        >
           {/* Borde morado superior */}
           <div className="h-1.5 w-full bg-purple-500 flex-shrink-0" />
 
@@ -1207,12 +1347,31 @@ const myFinalizedAlerts = useMemo(() => {
             {/* Header con X cuadrado estilo filtros */}
             <div className="w-full max-w-sm relative mb-6">
               <button
-                onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+                onClick={() => {
+                  setCancelReservedOpen(false);
+                  setCancelReservedAlert(null);
+                }}
                 className="absolute top-0 right-0 w-8 h-8 rounded-lg bg-gray-800 border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <line x1="2" y1="2" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  <line x1="12" y1="2" x2="2" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <line
+                    x1="2"
+                    y1="2"
+                    x2="12"
+                    y2="12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="12"
+                    y1="2"
+                    x2="2"
+                    y2="12"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
 
@@ -1224,8 +1383,21 @@ const myFinalizedAlerts = useMemo(() => {
               </div>
 
               <p className="text-gray-200 text-sm leading-relaxed mb-8 text-center">
-                Vas a cancelar la alerta que te acaba de reservar <span className="font-bold text-white">{cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}</span>.<br/><br/>
-                Si cancelas, <span className="text-red-400 font-semibold">se te suspenderá el servicio de publicación de alertas durante 24 horas</span> y tendrás una <span className="text-red-400 font-semibold">penalización del 33% adicional en tu próximo ingreso</span>.
+                Vas a cancelar la alerta que te acaba de reservar{' '}
+                <span className="font-bold text-white">
+                  {cancelReservedAlert?.reserved_by_name?.split(' ')[0] || 'el comprador'}
+                </span>
+                .<br />
+                <br />
+                Si cancelas,{' '}
+                <span className="text-red-400 font-semibold">
+                  se te suspenderá el servicio de publicación de alertas durante 24 horas
+                </span>{' '}
+                y tendrás una{' '}
+                <span className="text-red-400 font-semibold">
+                  penalización del 33% adicional en tu próximo ingreso
+                </span>
+                .
               </p>
 
               <div className="flex gap-3">
@@ -1237,16 +1409,28 @@ const myFinalizedAlerts = useMemo(() => {
                     hideKey(cardKey);
                     queryClient.setQueryData(['myAlerts'], (old = []) => {
                       const now = Date.now();
-                      return Array.isArray(old) ? old.map(a => {
-                        if (a.id !== alert.id) return a;
-                        stampFinalizedAt(alert.id);
-                        return { ...a, status: 'cancelled', cancel_reason: 'me_fui', finalized_at: now, updated_date: new Date(now).toISOString() };
-                      }) : old;
+                      return Array.isArray(old)
+                        ? old.map((a) => {
+                            if (a.id !== alert.id) return a;
+                            stampFinalizedAt(alert.id);
+                            return {
+                              ...a,
+                              status: 'cancelled',
+                              cancel_reason: 'me_fui',
+                              finalized_at: now,
+                              updated_date: new Date(now).toISOString(),
+                            };
+                          })
+                        : old;
                     });
-                    alerts.updateAlert(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' }).then(() => {
-                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                      try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-                    });
+                    alerts
+                      .updateAlert(alert.id, { status: 'cancelled', cancel_reason: 'me_fui' })
+                      .then(() => {
+                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                        try {
+                          window.dispatchEvent(new Event('waitme:badgeRefresh'));
+                        } catch {}
+                      });
                     setCancelReservedOpen(false);
                     setCancelReservedAlert(null);
                   }}
@@ -1256,7 +1440,10 @@ const myFinalizedAlerts = useMemo(() => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => { setCancelReservedOpen(false); setCancelReservedAlert(null); }}
+                  onClick={() => {
+                    setCancelReservedOpen(false);
+                    setCancelReservedAlert(null);
+                  }}
                   className="flex-1 border-gray-600 text-white h-12 text-base font-semibold bg-gray-800 hover:bg-gray-700"
                 >
                   Volver
@@ -1270,14 +1457,21 @@ const myFinalizedAlerts = useMemo(() => {
         </div>
       )}
 
-      <Dialog open={cancelConfirmOpen} onOpenChange={(open) => {
-        setCancelConfirmOpen(open);
-        if (!open) setCancelConfirmAlert(null);
-      }}>
+      <Dialog
+        open={cancelConfirmOpen}
+        onOpenChange={(open) => {
+          setCancelConfirmOpen(open);
+          if (!open) setCancelConfirmAlert(null);
+        }}
+      >
         <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Vas a cancelar tu alerta publicada</DialogTitle>
-            <DialogDescription className="text-gray-400">Confirma para moverla a finalizadas como cancelada.</DialogDescription>
+            <DialogTitle className="text-lg font-bold">
+              Vas a cancelar tu alerta publicada
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Confirma para moverla a finalizadas como cancelada.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -1287,7 +1481,9 @@ const myFinalizedAlerts = useMemo(() => {
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Clock className="w-4 h-4 text-purple-400" />
-              <span className="text-gray-200">{cancelConfirmAlert?.available_in_minutes ?? ''} Minutos</span>
+              <span className="text-gray-200">
+                {cancelConfirmAlert?.available_in_minutes ?? ''} Minutos
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Euro className="w-4 h-4 text-purple-400" />
@@ -1296,10 +1492,16 @@ const myFinalizedAlerts = useMemo(() => {
           </div>
 
           <DialogFooter className="flex gap-3">
-            <Button variant="outline" onClick={() => {
-              setCancelConfirmOpen(false);
-              setCancelConfirmAlert(null);
-            }} className="flex-1 border-gray-700">Rechazar</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCancelConfirmOpen(false);
+                setCancelConfirmAlert(null);
+              }}
+              className="flex-1 border-gray-700"
+            >
+              Rechazar
+            </Button>
             <Button
               onClick={() => {
                 if (!cancelConfirmAlert?.id) return;
@@ -1315,10 +1517,13 @@ const myFinalizedAlerts = useMemo(() => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={expirePromptOpen} onOpenChange={(open) => {
-        setExpirePromptOpen(open);
-        if (!open) setExpirePromptAlert(null);
-      }}>
+      <Dialog
+        open={expirePromptOpen}
+        onOpenChange={(open) => {
+          setExpirePromptOpen(open);
+          if (!open) setExpirePromptAlert(null);
+        }}
+      >
         <DialogContent
           hideClose
           className="bg-gray-900 border border-gray-800 text-white max-w-sm border-t-2 border-b-2 border-purple-500 max-h-[85vh] overflow-y-auto data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0"
@@ -1341,7 +1546,7 @@ const myFinalizedAlerts = useMemo(() => {
                   timeZone: 'Europe/Madrid',
                   hour: '2-digit',
                   minute: '2-digit',
-                  hour12: false
+                  hour12: false,
                 })
               : '--:--';
 
@@ -1368,7 +1573,9 @@ const myFinalizedAlerts = useMemo(() => {
 
                 <div className="flex items-start gap-1.5 text-xs mb-2">
                   <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-white leading-5">{formatAddress(a.address) || 'Ubicación marcada'}</span>
+                  <span className="text-white leading-5">
+                    {formatAddress(a.address) || 'Ubicación marcada'}
+                  </span>
                 </div>
 
                 <div className="flex items-start gap-1.5 text-xs">
@@ -1415,126 +1622,154 @@ const myFinalizedAlerts = useMemo(() => {
       </Dialog>
 
       {/* Modal de expiración de reserva */}
-      {expiredAlertModalId && (() => {
-        const alert = visibleActiveAlerts.find(a => a.id === expiredAlertModalId);
-        if (!alert) return null;
-        const waitUntilTs = getWaitUntilTs(alert);
-        const waitUntilLabel = waitUntilTs
-          ? new Date(waitUntilTs).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hour12: false })
-          : '--:--';
-        const reservedByPhoto =
-          alert.reserved_by_photo ||
-          avatarFor(alert.reserved_by_name) ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
-        const carLabel = alert.reserved_by_car || 'Sin datos';
-        const carColor = alert.reserved_by_car_color || 'gris';
-        const plate = alert.reserved_by_plate || '';
-        return (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
-            <div className="bg-gray-900 border-2 border-purple-500/60 rounded-xl w-full max-w-sm p-3 relative">
-              {/* Cerrar */}
-              <button
-                className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 flex items-center justify-center text-white z-10"
-                onClick={() => setExpiredAlertModalId(null)}
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {expiredAlertModalId &&
+        (() => {
+          const alert = visibleActiveAlerts.find((a) => a.id === expiredAlertModalId);
+          if (!alert) return null;
+          const waitUntilTs = getWaitUntilTs(alert);
+          const waitUntilLabel = waitUntilTs
+            ? new Date(waitUntilTs).toLocaleString('es-ES', {
+                timeZone: 'Europe/Madrid',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              })
+            : '--:--';
+          const reservedByPhoto =
+            alert.reserved_by_photo ||
+            avatarFor(alert.reserved_by_name) ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(alert.reserved_by_name || 'U')}&background=7c3aed&color=fff&size=128`;
+          const carLabel = alert.reserved_by_car || 'Sin datos';
+          const carColor = alert.reserved_by_car_color || 'gris';
+          const plate = alert.reserved_by_plate || '';
+          return (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
+              <div className="bg-gray-900 border-2 border-purple-500/60 rounded-xl w-full max-w-sm p-3 relative">
+                {/* Cerrar */}
+                <button
+                  className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 flex items-center justify-center text-white z-10"
+                  onClick={() => setExpiredAlertModalId(null)}
+                >
+                  <X className="w-4 h-4" />
+                </button>
 
-              {/* Header */}
-              <div className="flex justify-center mb-3">
-                <div className="px-4 py-1.5 rounded-lg bg-purple-700/60 border border-purple-500/60">
-                  <span className="text-white font-semibold text-sm">Tiempo expirado</span>
+                {/* Header */}
+                <div className="flex justify-center mb-3">
+                  <div className="px-4 py-1.5 rounded-lg bg-purple-700/60 border border-purple-500/60">
+                    <span className="text-white font-semibold text-sm">Tiempo expirado</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Foto + info */}
-              <div className="flex gap-2.5 mb-2">
-                <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
-                  <img src={reservedByPhoto} alt={alert.reserved_by_name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 h-[85px] flex flex-col">
-                  <p className="font-bold text-xl text-white leading-none min-h-[22px]">
-                    {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
-                  </p>
-                  <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">{carLabel}</p>
-                  <div className="flex items-end gap-2 mt-1 min-h-[28px]">
-                    <div className="flex-shrink-0"><PlateProfile plate={plate} /></div>
-                    <div className="flex-1 flex justify-center">
-                      <div className="flex-shrink-0 relative -top-[1px]">
-                        <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                {/* Foto + info */}
+                <div className="flex gap-2.5 mb-2">
+                  <div className="w-[95px] h-[85px] rounded-lg overflow-hidden border-2 border-purple-500/40 bg-gray-900 flex-shrink-0">
+                    <img
+                      src={reservedByPhoto}
+                      alt={alert.reserved_by_name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 h-[85px] flex flex-col">
+                    <p className="font-bold text-xl text-white leading-none min-h-[22px]">
+                      {(alert.reserved_by_name || 'Usuario').split(' ')[0]}
+                    </p>
+                    <p className="text-sm font-medium text-gray-200 leading-none flex-1 flex items-center truncate relative top-[6px]">
+                      {carLabel}
+                    </p>
+                    <div className="flex items-end gap-2 mt-1 min-h-[28px]">
+                      <div className="flex-shrink-0">
+                        <PlateProfile plate={plate} />
+                      </div>
+                      <div className="flex-1 flex justify-center">
+                        <div className="flex-shrink-0 relative -top-[1px]">
+                          <CarIconProfile color={getCarFill(carColor)} size="w-16 h-10" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="border-t border-gray-700/80 mb-2 pt-1.5 space-y-1.5">
-                <div className="flex items-start gap-1.5 text-xs">
-                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
-                  <span className="text-gray-200 leading-5 line-clamp-1">{formatAddress(alert.address)}</span>
-                </div>
-                <div className="flex items-start gap-1.5 text-xs">
-                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                <div className="border-t border-gray-700/80 mb-2 pt-1.5 space-y-1.5">
+                  <div className="flex items-start gap-1.5 text-xs">
+                    <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
+                    <span className="text-gray-200 leading-5 line-clamp-1">
+                      {formatAddress(alert.address)}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-1.5 text-xs">
+                    <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-purple-400" />
                     <span className="text-white leading-5">
                       Te vas en {alert.available_in_minutes} min · Te espera hasta las:{' '}
                       <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{waitUntilLabel}</span>
                     </span>
+                  </div>
                 </div>
+
+                <p className="text-white text-sm font-semibold text-center mb-2">
+                  Usuario no se ha presentado. Puedes irte o prorrogarle:
+                </p>
+
+                <div className="flex gap-2 mb-2">
+                  {[
+                    { mins: '5 min', price: '2 €', addMins: 5 },
+                    { mins: '10 min', price: '3 €', addMins: 10 },
+                    { mins: '15 min', price: '5 €', addMins: 15 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.addMins}
+                      className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 hover:bg-purple-600/40 transition-colors flex flex-col items-center justify-center"
+                      onClick={() => {
+                        setExpiredAlertExtend((prev) => {
+                          const n = { ...prev };
+                          delete n[alert.id];
+                          return n;
+                        });
+                        setExpiredAlertModalId(null);
+                        const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
+                        alerts.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
+                          queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                        });
+                      }}
+                    >
+                      <span className="text-white text-[11px] font-bold leading-none">
+                        {opt.mins} ·
+                      </span>
+                      <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">
+                        {opt.price}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
+                  onClick={() => {
+                    setExpiredAlertExtend((prev) => {
+                      const n = { ...prev };
+                      delete n[alert.id];
+                      return n;
+                    });
+                    setExpiredAlertModalId(null);
+                    alerts.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+                      try {
+                        window.dispatchEvent(new Event('waitme:badgeRefresh'));
+                      } catch {}
+                    });
+                  }}
+                >
+                  Me voy
+                </Button>
               </div>
-
-              <p className="text-white text-sm font-semibold text-center mb-2">
-                Usuario no se ha presentado. Puedes irte o prorrogarle:
-              </p>
-
-              <div className="flex gap-2 mb-2">
-                {[
-                  { mins: '5 min', price: '2 €', addMins: 5 },
-                  { mins: '10 min', price: '3 €', addMins: 10 },
-                  { mins: '15 min', price: '5 €', addMins: 15 }
-                ].map((opt) => (
-                  <button
-                    key={opt.addMins}
-                    className="flex-1 h-9 rounded-lg bg-purple-600/20 border border-purple-500/50 hover:bg-purple-600/40 transition-colors flex flex-col items-center justify-center"
-                    onClick={() => {
-                      setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
-                      setExpiredAlertModalId(null);
-                      const newMins = (Number(alert.available_in_minutes) || 0) + opt.addMins;
-                      alerts.updateAlert(alert.id, { available_in_minutes: newMins }).then(() => {
-                        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                      });
-                    }}
-                  >
-                    <span className="text-white text-[11px] font-bold leading-none">{opt.mins} ·</span>
-                    <span className="text-purple-300 text-[11px] font-bold leading-none mt-0.5">{opt.price}</span>
-                  </button>
-                ))}
-              </div>
-
-              <Button
-                className="w-full h-9 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg"
-                onClick={() => {
-                  setExpiredAlertExtend((prev) => { const n = { ...prev }; delete n[alert.id]; return n; });
-                  setExpiredAlertModalId(null);
-                  alerts.updateAlert(alert.id, { status: 'cancelled' }).then(() => {
-                    queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-                    try { window.dispatchEvent(new Event('waitme:badgeRefresh')); } catch {}
-                  });
-                }}
-              >
-                Me voy
-              </Button>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {myActiveAlerts
         .filter((a) => a.status === 'reserved')
         .map((alert) => (
           <SellerLocationTracker key={alert.id} alertId={alert.id} userLocation={userLocation} />
         ))}
-
-      
     </div>
   );
 }
