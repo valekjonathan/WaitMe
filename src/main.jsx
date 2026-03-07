@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './lib/AuthContext';
-import { getSupabaseConfig } from './lib/supabaseClient';
+import { getRuntimeConfig } from './lib/runtimeConfig';
 import App from './App';
 import ErrorBoundary from './core/ErrorBoundary';
 import MissingEnvScreen from './diagnostics/MissingEnvScreen';
@@ -88,8 +88,8 @@ if (rootEl) {
       )
     );
   } else {
-    const config = getSupabaseConfig();
-    if (!config.ok) {
+    const config = getRuntimeConfig();
+    if (!config.canBoot) {
       RENDER_LOG('config NOT ok, rendering MissingEnvScreen', config.missing);
       ReactDOM.createRoot(rootEl).render(
         <HashRouter>

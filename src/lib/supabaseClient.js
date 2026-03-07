@@ -4,9 +4,9 @@
  * Si faltan envs, getSupabase() devuelve null (no lanza).
  * En iOS Capacitor usa Preferences para persistir la sesión.
  */
-import { createClient } from "@supabase/supabase-js";
-import { Capacitor } from "@capacitor/core";
-import { Preferences } from "@capacitor/preferences";
+import { createClient } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 let _client = null;
 
@@ -29,20 +29,34 @@ function getAuthOptions() {
     autoRefreshToken: true,
     detectSessionInUrl: false,
   };
-  if (Capacitor.isNativePlatform()) {
-    return { ...base, storage: capacitorStorage };
+  try {
+    if (Capacitor?.isNativePlatform?.()) {
+      return { ...base, storage: capacitorStorage };
+    }
+  } catch {
+    /* Capacitor no disponible: usar storage por defecto */
   }
   return base;
+}
+
+const PLACEHOLDERS = ['tu_anon_key', 'TU_PROYECTO'];
+
+function isPlaceholder(val) {
+  if (!val || typeof val !== 'string') return true;
+  const v = val.trim();
+  if (!v) return true;
+  return PLACEHOLDERS.some((p) => v.includes(p) || v === p);
 }
 
 export function getSupabaseConfig() {
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   const missing = [];
-  if (!url || String(url).trim() === "") missing.push("VITE_SUPABASE_URL");
-  if (!anonKey || String(anonKey).trim() === "") missing.push("VITE_SUPABASE_ANON_KEY");
+  if (!url || String(url).trim() === '' || isPlaceholder(url)) missing.push('VITE_SUPABASE_URL');
+  if (!anonKey || String(anonKey).trim() === '' || isPlaceholder(anonKey))
+    missing.push('VITE_SUPABASE_ANON_KEY');
   const ok = missing.length === 0;
-  return { url: url || "", anonKey: anonKey || "", ok, missing };
+  return { url: url || '', anonKey: anonKey || '', ok, missing };
 }
 
 export function getSupabase() {
@@ -67,7 +81,7 @@ export async function clearSupabaseAuthStorage() {
   if (!Capacitor.isNativePlatform()) return;
   try {
     const { keys } = await Preferences.keys();
-    const supabaseKeys = (keys || []).filter((k) => k.startsWith("sb-"));
+    const supabaseKeys = (keys || []).filter((k) => k.startsWith('sb-'));
     await Promise.all(supabaseKeys.map((key) => Preferences.remove({ key })));
   } catch {
     /* no-op */
