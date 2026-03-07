@@ -1,7 +1,7 @@
 # Árbol real del proyecto WaitMe — Snapshot actual
 
 **Fecha:** 2026-03-07  
-**ZIP:** `tmp/waitme-master-full-audit.zip`
+**ZIP:** `tmp/waitme-master-fix-all.zip`
 
 ---
 
