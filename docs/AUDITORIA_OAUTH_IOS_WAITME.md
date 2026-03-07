@@ -10,16 +10,16 @@ En iPhone/Simulator el login con Google se queda en accounts.google.com y **no v
 
 ---
 
-## 2. Flujo actual
+## 2. Flujo actual (actualizado 2026-03-07)
 
 1. Usuario pulsa "Continuar con Google"
-2. Login.jsx: `signInWithOAuth({ provider: 'google', redirectTo: 'capacitor://localhost', skipBrowserRedirect: true })`
+2. Login.jsx: `signInWithOAuth({ provider: 'google', redirectTo: 'com.waitme.app://auth/callback', skipBrowserRedirect: true })`
 3. Supabase devuelve `data.url` → `Browser.open({ url })` abre Safari
 4. Usuario inicia sesión en Google
 5. Google redirige a Supabase callback
-6. Supabase redirige a `capacitor://localhost#access_token=...&refresh_token=...`
-7. **Esperado:** Sistema abre la app con esa URL; App.jsx `appUrlOpen` recibe la URL; `processOAuthUrl` parsea hash y `setSession`
-8. **Real:** La app no recibe la URL; el usuario se queda en Safari
+6. Supabase redirige a `com.waitme.app://auth/callback?code=xxx` (PKCE) o `#access_token=...&refresh_token=...` (implicit)
+7. **Esperado:** Sistema abre la app con esa URL; App.jsx `appUrlOpen` recibe la URL; `processOAuthUrl` parsea y `exchangeCodeForSession` / `setSession`
+8. **Requisito:** Supabase Dashboard debe tener `com.waitme.app://auth/callback` en Redirect URLs
 
 ---
 
@@ -39,11 +39,12 @@ En iPhone/Simulator el login con Google se queda en accounts.google.com y **no v
 
 | Archivo | Rol |
 |---------|-----|
-| `src/pages/Login.jsx` | redirectTo: capacitor://localhost, Browser.open |
-| `src/App.jsx` | processOAuthUrl, appUrlOpen, getLaunchUrl |
-| `ios/App/App/Info.plist` | CFBundleURLSchemes: capacitor |
+| `src/pages/Login.jsx` | redirectTo: com.waitme.app://auth/callback, Browser.open |
+| `src/App.jsx` | processOAuthUrl, appUrlOpen, getLaunchUrl (PKCE + implicit) |
+| `src/lib/supabaseClient.js` | flowType: pkce, capacitorStorage, detectSessionInUrl: false |
+| `ios/App/App/Info.plist` | CFBundleURLSchemes: capacitor, com.waitme.app |
 | `capacitor.config.ts` | appId: com.waitme.app |
-| Supabase Dashboard | Redirect URLs |
+| Supabase Dashboard | Redirect URLs: com.waitme.app://auth/callback (obligatorio) |
 
 ---
 

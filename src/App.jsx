@@ -14,7 +14,13 @@ import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
 
 async function processOAuthUrl(url, onSuccess) {
-  const allowed = ['capacitor://localhost', 'com.waitme.app://', 'com.waitme.app://auth/callback'];
+  const allowed = [
+    'capacitor://localhost',
+    'com.waitme.app://',
+    'com.waitme.app://auth/callback',
+    'http://localhost:5173',
+    'http://localhost:5173/',
+  ];
   if (!url || !allowed.some((p) => url.startsWith(p))) return false;
   try {
     await Browser.close();
@@ -27,6 +33,7 @@ async function processOAuthUrl(url, onSuccess) {
   const hashIdx = url.indexOf('#');
   const queryIdx = url.indexOf('?');
 
+  // PKCE: ?code=xxx (Supabase redirect con flowType: 'pkce')
   if (queryIdx !== -1) {
     const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
@@ -37,9 +44,13 @@ async function processOAuthUrl(url, onSuccess) {
         onSuccess?.();
         return true;
       }
+      if (import.meta.env.DEV) {
+        console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
+      }
     }
   }
 
+  // Implicit: #access_token=...&refresh_token=...
   const hash = hashIdx !== -1 ? url.slice(hashIdx + 1) : '';
   if (!hash) return false;
   const params = new URLSearchParams(hash);
