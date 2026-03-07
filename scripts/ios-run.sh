@@ -5,6 +5,10 @@ cd "$(dirname "$0")/.."
 BUNDLE_ID="com.waitme.app"
 LOG_FILE="ios_run_last.log"
 
+echo "[ios:run] 0. OAuth iOS: asegurar redirect URL en Supabase..."
+node scripts/ensure-oauth-redirect-ios.js || true
+echo ""
+
 echo "[ios:run] 1. Clean..."
 rm -rf dist
 rm -rf ios/App/App/public

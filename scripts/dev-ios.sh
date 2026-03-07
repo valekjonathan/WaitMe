@@ -14,7 +14,10 @@ PORT=5173
 # 1. ENVIRONMENT_GUARD
 bash scripts/environment-guard.sh || exit 1
 
-# 2. Obtener IP
+# 2. OAuth iOS: asegurar redirect URL en Supabase (si hay token)
+node scripts/ensure-oauth-redirect-ios.js || true
+
+# 3. Obtener IP
 IP=$(node scripts/get-ip.js)
 URL="http://${IP}:${PORT}"
 
@@ -36,15 +39,15 @@ export CAPACITOR_DEV_SERVER_URL="$URL"
 # Login Google real en Simulator: sin mock, auth real
 export VITE_DEV_BYPASS_AUTH=true
 
-# 3. dist existe (cap copy lo requiere)
+# 4. dist existe (cap copy lo requiere)
 if [ ! -d dist ]; then
   echo "[dev:ios] dist/ no existe. Build inicial..."
   npm run build
 fi
 
-# 4. Sincronizar config a iOS
+# 5. Sincronizar config a iOS
 npx cap copy ios
 
-# 5. Arrancar Vite + Capacitor (live reload)
+# 6. Arrancar Vite + Capacitor (live reload)
 # cap run ios: lanza en Simulator por defecto; si hay iPhone conectado, Xcode puede usarlo
 exec npx concurrently "VITE_DEV_BYPASS_AUTH=true vite --host --port ${PORT}" "npx cap run ios --live-reload --host ${IP} --port ${PORT}"

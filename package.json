@@ -46,7 +46,8 @@
     "dev:safe": "VITE_SAFE_MODE=true vite --host --port 5173",
     "env:guard": "bash scripts/environment-guard.sh",
     "pwa:validate": "node scripts/pwa-icon-validator.mjs",
-    "supabase:redirect-urls": "node scripts/print-supabase-redirect-urls.js"
+    "supabase:redirect-urls": "node scripts/print-supabase-redirect-urls.js",
+    "supabase:ensure-oauth-ios": "node scripts/ensure-oauth-redirect-ios.js"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
