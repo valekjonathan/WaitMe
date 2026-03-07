@@ -946,9 +946,9 @@ export default function Home() {
         }
       />
 
-      {/* En modo create/search: sin scroll, eventos pasan al canvas */}
+      {/* En modo create/search: sin scroll. En home: absolute para no empujar layout */}
       <div
-        className={`relative z-10 flex flex-col ${mode ? 'h-0 overflow-hidden pointer-events-none' : 'min-h-screen'}`}
+        className={`z-10 flex flex-col ${mode ? 'h-0 overflow-hidden pointer-events-none' : 'absolute inset-0 pointer-events-none'}`}
         style={mode ? { pointerEvents: 'none' } : undefined}
       >
         <main

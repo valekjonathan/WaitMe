@@ -30,18 +30,19 @@ export default function MapViewportShell({ mode = 'home', panel, children, mapNo
       data-map-viewport-shell
       data-map-mode={mode}
     >
-      <MapLayer>{mapNode}</MapLayer>
+      <MapLayer>
+        {mapNode}
+        {/* Capa amoratada solo sobre el mapa (Home): no afecta logo, header ni nav */}
+        {isHome && (
+          <div
+            className="absolute inset-0 z-[5] pointer-events-none"
+            style={{ background: 'rgba(91, 39, 122, 0.22)' }}
+            aria-hidden="true"
+          />
+        )}
+      </MapLayer>
 
       <OverlayLayer>{panel}</OverlayLayer>
-
-      {/* Capa tenue en Home: apaga el mapa para foco en logo y botones */}
-      {isHome && (
-        <div
-          className="absolute inset-0 z-[15] pointer-events-none"
-          style={{ background: 'rgba(0,0,0,0.35)' }}
-          aria-hidden="true"
-        />
-      )}
 
       {children}
     </div>
