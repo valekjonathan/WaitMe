@@ -28,7 +28,7 @@ describe('transactionPayment', () => {
 
   it('distancia 3m → onCompleted disparado (pago liberable)', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
-    expect(getMetersBetween(POINT_A, pointB)).toBeLessThanOrEqual(5);
+    expect(getMetersBetween(POINT_A, pointB)).toBeLessThanOrEqual(6);
 
     const onCompleted = vi.fn();
     startTransactionMonitoring({
@@ -37,19 +37,19 @@ describe('transactionPayment', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(9000);
+    vi.advanceTimersByTime(11000);
     expect(onCompleted).toHaveBeenCalledTimes(1);
     expect(onCompleted).toHaveBeenCalledWith(
       expect.objectContaining({
         distance: expect.any(Number),
       })
     );
-    expect(onCompleted.mock.calls[0][0].distance).toBeLessThanOrEqual(5);
+    expect(onCompleted.mock.calls[0][0].distance).toBeLessThanOrEqual(6);
   });
 
   it('distancia 10m → onCompleted no disparado (pago rechazado)', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 10);
-    expect(getMetersBetween(POINT_A, pointB)).toBeGreaterThan(5);
+    expect(getMetersBetween(POINT_A, pointB)).toBeGreaterThan(6);
 
     const onCompleted = vi.fn();
     startTransactionMonitoring({
@@ -72,13 +72,13 @@ describe('transactionPayment', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(9000);
+    vi.advanceTimersByTime(11000);
     expect(onCompleted).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(20000);
     expect(onCompleted).toHaveBeenCalledTimes(1);
   });
 
-  it('accuracy 50m → onCompleted no disparado (pago bloqueado)', () => {
+  it('accuracy 50m (>20m) → onCompleted no disparado (pago bloqueado)', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
     const onCompleted = vi.fn();
 

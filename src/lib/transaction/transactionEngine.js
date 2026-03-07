@@ -1,17 +1,19 @@
 /**
  * Motor de transacción basado en proximidad.
- * Monitorea distancia entre usuario A (vendedor) y B (comprador).
- * Cuando ambos están ≤5m durante 8s continuos → onCompleted.
+ * Reglas antifraude: distance ≤6m, accuracy ≤20m, speed ≤3kmh, durante ≥10s.
+ * Verificación doble: distance(userA,userB) Y distance(userB,alertLocation).
  *
  * @module transactionEngine
  */
 
 import { getMetersBetween } from '@/lib/location';
+import { checkLocationFraud } from '@/lib/location/locationFraudDetector.js';
 
-const ARRIVAL_THRESHOLD_M = 5;
-const CANCEL_THRESHOLD_M = 7;
-const STABILITY_DURATION_MS = 8000;
-const MAX_ACCURACY_M = 30;
+const ARRIVAL_THRESHOLD_M = 6;
+const CANCEL_THRESHOLD_M = 8;
+const STABILITY_DURATION_MS = 10000;
+const MAX_ACCURACY_M = 20;
+const MAX_SPEED_KMH = 3;
 const POLL_INTERVAL_MS = 500;
 
 /** @type {ReturnType<typeof setInterval>|null} */
@@ -27,10 +29,12 @@ let stabilityStartMs = null;
  * @typedef {Object} MonitoringOptions
  * @property {() => { lat: number, lng: number } | [number, number] | null} getUserALocation
  * @property {() => { lat: number, lng: number } | [number, number] | null} getUserBLocation
- * @property {() => number|null} [getUserAAccuracy] — si > 30, no activar
+ * @property {() => { lat: number, lng: number } | [number, number] | null} [getAlertLocation] — ubicación plaza (verificación doble)
+ * @property {() => number|null} [getUserAAccuracy]
  * @property {() => number|null} [getUserBAccuracy]
- * @property {() => void} [onArrived] — cuando distance ≤ 5m por primera vez
- * @property {() => void} [onCompleted] — cuando distance ≤ 5m durante 8s
+ * @property {() => number|null} [getUserBSpeed] — km/h (debe ser ≤3 para completar)
+ * @property {() => void} [onArrived]
+ * @property {(ctx?: object) => void} [onCompleted]
  */
 
 /**
@@ -45,8 +49,10 @@ export function startTransactionMonitoring(opts) {
   const {
     getUserALocation,
     getUserBLocation,
+    getAlertLocation = () => null,
     getUserAAccuracy = () => null,
     getUserBAccuracy = () => null,
+    getUserBSpeed = () => null,
     onArrived = () => {},
     onCompleted = () => {},
   } = opts;
@@ -57,6 +63,7 @@ export function startTransactionMonitoring(opts) {
   intervalId = setInterval(() => {
     const locA = getUserALocation?.();
     const locB = getUserBLocation?.();
+    const alertLoc = getAlertLocation?.();
 
     if (!locA || !locB) return;
 
@@ -65,15 +72,35 @@ export function startTransactionMonitoring(opts) {
     if (accA != null && accA > MAX_ACCURACY_M) return;
     if (accB != null && accB > MAX_ACCURACY_M) return;
 
-    const distance = getMetersBetween(locA, locB);
-    if (!Number.isFinite(distance)) return;
+    const speedB = getUserBSpeed?.() ?? null;
+    if (speedB != null && speedB > MAX_SPEED_KMH) return;
 
-    if (distance > CANCEL_THRESHOLD_M) {
+    const fraudCheck = checkLocationFraud(locB, {
+      timestamp: Date.now(),
+      speed: speedB != null ? (speedB * 1000) / 3600 : null,
+      accuracy: accB,
+    });
+    if (fraudCheck.fraud) return;
+
+    const distanceAB = getMetersBetween(locA, locB);
+    if (!Number.isFinite(distanceAB)) return;
+
+    let distanceBAlert = distanceAB;
+    if (alertLoc) {
+      distanceBAlert = getMetersBetween(locB, alertLoc);
+      if (!Number.isFinite(distanceBAlert)) return;
+    }
+
+    const distanceOk = distanceAB <= ARRIVAL_THRESHOLD_M;
+    const alertOk = !alertLoc || distanceBAlert <= ARRIVAL_THRESHOLD_M;
+    const bothOk = distanceOk && alertOk;
+
+    if (distanceAB > CANCEL_THRESHOLD_M || (alertLoc && distanceBAlert > CANCEL_THRESHOLD_M)) {
       stabilityStartMs = null;
       return;
     }
 
-    if (distance <= ARRIVAL_THRESHOLD_M) {
+    if (bothOk) {
       if (!hasCalledOnArrived) {
         hasCalledOnArrived = true;
         try {
@@ -88,7 +115,13 @@ export function startTransactionMonitoring(opts) {
         stabilityStartMs = now;
       } else if (now - stabilityStartMs >= STABILITY_DURATION_MS) {
         stopTransactionMonitoring();
-        const ctx = { distance, accuracyA: accA, accuracyB: accB };
+        const ctx = {
+          distance: distanceAB,
+          distanceBAlert: alertLoc ? distanceBAlert : null,
+          accuracyA: accA,
+          accuracyB: accB,
+          speedB,
+        };
         try {
           onCompleted(ctx);
         } catch (e) {

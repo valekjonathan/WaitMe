@@ -5,8 +5,10 @@
  * @param {Object} opts
  * @param {() => { lat: number, lng: number } | [number, number] | null} opts.getUserALocation — vendedor
  * @param {() => { lat: number, lng: number } | [number, number] | null} opts.getUserBLocation — comprador
+ * @param {() => { lat: number, lng: number } | [number, number] | null} [opts.getAlertLocation] — plaza (verificación doble)
  * @param {() => number|null} [opts.getUserAAccuracy]
  * @param {() => number|null} [opts.getUserBAccuracy]
+ * @param {() => number|null} [opts.getUserBSpeed] — km/h (≤3 para completar)
  * @param {boolean} [opts.enabled=false] — activar monitoreo
  * @param {string} [opts.alertId]
  * @param {string} [opts.userAId] — vendedor
@@ -77,8 +79,10 @@ export function useTransactionMonitoring(opts) {
     startTransactionMonitoring({
       getUserALocation: () => o?.getUserALocation?.(),
       getUserBLocation: () => o?.getUserBLocation?.(),
+      getAlertLocation: () => o?.getAlertLocation?.(),
       getUserAAccuracy: () => o?.getUserAAccuracy?.(),
       getUserBAccuracy: () => o?.getUserBAccuracy?.(),
+      getUserBSpeed: () => o?.getUserBSpeed?.(),
       onArrived: () => o?.onArrived?.(),
       onCompleted: handleCompleted,
     });

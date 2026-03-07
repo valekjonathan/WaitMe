@@ -1,8 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const DISTANCE_THRESHOLD_M = 5;
-const MAX_ACCURACY_M = 30;
+const DISTANCE_THRESHOLD_M = 6;
+const MAX_ACCURACY_M = 20;
 const RATE_LIMIT_WINDOW_MS = 5000;
 const RATE_LIMIT_MAX = 5;
 

@@ -1,6 +1,6 @@
 /**
  * Tests del motor de transacción por proximidad.
- * Valida: llegada ≤5m, estabilidad 8s, cancelación >7m, accuracy.
+ * Valida: llegada ≤6m, estabilidad 10s, cancelación >8m, accuracy ≤20m.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getMetersBetween } from '@/lib/location';
@@ -25,7 +25,7 @@ describe('transactionEngine', () => {
 
   it('distancia 3m → onArrived llamado', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
-    expect(getMetersBetween(POINT_A, pointB)).toBeLessThanOrEqual(5);
+    expect(getMetersBetween(POINT_A, pointB)).toBeLessThanOrEqual(6);
 
     const onArrived = vi.fn();
     const onCompleted = vi.fn();
@@ -43,7 +43,7 @@ describe('transactionEngine', () => {
 
   it('distancia 10m → no llegada', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 10);
-    expect(getMetersBetween(POINT_A, pointB)).toBeGreaterThan(5);
+    expect(getMetersBetween(POINT_A, pointB)).toBeGreaterThan(6);
 
     const onArrived = vi.fn();
     const onCompleted = vi.fn();
@@ -60,7 +60,7 @@ describe('transactionEngine', () => {
     expect(onCompleted).not.toHaveBeenCalled();
   });
 
-  it('distancia 3m durante 8s → onCompleted', () => {
+  it('distancia 3m durante 10s → onCompleted', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
     const onArrived = vi.fn();
     const onCompleted = vi.fn();
@@ -72,12 +72,12 @@ describe('transactionEngine', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(9000);
+    vi.advanceTimersByTime(11000);
     expect(onArrived).toHaveBeenCalled();
     expect(onCompleted).toHaveBeenCalled();
   });
 
-  it('distancia 3m durante 4s → no onCompleted', () => {
+  it('distancia 3m durante 5s → no onCompleted', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
     const onArrived = vi.fn();
     const onCompleted = vi.fn();
@@ -89,12 +89,12 @@ describe('transactionEngine', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(5000);
     expect(onArrived).toHaveBeenCalled();
     expect(onCompleted).not.toHaveBeenCalled();
   });
 
-  it('distancia vuelve a >7m → reset timer, no completed', () => {
+  it('distancia vuelve a >8m → reset timer, no completed', () => {
     let usePointB = pointAtDistanceMeters(POINT_A, 3);
     const onCompleted = vi.fn();
 
@@ -104,15 +104,15 @@ describe('transactionEngine', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(5000);
     usePointB = pointAtDistanceMeters(POINT_A, 10);
     vi.advanceTimersByTime(500);
     usePointB = pointAtDistanceMeters(POINT_A, 3);
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(5000);
     expect(onCompleted).not.toHaveBeenCalled();
   });
 
-  it('accuracy > 30m → no activar', () => {
+  it('accuracy > 20m → no activar', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
     const onArrived = vi.fn();
 
@@ -127,6 +127,39 @@ describe('transactionEngine', () => {
     expect(onArrived).not.toHaveBeenCalled();
   });
 
+  it('speed > 3kmh → no onCompleted', () => {
+    const pointB = pointAtDistanceMeters(POINT_A, 3);
+    const onCompleted = vi.fn();
+
+    startTransactionMonitoring({
+      getUserALocation: () => POINT_A,
+      getUserBLocation: () => pointB,
+      getUserBSpeed: () => 10,
+      onCompleted,
+    });
+
+    vi.advanceTimersByTime(15000);
+    expect(onCompleted).not.toHaveBeenCalled();
+  });
+
+  it('verificación doble: userB lejos de alertLocation → no onCompleted', () => {
+    const alertLoc = POINT_A;
+    const userA = POINT_A;
+    const userB = pointAtDistanceMeters(POINT_A, 4);
+    const alertFar = pointAtDistanceMeters(POINT_A, 50);
+
+    const onCompleted = vi.fn();
+    startTransactionMonitoring({
+      getUserALocation: () => userA,
+      getUserBLocation: () => userB,
+      getAlertLocation: () => alertFar,
+      onCompleted,
+    });
+
+    vi.advanceTimersByTime(15000);
+    expect(onCompleted).not.toHaveBeenCalled();
+  });
+
   it('stopTransactionMonitoring limpia', () => {
     const pointB = pointAtDistanceMeters(POINT_A, 3);
     const onCompleted = vi.fn();
@@ -137,7 +170,7 @@ describe('transactionEngine', () => {
       onCompleted,
     });
 
-    vi.advanceTimersByTime(4000);
+    vi.advanceTimersByTime(5000);
     stopTransactionMonitoring();
     vi.advanceTimersByTime(10000);
     expect(onCompleted).not.toHaveBeenCalled();
