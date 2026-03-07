@@ -23,6 +23,9 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     geolocation,
     permissions: ['geolocation'],
+    launchOptions: {
+      args: ['--ignore-gpu-blocklist', '--use-gl=egl', '--enable-features=WebGL'],
+    },
   },
   projects: process.env.CI
     ? [{ name: 'webkit-mobile', use: { ...devices['iPhone 14'], browserName: 'webkit' } }]

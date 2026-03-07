@@ -61,9 +61,9 @@ test.describe('Validación - Drag', () => {
     await page.waitForTimeout(500);
 
     const mapCanvas = page.locator('.mapboxgl-canvas').first();
-    const canvasBox = await mapCanvas.boundingBox().catch(() => null);
+    const canvasBox = await mapCanvas.boundingBox({ timeout: 8000 }).catch(() => null);
     if (!canvasBox) {
-      test.skip(true, 'Mapa canvas no visible');
+      test.skip(true, 'Mapa canvas no visible (WebGL puede fallar en headless)');
       return;
     }
     const x = canvasBox.x + canvasBox.width / 2;

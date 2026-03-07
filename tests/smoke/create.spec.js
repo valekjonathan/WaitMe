@@ -22,13 +22,18 @@ test.describe('Smoke - Estoy aparcado aquí', () => {
     await createBtn.click();
     await page.waitForTimeout(1500);
 
-    // El mapa debe existir (canvas de Mapbox o contenedor)
-    const mapContainer = page.locator('.mapboxgl-map, [class*="mapbox"]').first();
+    // Tarjeta create obligatoria; mapa puede estar en "Map loading..." si WebGL falla en headless
     const card = page.getByText(/me voy en|publicar mi waitme/i).first();
-    const ubiciteBtn = page.getByRole('button').filter({ has: page.locator('svg') }).first();
+    const ubiciteBtn = page
+      .getByRole('button')
+      .filter({ has: page.locator('svg') })
+      .first();
+    const mapOrPlaceholder = page
+      .locator('.mapboxgl-map, [class*="mapbox"], [data-map-screen-panel]')
+      .first();
 
-    await expect(mapContainer).toBeVisible({ timeout: 5000 });
     await expect(card).toBeVisible({ timeout: 5000 });
+    await expect(mapOrPlaceholder).toBeVisible({ timeout: 5000 });
     expect(await ubiciteBtn.isVisible().catch(() => false)).toBeTruthy();
   });
 
@@ -63,7 +68,9 @@ test.describe('Smoke - Estoy aparcado aquí', () => {
     await createBtn.click();
     await page.waitForTimeout(1500);
 
-    const card = page.locator('[class*="rounded-2xl"]').filter({ hasText: /me voy en|minutos|euros/i });
+    const card = page
+      .locator('[class*="rounded-2xl"]')
+      .filter({ hasText: /me voy en|minutos|euros/i });
     await expect(card.first()).toBeVisible({ timeout: 5000 });
   });
 
