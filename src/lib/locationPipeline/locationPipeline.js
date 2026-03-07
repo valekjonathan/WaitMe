@@ -5,8 +5,8 @@
  * @module locationPipeline
  */
 
-import { checkLocationFraud } from './locationFraudDetector.js';
-import { validateMovement } from './locationMovementValidator.js';
+import { checkLocationFraud, clearPositionHistory } from '@/lib/location/locationFraudDetector.js';
+import { validateMovement } from '@/lib/location/locationMovementValidator.js';
 import { createKalmanFilter } from './locationKalmanFilter.js';
 import { createAdvancedSmoother } from './locationSmoothingAdvanced.js';
 import { snapToRoadSync } from './locationMapMatcher.js';
@@ -83,4 +83,5 @@ export function resetPipeline() {
   kalman = null;
   smoother = null;
   lastValid = null;
+  clearPositionHistory();
 }

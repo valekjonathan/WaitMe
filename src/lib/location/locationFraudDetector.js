@@ -18,6 +18,7 @@ const JUMP_THRESHOLD_M = 200;
 const JUMP_TIME_MS = 2000;
 const MAX_SPEED_KMH = 150;
 const MAX_SPEED_MPS = (MAX_SPEED_KMH * 1000) / 3600;
+const MAX_ACCURACY_M = 100;
 
 /** @type {Array<{ lat: number, lng: number, timestamp: number, speed?: number }>} */
 const positionHistory = [];
@@ -46,6 +47,17 @@ export function checkLocationFraud(location, meta = null) {
       accuracy: meta?.accuracy ?? null,
     });
     return { fraud: true, reason: 'gps_mock' };
+  }
+
+  const accuracy = meta?.accuracy ?? null;
+  if (accuracy != null && accuracy > MAX_ACCURACY_M) {
+    flagLocationFraud({
+      reason: 'accuracy_extreme',
+      user: meta?.userId ?? 'unknown',
+      location: { lat, lng },
+      accuracy,
+    });
+    return { fraud: true, reason: 'accuracy_extreme' };
   }
 
   if (speedMps != null && speedMps > MAX_SPEED_MPS) {
