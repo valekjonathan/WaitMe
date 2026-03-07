@@ -5,8 +5,11 @@
  * @module mapLayers/geojsonUtils
  */
 
+import { getCarFill } from '@/utils/carUtils';
+
 /**
  * Convierte alertas a GeoJSON FeatureCollection para coches estáticos.
+ * Usa getCarFill para color consistente con el resto de la app.
  * @param {Array<{id?:string, latitude?:number, lat?:number, longitude?:number, lng?:number, vehicle_type?:string, vehicle_color?:string, color?:string, price?:number}>} alerts
  * @returns {import('geojson').FeatureCollection}
  */
@@ -17,6 +20,7 @@ export function alertsToGeoJSON(alerts) {
       const lat = a.latitude ?? a.lat;
       const lng = a.longitude ?? a.lng;
       if (lat == null || lng == null || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      const colorName = a.vehicle_color ?? a.color ?? 'gris';
       return {
         type: 'Feature',
         id: a.id ?? a.user_id ?? `alert-${lat}-${lng}`,
@@ -24,7 +28,8 @@ export function alertsToGeoJSON(alerts) {
         properties: {
           id: a.id ?? a.user_id,
           vehicle_type: a.vehicle_type ?? 'car',
-          color: a.vehicle_color ?? a.color ?? 'gray',
+          color: colorName,
+          fill: getCarFill(colorName),
           price: a.price ?? 0,
         },
       };

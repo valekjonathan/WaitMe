@@ -10,12 +10,12 @@ const TABLE = 'user_location_updates';
 /**
  * Obtiene ubicaciones activas por alert_id (compradores navegando hacia la alerta).
  * @param {string} alertId
- * @returns {Promise<Array<{ user_id, alert_id, latitude, longitude, is_active }>>}
+ * @returns {Promise<{ data: Array<{ user_id, alert_id, latitude, longitude, is_active }>, error: Error|null }>}
  */
 export async function getLocationsByAlert(alertId) {
-  if (!alertId) return [];
+  if (!alertId) return { data: [], error: null };
   const supabase = getSupabase();
-  if (!supabase) return [];
+  if (!supabase) return { data: [], error: new Error('Supabase no configurado') };
 
   const { data: rows, error } = await supabase
     .from(TABLE)
@@ -24,8 +24,8 @@ export async function getLocationsByAlert(alertId) {
     .eq('is_active', true)
     .order('updated_at', { ascending: false });
 
-  if (error) return [];
-  return (rows ?? []).map((r) => ({
+  if (error) return { data: [], error };
+  const data = (rows ?? []).map((r) => ({
     user_id: r.user_id,
     alert_id: r.alert_id,
     latitude: r.lat,
@@ -33,6 +33,7 @@ export async function getLocationsByAlert(alertId) {
     is_active: r.is_active ?? true,
     updated_at: r.updated_at,
   }));
+  return { data, error: null };
 }
 
 /**

@@ -34,31 +34,7 @@ import HistoryBuyerView from './HistoryBuyerView';
 import { toMs, getActiveSellerAlerts, getBestFinalizedTs } from '@/lib/alertSelectors';
 import { stampFinalizedAt, getFinalizedAtMap } from '@/lib/finalizedAtStore';
 import { useMyAlerts } from '@/hooks/useMyAlerts';
-
-const getCarFillThinking = (color) => {
-  const map = {
-    blanco: '#ffffff',
-    negro: '#1a1a1a',
-    gris: '#9ca3af',
-    plata: '#d1d5db',
-    rojo: '#ef4444',
-    azul: '#3b82f6',
-    verde: '#22c55e',
-    amarillo: '#eab308',
-    naranja: '#f97316',
-    morado: '#7c3aed',
-    rosa: '#ec4899',
-    beige: '#d4b483',
-  };
-  return (
-    map[
-      String(color || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-    ] || '#9ca3af'
-  );
-};
+import { getCarFill, getCarFillThinking, formatPlate } from '@/utils/carUtils';
 
 // toMs is imported from @/lib/alertSelectors
 
@@ -183,30 +159,6 @@ export default function Alertas() {
   };
 
   // ====== Coche + matrícula (como Marco) ======
-  const carColors = [
-    { value: 'blanco', fill: '#FFFFFF' },
-    { value: 'negro', fill: '#1a1a1a' },
-    { value: 'rojo', fill: '#ef4444' },
-    { value: 'azul', fill: '#3b82f6' },
-    { value: 'amarillo', fill: '#facc15' },
-    { value: 'gris', fill: '#6b7280' },
-  ];
-
-  const getCarFill = (colorValue) => {
-    const c = carColors.find((x) => x.value === (colorValue || '').toLowerCase());
-    return c?.fill || '#6b7280';
-  };
-
-  const formatPlate = (plate) => {
-    const p = String(plate || '')
-      .replace(/\s+/g, '')
-      .toUpperCase();
-    if (!p) return '0000 XXX';
-    const a = p.slice(0, 4);
-    const b = p.slice(4);
-    return `${a} ${b}`.trim();
-  };
-
   const CarIconProfile = ({ color, size = 'w-16 h-10' }) => (
     <svg viewBox="0 0 48 24" className={size} fill="none" style={{ transform: 'translateY(3px)' }}>
       <path

@@ -15,7 +15,7 @@ import { useLocationEngine } from '@/hooks/useLocationEngine';
 import { useTransactionMonitoring } from '@/hooks/useTransactionMonitoring';
 import { getMetersBetween } from '@/lib/location';
 import { getMockNavigateCars } from '@/lib/mockNavigateCars';
-import { haversineKm } from '@/utils/carUtils';
+import { haversineKm, getCarFill } from '@/utils/carUtils';
 
 function getAlertIdFromLocation() {
   const hash = window.location.hash || '';
@@ -24,30 +24,6 @@ function getAlertIdFromLocation() {
   if (fromHash) return fromHash;
   return new URLSearchParams(window.location.search).get('alertId');
 }
-
-const getCarColor = (color) => {
-  const colorMap = {
-    blanco: '#f5f5f5',
-    blanca: '#f5f5f5',
-    negro: '#1a1a1a',
-    negra: '#1a1a1a',
-    rojo: '#dc2626',
-    roja: '#dc2626',
-    azul: '#2563eb',
-    verde: '#16a34a',
-    gris: '#6b7280',
-    grisáceo: '#6b7280',
-    amarillo: '#eab308',
-    naranja: '#f97316',
-    rosa: '#ec4899',
-    morado: '#9333ea',
-    plateado: '#c0c0c0',
-    dorado: '#d97706',
-    marrón: '#8b4513',
-    marron: '#8b4513',
-  };
-  return colorMap[String(color || '').toLowerCase()] || '#808080';
-};
 
 const DEMO_ALERTS = {
   demo_1: {
@@ -476,7 +452,7 @@ export default function Navigate() {
   // Icono del usuario: mi foto cuadrada con bordes redondeados (parpadeante verde) + icono coche
   const userCarIcon = displayAlert?.color
     ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
-        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarFill(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="14" cy="18" r="2" fill="#666"/>
@@ -496,7 +472,7 @@ export default function Navigate() {
   // Icono del vendedor: foto cuadrada con bordes redondeados + icono coche
   const sellerCarIcon = (displayAlertOrNearest || displayAlert)?.color
     ? `<svg width="20" height="12" viewBox="0 0 48 24" style="position:absolute;bottom:-4px;right:-4px;" fill="none">
-        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarColor(displayAlert.color)}" stroke="white" stroke-width="1.5"/>
+        <path d="M8 16 L10 10 L16 8 L32 8 L38 10 L42 14 L42 18 L8 18 Z" fill="${getCarFill((displayAlertOrNearest || displayAlert)?.color)}" stroke="white" stroke-width="1.5"/>
         <path d="M16 9 L18 12 L30 12 L32 9 Z" fill="rgba(255,255,255,0.3)" stroke="white" stroke-width="0.5"/>
         <circle cx="14" cy="18" r="4" fill="#333" stroke="white" stroke-width="1"/>
         <circle cx="14" cy="18" r="2" fill="#666"/>
