@@ -1,15 +1,19 @@
-# Reducir carga de Cursor Helper — exclusiones de análisis pesado
+# Reducir CPU de Cursor Helper (Renderer) — exclusiones de indexación
 
-tests/visual
-**/*-snapshots
-**/snapshots
+tests
+docs/archive
 coverage
 playwright-report
 test-results
-docs/archive
+snapshots
+**/*-snapshots
+**/snapshots
 storybook-static
-quarantine
-docs/archive/quarantine
 node_modules
 dist
+ios/App/build
+ios/App/App/public/assets
+supabase/.temp
+quarantine
+docs/archive/quarantine
 .DS_Store
