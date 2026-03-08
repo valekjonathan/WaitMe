@@ -26,6 +26,7 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run build",
     "export-codebase": "node scripts/export-codebase.js",
+    "export-zip": "bash scripts/export-zip-safe.sh",
     "ship": "bash scripts/ship.sh",
     "prepare": "husky",
     "preview": "vite preview --host --port 4173",

@@ -38,3 +38,5 @@ WaitMenuevo/
 - playwright-report
 - test-results
 - .git
+- .env, .env.local, .env.*
+- ios/App/App/public/assets
