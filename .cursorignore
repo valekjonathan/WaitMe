@@ -1,6 +1,9 @@
 # Reducir CPU de Cursor Helper (Renderer) — exclusiones de indexación
 
 tests
+supabase
+ios
+scripts
 docs/archive
 coverage
 playwright-report
@@ -11,9 +14,6 @@ snapshots
 storybook-static
 node_modules
 dist
-ios/App/build
-ios/App/App/public/assets
-supabase/.temp
 quarantine
 docs/archive/quarantine
 .DS_Store
