@@ -104,7 +104,7 @@ function MapboxMapInner({
   );
 
   const flyToUser = useCallback(
-    (coords) => {
+    (coords, optsOverride = {}) => {
       const map = mapRef.current;
       if (!map?.flyTo && !map?.easeTo) return;
       const [lng, lat] =
@@ -119,12 +119,13 @@ function MapboxMapInner({
       const padding = getMapPadding();
       const opts = {
         center: c,
-        zoom: DEFAULT_ZOOM,
-        pitch: DEFAULT_PITCH,
-        duration: 800,
+        zoom: optsOverride.zoom ?? DEFAULT_ZOOM,
+        pitch: optsOverride.pitch ?? DEFAULT_PITCH,
+        duration: optsOverride.duration ?? 800,
         essential: true,
         speed: 0.8,
         ...(padding && { padding }),
+        ...optsOverride,
       };
       if (typeof map.easeTo === 'function') {
         map.easeTo(opts);
@@ -146,6 +147,18 @@ function MapboxMapInner({
     const handler = () => flyToUser();
     window.addEventListener('waitme:goLogo', handler);
     return () => window.removeEventListener('waitme:goLogo', handler);
+  }, [flyToUser]);
+
+  // Ubícate: evento para recentrar desde CreateAlertCard sin pasar refs por Home
+  useEffect(() => {
+    const handler = (e) => {
+      const { lat, lng, zoom } = e?.detail ?? {};
+      if (lat != null && lng != null) {
+        flyToUser({ lat, lng }, { zoom: zoom ?? 17 });
+      }
+    };
+    window.addEventListener('waitme:flyToUser', handler);
+    return () => window.removeEventListener('waitme:flyToUser', handler);
   }, [flyToUser]);
 
   useEffect(() => {
@@ -250,6 +263,7 @@ function MapboxMapInner({
           setupMapStyleOnLoad(map);
           map.resize();
           setMapReady(true);
+          if (typeof window !== 'undefined') window.__WAITME_MAP__ = map;
 
           const resizeDelayed = () => {
             if (mapRef.current) mapRef.current.resize();
@@ -301,6 +315,7 @@ function MapboxMapInner({
       }
       mapRef.current = null;
       mapboxglRef.current = null;
+      if (typeof window !== 'undefined') window.__WAITME_MAP__ = null;
       setMapReady(false);
     };
   }, []);

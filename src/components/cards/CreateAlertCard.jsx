@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
-import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import { getLastKnownLocation, getPreciseInitialLocation } from '@/lib/location';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
@@ -13,7 +12,7 @@ export default function CreateAlertCard({
   onRecenter,
   onCreateAlert,
   isLoading = false,
-  mapRef,
+  mapRef: _mapRef, // Mantener por compatibilidad API; Ubícate usa evento waitme:flyToUser
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
@@ -23,8 +22,7 @@ export default function CreateAlertCard({
   };
 
   const handleLocate = async () => {
-    if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
-    // Usar motor único de ubicación: última posición válida primero, luego getPreciseInitialLocation
+    // Motor único: última posición válida primero, luego getPreciseInitialLocation
     let loc = getLastKnownLocation();
     if (loc?.lat == null || loc?.lng == null) {
       loc = await getPreciseInitialLocation();
@@ -33,19 +31,8 @@ export default function CreateAlertCard({
     const lng = loc?.lng;
     if (lat == null || lng == null) return;
     onRecenter?.({ lat, lng });
-    const padding = getMapLayoutPadding();
-    const map = mapRef?.current;
-    const flyOpts = {
-      center: [lng, lat],
-      zoom: 17,
-      duration: 800,
-      padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
-    };
-    if (map && typeof map.easeTo === 'function') {
-      map.easeTo(flyOpts);
-    } else if (map && typeof map.flyTo === 'function') {
-      map.flyTo(flyOpts);
-    }
+    // Disparar evento: MapboxMap lo escucha y ejecuta flyToUser (usa mapRef interno)
+    window.dispatchEvent(new CustomEvent('waitme:flyToUser', { detail: { lat, lng, zoom: 17 } }));
   };
 
   return (
