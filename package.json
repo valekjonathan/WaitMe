@@ -51,7 +51,8 @@
     "pwa:validate": "node scripts/pwa-icon-validator.mjs",
     "supabase:redirect-urls": "node scripts/print-supabase-redirect-urls.js",
     "supabase:ensure-oauth-ios": "node scripts/ensure-oauth-redirect-ios.js",
-    "cleanup:tests": "pkill -f chrome-headless-shell 2>/dev/null || true; pkill -f playwright 2>/dev/null || true"
+    "cleanup:tests": "bash scripts/test-cleanup.sh",
+    "cleanup:dev": "bash scripts/dev-cleanup.sh"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
