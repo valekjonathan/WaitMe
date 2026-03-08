@@ -26,7 +26,9 @@ export default function BottomNav() {
       try {
         const count = parseInt(localStorage.getItem('waitme:chat_unread') || '0', 10);
         setChatUnread(isNaN(count) ? 0 : count);
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     };
     handler(); // cargar inicial
     window.addEventListener('waitme:chatUnreadUpdate', handler);
@@ -62,7 +64,9 @@ export default function BottomNav() {
     try {
       localStorage.setItem('waitme:chat_unread', '0');
       setChatUnread(0);
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }, []);
 
   const divider = <div className="w-px h-8 bg-gray-700" />;
@@ -74,7 +78,9 @@ export default function BottomNav() {
       e?.preventDefault?.();
       try {
         window.dispatchEvent(new Event('waitme:goLogo'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
       navigate('/', { replace: false });
     },
     [navigate]

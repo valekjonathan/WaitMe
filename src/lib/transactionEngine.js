@@ -9,7 +9,7 @@ export const OUTCOME = {
   FINALIZADA_OK: 'finalizada_ok',
   FINALIZADA_NO_SHOW: 'finalizada_no_show',
   FINALIZADA_CANCELADA_POR_COMPRADOR: 'finalizada_cancelada_por_comprador',
-  FINALIZADA_CANCELADA_POR_VENDEDOR: 'finalizada_cancelada_por_vendedor'
+  FINALIZADA_CANCELADA_POR_VENDEDOR: 'finalizada_cancelada_por_vendedor',
 };
 
 // --- Reglas económicas (porcentajes 0-1) ---
@@ -90,7 +90,7 @@ function applySellerPenalty(sellerId) {
  * Actualiza balances en memoria. No llama a API.
  *
  * @param {Object} params
- * @param {string} params.outcome - OUTCOME.FINALIZADA_* 
+ * @param {string} params.outcome - OUTCOME.FINALIZADA_*
  * @param {number} params.amount - Importe total de la operación (ej. precio de la alerta)
  * @param {string} params.sellerId - ID del vendedor
  * @param {string} params.buyerId - ID del comprador
@@ -104,11 +104,11 @@ export function finalize({ outcome, amount, sellerId, buyerId, sellerCancelledOr
 
   let sellerAmount = 0;
   let buyerAmount = 0;
-  const appAmount = Math.round((total * APP_SHARE) * 100) / 100;
+  const appAmount = Math.round(total * APP_SHARE * 100) / 100;
 
   if (outcome === OUTCOME.FINALIZADA_CANCELADA_POR_VENDEDOR || sellerCancelledOrMoved) {
     // Vendedor cancela o se mueve >5m: vendedor 0€, comprador recupera 67%, app 33%
-    buyerAmount = Math.round((total * SELLER_SHARE) * 100) / 100; // lo que “recupera” el comprador
+    buyerAmount = Math.round(total * SELLER_SHARE * 100) / 100; // lo que “recupera” el comprador
     if (buyer) buyer.balance += buyerAmount;
     applySellerPenalty(sellerId);
   } else {
@@ -119,7 +119,7 @@ export function finalize({ outcome, amount, sellerId, buyerId, sellerCancelledOr
       sellerShare = 1 - APP_SHARE - EXTRA_COMMISSION_PENALTY; // 0.34
       seller.extraCommissionNext = false; // consumida
     }
-    sellerAmount = Math.round((total * sellerShare) * 100) / 100;
+    sellerAmount = Math.round(total * sellerShare * 100) / 100;
     if (seller) seller.balance += sellerAmount;
   }
 
@@ -128,14 +128,16 @@ export function finalize({ outcome, amount, sellerId, buyerId, sellerCancelledOr
 
   try {
     window.dispatchEvent(new Event('balanceUpdated'));
-  } catch (_) {}
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 
   return {
     sellerAmount,
     buyerAmount,
     appAmount,
     sellerBannedUntil,
-    extraCommissionNext
+    extraCommissionNext,
   };
 }
 

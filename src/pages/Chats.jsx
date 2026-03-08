@@ -284,7 +284,9 @@ export default function Chats() {
     const handler = () => {
       try {
         setDemoConvs(JSON.parse(localStorage.getItem('waitme:demo_conversations') || '[]'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     };
     window.addEventListener('waitme:newDemoConversation', handler);
     return () => window.removeEventListener('waitme:newDemoConversation', handler);
@@ -619,7 +621,9 @@ export default function Chats() {
                       const total = updated.reduce((s, c) => s + (c.unread || 0), 0);
                       localStorage.setItem('waitme:chat_unread', String(total));
                       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
-                    } catch {}
+                    } catch (error) {
+                      console.error('[WaitMe Error]', error);
+                    }
                     navigate(
                       `/chat?demo=true&conversationId=${dc.id}&alertId=${dc.alert_id}&otherName=${encodeURIComponent(dc.buyer_name || '')}&otherPhoto=${encodeURIComponent(dc.buyer_photo || '')}`
                     );

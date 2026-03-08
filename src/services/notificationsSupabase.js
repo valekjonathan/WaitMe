@@ -50,11 +50,7 @@ export async function createNotification(payload) {
     is_read: payload.is_read ?? false,
   };
 
-  const { data, error } = await supabase
-    .from(TABLE)
-    .insert(row)
-    .select()
-    .single();
+  const { data, error } = await supabase.from(TABLE).insert(row).select().single();
 
   if (error) return { data: null, error };
   return { data: normalizeNotification(data), error: null };
@@ -164,6 +160,8 @@ export function subscribeNotifications(userId, onNotification) {
   return () => {
     try {
       supabase.removeChannel(channel);
-    } catch (_) {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 }

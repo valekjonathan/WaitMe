@@ -32,7 +32,9 @@ export default function SellerLocationTracker({ alertId, userLocation }) {
       .then(({ data }) => {
         if (!cancelled && data) setAlert(data);
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[WaitMe Error]', error);
+      });
     return () => {
       cancelled = true;
     };

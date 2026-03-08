@@ -213,7 +213,9 @@ export default function Navigate() {
       window.localStorage.setItem('showBanner', 'true');
       window.dispatchEvent(new Event('waitme:requestsChanged'));
       window.dispatchEvent(new Event('waitme:showIncomingBanner'));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
 
     const moveTowardsDestination = () => {
       setUserLocation((prevLoc) => {
@@ -377,7 +379,9 @@ export default function Navigate() {
             detail: { amount: Number(a?.price ?? 0) },
           })
         );
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       queryClient.invalidateQueries({ queryKey: ['navigationAlert'] });
       queryClient.invalidateQueries({ queryKey: ['myTransactions'] });

@@ -146,9 +146,7 @@ export async function getMessages(conversationId, userId) {
     .in('id', senderIds);
   const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
 
-  const data = rows.map((r) =>
-    normalizeMessage({ ...r, sender: profileMap[r.sender_id] }, userId)
-  );
+  const data = rows.map((r) => normalizeMessage({ ...r, sender: profileMap[r.sender_id] }, userId));
   return { data, error: null };
 }
 
@@ -245,6 +243,8 @@ export function subscribeMessages(conversationId, onNewMessage) {
   return () => {
     try {
       supabase.removeChannel(channel);
-    } catch (_) {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 }

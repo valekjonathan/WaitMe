@@ -70,7 +70,9 @@ export default function Alertas() {
     const reload = () => {
       try {
         setThinkingRequests(JSON.parse(localStorage.getItem('waitme:thinking_requests') || '[]'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     };
     window.addEventListener('waitme:thinkingUpdated', reload);
     return () => window.removeEventListener('waitme:thinkingUpdated', reload);
@@ -80,7 +82,9 @@ export default function Alertas() {
     const reload = () => {
       try {
         setRejectedRequests(JSON.parse(localStorage.getItem('waitme:rejected_requests') || '[]'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     };
     window.addEventListener('waitme:rejectedUpdated', reload);
     return () => window.removeEventListener('waitme:rejectedUpdated', reload);
@@ -530,13 +534,17 @@ export default function Alertas() {
     setHiddenKeys(next);
     try {
       localStorage.setItem('waitme:hidden_keys', JSON.stringify(Array.from(next)));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 
   const deleteAlertSafe = async (id) => {
     try {
       await alerts.deleteAlert(id);
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 
   // ====== Effects ======
@@ -808,13 +816,17 @@ export default function Alertas() {
 
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     },
   });
 
@@ -830,7 +842,9 @@ export default function Alertas() {
       });
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     },
     onSuccess: () => {
       // Sin invalidate: el cache ya está actualizado en onMutate
@@ -872,7 +886,9 @@ export default function Alertas() {
       // Sin invalidate: el cache ya está actualizado en onMutate
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     },
   });
 
@@ -946,7 +962,9 @@ export default function Alertas() {
               queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
               try {
                 window.dispatchEvent(new Event('waitme:badgeRefresh'));
-              } catch {}
+              } catch (error) {
+                console.error('[WaitMe Error]', error);
+              }
             });
           }}
         >
@@ -1381,7 +1399,9 @@ export default function Alertas() {
                         queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                         try {
                           window.dispatchEvent(new Event('waitme:badgeRefresh'));
-                        } catch {}
+                        } catch (error) {
+                          console.error('[WaitMe Error]', error);
+                        }
                       });
                     setCancelReservedOpen(false);
                     setCancelReservedAlert(null);
@@ -1706,7 +1726,9 @@ export default function Alertas() {
                       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
                       try {
                         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-                      } catch {}
+                      } catch (error) {
+                        console.error('[WaitMe Error]', error);
+                      }
                     });
                   }}
                 >

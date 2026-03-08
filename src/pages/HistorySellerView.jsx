@@ -132,7 +132,9 @@ function HistorySellerView({ sellerContext = {} }) {
                 setThinkingRequests([]);
                 localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
                 window.dispatchEvent(new Event('waitme:thinkingUpdated'));
-              } catch {}
+              } catch (error) {
+                console.error('[WaitMe Error]', error);
+              }
               queryClient.setQueryData(['myAlerts'], (old = []) =>
                 old.map((a) => (a.id === req.alertId ? { ...a, ...payload } : a))
               );
@@ -151,7 +153,9 @@ function HistorySellerView({ sellerContext = {} }) {
                 );
                 rejected.push({ ...item, finalized_at: Date.now() });
                 localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
-              } catch {}
+              } catch (error) {
+                console.error('[WaitMe Error]', error);
+              }
             };
 
             const dismissThinking = () => {
@@ -159,7 +163,9 @@ function HistorySellerView({ sellerContext = {} }) {
                 const updated = thinkingRequests.filter((r) => r.id !== item.id);
                 setThinkingRequests(updated);
                 localStorage.setItem('waitme:thinking_requests', JSON.stringify(updated));
-              } catch {}
+              } catch (error) {
+                console.error('[WaitMe Error]', error);
+              }
             };
 
             return (

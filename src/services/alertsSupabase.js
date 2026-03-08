@@ -463,6 +463,8 @@ export function subscribeAlerts({ onUpsert, onDelete } = {}) {
   return () => {
     try {
       supabase.removeChannel(channel);
-    } catch (_) {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 }

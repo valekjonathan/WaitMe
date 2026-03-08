@@ -5,7 +5,9 @@ const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {
     try {
       console.log(`[RENDER:Layout] ${msg}`, extra ?? '');
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 };
 import { useEffect } from 'react';

@@ -128,18 +128,20 @@ export default function Notifications() {
       await queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
       navigate(createPageUrl('History'));
-    } catch {
-      // noop
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
     }
   };
 
   const rejectRequest = (req) => {
     try {
       setWaitMeRequestStatus(req?.id, 'rejected');
-    } catch {
-      // noop
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
     }
   };
 

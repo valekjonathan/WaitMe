@@ -25,7 +25,9 @@ export function logProximityEvent(evt) {
   if (import.meta.env.DEV) {
     try {
       console.log('[transactionLogger]', entry);
-    } catch (_) {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 }
 

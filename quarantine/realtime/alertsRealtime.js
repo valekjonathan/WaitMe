@@ -64,14 +64,18 @@ export function subscribeActiveAlerts({ onUpsert, onDelete } = {}) {
         console.error('Realtime parking_alerts error:', err);
         try {
           useAppStore.getState().setError('realtime_error');
-        } catch (_) {}
+        } catch (error) {
+          console.error('[WaitMe Error]', error);
+        }
       }
     });
 
   return () => {
     try {
       supabase.removeChannel(channel);
-    } catch (_) {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   };
 }
 

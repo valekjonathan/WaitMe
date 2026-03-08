@@ -5,7 +5,12 @@
 const STORAGE_KEY = 'waitme_requests_v1';
 
 function safeJsonParse(s, fallback) {
-  try { return JSON.parse(s); } catch { return fallback; }
+  try {
+    return JSON.parse(s);
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+    return fallback;
+  }
 }
 
 export function getWaitMeRequests() {
@@ -19,7 +24,9 @@ export function saveWaitMeRequests(list) {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.isArray(list) ? list : []));
-  } catch {}
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }
 
 export function upsertWaitMeRequest(req) {
@@ -31,7 +38,11 @@ export function upsertWaitMeRequest(req) {
   if (idx >= 0) next[idx] = { ...next[idx], ...req };
   else next.unshift(req);
   saveWaitMeRequests(next);
-  try { window.dispatchEvent(new Event('waitme:requestsChanged')); } catch {}
+  try {
+    window.dispatchEvent(new Event('waitme:requestsChanged'));
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }
 
 export function setWaitMeRequestStatus(id, status, extra = {}) {
@@ -42,10 +53,18 @@ export function setWaitMeRequestStatus(id, status, extra = {}) {
     return { ...r, status, ...extra, updatedAt: Date.now() };
   });
   saveWaitMeRequests(next);
-  try { window.dispatchEvent(new Event('waitme:requestsChanged')); } catch {}
+  try {
+    window.dispatchEvent(new Event('waitme:requestsChanged'));
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }
 
 export function clearWaitMeRequests() {
   saveWaitMeRequests([]);
-  try { window.dispatchEvent(new Event('waitme:requestsChanged')); } catch {}
+  try {
+    window.dispatchEvent(new Event('waitme:requestsChanged'));
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }

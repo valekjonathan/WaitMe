@@ -25,9 +25,7 @@ export function getFinalizedAtMap() {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return {};
     const map = JSON.parse(raw);
-    return typeof map === 'object' && !Array.isArray(map) && map !== null
-      ? map
-      : {};
+    return typeof map === 'object' && !Array.isArray(map) && map !== null ? map : {};
   } catch {
     return {};
   }
@@ -51,5 +49,7 @@ export function stampFinalizedAt(id) {
     if (map[id]) return; // already stamped — keep original order
     map[id] = Date.now();
     localStorage.setItem(STORE_KEY, JSON.stringify(map));
-  } catch {}
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }

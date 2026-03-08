@@ -25,7 +25,9 @@ test.describe('Validación - Medición real de layout', () => {
     await page
       .locator('[data-zoom-controls]')
       .waitFor({ state: 'visible', timeout: 5000 })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[WaitMe Error]', error);
+      });
     await page.waitForTimeout(500);
 
     const m = await page.evaluate(() => {
@@ -68,7 +70,9 @@ test.describe('Validación - Medición real de layout', () => {
     await page
       .locator('[data-zoom-controls]')
       .waitFor({ state: 'visible', timeout: 8000 })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[WaitMe Error]', error);
+      });
     await page.waitForTimeout(500);
 
     const m = await page.evaluate(() => {

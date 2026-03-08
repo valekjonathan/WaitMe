@@ -12,7 +12,9 @@ const listeners = new Set();
 function safeCall(fn) {
   try {
     fn?.();
-  } catch {}
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }
 function notify() {
   listeners.forEach((l) => safeCall(l));

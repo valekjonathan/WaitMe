@@ -29,13 +29,21 @@ const queryClient = new QueryClient({
 });
 
 // Sentry debe cargarse después del primer render para evitar dispatcher.useState null
-setTimeout(() => import('./lib/sentry').catch(() => {}), 0);
+setTimeout(
+  () =>
+    import('./lib/sentry').catch((error) => {
+      console.error('[WaitMe Error]', error);
+    }),
+  0
+);
 
 const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {
     try {
       console.log(`[RENDER:main] ${msg}`, extra ?? '');
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 };
 

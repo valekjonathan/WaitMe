@@ -86,7 +86,9 @@ export default function IncomingRequestModal() {
     try {
       localStorage.setItem('waitme:thinking_requests', JSON.stringify([]));
       window.dispatchEvent(new Event('waitme:thinkingUpdated'));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
     // Optimistically update the alert in cache so it appears immediately in Activas
     queryClient.setQueryData(['myAlerts'], (old = []) =>
       Array.isArray(old)
@@ -95,7 +97,9 @@ export default function IncomingRequestModal() {
     );
     try {
       window.dispatchEvent(new Event('waitme:badgeRefresh'));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
     handleClose();
     navigate(createPageUrl('History'));
 
@@ -104,7 +108,9 @@ export default function IncomingRequestModal() {
       const current = parseInt(localStorage.getItem('waitme:chat_unread') || '0', 10);
       localStorage.setItem('waitme:chat_unread', String(current + 1));
       window.dispatchEvent(new Event('waitme:chatUnreadUpdate'));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
 
     // Guardar conversación demo en localStorage para que Chats la muestre
     try {
@@ -133,7 +139,9 @@ export default function IncomingRequestModal() {
       existing.unshift(newConv);
       localStorage.setItem(convKey, JSON.stringify(existing));
       window.dispatchEvent(new CustomEvent('waitme:newDemoConversation', { detail: newConv }));
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
 
     try {
       const { error: updateErr } = await alerts.updateAlert(request.alertId, payload);
@@ -149,7 +157,10 @@ export default function IncomingRequestModal() {
             sellerId: currentUser.id,
             alertId: request.alertId,
           })
-          .catch(() => ({}));
+          .catch((error) => {
+            console.error('[WaitMe Error]', error);
+            return {};
+          });
         const conv = convRes?.data;
         if (conv?.id) {
           await chat
@@ -158,10 +169,13 @@ export default function IncomingRequestModal() {
               senderId: buyer.id,
               body: 'ey ! te he enviado un waitme',
             })
-            .catch(() => {});
+            .catch((error) => {
+              console.error('[WaitMe Error]', error);
+            });
         }
       }
-    } catch {
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
       setLoading(false);
     }
   };
@@ -178,7 +192,9 @@ export default function IncomingRequestModal() {
           localStorage.setItem('waitme:thinking_requests', JSON.stringify(thinking));
           window.dispatchEvent(new Event('waitme:thinkingUpdated'));
         }
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     }
     handleClose();
     navigate(createPageUrl('History'));
@@ -199,7 +215,9 @@ export default function IncomingRequestModal() {
         });
         localStorage.setItem('waitme:rejected_requests', JSON.stringify(rejected));
         window.dispatchEvent(new Event('waitme:rejectedUpdated'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     }
     handleClose();
   };

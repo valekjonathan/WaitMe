@@ -26,7 +26,9 @@ export default function WaitMeRequestScheduler() {
             const { data: a } = await alerts.getAlert(publishedAlertId);
             const st = String(a?.status || '').toLowerCase();
             if (st !== 'active' && st !== 'reserved') return; // alert was cancelled/expired
-          } catch {}
+          } catch (error) {
+            console.error('[WaitMe Error]', error);
+          }
         }
 
         firedRef.current = true;
@@ -39,7 +41,9 @@ export default function WaitMeRequestScheduler() {
           if (publishedAlertId) {
             try {
               alertData = (await alerts.getAlert(publishedAlertId)).data;
-            } catch {}
+            } catch (error) {
+              console.error('[WaitMe Error]', error);
+            }
           }
 
           if (!alertData) {
@@ -50,7 +54,7 @@ export default function WaitMeRequestScheduler() {
               price: 3,
               latitude: 43.3629,
               longitude: -5.8488,
-              created_date: new Date().toISOString()
+              created_date: new Date().toISOString(),
             };
           }
 
@@ -71,16 +75,22 @@ export default function WaitMeRequestScheduler() {
               model: buyer.model,
               color: buyer.color,
               plate: buyer.plate,
-              phone: buyer.phone
-            }
+              phone: buyer.phone,
+            },
           };
 
           upsertWaitMeRequest(req);
           addIncomingWaitMeConversation(alertData.id, req.buyer);
 
-          window.dispatchEvent(new CustomEvent('waitme:showIncomingRequestModal', { detail: { request: req, alert: alertData } }));
+          window.dispatchEvent(
+            new CustomEvent('waitme:showIncomingRequestModal', {
+              detail: { request: req, alert: alertData },
+            })
+          );
           window.dispatchEvent(new Event('waitme:showIncomingBanner'));
-        } catch {}
+        } catch (error) {
+          console.error('[WaitMe Error]', error);
+        }
       }, 30_000);
     };
 
