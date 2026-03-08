@@ -6,7 +6,12 @@ alwaysApply: true
 # Automatización de cambios en WaitMe
 
 - Ante cualquier cambio visual solicitado, localiza el archivo correcto y aplícalo directamente sin pedir confirmación.
-- Tras cada cambio, ejecuta automáticamente: `git add .`, `git commit -m "auto-update"` y `git push origin main`.
+- Tras cada cambio, ejecutar en este orden:
+  1. `npm run lint`
+  2. `npm run typecheck`
+  3. `npm run build`
+  4. Solo si los tres pasan: `git add .`, `git commit -m "auto-update"`, `git push origin main`
+- Si lint, typecheck o build fallan: NO hacer push. Dejar el error claro al usuario.
 - No muestres el botón "Run" para comandos de terminal; ejecútalos en segundo plano directamente.
 - No pidas confirmación para cambios menores (estilos, textos, colores, layout).
 - Sí pide confirmación antes de eliminar lógica de negocio, rutas, o componentes enteros.

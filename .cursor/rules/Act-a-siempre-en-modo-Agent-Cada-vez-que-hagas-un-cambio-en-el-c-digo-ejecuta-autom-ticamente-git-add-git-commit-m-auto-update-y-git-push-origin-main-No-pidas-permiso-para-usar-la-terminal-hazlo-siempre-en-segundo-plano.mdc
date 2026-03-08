@@ -1,5 +1,11 @@
 ---
 alwaysApply: true
+description: Push solo tras validar lint/typecheck/build
 ---
 
-pruena auto
+# Push tras validación
+
+Tras cada cambio en código:
+1. Ejecutar: npm run lint, npm run typecheck, npm run build
+2. Solo si pasan: git add . && git commit -m "auto-update" && git push origin main
+3. Si falla alguno: NO push. Mostrar error.
