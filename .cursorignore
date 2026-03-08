@@ -1,0 +1,15 @@
+# Reducir carga de Cursor Helper — exclusiones de análisis pesado
+
+tests/visual
+**/*-snapshots
+**/snapshots
+coverage
+playwright-report
+test-results
+docs/archive
+storybook-static
+quarantine
+docs/archive/quarantine
+node_modules
+dist
+.DS_Store
