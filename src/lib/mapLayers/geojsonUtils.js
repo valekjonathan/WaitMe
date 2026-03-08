@@ -41,6 +41,7 @@ export function alertsToGeoJSON(alerts) {
 /**
  * Actualiza la posición de un feature por id en un FeatureCollection.
  * No muta el original. Para uso con updateCarPosition (realtime).
+ * Optimizado: solo modifica el feature afectado, evita iterar el resto.
  * @param {import('geojson').FeatureCollection} geojson
  * @param {string|number} id - id del feature (properties.id o feature.id)
  * @param {number} lng
@@ -49,15 +50,17 @@ export function alertsToGeoJSON(alerts) {
  */
 export function updateFeaturePositionInGeoJSON(geojson, id, lng, lat) {
   if (!geojson?.features) return geojson;
-  const features = geojson.features.map((f) => {
-    const fid = f?.id ?? f?.properties?.id;
-    if (fid == null || String(fid) !== String(id)) return f;
-    return {
-      ...f,
-      geometry: { type: 'Point', coordinates: [lng, lat] },
-      properties: { ...(f.properties || {}), lat, lng },
-    };
-  });
+  const idx = geojson.features.findIndex(
+    (f) => String(f?.id ?? f?.properties?.id ?? '') === String(id)
+  );
+  if (idx < 0) return geojson;
+  const f = geojson.features[idx];
+  const updated = {
+    ...f,
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+    properties: { ...(f.properties || {}), lat, lng },
+  };
+  const features = [...geojson.features.slice(0, idx), updated, ...geojson.features.slice(idx + 1)];
   return { type: 'FeatureCollection', features };
 }
 

@@ -399,6 +399,16 @@ function MapboxMapInner({
     carsGeoJSONRef.current = updateCarPosition(map, carsGeoJSONRef.current, id, lng, lat);
   }, []);
 
+  const alertsStructureKey = useMemo(() => {
+    if (!alerts || !Array.isArray(alerts)) return 'empty';
+    const ids = alerts
+      .map((a) => String(a?.id ?? a?.user_id ?? ''))
+      .filter(Boolean)
+      .sort()
+      .join(',');
+    return `${alerts.length}:${ids}`;
+  }, [alerts]);
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
     const geojson = alertsToGeoJSON(alerts);
@@ -407,7 +417,14 @@ function MapboxMapInner({
     if (onCarsControllerReady) {
       onCarsControllerReady({ updateCarPosition: updateCarPositionCb });
     }
-  }, [mapReady, error, alerts, stableOnAlertClick, onCarsControllerReady, updateCarPositionCb]);
+  }, [
+    mapReady,
+    error,
+    alertsStructureKey,
+    stableOnAlertClick,
+    onCarsControllerReady,
+    updateCarPositionCb,
+  ]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
