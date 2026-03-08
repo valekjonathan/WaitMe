@@ -23,6 +23,7 @@ const EXCLUDE_DIRS = new Set([
   'storybook-static',
   '.git',
   'quarantine',
+  'docs/archive/quarantine',
   'ios/App/App/public/assets',
 ]);
 

@@ -27,9 +27,6 @@
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"
-      },
-      "runOptions": {
-        "runOn": "folderOpen"
       }
     },
     {

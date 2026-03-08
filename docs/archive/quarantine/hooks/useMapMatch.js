@@ -14,13 +14,16 @@ export function useMapMatch(enabled = true) {
   const bufferRef = useRef([]);
   const lastMatchRef = useRef(0);
 
-  const addPoint = useCallback((lat, lng, accuracy) => {
-    if (!enabled) return;
-    const point = { lat, lng, timestamp: Math.floor(Date.now() / 1000), accuracy };
-    bufferRef.current = [...bufferRef.current, point].slice(-20);
-    const cutoff = Date.now() - BUFFER_MS;
-    bufferRef.current = bufferRef.current.filter((p) => p.timestamp * 1000 > cutoff);
-  }, [enabled]);
+  const addPoint = useCallback(
+    (lat, lng, accuracy) => {
+      if (!enabled) return;
+      const point = { lat, lng, timestamp: Math.floor(Date.now() / 1000), accuracy };
+      bufferRef.current = [...bufferRef.current, point].slice(-20);
+      const cutoff = Date.now() - BUFFER_MS;
+      bufferRef.current = bufferRef.current.filter((p) => p.timestamp * 1000 > cutoff);
+    },
+    [enabled]
+  );
 
   useEffect(() => {
     if (!enabled) return;
@@ -45,7 +48,12 @@ export function useMapMatch(enabled = true) {
         if (geom?.coordinates?.length) {
           const last = geom.coordinates[geom.coordinates.length - 1];
           const conf = data?.confidence ?? 0;
-          setCorrected({ lng: last[0], lat: last[1], confidence: conf, accuracy: conf > 0.8 ? 5 : 15 });
+          setCorrected({
+            lng: last[0],
+            lat: last[1],
+            confidence: conf,
+            accuracy: conf > 0.8 ? 5 : 15,
+          });
         }
       } catch (err) {
         console.warn('[map-match] fallback to raw GPS', err);

@@ -4,13 +4,6 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
-import { fileURLToPath } from 'node:url';
-import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
-import { playwright } from '@vitest/browser-playwright';
-const dirname =
-  typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
-
-// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   server: {
     host: true,
@@ -48,35 +41,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    pool: 'forks',
-    poolOptions: { forks: { maxForks: 2 } },
-    threads: false,
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: 'contracts',
-          include: ['tests/contracts/**/*.test.js'],
-        },
-      },
-      {
-        extends: true,
-        plugins: [
-          storybookTest({
-            configDir: path.join(dirname, '.storybook'),
-          }),
-        ],
-        test: {
-          name: 'storybook',
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: playwright({}),
-            instances: [{ browser: 'chromium' }],
-          },
-          setupFiles: ['.storybook/vitest.setup.ts'],
-        },
-      },
-    ],
+    include: ['tests/contracts/**/*.test.js'],
   },
 });

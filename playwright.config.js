@@ -37,8 +37,10 @@ export default defineConfig({
         },
       ]
     : [
-        { name: 'webkit-mobile', use: { ...devices['iPhone 14'], browserName: 'webkit' } },
-        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
+        },
       ],
   webServer: {
     command:

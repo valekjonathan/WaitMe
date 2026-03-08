@@ -2,6 +2,6 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "entry": ["src/main.jsx", "src/**/*.stories.{js,jsx}", "tests/**/*.spec.js"],
   "project": ["src/**/*.{js,jsx,ts,tsx}", "tests/**/*.{js,ts}"],
-  "ignore": ["**/node_modules/**", "**/dist/**", "**/storybook-static/**", "**/ios/**"],
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/storybook-static/**", "**/ios/**", "**/docs/archive/quarantine/**"],
   "ignoreDependencies": ["@chromatic-com/storybook", "prop-types"]
 }

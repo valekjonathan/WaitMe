@@ -1,4 +1,4 @@
-export function createCarMarkerHtml(color = "#9CA3AF") {
+export function createCarMarkerHtml(color = '#9CA3AF') {
   return `
     <div style="
       width:14px;

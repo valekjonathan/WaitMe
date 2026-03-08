@@ -28,9 +28,7 @@ export default class ErrorBoundary extends React.Component {
         <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-center">
           <p className="text-purple-400 text-5xl mb-4">⚠️</p>
           <h1 className="text-white text-xl font-bold mb-2">Algo salió mal</h1>
-          <p className="text-gray-400 text-sm mb-6">
-            La aplicación encontró un error inesperado.
-          </p>
+          <p className="text-gray-400 text-sm mb-6">La aplicación encontró un error inesperado.</p>
           <button
             onClick={this.handleReset}
             className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-xl transition-colors"

@@ -13,12 +13,10 @@ export const useAppStore = create((set) => ({
 
   setUser: (user) => set((s) => ({ auth: { ...s.auth, user } })),
   setProfile: (profile) => set({ profile }),
-  setLocation: (lat, lng, accuracy) =>
-    set({ location: { lat, lng, accuracy } }),
+  setLocation: (lat, lng, accuracy) => set({ location: { lat, lng, accuracy } }),
   setAlerts: (items) =>
     set((s) => ({ alerts: { ...s.alerts, items: items ?? [], loading: false } })),
-  setAlertsLoading: (loading) =>
-    set((s) => ({ alerts: { ...s.alerts, loading } })),
+  setAlertsLoading: (loading) => set((s) => ({ alerts: { ...s.alerts, loading } })),
   upsertAlert: (alert) =>
     set((s) => {
       const items = [...s.alerts.items];

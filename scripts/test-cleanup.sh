@@ -8,14 +8,18 @@ echo "[test-cleanup] Cerrando procesos de tests..."
 
 # chrome-headless-shell (Playwright Chromium)
 pkill -f "chrome-headless-shell" 2>/dev/null || true
+pkill -f "Chromium.*headless" 2>/dev/null || true
 
 # Playwright
 pkill -f "playwright" 2>/dev/null || true
+pkill -f "@playwright/test" 2>/dev/null || true
 
 # Vitest
 pkill -f "vitest" 2>/dev/null || true
 
-# Node con playwright en la línea de comando
+# Node con playwright/vitest en la línea de comando
 pkill -f "node.*@playwright/test" 2>/dev/null || true
+pkill -f "node.*playwright test" 2>/dev/null || true
+pkill -f "node.*vitest" 2>/dev/null || true
 
 echo "[test-cleanup] Listo."

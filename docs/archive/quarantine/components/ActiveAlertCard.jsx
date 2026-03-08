@@ -8,17 +8,20 @@ import { useMyAlerts } from '@/hooks/useMyAlerts';
 function ActiveAlertCard({ onRefresh }) {
   const queryClient = useQueryClient();
   const { data: myAlerts = [] } = useMyAlerts();
-  const myActiveAlerts = myAlerts.filter(a => a.status === 'active');
+  const myActiveAlerts = myAlerts.filter((a) => a.status === 'active');
 
-  const handleCancel = useCallback(async (alertId) => {
-    try {
-      await alerts.updateAlert(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
-      queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
-      if (onRefresh) onRefresh();
-    } catch (e) {
-      console.error('Error cancelando alerta:', e);
-    }
-  }, [queryClient, onRefresh]);
+  const handleCancel = useCallback(
+    async (alertId) => {
+      try {
+        await alerts.updateAlert(alertId, { status: 'cancelled', cancel_reason: 'user_cancelled' });
+        queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
+        if (onRefresh) onRefresh();
+      } catch (e) {
+        console.error('Error cancelando alerta:', e);
+      }
+    },
+    [queryClient, onRefresh]
+  );
 
   if (myActiveAlerts.length === 0) return null;
 
@@ -26,16 +29,13 @@ function ActiveAlertCard({ onRefresh }) {
     <div className="space-y-2">
       <p className="text-sm text-gray-300 font-semibold">Tus alertas activas:</p>
       {myActiveAlerts.map((alert) => (
-        <div
-          key={alert.id}
-          className="bg-green-500/10 border border-green-500/30 rounded-xl p-3"
-        >
+        <div key={alert.id} className="bg-green-500/10 border border-green-500/30 rounded-xl p-3">
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-2 py-0.5 flex items-center gap-1">
                   <span className="text-green-400 font-bold text-sm flex items-center gap-0.5">
-                    {(alert.price ?? 0)}€ <span className="text-[10px]">↑</span>
+                    {alert.price ?? 0}€ <span className="text-[10px]">↑</span>
                   </span>
                 </div>
                 <span className="text-xs text-gray-400">·</span>
@@ -51,7 +51,10 @@ function ActiveAlertCard({ onRefresh }) {
                 size="icon"
                 onClick={() => {
                   if (alert.latitude && alert.longitude) {
-                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`, '_blank');
+                    window.open(
+                      `https://www.google.com/maps/dir/?api=1&destination=${alert.latitude},${alert.longitude}`,
+                      '_blank'
+                    );
                   }
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-8 px-2 flex items-center justify-center gap-1"
