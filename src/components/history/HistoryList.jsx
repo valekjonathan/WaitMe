@@ -12,7 +12,7 @@ export default function HistoryList({ sellerContext, buyerContext }) {
 
       <HistorySellerView sellerContext={sellerContext} />
 
-      <HistoryBuyerView {...buyerContext} />
+      <HistoryBuyerView buyerContext={buyerContext} />
     </>
   );
 }
