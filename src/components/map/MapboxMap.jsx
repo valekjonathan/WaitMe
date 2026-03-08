@@ -149,17 +149,26 @@ function MapboxMapInner({
     return () => window.removeEventListener('waitme:goLogo', handler);
   }, [flyToUser]);
 
-  // Ubícate: evento para recentrar desde CreateAlertCard sin pasar refs por Home
+  // Ubícate: controlador imperativo global — CreateAlertCard llama window.waitmeMap.flyToUser(lng, lat)
   useEffect(() => {
-    const handler = (e) => {
-      const { lat, lng, zoom } = e?.detail ?? {};
-      if (lat != null && lng != null) {
-        flyToUser({ lat, lng }, { zoom: zoom ?? 17 });
-      }
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    window.waitmeMap = {
+      flyToUser: (lng, lat) => {
+        if (lng == null || lat == null) return;
+        const padding = getMapPadding();
+        map.flyTo({
+          center: [lng, lat],
+          zoom: 17,
+          duration: 800,
+          ...(padding && { padding }),
+        });
+      },
     };
-    window.addEventListener('waitme:flyToUser', handler);
-    return () => window.removeEventListener('waitme:flyToUser', handler);
-  }, [flyToUser]);
+    return () => {
+      window.waitmeMap = null;
+    };
+  }, [mapReady, getMapPadding]);
 
   useEffect(() => {
     if (suppressInternalWatcher) return;
@@ -263,7 +272,6 @@ function MapboxMapInner({
           setupMapStyleOnLoad(map);
           map.resize();
           setMapReady(true);
-          if (typeof window !== 'undefined') window.__WAITME_MAP__ = map;
 
           const resizeDelayed = () => {
             if (mapRef.current) mapRef.current.resize();
@@ -315,7 +323,7 @@ function MapboxMapInner({
       }
       mapRef.current = null;
       mapboxglRef.current = null;
-      if (typeof window !== 'undefined') window.__WAITME_MAP__ = null;
+      if (typeof window !== 'undefined') window.waitmeMap = null;
       setMapReady(false);
     };
   }, []);

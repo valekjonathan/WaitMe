@@ -31,8 +31,8 @@ export default function CreateAlertCard({
     const lng = loc?.lng;
     if (lat == null || lng == null) return;
     onRecenter?.({ lat, lng });
-    // Disparar evento: MapboxMap lo escucha y ejecuta flyToUser (usa mapRef interno)
-    window.dispatchEvent(new CustomEvent('waitme:flyToUser', { detail: { lat, lng, zoom: 17 } }));
+    // Controlador imperativo: conexión directa con el mapa real
+    window.waitmeMap?.flyToUser?.(lng, lat);
   };
 
   return (
