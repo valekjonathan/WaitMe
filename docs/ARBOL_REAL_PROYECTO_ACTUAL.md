@@ -1,261 +1,40 @@
 # Árbol real del proyecto WaitMe — Snapshot actual
 
-**Fecha:** 2026-03-07  
-**ZIP:** `tmp/waitme-auditoria-maestra.zip`
+**Fecha:** 2026-03-08  
+**ZIP:** `tmp/waitme-auditoria-maestra-actual.zip`
 
 ---
 
-## Árbol de carpetas (src, docs, quarantine)
+## Estructura principal
 
 ```
 WaitMenuevo/
-├── src/
-│   ├── App.jsx
-│   ├── Layout.jsx
-│   ├── main.jsx
-│   ├── index.css
-│   ├── globals.css
-│   ├── types/
-│   │   └── global.d.ts
-│   ├── config/
-│   │   └── alerts.js
-│   ├── core/
-│   │   └── ErrorBoundary.jsx
-│   ├── diagnostics/
-│   │   ├── SafeModeShell.jsx
-│   │   └── MissingEnvScreen.jsx
-│   ├── dev/
-│   │   ├── diagnostics.js
-│   │   └── layoutInspector.js
-│   ├── lib/
-│   │   ├── AuthContext.jsx
-│   │   ├── LayoutContext.jsx
-│   │   ├── supabaseClient.js
-│   │   ├── alertsQueryKey.js
-│   │   ├── alertSelectors.js
-│   │   ├── finalizedAtStore.js
-│   │   ├── geohash.js
-│   │   ├── mapLayoutPadding.js
-│   │   ├── mockNavigateCars.js
-│   │   ├── mockNearby.js
-│   │   ├── mockOviedoAlerts.js
-│   │   ├── profile.ts
-│   │   ├── sentry.js
-│   │   ├── transactionEngine.js
-│   │   ├── utils.js
-│   │   ├── vehicleIcons.js
-│   │   ├── waitmeRequests.js
-│   │   ├── location/
-│   │   │   ├── distanceEngine.js
-│   │   │   ├── etaEngine.js
-│   │   │   ├── getPreciseInitialLocation.js
-│   │   │   ├── locationEngine.js
-│   │   │   ├── locationFraudDetector.js
-│   │   │   ├── locationFraudLogs.js
-│   │   │   ├── locationMovementValidator.js
-│   │   │   ├── locationSmoothing.js
-│   │   │   ├── proximityEngine.js
-│   │   │   ├── toLatLngArray.js
-│   │   │   └── index.js
-│   │   ├── mapLayers/
-│   │   │   ├── geojsonUtils.js
-│   │   │   └── index.js
-│   │   ├── locationPipeline/
-│   │   │   ├── index.js
-│   │   │   ├── locationDiagnosticsLogger.js
-│   │   │   ├── locationFraudDetector.js
-│   │   │   ├── locationKalmanFilter.js
-│   │   │   ├── locationMapMatcher.js
-│   │   │   ├── locationMovementValidator.js
-│   │   │   ├── locationPipeline.js
-│   │   │   ├── locationPrediction.js
-│   │   │   └── locationSmoothingAdvanced.js
-│   │   ├── stripe/
-│   │   │   ├── README.md
-│   │   │   └── stripeService.js
-│   │   └── transaction/
-│   │       ├── index.js
-│   │       ├── transactionEngine.js
-│   │       ├── transactionLogger.js
-│   │       └── transactionStates.js
-│   ├── data/
-│   │   ├── alerts.js
-│   │   ├── chat.js
-│   │   ├── notifications.js
-│   │   ├── profiles.js
-│   │   ├── transactions.js
-│   │   ├── uploads.js
-│   │   └── userLocations.js
-│   ├── services/
-│   │   ├── alertsSupabase.js
-│   │   ├── chatSupabase.js
-│   │   ├── notificationsSupabase.js
-│   │   ├── profilesSupabase.js
-│   │   ├── transactionsSupabase.js
-│   │   ├── uploadsSupabase.js
-│   │   └── userLocationsSupabase.js
-│   ├── hooks/
-│   │   ├── useArrivingAnimation.js
-│   │   ├── useLocationEngine.js
-│   │   ├── useMyAlerts.js
-│   │   ├── useProfileGuard.ts
-│   │   └── useTransactionMonitoring.js
-│   ├── components/
-│   │   ├── AddressAutocompleteInput.jsx
-│   │   ├── BottomNav.jsx
-│   │   ├── CenterPin.jsx
-│   │   ├── CreateMapOverlay.jsx
-│   │   ├── CreateMapOverlay.stories.jsx
-│   │   ├── DemoFlowManager.jsx
-│   │   ├── Header.jsx
-│   │   ├── IncomingRequestModal.jsx
-│   │   ├── LocationEngineStarter.jsx
-│   │   ├── Logo.jsx
-│   │   ├── MapboxMap.jsx
-│   │   ├── MapZoomControls.jsx
-│   │   ├── MapZoomControls.stories.jsx
-│   │   ├── SearchMapOverlay.jsx
-│   │   ├── SellerLocationTracker.jsx
-│   │   ├── StreetSearch.jsx
-│   │   ├── WaitMeRequestScheduler.jsx
-│   │   ├── cards/
-│   │   │   ├── CreateAlertCard.jsx
-│   │   │   ├── CreateAlertCard.stories.jsx
-│   │   │   ├── MarcoCard.jsx
-│   │   │   └── UserAlertCard.jsx
-│   │   ├── map/
-│   │   │   ├── MapFilters.jsx
-│   │   │   └── ParkingMap.jsx
-│   │   └── ui/
-│   │       ├── badge.jsx
-│   │       ├── button.jsx
-│   │       ├── dialog.jsx
-│   │       ├── input.jsx
-│   │       ├── label.jsx
-│   │       ├── select.jsx
-│   │       ├── slider.jsx
-│   │       ├── switch.jsx
-│   │       ├── tabs.jsx
-│   │       └── use-toast.jsx
-│   ├── system/
-│   │   ├── layout/
-│   │   │   ├── AppDeviceFrame.jsx
-│   │   │   ├── BottomNavLayer.jsx
-│   │   │   ├── MapLayer.jsx
-│   │   │   ├── OverlayLayer.jsx
-│   │   │   └── index.js
-│   │   └── map/
-│   │       ├── MapScreenPanel.jsx
-│   │       ├── MapViewportShell.jsx
-│   │       └── index.js
-│   ├── pages/
-│   │   ├── Chat.jsx
-│   │   ├── Chats.jsx
-│   │   ├── DevDiagnostics.jsx
-│   │   ├── History.jsx
-│   │   ├── HistoryBuyerView.jsx
-│   │   ├── HistorySellerView.jsx
-│   │   ├── Home.jsx
-│   │   ├── Login.jsx
-│   │   ├── Navigate.jsx
-│   │   ├── NotificationSettings.jsx
-│   │   ├── Notifications.jsx
-│   │   ├── Profile.jsx
-│   │   └── Settings.jsx
-│   ├── assets/
-│   │   ├── d2ae993d3_WaitMe.png
-│   │   └── react.svg
-│   ├── stories/
-│   │   ├── Button.jsx
-│   │   ├── Button.stories.js
-│   │   ├── Header.jsx
-│   │   ├── Header.stories.js
-│   │   ├── Page.jsx
-│   │   └── Page.stories.js
-│   ├── utils/
-│   │   ├── carUtils.js
-│   │   └── index.ts
-│   └── styles/
-│       └── no-zoom.css
-├── docs/
-│   └── (60+ archivos .md)
-├── tests/
-│   ├── contracts/
-│   ├── layout/
-│   ├── smoke/
-│   └── visual/
-├── scripts/
-├── quarantine/
-│   ├── README.md
-│   ├── realtime/
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
-│   ├── services/
-│   └── github-workflows/
-├── supabase/
-│   └── functions/
-│       ├── map-match/
-│       └── release-payment/
-├── tmp/
-│   └── waitme-auditoria-maestra.zip
-└── (config: package.json, vite.config, etc.)
+├── src/              # Código fuente
+├── tests/            # Playwright + Vitest
+├── scripts/          # Scripts útiles
+├── docs/             # Documentación
+├── public/           # Assets públicos
+├── supabase/         # Migraciones y config
+├── ios/              # Proyecto iOS Capacitor
+├── .github/          # CI/CD
+├── .storybook/       # Config Storybook
+├── .maestro/         # Flujos Maestro (OAuth)
+├── .husky/           # Git hooks
+├── quarantine/       # Archivos movidos (referencia)
+├── tmp/              # Temporales (ZIP auditoría)
+├── package.json
+├── vite.config.js
+├── playwright.config.js
+├── capacitor.config.ts
+└── ...
 ```
 
----
+## Excluidos del ZIP
 
-## Pantallas principales
-
-| Pantalla | Archivo | Ruta |
-|----------|---------|------|
-| Home | Home.jsx | /, /home |
-| History | History.jsx | /history, /alertas |
-| Chats | Chats.jsx | /chats |
-| Chat | Chat.jsx | /chat, /chat/:id |
-| Notifications | Notifications.jsx | /notifications |
-| Profile | Profile.jsx | /profile |
-| Settings | Settings.jsx | /settings |
-| Navigate | Navigate.jsx | /navigate |
-| Login | Login.jsx | (auth flow) |
-
----
-
-## Componentes de mapa
-
-| Componente | Función |
-|------------|---------|
-| MapboxMap | Mapa Mapbox GL JS (solo Home) |
-| ParkingMap | Mapas en modos search/create y Navigate |
-| MapViewportShell | Viewport del mapa |
-| MapLayer | Capa absoluta del mapa |
-| OverlayLayer | Capa de overlays |
-| CreateMapOverlay | Overlay "Estoy aparcado aquí" |
-| SearchMapOverlay | Overlay "¿Dónde quieres aparcar?" |
-| MapScreenPanel | Tarjeta flotante |
-| CenterPin | Pin centrado (palito + bolita) |
-| MapZoomControls | Botones +/- |
-
----
-
-## Hooks
-
-| Hook | Uso |
-|------|-----|
-| useProfileGuard | Guard de perfil |
-| useMyAlerts | Alertas del usuario |
-| useLocationEngine | Ubicación del motor (Home, Navigate) |
-| useArrivingAnimation | Animación de llegada |
-| useTransactionMonitoring | Monitoreo de proximidad para pago |
-
----
-
-## Motor de ubicación
-
-| Módulo | Función |
-|--------|---------|
-| locationEngine | watchPosition, pipeline, subscribeToLocation |
-| getPreciseInitialLocation | getCurrentPosition alta precisión, 3 reintentos |
-| locationPipeline | fraud → movement → kalman → smoothing → map matching |
-| locationMapMatcher | snapToRoad (identity o Mapbox API) |
-| locationFraudDetector | Antifraude |
-| locationMovementValidator | Validación de movimiento |
+- node_modules
+- dist
+- storybook-static
+- coverage
+- playwright-report
+- test-results
+- .git

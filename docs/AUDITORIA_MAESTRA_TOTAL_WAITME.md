@@ -1,7 +1,7 @@
 # Auditoría Maestra Total — WaitMe
 
-**Fecha:** 2026-03-07  
-**ZIP:** `tmp/waitme-auditoria-maestra.zip`
+**Fecha:** 2026-03-08  
+**ZIP:** `tmp/waitme-auditoria-maestra-actual.zip`
 
 ---
 
@@ -12,11 +12,12 @@
 | Lint | OK |
 | Typecheck | OK |
 | Build | OK |
-| Tests | 24 passed, 13 skipped |
-| CI | Verde (run #197 success) |
+| Tests | 83+ passed, 8 skipped |
+| CI | Verde |
 | Boot | MissingEnvScreen cuando env inválidas; ErrorBoundary en DEV |
 | Ubicación | Motor único, getPreciseInitialLocation, MapboxMap sin watcher si locationFromEngine |
-| Mapa | GeoJSON layers activas (StaticCarsLayer, UserLocationLayer) |
+| Mapa | GeoJSON layers (StaticCarsLayer, UserLocationLayer, WaitMeCarLayer) + interpolación |
+| OAuth iOS | com.waitme.app://auth/callback, PKCE, Safari → Supabase (no localhost) |
 
 ---
 
@@ -95,15 +96,35 @@
 
 ## 9. Mapa tipo Uber
 
-- **StaticCarsLayer:** addStaticCarsLayer en MapboxMap (líneas 416-422)
-- **UserLocationLayer:** addUserLocationLayer (líneas 424-434, cuando !useCenterPin)
-- **DOM markers:** Eliminados; markersRef vacío
-- **Click:** onAlertClick en layers.js
-- **WaitMeCarLayer:** No implementada; opcional
+- **StaticCarsLayer:** GeoJSON + CircleLayer, setData
+- **UserLocationLayer:** GeoJSON + CircleLayer
+- **WaitMeCarLayer:** GeoJSON + CircleLayer, useVehicleInterpolation
+- **DOM markers:** Eliminados
+- **Interpolación:** useVehicleInterpolation (RAF + lerp) para coche comprador
 
 ---
 
-## 10. CI / Vercel / Supabase
+## 10. Mapbox / Estilo Google Maps noche (FASE 8)
+
+**¿Se puede aproximar visualmente al modo noche de Google Maps?**
+
+Sí, con Mapbox se puede acercar bastante:
+
+| Aspecto | Replicable | Enfoque |
+|---------|------------|---------|
+| Fondo oscuro | Sí | `mapbox://styles/mapbox/dark-v11` (ya usado) |
+| Carreteras sutiles | Sí | Ajustar `line-opacity`, `line-color` en capas |
+| Labels legibles | Sí | `text-color`, `text-halo-color` en SymbolLayer |
+| POIs reducidos | Sí | Filtrar por `minzoom` o capas custom |
+| Contraste tipo Maps | Parcial | Mapbox dark-v11 es cercano; fine-tuning con `paint` |
+
+**Qué NO conviene copiar exacto:** iconografía propietaria de Google, tipografías, proporciones exactas (riesgo legal).
+
+**Enfoque profesional:** Usar `dark-v11` como base, ajustar `paint` de capas (line, fill, symbol) para reducir ruido visual y aumentar contraste de rutas. Opcional: estilo custom con Mapbox Studio.
+
+---
+
+## 11. CI / Vercel / Supabase
 
 - **CI:** ubuntu-22.04, Chromium, verde (run #197)
 - **Supabase migrations:** Repo NO ejecuta; emails de integración externa Dashboard
@@ -111,7 +132,7 @@
 
 ---
 
-## 11. Reglas fijas verificadas
+## 12. Reglas fijas verificadas
 
 - Coches NO se mueven (mockNavigateCars estáticos)
 - Solo coche dinámico con WAITME_ACTIVE en "Estoy aparcado aquí"
