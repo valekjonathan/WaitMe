@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 import { getPreciseInitialLocation, toLatLngArray } from '@/lib/location';
@@ -15,9 +15,11 @@ import { attachMoveListeners } from './MapEvents.js';
 import { clearMarkers } from './MapMarkers.js';
 import { setInteractive, setMapPadding, applyRoadStyleForCreate } from './MapControls.js';
 
-export default function MapboxMap({
+const EMPTY_ALERTS = [];
+
+function MapboxMapInner({
   className = '',
-  alerts = [],
+  alerts = EMPTY_ALERTS,
   onAlertClick,
   onMapLoad,
   onRecenterRef,
@@ -49,6 +51,11 @@ export default function MapboxMap({
   const watchIdRef = useRef(null);
   const gpsTimeoutRef = useRef(null);
   const hasFlownToUserRef = useRef(false);
+  const onMapLoadRef = useRef(onMapLoad);
+  const onAlertClickRef = useRef(onAlertClick);
+
+  onMapLoadRef.current = onMapLoad;
+  onAlertClickRef.current = onAlertClick;
 
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
@@ -62,6 +69,8 @@ export default function MapboxMap({
   const [hasShownInitial, setHasShownInitial] = useState(false);
   const engineArr = toLatLngArray(locationFromEngine);
   const engineCenter = engineArr ? [engineArr[1], engineArr[0]] : null;
+  const engineLat = engineArr?.[0];
+  const engineLng = engineArr?.[1];
   const initialCenter =
     initialLocation?.lat != null && initialLocation?.lng != null
       ? [initialLocation.lng, initialLocation.lat]
@@ -76,11 +85,15 @@ export default function MapboxMap({
     return getMapLayoutPadding();
   }, [centerPaddingBottom]);
 
-  const fallbackCoords = engineArr
-    ? { lat: engineArr[0], lng: engineArr[1] }
-    : location.lat != null && location.lng != null
-      ? { lat: location.lat, lng: location.lng }
-      : null;
+  const fallbackCoords = useMemo(
+    () =>
+      engineArr
+        ? { lat: engineArr[0], lng: engineArr[1] }
+        : location.lat != null && location.lng != null
+          ? { lat: location.lat, lng: location.lng }
+          : null,
+    [engineLat, engineLng, location.lat, location.lng]
+  );
 
   const flyToUser = useCallback(
     (coords) => {
@@ -111,7 +124,7 @@ export default function MapboxMap({
         map.flyTo(opts);
       }
     },
-    [location.lat, location.lng, locationFromEngine, getMapPadding]
+    [fallbackCoords?.lat, fallbackCoords?.lng, getMapPadding]
   );
 
   useEffect(() => {
@@ -213,7 +226,7 @@ export default function MapboxMap({
         map.on('load', () => {
           if (cancelled) return;
           if (mapRef) mapRef.current = map;
-          if (onMapLoad) onMapLoad(map);
+          onMapLoadRef.current?.(map);
           if (import.meta.env.DEV) {
             try {
               window.__DEV_DIAG = {
@@ -352,7 +365,8 @@ export default function MapboxMap({
     }
   }, [
     mapReady,
-    effectiveCenter,
+    effectiveCenter[0],
+    effectiveCenter[1],
     initialCenter,
     hasShownInitial,
     location.accuracy,
@@ -362,17 +376,19 @@ export default function MapboxMap({
     centerPaddingBottom,
   ]);
 
-  const userCoordsForMarker =
-    suppressInternalWatcher && engineArr
-      ? { lat: engineArr[0], lng: engineArr[1] }
-      : location.lat != null && location.lng != null
-        ? { lat: location.lat, lng: location.lng }
-        : null;
+  const userCoordsForMarker = useMemo(() => {
+    if (suppressInternalWatcher && engineArr) return { lat: engineArr[0], lng: engineArr[1] };
+    if (location.lat != null && location.lng != null)
+      return { lat: location.lat, lng: location.lng };
+    return null;
+  }, [suppressInternalWatcher, engineLat, engineLng, location.lat, location.lng]);
+
+  const stableOnAlertClick = useCallback((alert) => onAlertClickRef.current?.(alert), []);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    applyStaticCarsLayer(mapRef.current, alerts, onAlertClick);
-  }, [mapReady, error, alerts, onAlertClick]);
+    applyStaticCarsLayer(mapRef.current, alerts, stableOnAlertClick);
+  }, [mapReady, error, alerts, stableOnAlertClick]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
@@ -419,6 +435,19 @@ export default function MapboxMap({
     });
   }, [mapReady, error, useCenterPin]);
 
+  const containerStyle = useMemo(
+    () => ({
+      position: 'absolute',
+      inset: 0,
+      width: '100%',
+      height: '100%',
+      minHeight: '100dvh',
+      minWidth: '100%',
+      touchAction: interactive ? 'pan-x pan-y' : 'none',
+    }),
+    [interactive]
+  );
+
   if (error) {
     return (
       <div
@@ -438,16 +467,6 @@ export default function MapboxMap({
     );
   }
 
-  const containerStyle = {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    minHeight: '100dvh',
-    minWidth: '100%',
-    touchAction: interactive ? 'pan-x pan-y' : 'none',
-  };
-
   const { style: restStyle, ...restProps } = rest;
   return (
     <div
@@ -461,3 +480,5 @@ export default function MapboxMap({
     </div>
   );
 }
+
+export default memo(MapboxMapInner);
