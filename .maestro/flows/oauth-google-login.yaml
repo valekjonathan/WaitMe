@@ -1,0 +1,14 @@
+# Flujo OAuth Google - WaitMe iOS Simulator
+# Ejecutar: maestro test .maestro/flows/oauth-google-login.yaml
+# Requiere: completar login en Safari y pulsar Abrir cuando aparezca el modal
+appId: com.waitme.app
+
+---
+- launchApp
+- assertVisible:
+    text: "Continuar con Google"
+- tapOn: "Continuar con Google"
+- extendedWaitUntil:
+    visible:
+      text: "¿Dónde quieres aparcar?"
+    timeout: 120000

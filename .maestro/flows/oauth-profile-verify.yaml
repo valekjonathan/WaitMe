@@ -1,0 +1,13 @@
+# Verifica perfil tras login - ejecutar DESPUÉS de completar login
+# maestro test .maestro/flows/oauth-profile-verify.yaml
+appId: com.waitme.app
+
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      text: "¿Dónde quieres aparcar?"
+    timeout: 5000
+- tapOn:
+    text: "Perfil"
+    optional: true
