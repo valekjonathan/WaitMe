@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import * as alerts from '@/data/alerts';
+import { useMemo } from 'react';
 import { useAuth } from '@/lib/AuthContext';
-import { setCarsMovementMode, CARS_MOVEMENT_MODE } from '@/stores/carsMovementStore';
 import { toMs, getActiveSellerAlerts } from '@/lib/alertSelectors';
 import { stampFinalizedAt } from '@/lib/finalizedAtStore';
 import { getCarFill, getCarFillThinking, formatPlate } from '@/utils/carUtils';
@@ -19,7 +17,8 @@ import {
   MarcoContent,
   CountdownButton,
 } from '@/components/history/HistoryItem';
-import ReservedByContent from '@/components/history/ReservedByContent';
+import { badgePhotoWidth, labelNoClick } from '@/hooks/history/buildHistoryContexts';
+import { useHistoryContexts } from '@/hooks/history/useHistoryContexts';
 import { useHistoryTransforms } from '@/hooks/history/useHistoryTransforms';
 import { useHistoryQueries } from '@/hooks/history/useHistoryQueries';
 import { useHistoryFilters } from '@/hooks/history/useHistoryFilters';
@@ -28,15 +27,13 @@ import { useHistoryActions } from '@/hooks/history/useHistoryActions';
 import { useHistoryLocalSync } from '@/hooks/history/useHistoryLocalSync';
 import { useHistoryDerived } from '@/hooks/history/useHistoryDerived';
 import { useHistoryAutoExpire } from '@/hooks/history/useHistoryAutoExpire';
-
-const labelNoClick = 'cursor-default select-none pointer-events-none';
-const noScrollBar =
-  '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
-const badgePhotoWidth = 'w-[95px] h-7 flex items-center justify-center text-center';
+import { useHistoryClock } from '@/hooks/history/useHistoryClock';
+import { useCarsMovementSync } from '@/hooks/history/useCarsMovementSync';
+import { useExpiredReservationModal } from '@/hooks/history/useExpiredReservationModal';
 
 export function useHistoryData() {
   const { user } = useAuth();
-  const [nowTs, setNowTs] = useState(Date.now());
+  const nowTs = useHistoryClock();
 
   const {
     formatCardDate,
@@ -107,54 +104,22 @@ export function useHistoryData() {
     setExpirePromptOpen,
   });
 
-  useEffect(() => {
-    const id = setInterval(() => setNowTs(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  useCarsMovementSync(myActiveAlerts);
+  useExpiredReservationModal({
+    nowTs,
+    visibleActiveAlerts,
+    expiredAlertExtend,
+    setExpiredAlertExtend,
+    setExpiredAlertModalId,
+    getWaitUntilTs,
+  });
 
-  const hasReservedAlerts = myActiveAlerts.filter((a) => a.status === 'reserved').length > 0;
-  useEffect(() => {
-    setCarsMovementMode(
-      hasReservedAlerts ? CARS_MOVEMENT_MODE.WAITME_ACTIVE : CARS_MOVEMENT_MODE.STATIC
-    );
-    return () => setCarsMovementMode(CARS_MOVEMENT_MODE.STATIC);
-  }, [hasReservedAlerts]);
-
-  useEffect(() => {
-    if (!visibleActiveAlerts) return;
-    visibleActiveAlerts.forEach((alert) => {
-      if (alert.status !== 'reserved') return;
-      const waitUntilTs = getWaitUntilTs(alert);
-      if (!waitUntilTs) return;
-      const rem = Math.max(0, waitUntilTs - nowTs);
-      if (rem === 0 && !expiredAlertExtend[alert.id]) {
-        setExpiredAlertExtend((prev) => ({ ...prev, [alert.id]: true }));
-        setExpiredAlertModalId(alert.id);
-      }
-    });
-  }, [nowTs, visibleActiveAlerts, expiredAlertExtend]);
-
-  const ReservedByContentWrapper = (props) => (
-    <ReservedByContent
-      {...props}
-      expiredAlertExtend={expiredAlertExtend}
-      setExpiredAlertExtend={setExpiredAlertExtend}
-      setExpiredAlertModalId={setExpiredAlertModalId}
-      avatarFor={avatarFor}
-      queryClient={queryClient}
-      stampFinalizedAt={stampFinalizedAt}
-    />
-  );
-
-  const sellerContext = {
+  const { sellerContext, buyerContext } = useHistoryContexts({
     finalItems,
-    noScrollBar,
-    SectionTag,
     thinkingRequests,
     setThinkingRequests,
     visibleActiveAlerts,
     nowTs,
-    formatRemaining,
     getCreatedTs,
     getWaitUntilTs,
     hiddenKeys,
@@ -162,20 +127,11 @@ export function useHistoryData() {
     formatCardDate,
     formatPriceInt,
     formatAddress,
-    getCarFill,
-    getCarFillThinking,
-    CarIconProfile,
-    PlateProfile,
-    badgePhotoWidth,
-    labelNoClick,
+    statusLabelFrom,
+    reservationMoneyModeFromStatus,
+    avatarFor,
     cancelAlertMutation,
     queryClient,
-    ReservedByContent: ReservedByContentWrapper,
-    CardHeaderRow,
-    MoneyChip,
-    CountdownButton,
-    statusLabelFrom,
-    MarcoContent,
     deleteAlertSafe,
     user,
     setCancelReservedAlert,
@@ -183,39 +139,10 @@ export function useHistoryData() {
     expiredAlertExtend,
     setExpiredAlertExtend,
     setExpiredAlertModalId,
-    toMs,
-    avatarFor,
-    formatPlate,
-    reservationMoneyModeFromStatus,
-  };
-
-  const buyerContext = {
-    noScrollBar,
-    SectionTag,
     reservationsActiveAll,
-    nowTs,
-    getCreatedTs,
-    getWaitUntilTs,
-    formatRemaining,
-    hiddenKeys,
-    autoFinalizedReservationsRef,
-    formatCardDate,
-    formatPriceInt,
-    reservationMoneyModeFromStatus,
-    CardHeaderRow,
-    badgePhotoWidth,
-    labelNoClick,
-    MoneyChip,
-    hideKey,
-    user,
-    queryClient,
-    MarcoContent,
-    formatAddress,
     reservationsFinalAll,
-    toMs,
-    deleteAlertSafe,
-    statusLabelFrom,
-  };
+    autoFinalizedReservationsRef,
+  });
 
   const loading = loadingAlerts || loadingTransactions;
 

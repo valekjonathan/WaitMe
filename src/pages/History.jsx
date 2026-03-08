@@ -32,15 +32,12 @@ export default function Alertas() {
     cancelAlertMutation,
     expireAlertMutation,
     repeatAlertMutation,
-    stampFinalizedAt,
     visibleActiveAlerts,
     myActiveAlerts,
     expiredAlertModalId,
     setExpiredAlertModalId,
     setExpiredAlertExtend,
     avatarFor,
-    badgePhotoWidth,
-    labelNoClick,
   } = useHistoryData();
 
   return (
@@ -69,7 +66,6 @@ export default function Alertas() {
         setExpiredAlertModalId={setExpiredAlertModalId}
         hideKey={hideKey}
         queryClient={queryClient}
-        stampFinalizedAt={stampFinalizedAt}
         formatCardDate={formatCardDate}
         formatPriceInt={formatPriceInt}
         getCreatedTs={getCreatedTs}
@@ -80,8 +76,6 @@ export default function Alertas() {
         repeatAlertMutation={repeatAlertMutation}
         visibleActiveAlerts={visibleActiveAlerts}
         avatarFor={avatarFor}
-        badgePhotoWidth={badgePhotoWidth}
-        labelNoClick={labelNoClick}
         setExpiredAlertExtend={setExpiredAlertExtend}
       />
 

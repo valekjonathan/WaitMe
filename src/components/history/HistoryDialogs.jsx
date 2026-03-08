@@ -20,7 +20,6 @@ export default function HistoryDialogs({
   setExpiredAlertModalId,
   hideKey,
   queryClient,
-  stampFinalizedAt,
   formatCardDate,
   formatPriceInt,
   getCreatedTs,
@@ -31,8 +30,6 @@ export default function HistoryDialogs({
   repeatAlertMutation,
   visibleActiveAlerts,
   avatarFor,
-  badgePhotoWidth,
-  labelNoClick,
   setExpiredAlertExtend,
 }) {
   const expiredAlert = expiredAlertModalId
