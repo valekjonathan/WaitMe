@@ -236,13 +236,17 @@ export default function MapboxMap({
                   mapboxMounted: true,
                   mapRefAvailable: !!mapRef?.current,
                 };
-              } catch {}
+              } catch (error) {
+                console.error('[WaitMe Error]', error);
+              }
             }
 
             // Estilo Uber/Bolt nocturno: desactivar relieve y árboles
             try {
               if (map.getTerrain()) map.setTerrain(null);
-            } catch {}
+            } catch (error) {
+              console.error('[WaitMe Error]', error);
+            }
             const style = map.getStyle();
             if (style?.layers) {
               for (const layer of style.layers) {
@@ -255,7 +259,9 @@ export default function MapboxMap({
                 ) {
                   try {
                     map.setLayoutProperty(layer.id, 'visibility', 'none');
-                  } catch {}
+                  } catch (error) {
+                    console.error('[WaitMe Error]', error);
+                  }
                 }
               }
             }
@@ -300,7 +306,9 @@ export default function MapboxMap({
             mapboxMounted: false,
             mapRefAvailable: false,
           };
-        } catch {}
+        } catch (error) {
+          console.error('[WaitMe Error]', error);
+        }
       }
       cancelled = true;
       resizeObserverRef.current?.disconnect?.();
@@ -310,7 +318,9 @@ export default function MapboxMap({
       if (map) {
         try {
           map.remove();
-        } catch {}
+        } catch (error) {
+          console.error('[WaitMe Error]', error);
+        }
       }
       mapRef.current = null;
       mapboxglRef.current = null;
@@ -331,7 +341,9 @@ export default function MapboxMap({
         map.touchZoomRotate?.disable?.();
         map.scrollZoom?.disable?.();
       }
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }, [mapReady, error, interactive]);
 
   const lastFlownCenterRef = useRef(null);
@@ -475,7 +487,9 @@ export default function MapboxMap({
           map.setPaintProperty(layer.id, 'line-opacity', 1);
           const w = map.getPaintProperty(layer.id, 'line-width');
           if (typeof w === 'number') map.setPaintProperty(layer.id, 'line-width', w + 0.5);
-        } catch {}
+        } catch (error) {
+          console.error('[WaitMe Error]', error);
+        }
       }
     }
   }, [mapReady, error, centerPaddingBottom]);

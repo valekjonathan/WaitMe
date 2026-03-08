@@ -23,7 +23,9 @@ const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
     try {
       console.log(`[RENDER:AuthContext] ${msg}`, extra ?? '');
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 };
 
@@ -31,7 +33,9 @@ const OAUTH_LOG = (msg, extra) => {
   if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
     try {
       console.log(`[Auth] ${msg}`, extra ?? '');
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 };
 
@@ -291,7 +295,9 @@ export const AuthProvider = ({ children }) => {
           .then(() => {
             window.history.replaceState(null, '', window.location.pathname + '#/');
           })
-          .catch(() => {})
+          .catch((error) => {
+            console.error('[WaitMe Error]', error);
+          })
           .finally(() => resolveSession());
         return () => subscription.unsubscribe();
       }

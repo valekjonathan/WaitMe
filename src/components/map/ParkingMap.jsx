@@ -93,7 +93,9 @@ export default function ParkingMap({
             onRouteLoaded({ distanceKm: r.distance / 1000, durationSec: r.duration || 0 });
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[WaitMe Error]', error);
+      });
   }, [showRoute, selectedAlert, sellerLocation, normalizedUserLocation, onRouteLoaded]);
 
   useEffect(() => {

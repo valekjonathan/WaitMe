@@ -50,7 +50,9 @@ if (typeof window !== 'undefined') {
   try {
     const _preload = new window.Image();
     _preload.src = appLogo;
-  } catch {}
+  } catch (error) {
+    console.error('[WaitMe Error]', error);
+  }
 }
 import { haversineKm } from '@/utils/carUtils';
 import { useArrivingAnimation } from '@/hooks/useArrivingAnimation';
@@ -71,7 +73,9 @@ const RENDER_LOG = (msg, extra) => {
   if (import.meta.env.DEV) {
     try {
       console.log(`[RENDER:Home] ${msg}`, extra ?? '');
-    } catch {}
+    } catch (error) {
+      console.error('[WaitMe Error]', error);
+    }
   }
 };
 
@@ -413,7 +417,9 @@ export default function Home() {
           if (result) setAddress(result);
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.error('[WaitMe Error]', error);
+      });
   }, []);
 
   const debouncedReverseGeocode = useCallback(
@@ -640,7 +646,9 @@ export default function Home() {
         window.dispatchEvent(
           new CustomEvent('waitme:alertPublished', { detail: { alertId: newAlert?.id || null } })
         );
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
       setConfirmPublishOpen(false);
       setPendingPublishPayload(null);
       navigate('/alerts');
@@ -754,7 +762,9 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['myAlerts'] });
       try {
         window.dispatchEvent(new Event('waitme:badgeRefresh'));
-      } catch {}
+      } catch (error) {
+        console.error('[WaitMe Error]', error);
+      }
     },
   });
 
@@ -942,7 +952,9 @@ export default function Home() {
                       return;
                     }
                   }
-                } catch {}
+                } catch (error) {
+                  console.error('[WaitMe Error]', error);
+                }
                 setPendingPublishPayload(payload);
                 setConfirmPublishOpen(true);
               }}
