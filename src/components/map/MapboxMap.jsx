@@ -2,13 +2,18 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
 import CenterPin from '@/components/CenterPin';
 import { getPreciseInitialLocation, toLatLngArray } from '@/lib/location';
-import { addStaticCarsLayer, addUserLocationLayer, addWaitMeCarLayer } from '@/lib/mapLayers';
-
-const OVIEDO_CENTER = [-5.8494, 43.3619]; // [lng, lat]
-const DEFAULT_ZOOM = 16.5;
-const DEFAULT_PITCH = 30;
-const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
-const ACCURACY_RECENTER_THRESHOLD = 80;
+import {
+  OVIEDO_CENTER,
+  DEFAULT_ZOOM,
+  DEFAULT_PITCH,
+  ACCURACY_RECENTER_THRESHOLD,
+  createMap,
+  setupMapStyleOnLoad,
+} from './MapInit.js';
+import { applyStaticCarsLayer, applyUserLocationLayer, applyWaitMeCarLayer } from './MapLayers.js';
+import { attachMoveListeners } from './MapEvents.js';
+import { clearMarkers } from './MapMarkers.js';
+import { setInteractive, setMapPadding, applyRoadStyleForCreate } from './MapControls.js';
 
 export default function MapboxMap({
   className = '',
@@ -131,7 +136,6 @@ export default function MapboxMap({
       return;
     }
 
-    // Posición inicial precisa (getCurrentPosition con alta precisión, sin pipeline)
     let cancelled = false;
     getPreciseInitialLocation().then((result) => {
       if (cancelled) return;
@@ -199,99 +203,52 @@ export default function MapboxMap({
     let map = null;
     let cancelled = false;
 
-    import('mapbox-gl')
-      .then((mod) => {
+    createMap(container, { token: tokenStr, interactive })
+      .then((m) => {
         if (cancelled || !containerRef.current) return;
-        const mapboxgl = mod.default;
-        mapboxglRef.current = mapboxgl;
-        import('mapbox-gl/dist/mapbox-gl.css');
-        mapboxgl.accessToken = token;
+        map = m;
+        mapboxglRef.current = m;
+        if (mapRef) mapRef.current = map;
 
-        try {
-          if (!containerRef.current) return;
-          map = new mapboxgl.Map({
-            container: container,
-            style: DARK_STYLE,
-            center: OVIEDO_CENTER,
-            zoom: DEFAULT_ZOOM,
-            pitch: DEFAULT_PITCH,
-            bearing: 0,
-            antialias: true,
-            attributionControl: false,
-            dragPan: interactive,
-            touchZoomRotate: interactive,
-            scrollZoom: interactive,
-          });
-
+        map.on('load', () => {
+          if (cancelled) return;
           if (mapRef) mapRef.current = map;
-
-          map.on('load', () => {
-            if (cancelled) return;
-            if (mapRef) mapRef.current = map;
-            if (onMapLoad) onMapLoad(map);
-            if (import.meta.env.DEV) {
-              try {
-                window.__DEV_DIAG = {
-                  ...(window.__DEV_DIAG || {}),
-                  mapboxMounted: true,
-                  mapRefAvailable: !!mapRef?.current,
-                };
-              } catch (error) {
-                console.error('[WaitMe Error]', error);
-              }
-            }
-
-            // Estilo Uber/Bolt nocturno: desactivar relieve y árboles
+          if (onMapLoad) onMapLoad(map);
+          if (import.meta.env.DEV) {
             try {
-              if (map.getTerrain()) map.setTerrain(null);
-            } catch (error) {
-              console.error('[WaitMe Error]', error);
+              window.__DEV_DIAG = {
+                ...(window.__DEV_DIAG || {}),
+                mapboxMounted: true,
+                mapRefAvailable: !!mapRef?.current,
+              };
+            } catch (e) {
+              console.error('[WaitMe Error]', e);
             }
-            const style = map.getStyle();
-            if (style?.layers) {
-              for (const layer of style.layers) {
-                const id = (layer.id || '').toLowerCase();
-                if (
-                  id.includes('tree') ||
-                  id.includes('park') ||
-                  id.includes('landcover') ||
-                  id.includes('land-use')
-                ) {
-                  try {
-                    map.setLayoutProperty(layer.id, 'visibility', 'none');
-                  } catch (error) {
-                    console.error('[WaitMe Error]', error);
-                  }
-                }
-              }
-            }
+          }
 
-            map.resize();
-            setMapReady(true);
+          setupMapStyleOnLoad(map);
+          map.resize();
+          setMapReady(true);
 
-            const resizeDelayed = () => {
-              if (mapRef.current) mapRef.current.resize();
-            };
-            setTimeout(resizeDelayed, 100);
-            setTimeout(resizeDelayed, 400);
-            setTimeout(resizeDelayed, 800);
+          const resizeDelayed = () => {
+            if (mapRef.current) mapRef.current.resize();
+          };
+          setTimeout(resizeDelayed, 100);
+          setTimeout(resizeDelayed, 400);
+          setTimeout(resizeDelayed, 800);
 
-            if (container && typeof ResizeObserver !== 'undefined') {
-              const ro = new ResizeObserver(resizeDelayed);
-              resizeObserverRef.current = ro;
-              ro.observe(container);
-            }
-          });
+          if (container && typeof ResizeObserver !== 'undefined') {
+            const ro = new ResizeObserver(resizeDelayed);
+            resizeObserverRef.current = ro;
+            ro.observe(container);
+          }
+        });
 
-          map.on('error', (e) => {
-            const msg = e?.error?.message || String(e);
-            if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized'))
-              setError('no_token');
-          });
-        } catch (err) {
-          console.error('Mapbox init error', err);
-          setError('init_failed');
-        }
+        map.on('error', (e) => {
+          const msg = e?.error?.message || String(e);
+          if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized'))
+            setError('no_token');
+        });
       })
       .catch((err) => {
         console.error('Mapbox init error', err);
@@ -306,20 +263,19 @@ export default function MapboxMap({
             mapboxMounted: false,
             mapRefAvailable: false,
           };
-        } catch (error) {
-          console.error('[WaitMe Error]', error);
+        } catch (e) {
+          console.error('[WaitMe Error]', e);
         }
       }
       cancelled = true;
       resizeObserverRef.current?.disconnect?.();
       resizeObserverRef.current = null;
-      markersRef.current.forEach((m) => m?.remove?.());
-      markersRef.current = [];
+      clearMarkers(markersRef);
       if (map) {
         try {
           map.remove();
-        } catch (error) {
-          console.error('[WaitMe Error]', error);
+        } catch (e) {
+          console.error('[WaitMe Error]', e);
         }
       }
       mapRef.current = null;
@@ -330,25 +286,11 @@ export default function MapboxMap({
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    const map = mapRef.current;
-    try {
-      if (interactive) {
-        map.dragPan?.enable?.();
-        map.touchZoomRotate?.enable?.();
-        map.scrollZoom?.enable?.();
-      } else {
-        map.dragPan?.disable?.();
-        map.touchZoomRotate?.disable?.();
-        map.scrollZoom?.disable?.();
-      }
-    } catch (error) {
-      console.error('[WaitMe Error]', error);
-    }
+    setInteractive(mapRef.current, interactive);
   }, [mapReady, error, interactive]);
 
   const lastFlownCenterRef = useRef(null);
 
-  // Reset hasFlownToUserRef when exiting center-pin mode so we fly again on re-entry
   useEffect(() => {
     if (!useCenterPin) hasFlownToUserRef.current = false;
   }, [useCenterPin]);
@@ -370,7 +312,6 @@ export default function MapboxMap({
     }
 
     if (useCenterPin) {
-      // Allow first fly when entering create/search; skip only after we've flown once
       if (skipAutoFlyWhenCenterPin && hasFlownToUserRef.current) return;
       const padding = getMapPadding();
       const opts = {
@@ -428,70 +369,41 @@ export default function MapboxMap({
         ? { lat: location.lat, lng: location.lng }
         : null;
 
-  // GeoJSON: coches estáticos (reemplaza DOM markers)
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    const map = mapRef.current;
-    if (!map.getStyle?.()?.layers) return;
-    addStaticCarsLayer(map, alerts, onAlertClick);
+    applyStaticCarsLayer(mapRef.current, alerts, onAlertClick);
   }, [mapReady, error, alerts, onAlertClick]);
 
-  // GeoJSON: ubicación usuario (reemplaza DOM marker cuando !useCenterPin)
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    const map = mapRef.current;
-    if (!map.getStyle?.()?.layers) return;
     const userLoc =
       userCoordsForMarker && !useCenterPin
         ? { lat: userCoordsForMarker.lat, lng: userCoordsForMarker.lng }
         : null;
-    addUserLocationLayer(map, userLoc);
+    applyUserLocationLayer(mapRef.current, userLoc);
   }, [mapReady, error, userCoordsForMarker, useCenterPin]);
 
-  // GeoJSON: coche dinámico (solo WAITME_ACTIVE + buyerLocation)
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    const map = mapRef.current;
-    if (!map.getStyle?.()?.layers) return;
-    addWaitMeCarLayer(map, waitMeCarBuyerLocation, waitMeCarMode, waitMeCarColor);
+    applyWaitMeCarLayer(mapRef.current, waitMeCarBuyerLocation, waitMeCarMode, waitMeCarColor);
   }, [mapReady, error, waitMeCarMode, waitMeCarBuyerLocation, waitMeCarColor]);
 
-  // Limpiar markers DOM legacy (ya no usado; se mantiene ref vacío por compatibilidad)
   useEffect(() => {
-    markersRef.current.forEach((m) => m?.remove?.());
-    markersRef.current = [];
+    clearMarkers(markersRef);
   }, [mapReady, error]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
-    const map = mapRef.current;
     const padding =
       centerPaddingBottom > 0
         ? (getMapPadding() ?? { top: 56, bottom: 300, left: 0, right: 0 })
         : { top: 0, bottom: 0, left: 0, right: 0 };
-    map.setPadding(padding);
+    setMapPadding(mapRef.current, padding);
   }, [mapReady, error, useCenterPin, centerPaddingBottom, getMapPadding]);
 
-  // Brillo y contraste de calles cuando create (centerPaddingBottom > 0)
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || centerPaddingBottom <= 0) return;
-    const map = mapRef.current;
-    const style = map.getStyle();
-    if (!style?.layers) return;
-    const ROAD_COLOR = '#8b5cf6';
-    for (const layer of style.layers) {
-      const id = (layer.id || '').toLowerCase();
-      if (id.includes('road') && layer.type === 'line') {
-        try {
-          map.setPaintProperty(layer.id, 'line-color', ROAD_COLOR);
-          map.setPaintProperty(layer.id, 'line-opacity', 1);
-          const w = map.getPaintProperty(layer.id, 'line-width');
-          if (typeof w === 'number') map.setPaintProperty(layer.id, 'line-width', w + 0.5);
-        } catch (error) {
-          console.error('[WaitMe Error]', error);
-        }
-      }
-    }
+    applyRoadStyleForCreate(mapRef.current);
   }, [mapReady, error, centerPaddingBottom]);
 
   const onMapMoveRef = useRef(onMapMove);
@@ -501,35 +413,10 @@ export default function MapboxMap({
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error || !useCenterPin) return;
-    const map = mapRef.current;
-    const onMove = () => {
-      const c = map.getCenter();
-      onMapMoveRef.current?.([c.lat, c.lng]);
-    };
-    const onMoveEnd = () => {
-      const c = map.getCenter();
-      const b = map.getBounds?.();
-      const zoom = map.getZoom?.();
-      const payload = {
-        center: [c.lat, c.lng],
-        bounds: b
-          ? {
-              swLat: b.getSouth(),
-              swLng: b.getWest(),
-              neLat: b.getNorth(),
-              neLng: b.getEast(),
-            }
-          : null,
-        zoom: typeof zoom === 'number' ? zoom : null,
-      };
-      onMapMoveEndRef.current?.(payload);
-    };
-    map.on('move', onMove);
-    map.on('moveend', onMoveEnd);
-    return () => {
-      map.off('move', onMove);
-      map.off('moveend', onMoveEnd);
-    };
+    return attachMoveListeners(mapRef.current, {
+      onMove: (c) => onMapMoveRef.current?.(c),
+      onMoveEnd: (p) => onMapMoveEndRef.current?.(p),
+    });
   }, [mapReady, error, useCenterPin]);
 
   if (error) {

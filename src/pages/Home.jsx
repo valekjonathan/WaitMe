@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import MapboxMap from '@/components/MapboxMap';
+import MapboxMap from '@/components/map/MapboxMap';
 import MapViewportShell from '@/system/map/MapViewportShell';
 import { useHome } from '@/hooks/home/useHome';
 import HomeHeader from '@/components/home/HomeHeader';
