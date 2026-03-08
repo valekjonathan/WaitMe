@@ -13,10 +13,13 @@ import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
 
-const OAuthDebug = import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true';
+const OAuthDebug =
+  import.meta.env.DEV ||
+  import.meta.env.VITE_DEBUG_OAUTH === 'true' ||
+  (typeof Capacitor !== 'undefined' && Capacitor?.isNativePlatform?.());
 
 async function processOAuthUrl(url, onSuccess) {
-  if (OAuthDebug) console.log('[OAuth] processOAuthUrl called, url:', url || '(empty)');
+  if (OAuthDebug) console.log('[OAuth] processOAuthUrl start, url:', url || '(empty)');
 
   const allowed = [
     'capacitor://localhost',
@@ -48,27 +51,28 @@ async function processOAuthUrl(url, onSuccess) {
     const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
+    if (OAuthDebug) console.log('[OAuth] code detected, len:', code?.length ?? 0);
     if (code) {
-      if (OAuthDebug)
-        console.log('[OAuth] exchangeCodeForSession executing (code len:', code?.length, ')');
+      if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession executing...');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        const session = data?.session;
         if (OAuthDebug) {
-          const session = data?.session;
-          console.log(
-            '[OAuth] exchangeCodeForSession OK, session:',
-            !!session,
-            'user:',
-            session?.user?.id
-          );
-          const { data: s } = await supabase.auth.getSession();
-          console.log('[OAuth] getSession after exchange:', !!s?.session);
+          console.log('[OAuth] exchangeCodeForSession success');
+          console.log('[OAuth] session user:', session?.user?.email ?? session?.user?.id ?? 'null');
         }
+        const { data: s } = await supabase.auth.getSession();
+        if (OAuthDebug) console.log('[OAuth] getSession after exchange:', !!s?.session);
         if (OAuthDebug) console.log('[OAuth] onSuccess → checkUserAuth + navigate');
         onSuccess?.();
         return true;
       }
-      if (OAuthDebug) console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
+      if (OAuthDebug) {
+        console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
+        console.error('[OAuth] error code:', error?.code);
+      }
+    } else if (OAuthDebug) {
+      console.log('[OAuth] no code in URL');
     }
   }
 
@@ -126,15 +130,17 @@ export default function App() {
   const capacitorSubRef = useRef(null);
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const onOAuthSuccess = () => {
-      checkUserAuth();
+    const onOAuthSuccess = async () => {
+      if (OAuthDebug) console.log('[OAuth] onSuccess → checkUserAuth');
+      await checkUserAuth();
+      if (OAuthDebug) console.log('[OAuth] onSuccess → navigate');
       navigate('/', { replace: true });
     };
     const handleUrl = async (url) => {
       await processOAuthUrl(url, onOAuthSuccess);
     };
     const handleAppUrlOpen = ({ url }) => {
-      if (OAuthDebug) console.log('[OAuth] appUrlOpen received:', url || '(empty)');
+      if (OAuthDebug) console.log('[OAuth] appUrlOpen url:', url || '(empty)');
       handleUrl(url);
     };
     (async () => {
@@ -148,13 +154,15 @@ export default function App() {
     CapacitorApp.getLaunchUrl()
       .then((result) => {
         if (result?.url) {
-          if (OAuthDebug) console.log('[OAuth] getLaunchUrl received:', result.url);
+          if (OAuthDebug) console.log('[OAuth] getLaunchUrl url:', result.url);
           handleUrl(result.url);
         } else if (OAuthDebug) {
           console.log('[OAuth] getLaunchUrl: no url');
         }
       })
-      .catch(() => {});
+      .catch((e) => {
+        if (OAuthDebug) console.log('[OAuth] getLaunchUrl error:', e?.message);
+      });
     return () => capacitorSubRef.current?.remove?.();
   }, [checkUserAuth, navigate]);
 

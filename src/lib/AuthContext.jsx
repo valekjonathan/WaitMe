@@ -20,9 +20,17 @@ const isDevBypassAuth = () =>
   (import.meta.env.VITE_DEV_BYPASS_AUTH === 'true' || import.meta.env.VITE_BYPASS_AUTH === 'true');
 
 const RENDER_LOG = (msg, extra) => {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
     try {
       console.log(`[RENDER:AuthContext] ${msg}`, extra ?? '');
+    } catch {}
+  }
+};
+
+const OAUTH_LOG = (msg, extra) => {
+  if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+    try {
+      console.log(`[Auth] ${msg}`, extra ?? '');
     } catch {}
   }
 };
@@ -137,28 +145,37 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const resolveSession = useCallback(async () => {
+    OAUTH_LOG('resolveSession start');
     const supabase = getSupabase();
     if (!supabase) {
+      OAUTH_LOG('resolveSession: no supabase');
       setIsLoadingAuth(false);
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
       return;
     }
-    if (authInFlightRef.current) return;
+    if (authInFlightRef.current) {
+      OAUTH_LOG('resolveSession: authInFlight, skip');
+      return;
+    }
     authInFlightRef.current = true;
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      OAUTH_LOG('getSession:', !!sessionData?.session, 'user:', sessionData?.session?.user?.email);
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
       if (!authUser?.id) {
+        OAUTH_LOG('resolveSession: no user');
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
         return;
       }
+      OAUTH_LOG('resolveSession: user found', authUser.email);
       const appUser = await ensureUserInDb(authUser);
       if (!appUser?.id) {
         setUser(null);
@@ -183,7 +200,9 @@ export const AuthProvider = ({ children }) => {
         setProfile({});
       }
       setIsAuthenticated(true);
+      OAUTH_LOG('resolveSession: session created');
     } catch (error) {
+      OAUTH_LOG('resolveSession failed:', error?.message);
       console.error('Auth resolve failed:', error);
       setUser(null);
       setProfile(null);
