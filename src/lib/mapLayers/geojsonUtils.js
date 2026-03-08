@@ -39,6 +39,29 @@ export function alertsToGeoJSON(alerts) {
 }
 
 /**
+ * Actualiza la posición de un feature por id en un FeatureCollection.
+ * No muta el original. Para uso con updateCarPosition (realtime).
+ * @param {import('geojson').FeatureCollection} geojson
+ * @param {string|number} id - id del feature (properties.id o feature.id)
+ * @param {number} lng
+ * @param {number} lat
+ * @returns {import('geojson').FeatureCollection} nuevo GeoJSON con el feature actualizado
+ */
+export function updateFeaturePositionInGeoJSON(geojson, id, lng, lat) {
+  if (!geojson?.features) return geojson;
+  const features = geojson.features.map((f) => {
+    const fid = f?.id ?? f?.properties?.id;
+    if (fid == null || String(fid) !== String(id)) return f;
+    return {
+      ...f,
+      geometry: { type: 'Point', coordinates: [lng, lat] },
+      properties: { ...(f.properties || {}), lat, lng },
+    };
+  });
+  return { type: 'FeatureCollection', features };
+}
+
+/**
  * Crea Feature para ubicación del usuario.
  * @param {{lat:number, lng:number}|[number,number]|null} loc
  * @returns {import('geojson').Feature|null}

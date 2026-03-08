@@ -10,7 +10,13 @@ import {
   createMap,
   setupMapStyleOnLoad,
 } from './MapInit.js';
-import { applyStaticCarsLayer, applyUserLocationLayer, applyWaitMeCarLayer } from './MapLayers.js';
+import {
+  applyStaticCarsLayer,
+  applyUserLocationLayer,
+  applyWaitMeCarLayer,
+  updateCarPosition,
+} from './MapLayers.js';
+import { alertsToGeoJSON } from '@/lib/mapLayers';
 import { attachMoveListeners } from './MapEvents.js';
 import { clearMarkers } from './MapMarkers.js';
 import { setInteractive, setMapPadding, applyRoadStyleForCreate } from './MapControls.js';
@@ -37,6 +43,7 @@ function MapboxMapInner({
   waitMeCarMode = null,
   waitMeCarBuyerLocation = null,
   waitMeCarColor = 'azul',
+  onCarsControllerReady,
   children,
   ...rest
 }) {
@@ -53,6 +60,7 @@ function MapboxMapInner({
   const hasFlownToUserRef = useRef(false);
   const onMapLoadRef = useRef(onMapLoad);
   const onAlertClickRef = useRef(onAlertClick);
+  const carsGeoJSONRef = useRef({ type: 'FeatureCollection', features: [] });
 
   onMapLoadRef.current = onMapLoad;
   onAlertClickRef.current = onAlertClick;
@@ -385,10 +393,21 @@ function MapboxMapInner({
 
   const stableOnAlertClick = useCallback((alert) => onAlertClickRef.current?.(alert), []);
 
+  const updateCarPositionCb = useCallback((id, lng, lat) => {
+    const map = mapRef.current;
+    if (!map || !carsGeoJSONRef.current) return;
+    carsGeoJSONRef.current = updateCarPosition(map, carsGeoJSONRef.current, id, lng, lat);
+  }, []);
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    applyStaticCarsLayer(mapRef.current, alerts, stableOnAlertClick);
-  }, [mapReady, error, alerts, stableOnAlertClick]);
+    const geojson = alertsToGeoJSON(alerts);
+    carsGeoJSONRef.current = geojson;
+    applyStaticCarsLayer(mapRef.current, alerts, stableOnAlertClick, geojson);
+    if (onCarsControllerReady) {
+      onCarsControllerReady({ updateCarPosition: updateCarPositionCb });
+    }
+  }, [mapReady, error, alerts, stableOnAlertClick, onCarsControllerReady, updateCarPositionCb]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;

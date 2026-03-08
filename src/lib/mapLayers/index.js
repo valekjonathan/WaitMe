@@ -6,7 +6,11 @@
  * @module mapLayers
  */
 
-export { alertsToGeoJSON, userLocationToFeature } from './geojsonUtils.js';
+export {
+  alertsToGeoJSON,
+  userLocationToFeature,
+  updateFeaturePositionInGeoJSON,
+} from './geojsonUtils.js';
 export {
   addStaticCarsLayer,
   addUserLocationLayer,
@@ -14,3 +18,5 @@ export {
   addSelectedPositionLayer,
 } from './layers.js';
 export { addWaitMeCarLayer } from './waitMeCarLayer.js';
+export { updateCarPosition } from './realtimeCarUtils.js';
+export { interpolatePosition } from './interpolatePosition.js';

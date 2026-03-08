@@ -21,10 +21,11 @@ const SELECTED_POSITION_LAYER = 'waitme-selected-position-layer';
  * @param {import('mapbox-gl').Map} map
  * @param {Array} alerts
  * @param {(alert: object) => void} [onAlertClick]
+ * @param {import('geojson').FeatureCollection} [precomputedGeoJSON] - opcional, para realtime (evita recalcular)
  */
-export function addStaticCarsLayer(map, alerts, onAlertClick) {
+export function addStaticCarsLayer(map, alerts, onAlertClick, precomputedGeoJSON) {
   if (!map?.getStyle?.()) return;
-  const geojson = alertsToGeoJSON(alerts || []);
+  const geojson = precomputedGeoJSON ?? alertsToGeoJSON(alerts || []);
 
   if (map.getSource(STATIC_CARS_SOURCE)) {
     map.getSource(STATIC_CARS_SOURCE).setData(geojson);
