@@ -1,19 +1,39 @@
-# Reducir CPU de Cursor Helper (Renderer) — exclusiones de indexación
+# Reducir carga de Cursor Helper (Renderer/GPU) — exclusiones de indexación
+# Solo se indexa código runtime esencial para el trabajo diario.
 
-tests
-supabase
-ios
-scripts
-docs/archive
-coverage
-playwright-report
-test-results
-snapshots
-**/*-snapshots
-**/snapshots
-storybook-static
+# Build y dependencias
 node_modules
 dist
-quarantine
+coverage
+
+# Tests y reportes
+tests
+playwright-report
+test-results
+**/*-snapshots
+**/snapshots
+snapshots
+
+# Storybook (config + build)
+.storybook
+storybook-static
+
+# Infra y plataformas
+supabase
+supabase/.temp
+ios
+ios/App/App/public/assets
+
+# Scripts (no runtime)
+scripts
+
+# Docs archivados
+docs/archive
 docs/archive/quarantine
+quarantine
+
+# Temporales
+tmp
+
+# Sistema
 .DS_Store

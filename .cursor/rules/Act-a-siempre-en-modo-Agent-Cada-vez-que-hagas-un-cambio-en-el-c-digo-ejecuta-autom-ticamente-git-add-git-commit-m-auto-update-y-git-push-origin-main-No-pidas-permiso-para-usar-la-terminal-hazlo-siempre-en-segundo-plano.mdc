@@ -1,11 +1,11 @@
 ---
 alwaysApply: true
-description: Push solo tras validar lint/typecheck/build
+description: Validación local sin auto-push
 ---
 
-# Push tras validación
+# Validación local (sin auto-push)
 
 Tras cada cambio en código:
 1. Ejecutar: npm run lint, npm run typecheck, npm run build
-2. Solo si pasan: git add . && git commit -m "auto-update" && git push origin main
-3. Si falla alguno: NO push. Mostrar error.
+2. Informar resultado al usuario
+3. NO hacer git push. Para subir: npm run ship

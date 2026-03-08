@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Clock, Euro, LocateFixed } from 'lucide-react';
 import { getMapLayoutPadding } from '@/lib/mapLayoutPadding';
-import { getPreciseInitialLocation } from '@/lib/location';
+import { getLastKnownLocation, getPreciseInitialLocation } from '@/lib/location';
 import { Button } from '@/components/ui/button';
 import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 import { Slider } from '@/components/ui/slider';
@@ -24,25 +24,27 @@ export default function CreateAlertCard({
 
   const handleLocate = async () => {
     if (mapRef?.current) window.__WAITME_MAP__ = mapRef.current;
-    const loc = await getPreciseInitialLocation();
-    const { lat, lng } = loc;
+    // Usar motor único de ubicación: última posición válida primero, luego getPreciseInitialLocation
+    let loc = getLastKnownLocation();
+    if (loc?.lat == null || loc?.lng == null) {
+      loc = await getPreciseInitialLocation();
+    }
+    const lat = loc?.lat;
+    const lng = loc?.lng;
+    if (lat == null || lng == null) return;
     onRecenter?.({ lat, lng });
     const padding = getMapLayoutPadding();
     const map = mapRef?.current;
+    const flyOpts = {
+      center: [lng, lat],
+      zoom: 17,
+      duration: 800,
+      padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
+    };
     if (map && typeof map.easeTo === 'function') {
-      map.easeTo({
-        center: [lng, lat],
-        zoom: 17,
-        duration: 1200,
-        padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
-      });
+      map.easeTo(flyOpts);
     } else if (map && typeof map.flyTo === 'function') {
-      map.flyTo({
-        center: [lng, lat],
-        zoom: 17,
-        duration: 1200,
-        padding: padding ?? { top: 69, bottom: 300, left: 0, right: 0 },
-      });
+      map.flyTo(flyOpts);
     }
   };
 

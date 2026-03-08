@@ -428,12 +428,13 @@ function MapboxMapInner({
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
-    const userLoc =
-      userCoordsForMarker && !useCenterPin
-        ? { lat: userCoordsForMarker.lat, lng: userCoordsForMarker.lng }
-        : null;
+    // Siempre mostrar marcador de ubicación GPS cuando hay coordenadas (incl. create mode).
+    // La base del marcador coincide con las coordenadas GPS reales (sin offset).
+    const userLoc = userCoordsForMarker
+      ? { lat: userCoordsForMarker.lat, lng: userCoordsForMarker.lng }
+      : null;
     applyUserLocationLayer(mapRef.current, userLoc);
-  }, [mapReady, error, userCoordsForMarker, useCenterPin]);
+  }, [mapReady, error, userCoordsForMarker]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current || error) return;
