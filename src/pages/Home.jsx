@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import MapboxMap from '@/components/map/MapboxMap';
 import MapViewportShell from '@/system/map/MapViewportShell';
 import { useHome } from '@/hooks/home/useHome';
@@ -28,6 +28,9 @@ export default function Home() {
     }
   }, []);
 
+  const [buildTestTime] = useState(() =>
+    new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  );
   const api = useHome();
   const {
     mode,
@@ -125,13 +128,30 @@ export default function Home() {
             className="absolute inset-0 z-0 w-full h-full"
             style={{ width: '100%', height: '100%' }}
           />
-          {/* OVERLAY HOME: logo, frases, botones — height: 100%, top: 0, visible en modo home */}
+          {/* OVERLAY HOME: logo, frases, botones — height: 100%, top: 0, z-10, sin display:none */}
           <div
             data-home-overlay
-            className="absolute inset-0 z-10 w-full flex flex-col items-center justify-center"
-            style={{ top: 0, height: '100%', pointerEvents: 'none' }}
+            className="absolute inset-0 z-[100] w-full flex flex-col items-center justify-center"
+            style={{
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '100%',
+              width: '100%',
+              pointerEvents: 'none',
+              display: 'flex',
+            }}
           >
-            <div className="relative z-10 pointer-events-auto">
+            <div className="relative z-[101] pointer-events-auto">
+              {(import.meta.env.DEV || __SHOW_BUILD_MARKER__) && (
+                <div
+                  className="fixed bottom-3 right-3 z-[9999] px-3 py-2 rounded-lg bg-purple-600 text-white text-xs font-bold shadow-lg"
+                  style={{ pointerEvents: 'none' }}
+                >
+                  WAITME BUILD TEST {buildTestTime}
+                </div>
+              )}
               <HomeHeader
                 onSearchClick={() => setMode('search')}
                 onCreateClick={() => setMode('create')}

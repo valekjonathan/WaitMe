@@ -37,6 +37,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsInlineLimit: 200000,
+    define: {
+      __SHOW_BUILD_MARKER__: process.env.VITE_IOS_DEV_BUILD === '1',
+    },
   },
   test: {
     globals: true,
