@@ -9,7 +9,7 @@
   "scripts": {
     "predev": "rm -rf ios/App/App/public/assets 2>/dev/null || true",
     "dev": "vite --host --port 5173",
-    "dev:auto": "chokidar \"src/**/*\" \"src/pages/**/*\" \"src/components/**/*\" -c \"npm run ios:refresh\"",
+    "dev:auto": "chokidar \"src/**/*\" \"src/pages/**/*\" \"src/components/**/*\" \"src/lib/**/*\" \"src/system/**/*\" \"capacitor.config.ts\" \"package.json\" -c \"npm run ios:refresh\"",
     "dev:ios": "vite --host --port 5173",
     "build": "vite build",
     "lint": "eslint . --max-warnings=9999",

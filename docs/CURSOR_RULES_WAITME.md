@@ -6,11 +6,15 @@ Reglas que todo agente (humano o IA) debe seguir al trabajar en el proyecto. Man
 
 ## 0. Simulador iOS — última build siempre
 
-**Regla obligatoria:** Cuando se modifique cualquier archivo de la app que afecte al comportamiento visual o funcional, Cursor debe ejecutar automáticamente:
+**Regla obligatoria:** Tras cualquier cambio visual o funcional relevante, Cursor debe ejecutar automáticamente:
 
 ```bash
 npm run ios:refresh
 ```
+
+- Si el cambio es solo de lógica web sin necesidad de reinstall, puede usarse live reload (`npm run ios:auto`).
+- **Si el resultado no se refleja en simulador, se considera fallo del flujo** y hay que corregir el flujo, no dar por hecho que el cambio está aplicado.
+- **Nunca dar por aplicado un cambio en iOS** si no se ha reflejado en simulador o no se ha reinstalado la build.
 
 Esto garantiza que el simulador siempre muestra la última build (cierre → desinstalación → recompilación → reinstalación → apertura).
 
@@ -77,3 +81,4 @@ Antes de cerrar un cambio, documentar:
 - `docs/PROJECT_SOURCE_OF_TRUTH.md` — dominios, tablas, pantallas
 - `docs/MAP_DEBUG_CHECKLIST.md` — diagnóstico del mapa
 - `docs/SAFE_CHANGE_PROTOCOL.md` — protocolo antes de aplicar cambios
+- `docs/IOS_DEV_FLOW.md` — flujo desarrollo iOS (simulador, iPhone físico)

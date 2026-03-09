@@ -117,16 +117,21 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
+    <div className="relative w-full flex-1 min-h-0 overflow-hidden text-white">
       {isHomeMode ? (
-        <div className="relative w-full h-full" style={{ minHeight: '100dvh' }}>
+        <div className="relative w-full h-full min-h-0" style={{ height: '100%' }}>
           <MapboxMap
             {...mapboxProps}
             className="absolute inset-0 z-0 w-full h-full"
             style={{ width: '100%', height: '100%' }}
           />
-          <div className="absolute inset-0 z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-auto">
+          {/* OVERLAY HOME: logo, frases, botones — height: 100%, top: 0, visible en modo home */}
+          <div
+            data-home-overlay
+            className="absolute inset-0 z-10 w-full flex flex-col items-center justify-center"
+            style={{ top: 0, height: '100%', pointerEvents: 'none' }}
+          >
+            <div className="relative z-10 pointer-events-auto">
               <HomeHeader
                 onSearchClick={() => setMode('search')}
                 onCreateClick={() => setMode('create')}
