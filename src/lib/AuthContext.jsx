@@ -331,9 +331,43 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, [resolveSession, ensureUserInDb]);
 
-  const checkUserAuth = useCallback(async () => {
-    await resolveSession();
-  }, [resolveSession]);
+  const checkUserAuth = useCallback(
+    async (overrideSession = null) => {
+      const session = overrideSession ?? window.__WAITME_OAUTH_SESSION ?? null;
+      if (session?.user?.id) {
+        console.log('[AUTH TRACE] checkUserAuth with override session, user:', session.user.id);
+        authInFlightRef.current = true;
+        setIsLoadingAuth(true);
+        try {
+          const appUser = await ensureUserInDb(session.user);
+          if (appUser?.id) {
+            setUser(appUser);
+            const supabase = getSupabase();
+            if (supabase) {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              setProfile(profileData ?? {});
+            }
+            setIsAuthenticated(true);
+            setAuthError(null);
+            console.log('[AUTH TRACE] user set from override session');
+            updateAuthDebug({ authContextUser: true });
+          }
+        } catch (err) {
+          console.error('[AUTH TRACE] override session failed:', err);
+        } finally {
+          setIsLoadingAuth(false);
+          authInFlightRef.current = false;
+        }
+        return;
+      }
+      await resolveSession();
+    },
+    [resolveSession, ensureUserInDb]
+  );
 
   const refreshProfile = useCallback(async () => {
     const supabase = getSupabase();

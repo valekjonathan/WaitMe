@@ -51,12 +51,12 @@ async function processOAuthUrl(url) {
     const code = params.get('code');
     if (code) {
       authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession executing');
-      console.log('[OAuth TRACE] exchange executing, code length:', code.length);
+      console.log('[AUTH TRACE] exchange executing, code length:', code.length);
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        console.log('[OAuth TRACE] exchange success');
+        console.log('[AUTH TRACE] exchange result: success');
         authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession success');
-        const session = data?.session;
+        let session = data?.session;
         authTrace(
           6,
           'oauthCapture.js',
@@ -65,7 +65,19 @@ async function processOAuthUrl(url) {
           !!session,
           session?.user?.email ?? session?.user?.id
         );
+        // Forzar getSession y setSession para actualizar headers del cliente (workaround iOS #1566)
         const { data: s } = await supabase.auth.getSession();
+        console.log('[AUTH TRACE] session exists:', !!s?.session);
+        if (s?.session) {
+          session = s.session;
+          const { error: setErr } = await supabase.auth.setSession({
+            access_token: s.session.access_token,
+            refresh_token: s.session.refresh_token,
+          });
+          if (!setErr) {
+            console.log('[AUTH TRACE] setSession forced (headers refresh)');
+          }
+        }
         authTrace(
           6,
           'oauthCapture.js',
@@ -78,12 +90,16 @@ async function processOAuthUrl(url) {
           sessionExists: !!s?.session,
           oauthProcessedBy: 'oauthCapture.js',
         });
+        window.__WAITME_OAUTH_SESSION = session ?? s?.session ?? null;
         window.__WAITME_OAUTH_COMPLETE = true;
-        window.dispatchEvent(new CustomEvent('waitme:oauth-complete'));
+        window.dispatchEvent(
+          new CustomEvent('waitme:oauth-complete', { detail: { session: session ?? s?.session } })
+        );
+        console.log('[AUTH TRACE] user set, oauth complete event dispatched');
         authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
         return true;
       }
-      console.log('[OAuth TRACE] exchange error', error?.message, error?.code);
+      console.log('[AUTH TRACE] exchange error', error?.message, error?.code);
       authTrace(
         5,
         'oauthCapture.js',

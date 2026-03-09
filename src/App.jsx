@@ -57,23 +57,30 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onOAuthSuccess = async () => {
-      authTrace(9, 'App.jsx', 'onOAuthComplete', 'onSuccess -> checkUserAuth');
-      await checkUserAuth();
+    const onOAuthSuccess = async (eventOrSession) => {
+      const session =
+        eventOrSession?.detail?.session ??
+        (eventOrSession?.user ? eventOrSession : null) ??
+        window.__WAITME_OAUTH_SESSION ??
+        null;
+      console.log('[AUTH TRACE] router redirect, session exists:', !!session);
+      authTrace(9, 'App.jsx', 'onOAuthComplete', 'onSuccess -> checkUserAuth', !!session);
+      await checkUserAuth(session ?? undefined);
       authTrace(10, 'App.jsx', 'onOAuthComplete', 'onSuccess -> navigate /');
       navigate('/', { replace: true });
     };
 
-    const onOAuthComplete = () => {
-      onOAuthSuccess();
+    const onOAuthComplete = (e) => {
+      onOAuthSuccess(e);
     };
 
     window.addEventListener('waitme:oauth-complete', onOAuthComplete);
 
     // Si oauthCapture ya procesó la URL antes de que App montara (cold start iOS)
     if (window.__WAITME_OAUTH_COMPLETE) {
+      const session = window.__WAITME_OAUTH_SESSION ?? null;
       window.__WAITME_OAUTH_COMPLETE = false;
-      onOAuthSuccess();
+      onOAuthSuccess(session);
     }
 
     return () => window.removeEventListener('waitme:oauth-complete', onOAuthComplete);
