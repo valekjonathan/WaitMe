@@ -127,3 +127,15 @@ callback URL (appUrlOpen o getLaunchUrl)
 5. onAuthStateChange no dispara o se ignora
 6. authInFlightRef bloquea
 7. navigate('/') pero user sigue null en siguiente render
+
+---
+
+## 4. INSTRUMENTACIÓN AÑADIDA (Fase 2 y 3)
+
+- **AUTH TRACE logs** en oauthCapture, AuthContext, App, main.jsx
+- **AuthDebugPanel** en Login (solo DEV o VITE_DEBUG_OAUTH)
+- **window.__WAITME_AUTH_DEBUG** con: callbackReceived, exchangeSuccess, sessionExists, authContextUser, lastAuthStateEvent, currentRoute, redirectReason, storageBackend, oauthProcessedBy, lastAuthError
+
+**Para ver traces en build iOS:** `VITE_DEBUG_OAUTH=true npm run ios:fresh`
+
+**Para ver logs en Simulator:** `npm run ios:logs` (en otra terminal)

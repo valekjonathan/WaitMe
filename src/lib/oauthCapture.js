@@ -123,7 +123,8 @@ export function initOAuthCapture() {
   if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
   (async () => {
     try {
-      CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
+      CapacitorApp.addListener('appUrlOpen', async (event) => {
+        const url = event?.url;
         authTrace(
           3,
           'oauthCapture.js',
@@ -134,11 +135,24 @@ export function initOAuthCapture() {
         updateAuthDebug({ callbackReceived: !!url, callbackSource: 'appUrlOpen' });
         await processOAuthUrl(url);
       });
-      const { url } = await CapacitorApp.getLaunchUrl();
-      authTrace(2, 'oauthCapture.js', 'initOAuthCapture', 'getLaunchUrl result', url || '(empty)');
-      if (url) {
+      const launch = await CapacitorApp.getLaunchUrl();
+      authTrace(
+        2,
+        'oauthCapture.js',
+        'initOAuthCapture',
+        'getLaunchUrl result',
+        launch?.url || '(empty)'
+      );
+      if (launch && launch.url) {
+        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+          console.log('[OAuth] getLaunchUrl received:', launch.url);
+        }
         updateAuthDebug({ callbackReceived: true, callbackSource: 'getLaunchUrl' });
-        await processOAuthUrl(url);
+        await processOAuthUrl(launch.url);
+      } else {
+        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
+          console.log('[OAuth] getLaunchUrl empty');
+        }
       }
     } catch (e) {
       authTrace(2, 'oauthCapture.js', 'initOAuthCapture', 'getLaunchUrl/init error', e?.message);
