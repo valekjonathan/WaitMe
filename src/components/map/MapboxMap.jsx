@@ -67,6 +67,13 @@ function MapboxMapInner({
 
   const [error, setError] = useState(null);
   const [mapReady, setMapReady] = useState(false);
+  const mapDebugRef = useRef({
+    createMapStarted: false,
+    createMapSucceeded: false,
+    createMapFailed: false,
+    lastCreateMapError: null,
+    lastMapErrorEvent: null,
+  });
   const [location, setLocation] = useState(() => ({
     lat: null,
     lng: null,
@@ -230,10 +237,30 @@ function MapboxMapInner({
 
     if (isPlaceholder) {
       console.log('[MAP TOKEN TRACE 4] setting error=no_token (placeholder)');
+      mapDebugRef.current = {
+        ...mapDebugRef.current,
+        tokenExists: !!tokenStr,
+        tokenLength: tokenStr.length,
+        placeholderCheck: true,
+        createMapStarted: false,
+      };
+      if (typeof window !== 'undefined') {
+        window.__WAITME_MAP_DEBUG__ = { ...mapDebugRef.current, error: 'no_token' };
+      }
       setError('no_token');
       return;
     }
 
+    mapDebugRef.current = {
+      ...mapDebugRef.current,
+      tokenExists: true,
+      tokenLength: tokenStr.length,
+      placeholderCheck: false,
+      createMapStarted: true,
+    };
+    if (typeof window !== 'undefined') {
+      window.__WAITME_MAP_DEBUG__ = { ...mapDebugRef.current };
+    }
     console.log('[MAP TOKEN TRACE 5] createMap start');
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -294,6 +321,10 @@ function MapboxMapInner({
       .then((m) => {
         if (cancelled || !containerRef.current) return;
         console.log('[MAP TOKEN TRACE 6] createMap success');
+        mapDebugRef.current = { ...mapDebugRef.current, createMapSucceeded: true };
+        if (typeof window !== 'undefined') {
+          window.__WAITME_MAP_DEBUG__ = { ...mapDebugRef.current };
+        }
         map = m;
         mapboxglRef.current = m;
         if (mapRef) mapRef.current = map;
@@ -370,19 +401,42 @@ function MapboxMapInner({
 
         map.on('error', (e) => {
           const msg = e?.error?.message || String(e);
-          console.log(
-            '[MAP TOKEN TRACE 8] map error event:',
-            msg?.slice(0, 80) ?? String(e).slice(0, 80)
-          );
-          if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) {
+          const msgStr = msg?.slice(0, 120) ?? String(e).slice(0, 120);
+          console.log('[MAP TOKEN TRACE 8] map error event:', msgStr);
+          mapDebugRef.current = {
+            ...mapDebugRef.current,
+            lastMapErrorEvent: msgStr,
+            is401OrUnauthorized:
+              msg?.includes('token') || msg?.includes('401') || msg?.includes('Unauthorized'),
+          };
+          if (typeof window !== 'undefined') {
+            window.__WAITME_MAP_DEBUG__ = { ...mapDebugRef.current };
+          }
+          if (msg?.includes('token') || msg?.includes('401') || msg?.includes('Unauthorized')) {
             console.log('[MAP TOKEN TRACE 4] setting error=no_token (map error)');
+            if (typeof window !== 'undefined') {
+              window.__WAITME_MAP_DEBUG__ = {
+                ...window.__WAITME_MAP_DEBUG__,
+                ...mapDebugRef.current,
+                error: 'no_token',
+              };
+            }
             setError('no_token');
           }
         });
       })
       .catch((err) => {
+        const errMsg = err?.message ?? String(err);
         console.error('Mapbox init error', err);
-        console.log('[MAP TOKEN TRACE 7] createMap failed:', err?.message ?? String(err));
+        console.log('[MAP TOKEN TRACE 7] createMap failed:', errMsg);
+        mapDebugRef.current = {
+          ...mapDebugRef.current,
+          createMapFailed: true,
+          lastCreateMapError: errMsg,
+        };
+        if (typeof window !== 'undefined') {
+          window.__WAITME_MAP_DEBUG__ = { ...mapDebugRef.current, error: 'init_failed' };
+        }
         setError('init_failed');
       });
 
@@ -597,6 +651,8 @@ function MapboxMapInner({
   );
 
   if (error) {
+    const d = typeof window !== 'undefined' ? window.__WAITME_MAP_DEBUG__ : mapDebugRef.current;
+    const isDev = import.meta.env.DEV;
     return (
       <div
         style={{
@@ -605,12 +661,39 @@ function MapboxMapInner({
           width: '100%',
           minHeight: '100dvh',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'white',
+          padding: 24,
+          gap: 12,
         }}
       >
-        Map loading...
+        <span>Map loading...</span>
+        {isDev && d && (
+          <pre
+            style={{
+              fontSize: 11,
+              color: '#94a3b8',
+              maxWidth: '100%',
+              overflow: 'auto',
+              padding: 12,
+              background: '#1a1a1a',
+              borderRadius: 8,
+              marginTop: 8,
+              textAlign: 'left',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {`[MAP DEBUG] DEV only
+error: ${error}
+createMapSucceeded: ${d.createMapSucceeded ?? '—'}
+lastCreateMapError: ${d.lastCreateMapError ?? '—'}
+lastMapErrorEvent: ${d.lastMapErrorEvent ?? '—'}
+${d.is401OrUnauthorized ? '⚠️ 401/Unauthorized (Mapbox rechazó token)' : ''}`}
+          </pre>
+        )}
       </div>
     );
   }
