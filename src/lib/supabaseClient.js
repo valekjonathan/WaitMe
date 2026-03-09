@@ -30,7 +30,8 @@ function getAuthOptions() {
     detectSessionInUrl: false,
   };
   try {
-    if (Capacitor?.isNativePlatform?.()) {
+    if (typeof Capacitor !== 'undefined' && typeof Preferences !== 'undefined') {
+      console.log('[Supabase] storage: capacitor-preferences');
       return {
         ...base,
         storage: capacitorStorage,
@@ -82,8 +83,8 @@ export function getSupabase() {
  * Usar tras signOut para asegurar logout completo.
  */
 export async function clearSupabaseAuthStorage() {
-  if (!Capacitor.isNativePlatform()) return;
   try {
+    if (typeof Preferences === 'undefined') return;
     const { keys } = await Preferences.keys();
     const supabaseKeys = (keys || []).filter((k) => k.startsWith('sb-'));
     await Promise.all(supabaseKeys.map((key) => Preferences.remove({ key })));
