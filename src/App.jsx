@@ -11,8 +11,9 @@ import { useAuth } from '@/lib/AuthContext';
 function AuthRouter() {
   const { user, isLoadingAuth } = useAuth();
   const redirectReason = !user?.id ? 'user null' : 'user ok';
-  console.log('[AUTH FORENSIC 11] router ->', redirectReason, 'user?.id:', user?.id ?? 'null');
-  console.log('[AUTH FORENSIC 12] exact redirect reason:', redirectReason);
+  const dest = !user?.id ? 'login' : 'home';
+  console.log('[AUTH FINAL 11] router ->', dest);
+  console.log('[AUTH FINAL 12] exact redirect reason:', redirectReason);
 
   if (isLoadingAuth) {
     return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;

@@ -1,6 +1,6 @@
 # Estado iOS Runtime — WaitMe
 
-**Última actualización:** 2026-03-09 15:43
+**Última actualización:** 2026-03-09 15:54
 
 ---
 

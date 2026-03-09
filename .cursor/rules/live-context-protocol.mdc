@@ -7,6 +7,12 @@ alwaysApply: true
 
 Después de **cualquier cambio relevante** (funcional, visual, auth, mapa, iOS, scripts, build, simulador, iPhone, configuración), ejecutar automáticamente:
 
+```bash
+npm run devcontext:update
+```
+
+Este script único hace: ZIP, screenshots, logs, project-tree, actualiza docs, git add/commit/push.
+
 ## 1. Actualizar archivos de estado en docs/
 
 - docs/CURSOR_LAST_RESPONSE.md — prompt, resumen, archivos, comandos, errores, resultado, siguiente paso

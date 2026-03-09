@@ -353,6 +353,7 @@
 ./scripts/configure-supabase-secrets.sh
 ./scripts/dev-cleanup.sh
 ./scripts/dev-ios.sh
+./scripts/devcontext-update.sh
 ./scripts/diagnose-project.js
 ./scripts/ensure-oauth-redirect-ios.js
 ./scripts/environment-guard.sh
@@ -597,4 +598,3 @@
 ./src/lib/locationPipeline/locationSmoothingAdvanced.js
 ./src/lib/mapLayers
 ./src/lib/mapLayers/geojsonUtils.js
-./src/lib/mapLayers/index.js

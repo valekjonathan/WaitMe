@@ -39,7 +39,7 @@
     "ios:live": "bash scripts/ios-live.sh",
     "ios:watch": "bash scripts/ios-watch.sh",
     "ios:refresh": "bash scripts/ios-refresh.sh",
-    "devcontext:update": "npm run ios:refresh 2>&1 | tee devcontext/latest-ios-refresh-log.txt",
+    "devcontext:update": "bash scripts/devcontext-update.sh",
     "ios:clean": "rm -rf dist ios/App/App/public ios/App/DerivedData 2>/dev/null || true",
     "ios:reload": "rm -rf dist && npm run build && npx cap sync ios && npx cap run ios --target=\"iPhone 16e\"",
     "ios:logs": "xcrun simctl spawn booted log stream --level debug",

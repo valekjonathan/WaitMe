@@ -39,18 +39,17 @@ async function processOAuthUrl(url) {
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
     if (code) {
-      console.log('[AUTH FORENSIC 1] callback received');
-      console.log('[AUTH FORENSIC 2] exchange start, code length:', code.length);
+      console.log('[AUTH FINAL 1] callback processed');
       const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) {
-        console.log('[AUTH FORENSIC 3] exchange error:', error?.message);
+        console.log('[AUTH FINAL 2] exchange error:', error?.message);
         return false;
       }
-      console.log('[AUTH FORENSIC 3] exchange success');
+      console.log('[AUTH FINAL 2] exchange success');
       // Workaround Supabase #1566: forzar getSession+setSession para actualizar headers en iOS
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = !!sessionData?.session;
-      console.log('[AUTH FORENSIC 4] getSession after exchange:', hasSession);
+      console.log('[AUTH FINAL 3] getSession after exchange', hasSession);
       if (hasSession) {
         await supabase.auth.setSession({
           access_token: sessionData.session.access_token,

@@ -57,10 +57,10 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   const ensureUserInDb = useCallback(async (authUser) => {
-    console.log('[AUTH FORENSIC 7] ensureUserInDb start', authUser?.id);
+    console.log('[AUTH FINAL 6] ensureUserInDb start', authUser?.id);
     const supabase = getSupabase();
     if (!supabase || !authUser?.id) {
-      console.log('[AUTH FORENSIC 8] ensureUserInDb error: no supabase or authUser');
+      console.log('[AUTH FINAL 7] ensureUserInDb error: no supabase or authUser');
       return null;
     }
     const email = authUser.email ?? '';
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }) => {
           created_at: new Date().toISOString(),
         });
         if (insertErr) {
-          console.log('[AUTH FORENSIC 8] ensureUserInDb error: insert failed', insertErr?.message);
+          console.log('[AUTH FINAL 7] ensureUserInDb error: insert failed', insertErr?.message);
           return null;
         }
       }
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
         .eq('id', authUser.id)
         .maybeSingle();
 
-      console.log('[AUTH FORENSIC 8] ensureUserInDb success');
+      console.log('[AUTH FINAL 7] ensureUserInDb success');
       return {
         id: authUser.id,
         email: profile?.email || email,
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
         ...authUser,
       };
     } catch (err) {
-      console.log('[AUTH FORENSIC 8] ensureUserInDb error', err?.message);
+      console.log('[AUTH FINAL 7] ensureUserInDb error', err?.message);
       return null;
     }
   }, []);
@@ -125,14 +125,18 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
+        setIsLoadingAuth(false);
         return;
       }
-      console.log('[AUTH FORENSIC 6] applySession start', session.user.id);
+      console.log('[AUTH FINAL 5] applySession start', session.user.id);
+      setIsLoadingAuth(true);
       try {
         const appUser = await ensureUserInDb(session.user);
         if (appUser?.id) {
           setUser(appUser);
-          console.log('[AUTH FORENSIC 9] setUser called (appUser)', appUser.id);
+          console.log('[AUTH FINAL 8] fallback session.user used false');
+          console.log('[AUTH FINAL 9] setUser called true');
+          console.log('[AUTH FINAL 10] final user id', appUser.id);
           const supabase = getSupabase();
           if (supabase) {
             const { data: profileData } = await supabase
@@ -144,25 +148,26 @@ export const AuthProvider = ({ children }) => {
           }
           setIsAuthenticated(true);
           setAuthError(null);
-          console.log('[AUTH STEP] final user id', appUser.id);
         } else {
-          console.log('[AUTH STEP] ensureUserInDb returned null, fallback to session.user');
+          console.log('[AUTH FINAL 8] fallback session.user used true');
           setUser(session.user);
           setProfile({});
           setIsAuthenticated(true);
           setAuthError(null);
-          console.log('[AUTH STEP] setUser called (fallback)', session.user.id);
-          console.log('[AUTH STEP] final user id', session.user.id);
+          console.log('[AUTH FINAL 9] setUser called true');
+          console.log('[AUTH FINAL 10] final user id', session.user.id);
         }
       } catch (err) {
-        console.log('[AUTH STEP] ensureUserInDb error (catch)', err?.message);
-        console.log('[AUTH STEP] fallback to session.user');
+        console.log('[AUTH FINAL 7] ensureUserInDb error (catch)', err?.message);
+        console.log('[AUTH FINAL 8] fallback session.user used true');
         setUser(session.user);
         setProfile({});
         setIsAuthenticated(true);
         setAuthError(null);
-        console.log('[AUTH FORENSIC 9] setUser called (fallback)', session.user.id);
-        console.log('[AUTH FORENSIC 10] final user id', session.user.id);
+        console.log('[AUTH FINAL 9] setUser called true');
+        console.log('[AUTH FINAL 10] final user id', session.user.id);
+      } finally {
+        setIsLoadingAuth(false);
       }
     },
     [ensureUserInDb]
@@ -212,7 +217,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('[AUTH FORENSIC 5] SIGNED_IN received true, session:', !!session);
+        console.log('[AUTH FINAL 4] SIGNED_IN received', !!session);
         if (mounted && session) await applySession(session);
       } else if (event === 'SIGNED_OUT') {
         console.log('[AUTH FIX] auth state change SIGNED_OUT');

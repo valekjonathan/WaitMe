@@ -2,7 +2,7 @@
 > waitme-app@0.0.0 ios:refresh
 > bash scripts/ios-refresh.sh
 
-[ios:refresh] 2026-03-09 15:42:40 — Iniciando reinstalación completa (target: 277875BB-CD09-46B9-B5AC-D5D4EE890116)
+[ios:refresh] 2026-03-09 15:54:44 — Iniciando reinstalación completa (target: 277875BB-CD09-46B9-B5AC-D5D4EE890116)
 
 [ios:refresh] terminating old app...
 [ios:refresh] terminated old app
@@ -28,40 +28,40 @@ dist/index.html                                      0.92 kB │ gzip:   0.43 kB
 dist/assets/d2ae993d3_WaitMe-WlqS-RUG.png          486.88 kB
 dist/assets/mapbox-gl-Dv_zA2cU.css                  40.99 kB │ gzip:   5.60 kB
 dist/assets/index-oJZ_jkPp.css                      53.17 kB │ gzip:   9.91 kB
-dist/assets/index-CJIEo1dP.js                        0.32 kB │ gzip:   0.24 kB
-dist/assets/web-B3Ll3yFB-CONPOX8n.js                 0.37 kB │ gzip:   0.18 kB
-dist/assets/web-C1SVbQE9.js                          0.38 kB │ gzip:   0.25 kB
-dist/assets/credit-card-UUeJS_Bq.js                  0.38 kB │ gzip:   0.30 kB
-dist/assets/bell-BbkX7d6y.js                         0.46 kB │ gzip:   0.34 kB
-dist/assets/chevron-up-Cw_zEb_E.js                   0.55 kB │ gzip:   0.29 kB
-dist/assets/check-Ce0wX9QN.js                        0.66 kB │ gzip:   0.35 kB
-dist/assets/web-fqHzQD7j.js                          0.76 kB │ gzip:   0.35 kB
-dist/assets/useVehicleInterpolation-CI1qKGI7.js      0.95 kB │ gzip:   0.47 kB
-dist/assets/web-DekONkMB.js                          1.25 kB │ gzip:   0.58 kB
-dist/assets/switch-DekAhzZo.js                       2.45 kB │ gzip:   1.23 kB
-dist/assets/NotificationSettings-WsiBtilV.js         5.39 kB │ gzip:   1.48 kB
-dist/assets/Settings-BSjjjwOJ.js                     9.03 kB │ gzip:   2.77 kB
-dist/assets/Notifications-CQDLcJu1.js               13.75 kB │ gzip:   4.48 kB
-dist/assets/Chat-DPDkMKs4.js                        16.17 kB │ gzip:   5.85 kB
-dist/assets/Chats-B0MS6yp1.js                       31.14 kB │ gzip:   9.37 kB
-dist/assets/Navigate-ChNs5UNL.js                    31.76 kB │ gzip:  10.41 kB
-dist/assets/Profile-Cwm8T1KM.js                     63.95 kB │ gzip:  21.83 kB
-dist/assets/History-DH5iKp8w.js                     93.39 kB │ gzip:  20.81 kB
-dist/assets/index-BtebpW_p.js                      795.49 kB │ gzip: 241.83 kB
-dist/assets/mapbox-gl-DOJdyppj.js                1,696.55 kB │ gzip: 467.66 kB
+dist/assets/index-DvU3ucvs.js                        0.32 kB │ gzip:   0.24 kB
+dist/assets/web-B3Ll3yFB-BhfubLR-.js                 0.37 kB │ gzip:   0.18 kB
+dist/assets/web-CAuMgNAz.js                          0.38 kB │ gzip:   0.25 kB
+dist/assets/credit-card-HaPlbwgo.js                  0.38 kB │ gzip:   0.30 kB
+dist/assets/bell-DRDpzvsc.js                         0.46 kB │ gzip:   0.34 kB
+dist/assets/chevron-up-qhAcuDy8.js                   0.55 kB │ gzip:   0.29 kB
+dist/assets/check-D3tC41Qz.js                        0.66 kB │ gzip:   0.35 kB
+dist/assets/web-2CIyjLVI.js                          0.76 kB │ gzip:   0.36 kB
+dist/assets/useVehicleInterpolation-C8dSF-8L.js      0.95 kB │ gzip:   0.47 kB
+dist/assets/web-4FF31fH7.js                          1.25 kB │ gzip:   0.58 kB
+dist/assets/switch-CaStoFs7.js                       2.45 kB │ gzip:   1.23 kB
+dist/assets/NotificationSettings-DKKMFJod.js         5.39 kB │ gzip:   1.48 kB
+dist/assets/Settings-C3LRYBib.js                     9.03 kB │ gzip:   2.77 kB
+dist/assets/Notifications-kvBARqSZ.js               13.75 kB │ gzip:   4.49 kB
+dist/assets/Chat-CnHwWeEl.js                        16.17 kB │ gzip:   5.85 kB
+dist/assets/Chats-BlWNOkJw.js                       31.14 kB │ gzip:   9.37 kB
+dist/assets/Navigate-DuRMhyl0.js                    31.76 kB │ gzip:  10.42 kB
+dist/assets/Profile-BNMhw_di.js                     63.95 kB │ gzip:  21.83 kB
+dist/assets/History-Dah1wY4q.js                     93.39 kB │ gzip:  20.81 kB
+dist/assets/index-CDvy_ORk.js                      795.40 kB │ gzip: 241.75 kB
+dist/assets/mapbox-gl-DVBOrZJH.js                1,696.55 kB │ gzip: 467.66 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 4.53s
+✓ built in 4.22s
 [ios:refresh] built web
 
 [ios:refresh] syncing ios...
-✔ Copying web assets from dist to ios/App/App/public in 6.88ms
-✔ Creating capacitor.config.json in ios/App/App in 247.17μs
-✔ copy ios in 30.33ms
-✔ Updating iOS plugins in 3.31ms
+✔ Copying web assets from dist to ios/App/App/public in 7.77ms
+✔ Creating capacitor.config.json in ios/App/App in 315.21μs
+✔ copy ios in 32.21ms
+✔ Updating iOS plugins in 3.79ms
 [info] All plugins have a Package.swift file and will be included in Package.swift
 [info] Writing Package.swift
 [info] Found 5 Capacitor plugins for ios:
@@ -70,16 +70,16 @@ dist/assets/mapbox-gl-DOJdyppj.js                1,696.55 kB │ gzip: 467.66 kB
        @capacitor/inappbrowser@3.0.2
        @capacitor/preferences@8.0.1
        @capacitor/status-bar@8.0.1
-✔ update ios in 23.34ms
-[info] Sync finished in 0.076s
+✔ update ios in 24.22ms
+[info] Sync finished in 0.079s
 [ios:refresh] synced ios
 
 [ios:refresh] installing and launching fresh app...
-✔ Copying web assets from dist to ios/App/App/public in 35.49ms
-✔ Creating capacitor.config.json in ios/App/App in 633.67μs
+✔ Copying web assets from dist to ios/App/App/public in 8.01ms
+✔ Creating capacitor.config.json in ios/App/App in 330.54μs
 [info] Inlining sourcemaps
-✔ copy ios in 93.94ms
-✔ Updating iOS plugins in 3.55ms
+✔ copy ios in 31.75ms
+✔ Updating iOS plugins in 3.47ms
 [info] All plugins have a Package.swift file and will be included in Package.swift
 [info] Writing Package.swift
 [info] Found 5 Capacitor plugins for ios:
@@ -88,15 +88,15 @@ dist/assets/mapbox-gl-DOJdyppj.js                1,696.55 kB │ gzip: 467.66 kB
        @capacitor/inappbrowser@3.0.2
        @capacitor/preferences@8.0.1
        @capacitor/status-bar@8.0.1
-✔ update ios in 23.28ms
-✔ Running xcodebuild in 1.46s
-✔ Deploying App.app to 277875BB-CD09-46B9-B5AC-D5D4EE890116 in 741.13ms
+✔ update ios in 20.82ms
+✔ Running xcodebuild in 6.71s
+✔ Deploying App.app to 277875BB-CD09-46B9-B5AC-D5D4EE890116 in 831.57ms
 [ios:refresh] launched fresh app
 
 [ios:refresh] ensuring app is launched...
-com.waitme.app: 90297
+com.waitme.app: 97869
 
 ==========================================
-[ios:refresh] timestamp final: 2026-03-09 15:42:49
+[ios:refresh] timestamp final: 2026-03-09 15:54:58
 [ios:refresh] DONE — fresh build installed and launched
 ==========================================
