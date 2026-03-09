@@ -33,17 +33,16 @@ async function processOAuthUrl(url) {
   const hashIdx = url.indexOf('#');
   const queryIdx = url.indexOf('?');
 
-  // PKCE: ?code=xxx
-  if (queryIdx !== -1) {
-    const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
-    const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
-    const code = params.get('code');
-    if (code) {
-      console.log('[AUTH FIX] oauth callback detected');
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-      console.log('[AUTH FIX] exchange executed', error ? `error: ${error.message}` : 'success');
-      return !error;
+  // PKCE: ?code=xxx — usar URL completa (requerido en iOS)
+  if (queryIdx !== -1 && url.includes('code=')) {
+    console.log('[AUTH FIX] oauth callback detected');
+    const { error } = await supabase.auth.exchangeCodeForSession(url);
+    console.log('[AUTH FIX] exchange executed', error ? `error: ${error.message}` : 'success');
+    if (!error) {
+      const { data } = await supabase.auth.getSession();
+      console.log('[AUTH FIX] session exists:', !!data?.session);
     }
+    return !error;
   }
 
   // Implicit: #access_token=...&refresh_token=...

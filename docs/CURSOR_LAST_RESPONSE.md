@@ -24,34 +24,31 @@ Convertir WaitMe para que ChatGPT pueda seguir el proyecto desde GitHub. Crear d
 
 ## Resumen exacto de lo hecho
 
-- Creado docs/MAP_STATUS.md
-- Actualizados docs con formato obligatorio ampliado
-- Creado docs/LIVE_CONTEXT_SUMMARY.md
-- Generado tmp/waitme-live-context.zip
-- Intentada captura tmp/latest-simulator.png
-- Actualizada regla .cursor/rules/live-context-protocol.mdc (alwaysApply)
+- Creada carpeta devcontext/ (tracked, sube a GitHub)
+- ZIP movido a devcontext/waitme-live-context.zip (~2 MB)
+- Screenshots en devcontext/latest-simulator.png, latest-simulator-after-login.png
+- project-tree.txt en devcontext/
+- scripts/gen-project-tree.sh creado
+- Regla live-context-protocol actualizada: devcontext, commit+push
 
 ---
 
 ## Archivos tocados
 
-- docs/CURSOR_LAST_RESPONSE.md (actualizado)
-- docs/DEV_STATUS.md (actualizado)
-- docs/AUTH_STATUS.md (actualizado)
-- docs/IOS_RUNTIME_STATUS.md (actualizado)
-- docs/HOME_STATUS.md (actualizado)
-- docs/MAP_STATUS.md (creado)
-- docs/LIVE_CONTEXT_SUMMARY.md (creado)
-- .cursor/rules/live-context-protocol.mdc (creado)
-- .cursor/rules/update-status-docs.mdc (reemplazado por live-context-protocol)
+- devcontext/ (creada): waitme-live-context.zip, latest-simulator.png, latest-simulator-after-login.png, project-tree.txt, README.md
+- scripts/gen-project-tree.sh (creado)
+- .cursor/rules/live-context-protocol.mdc (actualizado)
+- docs/DEV_STATUS.md, IOS_RUNTIME_STATUS.md, LIVE_CONTEXT_SUMMARY.md (actualizados)
 
 ---
 
 ## Comandos ejecutados
 
-- mkdir -p tmp
-- zip -r tmp/waitme-live-context.zip src scripts docs package.json capacitor.config.ts vite.config.js ...
-- xcrun simctl io booted screenshot tmp/latest-simulator.png
+- mkdir -p devcontext
+- zip -r devcontext/waitme-live-context.zip src scripts docs ...
+- xcrun simctl io booted screenshot devcontext/latest-simulator.png
+- find ... > devcontext/project-tree.txt
+- git add docs devcontext && git commit -m "devcontext update" && git push origin main
 
 ---
 
@@ -63,7 +60,7 @@ Convertir WaitMe para que ChatGPT pueda seguir el proyecto desde GitHub. Crear d
 
 ## Resultado real
 
-Protocolo "contexto vivo" implementado. Regla live-context-protocol.mdc con alwaysApply. ZIP generado. Screenshot depende de simulador activo.
+devcontext/ creada y subida a GitHub. ChatGPT puede leer ZIP, screenshots y project-tree desde el repo. Commit 457e4420 pushed.
 
 ---
 
