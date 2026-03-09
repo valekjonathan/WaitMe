@@ -1,16 +1,16 @@
 # Auth Log — WaitMe
-# Copiar [AUTH FINAL 1-12] desde Xcode/Safari Console tras probar Login Google.
+# Copiar [AUTH LOAD 1-12] desde Xcode/Safari Console tras probar Login o arranque.
 # ---
-# [AUTH FINAL 1] callback processed
-# [AUTH FINAL 2] exchange success/error
-# [AUTH FINAL 3] getSession after exchange true/false
-# [AUTH FINAL 4] SIGNED_IN received true/false
-# [AUTH FINAL 5] applySession start
-# [AUTH FINAL 6] ensureUserInDb start
-# [AUTH FINAL 7] ensureUserInDb success/error
-# [AUTH FINAL 8] fallback session.user used true/false
-# [AUTH FINAL 9] setUser called true/false
-# [AUTH FINAL 10] final user id
-# [AUTH FINAL 11] router -> login/home
-# [AUTH FINAL 12] exact redirect reason
+# [AUTH LOAD 1] mounted
+# [AUTH LOAD 2] getSession start
+# [AUTH LOAD 3] getSession session exists true/false
+# [AUTH LOAD 4] applySession start
+# [AUTH LOAD 5] ensureUserInDb start
+# [AUTH LOAD 6] ensureUserInDb success/error
+# [AUTH LOAD 7] fallback session.user used true/false
+# [AUTH LOAD 8] setUser called true/false
+# [AUTH LOAD 9] setIsLoadingAuth false
+# [AUTH LOAD 10] final auth state
+# [AUTH LOAD 11] App router loading/login/home
+# [AUTH LOAD 12] exact redirect reason
 # ---
