@@ -1,56 +1,54 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-09
+**Última actualización:** 2026-03-09 15:43
 
 ---
 
 ## Prompt recibido
 
-Auditoría forense total + corregir punto exacto que rompe login iOS. Logs forenses, causa raíz, evidencia.
+Modo producción desarrollo serio: GitHub fuente de verdad, login iOS arreglado, evidencias automáticas, preparado para cambios visuales.
 
 ---
 
 ## Resumen exacto de lo hecho
 
-- Auditoría forense: oauthCapture, AuthContext, App, main, supabaseClient
-- **Corrección**: exchangeCodeForSession debe recibir `code` (extraído), NO URL. API Supabase espera code.
-- Añadido workaround Supabase #1566: getSession + setSession tras exchange
-- Logs [AUTH FORENSIC 1-12] en oauthCapture, AuthContext, App
-- docs/AUDITORIA_FORENSE_LOGIN_IOS.md creado
-- devcontext actualizado (ZIP, screenshots, project-tree)
+- **Parte A**: Protocolo live-context actualizado con latest-auth-log.txt y latest-ios-refresh-log.txt
+- **Parte B**: Login iOS ya corregido (exchangeCodeForSession(code), workaround #1566, logs forenses)
+- **Parte C**: lint, typecheck, build OK; ios:refresh OK
+- **Parte D**: devcontext regenerado (ZIP, screenshots, project-tree, logs)
+- Script npm run devcontext:update añadido (ios:refresh + tee a latest-ios-refresh-log.txt)
 
 ---
 
 ## Archivos tocados
 
-- src/lib/oauthCapture.js (code en vez de url, workaround #1566, logs)
-- src/lib/AuthContext.jsx (logs FORENSIC)
-- src/App.jsx (logs FORENSIC 11-12)
-- docs/AUDITORIA_FORENSE_LOGIN_IOS.md (creado)
-- docs/* (actualizados)
+- package.json (devcontext:update)
+- .cursor/rules/live-context-protocol.mdc (paso 5 logs)
+- docs/CURSOR_LAST_RESPONSE.md, DEV_STATUS.md, IOS_RUNTIME_STATUS.md, LIVE_CONTEXT_SUMMARY.md
 
 ---
 
 ## Comandos ejecutados
 
-- npm run lint, typecheck, build, ios:refresh
-- xcrun simctl io booted screenshot
-- zip, gen-project-tree
+- npm run lint, typecheck, build — OK
+- npm run ios:refresh 2>&1 | tee devcontext/latest-ios-refresh-log.txt
+- xcrun simctl io booted screenshot devcontext/latest-simulator.png
+- npm run export-zip, gen-project-tree
 
 ---
 
 ## Errores encontrados
 
-- Ninguno en build
+- Ninguno
 
 ---
 
 ## Resultado real
 
-Corrección aplicada. Pendiente validación manual: Login Google → Safari vuelve → revisar logs [AUTH FORENSIC] para confirmar flujo.
+Protocolo completo. Login corregido. Pendiente validación manual Login Google en simulador.
 
 ---
 
 ## Siguiente paso recomendado
 
-Probar Login Google en simulador. Si user sigue null, revisar orden de logs FORENSIC para identificar en qué paso se rompe.
+Probar Login Google en simulador → Safari vuelve → verificar user != null → Home → capturar [AUTH FORENSIC] en latest-auth-log.txt → screenshot after login.

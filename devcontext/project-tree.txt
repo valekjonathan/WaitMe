@@ -73,6 +73,8 @@
 ./devcontext
 ./devcontext/.gitkeep
 ./devcontext/README.md
+./devcontext/latest-auth-log.txt
+./devcontext/latest-ios-refresh-log.txt
 ./devcontext/latest-simulator-after-login.png
 ./devcontext/latest-simulator.png
 ./devcontext/project-tree.txt
@@ -596,5 +598,3 @@
 ./src/lib/mapLayers
 ./src/lib/mapLayers/geojsonUtils.js
 ./src/lib/mapLayers/index.js
-./src/lib/mapLayers/interpolatePosition.js
-./src/lib/mapLayers/layers.js

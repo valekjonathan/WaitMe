@@ -34,7 +34,8 @@
 
 - **Ruta:** devcontext/waitme-live-context.zip
 - **Tamaño:** ~2 MB
-- **Timestamp generación:** 2026-03-09
+- **Timestamp generación:** 2026-03-09 15:43
+- **Logs:** devcontext/latest-ios-refresh-log.txt, devcontext/latest-auth-log.txt
 - **Nota:** devcontext/ se sube a GitHub. ChatGPT puede leer desde el repo.
 
 ---

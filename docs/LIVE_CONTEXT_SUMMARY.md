@@ -41,7 +41,9 @@
 
 - **ZIP:** devcontext/waitme-live-context.zip (~2 MB)
 - **Screenshot:** devcontext/latest-simulator.png
+- **After login:** devcontext/latest-simulator-after-login.png
 - **Tree:** devcontext/project-tree.txt
+- **Logs:** devcontext/latest-ios-refresh-log.txt, devcontext/latest-auth-log.txt
 
 ---
 

@@ -35,14 +35,19 @@ Después de **cualquier cambio relevante** (funcional, visual, auth, mapa, iOS, 
 ## 4. Generar project-tree
 
 - Ruta: devcontext/project-tree.txt
-- Comando: bash scripts/gen-project-tree.sh (o tree -L 4 si está instalado)
+- Comando: bash scripts/gen-project-tree.sh
 
-## 5. Commit y push
+## 5. Generar logs
+
+- devcontext/latest-ios-refresh-log.txt: npm run ios:refresh 2>&1 | tee devcontext/latest-ios-refresh-log.txt
+- devcontext/latest-auth-log.txt: plantilla con instrucciones; usuario copia [AUTH FORENSIC] desde consola tras probar login
+
+## 6. Commit y push
 
 - git add docs devcontext
 - git commit -m "devcontext update"
 - git push origin main
 
-## 6. Regla de exclusión
+## 7. Regla de exclusión
 
 Si el cambio es irrelevante o puramente conversacional, no ejecutar protocolo.
