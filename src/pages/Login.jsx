@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { InAppBrowser } from '@capacitor/inappbrowser';
 import { getSupabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
+import { getAuthDebug } from '@/lib/authTrace';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
 const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.location.origin;
@@ -11,6 +13,62 @@ const OAUTH_REDIRECT_WEB = import.meta.env.VITE_PUBLIC_APP_URL || window.locatio
 const OAUTH_REDIRECT_IOS_NATIVE = 'com.waitme.app://auth/callback';
 const OAUTH_REDIRECT_CAPACITOR =
   import.meta.env.VITE_OAUTH_REDIRECT_IOS || OAUTH_REDIRECT_IOS_NATIVE;
+
+function AuthDebugPanel() {
+  const { user, isLoadingAuth, isAuthenticated, authError } = useAuth();
+  const d = getAuthDebug();
+  const show = import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true';
+  if (!show) return null;
+  const rows = [
+    { label: 'callbackReceived', value: d.callbackReceived ?? '?' },
+    { label: 'exchangeSuccess', value: d.exchangeSuccess ?? '?' },
+    { label: 'sessionExists', value: d.sessionExists ?? '?' },
+    { label: 'authContextUser', value: !!user?.id },
+    { label: 'lastAuthStateEvent', value: d.lastAuthStateEvent ?? '-' },
+    { label: 'currentRoute', value: d.currentRoute ?? 'login' },
+    { label: 'redirectReason', value: d.redirectReason ?? '-' },
+    { label: 'storageBackend', value: d.storageBackend ?? '-' },
+    { label: 'oauthProcessedBy', value: d.oauthProcessedBy ?? '-' },
+    { label: 'lastAuthError', value: authError?.message ?? d.lastAuthError ?? '-' },
+    { label: 'isLoadingAuth', value: String(isLoadingAuth) },
+    { label: 'isAuthenticated', value: String(isAuthenticated) },
+  ];
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        maxHeight: '40vh',
+        overflow: 'auto',
+        background: 'rgba(0,0,0,0.95)',
+        color: '#94a3b8',
+        fontSize: 10,
+        fontFamily: 'monospace',
+        padding: 8,
+        borderTop: '1px solid #334155',
+        zIndex: 9999,
+      }}
+    >
+      <div style={{ fontWeight: 'bold', marginBottom: 4, color: '#fbbf24' }}>
+        [AUTH DEBUG] TEMPORAL — SOLO DEV
+      </div>
+      {rows.map((r) => (
+        <div key={r.label} style={{ display: 'flex', gap: 8 }}>
+          <span style={{ minWidth: 140 }}>{r.label}:</span>
+          <span
+            style={{
+              color: typeof r.value === 'boolean' ? (r.value ? '#4ade80' : '#f87171') : undefined,
+            }}
+          >
+            {String(r.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -141,6 +199,7 @@ export default function Login() {
           </button>
         </div>
       </div>
+      <AuthDebugPanel />
     </div>
   );
 }

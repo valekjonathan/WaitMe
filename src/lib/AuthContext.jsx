@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { getSupabase, clearSupabaseAuthStorage } from '@/lib/supabaseClient';
+import { authTrace, updateAuthDebug } from '@/lib/authTrace';
 
 // DEV AUTO LOGIN
 // Only active during local development (npm run dev)
@@ -157,6 +158,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
+      updateAuthDebug({ authContextUser: false });
       return;
     }
     if (authInFlightRef.current) {
@@ -168,12 +170,22 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      OAUTH_LOG(
-        'getSession restored:',
+      authTrace(
+        7,
+        'AuthContext.jsx',
+        'resolveSession',
+        'getSession restored',
         !!sessionData?.session,
-        'user:',
         sessionData?.session?.user?.email
       );
+      authTrace(
+        11,
+        'AuthContext.jsx',
+        'resolveSession',
+        'persisted storage check',
+        !!sessionData?.session
+      );
+      updateAuthDebug({ sessionExists: !!sessionData?.session });
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -182,6 +194,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setProfile(null);
         setIsAuthenticated(false);
+        updateAuthDebug({ authContextUser: false });
         return;
       }
       OAUTH_LOG('resolveSession: user found', authUser.email);
@@ -193,6 +206,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       setUser(appUser);
+      updateAuthDebug({ authContextUser: true });
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -216,7 +230,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
-      setAuthError({ type: 'unknown', message: error?.message || 'Error de autenticación' });
+      const errMsg = error?.message || 'Error de autenticación';
+      setAuthError({ type: 'unknown', message: errMsg });
+      updateAuthDebug({ authContextUser: false, lastAuthError: errMsg });
     } finally {
       setIsLoadingAuth(false);
       authInFlightRef.current = false;
@@ -239,7 +255,8 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      OAUTH_LOG('onAuthStateChange event:', event);
+      authTrace(8, 'AuthContext.jsx', 'onAuthStateChange', 'event', event);
+      updateAuthDebug({ lastAuthStateEvent: event });
       if (event === 'INITIAL_SESSION') {
         setIsLoadingAuth(false);
         return;

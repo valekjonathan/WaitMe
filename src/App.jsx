@@ -8,17 +8,26 @@ import LocationEngineStarter from '@/components/LocationEngineStarter';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
+import { authTrace, updateAuthDebug } from '@/lib/authTrace';
 
 function AuthRouter() {
   const { user, isLoadingAuth } = useAuth();
 
   if (isLoadingAuth) {
+    authTrace(9, 'App.jsx', 'AuthRouter', 'auth check -> loading');
     return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;
   }
 
   if (!user?.id) {
+    authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> login (user null)');
+    authTrace(12, 'App.jsx', 'AuthRouter', 'final route -> login');
+    updateAuthDebug({ redirectReason: 'user null', currentRoute: 'login' });
     return <Login />;
   }
+
+  authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> home');
+  authTrace(12, 'App.jsx', 'AuthRouter', 'final route -> home');
+  updateAuthDebug({ redirectReason: 'user ok', currentRoute: 'home' });
 
   return (
     <>
@@ -49,13 +58,9 @@ export default function App() {
 
   useEffect(() => {
     const onOAuthSuccess = async () => {
-      if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
-        console.log('[OAuth] onSuccess → checkUserAuth');
-      }
+      authTrace(9, 'App.jsx', 'onOAuthComplete', 'onSuccess -> checkUserAuth');
       await checkUserAuth();
-      if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
-        console.log('[OAuth] onSuccess → navigate');
-      }
+      authTrace(10, 'App.jsx', 'onOAuthComplete', 'onSuccess -> navigate /');
       navigate('/', { replace: true });
     };
 

@@ -7,6 +7,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
+import { updateAuthDebug } from '@/lib/authTrace';
 
 let _client = null;
 
@@ -31,7 +32,7 @@ function getAuthOptions() {
   };
   try {
     if (typeof Capacitor !== 'undefined' && typeof Preferences !== 'undefined') {
-      console.log('[Supabase] storage: capacitor-preferences');
+      updateAuthDebug({ storageBackend: 'capacitor-preferences' });
       return {
         ...base,
         storage: capacitorStorage,
@@ -41,6 +42,7 @@ function getAuthOptions() {
   } catch {
     /* Capacitor no disponible: usar storage por defecto */
   }
+  updateAuthDebug({ storageBackend: 'default' });
   return base;
 }
 

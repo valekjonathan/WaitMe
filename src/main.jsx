@@ -2,6 +2,7 @@ import './dev/diagnostics';
 import './system/diagnostics/waitmeDiagnostics';
 import './dev/layoutInspector';
 import { initOAuthCapture } from './lib/oauthCapture';
+import { authTrace } from './lib/authTrace';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
@@ -49,6 +50,7 @@ const RENDER_LOG = (msg, extra) => {
   }
 };
 
+authTrace(1, 'main.jsx', 'boot', 'app launched');
 initOAuthCapture();
 
 const rootEl = document.getElementById('root');

@@ -8,6 +8,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { getSupabase } from '@/lib/supabaseClient';
+import { authTrace, updateAuthDebug } from '@/lib/authTrace';
 
 const ALLOWED_PREFIXES = [
   'capacitor://localhost',
@@ -24,9 +25,9 @@ const OAUTH_LOG = (msg, ...args) => {
 };
 
 async function processOAuthUrl(url) {
-  OAUTH_LOG('processOAuthUrl start, url:', url || '(empty)');
+  authTrace(4, 'oauthCapture.js', 'processOAuthUrl', 'processOAuthUrl start', url || '(empty)');
   if (!url || !ALLOWED_PREFIXES.some((p) => url.startsWith(p))) {
-    OAUTH_LOG('URL rejected (not in allowed list)');
+    authTrace(4, 'oauthCapture.js', 'processOAuthUrl', 'URL rejected (not in allowed list)');
     return false;
   }
   try {
@@ -49,25 +50,46 @@ async function processOAuthUrl(url) {
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
     if (code) {
-      OAUTH_LOG('exchangeCodeForSession executing...');
+      authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession executing');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        OAUTH_LOG('exchangeCodeForSession success');
+        authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession success');
         const session = data?.session;
-        OAUTH_LOG(
-          'session after exchange:',
+        authTrace(
+          6,
+          'oauthCapture.js',
+          'processOAuthUrl',
+          'session after exchange',
           !!session,
-          'user:',
-          session?.user?.email ?? session?.user?.id ?? 'null'
+          session?.user?.email ?? session?.user?.id
         );
         const { data: s } = await supabase.auth.getSession();
-        OAUTH_LOG('getSession after exchange:', !!s?.session);
+        authTrace(
+          6,
+          'oauthCapture.js',
+          'processOAuthUrl',
+          'getSession after exchange',
+          !!s?.session
+        );
+        updateAuthDebug({
+          exchangeSuccess: true,
+          sessionExists: !!s?.session,
+          oauthProcessedBy: 'oauthCapture.js',
+        });
         window.__WAITME_OAUTH_COMPLETE = true;
         window.dispatchEvent(new CustomEvent('waitme:oauth-complete'));
-        OAUTH_LOG('oauth complete event dispatched');
+        authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
         return true;
       }
-      console.error('[OAuth] exchangeCodeForSession failed:', error?.message, error?.code);
+      authTrace(
+        5,
+        'oauthCapture.js',
+        'processOAuthUrl',
+        'exchangeCodeForSession error',
+        error?.message,
+        error?.code
+      );
+      updateAuthDebug({ exchangeSuccess: false, lastAuthError: error?.message });
     }
   }
 
@@ -80,11 +102,16 @@ async function processOAuthUrl(url) {
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (!error) {
-        OAUTH_LOG('setSession success');
-        OAUTH_LOG('session after setSession:', true);
+        authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'setSession success');
+        authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'session after setSession', true);
+        updateAuthDebug({
+          exchangeSuccess: true,
+          sessionExists: true,
+          oauthProcessedBy: 'oauthCapture.js',
+        });
         window.__WAITME_OAUTH_COMPLETE = true;
         window.dispatchEvent(new CustomEvent('waitme:oauth-complete'));
-        OAUTH_LOG('oauth complete event dispatched');
+        authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
         return true;
       }
     }
@@ -97,16 +124,25 @@ export function initOAuthCapture() {
   (async () => {
     try {
       CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
-        OAUTH_LOG('appUrlOpen received:', url || '(empty)');
+        authTrace(
+          3,
+          'oauthCapture.js',
+          'initOAuthCapture',
+          'appUrlOpen received',
+          url || '(empty)'
+        );
+        updateAuthDebug({ callbackReceived: !!url, callbackSource: 'appUrlOpen' });
         await processOAuthUrl(url);
       });
       const { url } = await CapacitorApp.getLaunchUrl();
+      authTrace(2, 'oauthCapture.js', 'initOAuthCapture', 'getLaunchUrl result', url || '(empty)');
       if (url) {
-        OAUTH_LOG('getLaunchUrl received:', url);
+        updateAuthDebug({ callbackReceived: true, callbackSource: 'getLaunchUrl' });
         await processOAuthUrl(url);
       }
     } catch (e) {
-      console.error('[OAuth] initOAuthCapture error:', e);
+      authTrace(2, 'oauthCapture.js', 'initOAuthCapture', 'getLaunchUrl/init error', e?.message);
+      updateAuthDebug({ lastAuthError: e?.message });
     }
   })();
 }
