@@ -1,18 +1,18 @@
 # Resumen Técnico Único — WaitMe
 
-**Última actualización:** 2026-03-09 20:29
+**Última actualización:** 2026-03-09 20:59
 
 ---
 
 ## Qué se cambió
 
-- ios-refresh.sh: unset + export vacío de CAP_* vars al inicio
-- Eliminación forzada de server en capacitor.config.json si cap sync lo inyecta
-- Verificación: `[ios:refresh] runtime server url: NONE (build local OK)`
+- Login.jsx: botón "Entrar en modo test" solo en simulador iOS (VITE_IOS_DEV_BUILD=1)
+- AuthContext: loginAsSimulatorTest() para bypass sin OAuth/passkey
+- docs: AUTH_STATUS, DEV_STATUS, IOS_RUNTIME_STATUS
 
 ---
 
 ## Qué corrige
 
-- ERR_CONNECTION_REFUSED resuelto: app usa bundle local empaquetada
-- Simulador muestra Login correctamente
+- Evita flujo passkey de Google en simulador (no fiable)
+- Login alternativo en modo test para pruebas sin passkeys

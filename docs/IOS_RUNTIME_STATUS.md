@@ -1,6 +1,13 @@
 # Estado iOS Runtime — WaitMe
 
-**Última actualización:** 2026-03-09 20:29
+**Última actualización:** 2026-03-09 20:59
+
+---
+
+## Login simulador (evitar passkey)
+
+- Botón "Entrar en modo test" visible solo en build VITE_IOS_DEV_BUILD=1 (ios:refresh).
+- No afecta login Google real en iPhone físico ni producción.
 
 ---
 
@@ -12,9 +19,9 @@
 
 ---
 
-## último ios:refresh (2026-03-09 20:28)
+## último ios:refresh (2026-03-09 20:58)
 
 - Exit: 0
 - runtime server url: NONE (build local OK)
-- Estado simulador: Login
+- Estado simulador: Login con botón "Entrar en modo test"
 - Screenshot: devcontext/latest-simulator.png

@@ -1,6 +1,15 @@
 # Estado Auth — WaitMe
 
-**Última actualización:** 2026-03-09 20:29
+**Última actualización:** 2026-03-09 20:59
+
+---
+
+## Login alternativo en simulador (evitar passkey)
+
+- **Botón "Entrar en modo test"**: solo visible en simulador iOS (build con VITE_IOS_DEV_BUILD=1). Evita passkey de Google.
+- **Detección**: Capacitor.isNativePlatform() && platform === 'ios' && (VITE_IOS_DEV_BUILD=1 || VITE_IOS_SIMULATOR=true).
+- **Activa**: loginAsSimulatorTest() → DEV_MOCK_USER, sin OAuth. Nunca en producción.
+- **Docs**: docs/DEV_STATUS.md, docs/AUTH_STATUS.md.
 
 ---
 

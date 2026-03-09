@@ -1,33 +1,32 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-09 20:29
+**Última actualización:** 2026-03-09 20:59
 
 ---
 
 ## Prompt recibido
 
-Cerrar ERR_CONNECTION_REFUSED en simulador. Forzar que la app use SOLO el bundle local empaquetado.
+Evitar passkey de Google en simulador iOS. Añadir login alternativo sin passkeys.
 
 ---
 
 ## Resumen exacto de lo hecho
 
-- **ios-refresh.sh**: unset + export vacío de CAP_LIVE_RELOAD, CAPACITOR_USE_DEV_SERVER, CAPACITOR_DEV_SERVER_URL al inicio
-- **Limpieza server.url**: si cap sync inyecta server en ios/App/App/capacitor.config.json, node -e lo elimina
-- **Verificación**: imprime `[ios:refresh] runtime server url: NONE (build local OK)` o WARNING
-- **capacitor.config.ts**: server.url solo cuando useLiveReload (CAP_LIVE_RELOAD o CAPACITOR_USE_DEV_SERVER = true)
+- **Login.jsx**: botón "Entrar en modo test" visible solo cuando isSimulatorDevBuild() (Capacitor iOS + VITE_IOS_DEV_BUILD=1)
+- **AuthContext**: loginAsSimulatorTest() → setUser(DEV_MOCK_USER), setProfile(DEV_MOCK_PROFILE), isAuthenticated true
+- **Detección**: Capacitor.isNativePlatform() && platform === 'ios' && (VITE_IOS_DEV_BUILD=1 || VITE_IOS_SIMULATOR=true)
+- Login Google real intacto para iPhone físico y producción
 
 ---
 
-## Causa del fallo
+## Opción elegida
 
-- Shell con CAPACITOR_USE_DEV_SERVER=true (p.ej. de ios:auto o sesión previa) → cap sync generaba config con server.url
-- La app instalada intentaba cargar desde localhost → ERR_CONNECTION_REFUSED
+- **A) Botón "Entrar en modo test"** — explícito, profesional, reversible. Solo visible en simulador.
 
 ---
 
-## Corrección aplicada
+## Archivos modificados
 
-- Líneas 9-16: unset + export vacío de las 3 vars
-- Líneas 55-76: verificación y eliminación de server en capacitor.config.json tras cap sync
-- node -e recibe $CAP_CONFIG como process.argv[1] para eliminar server correctamente
+- src/pages/Login.jsx
+- src/lib/AuthContext.jsx
+- docs/AUTH_STATUS.md, docs/DEV_STATUS.md, docs/IOS_RUNTIME_STATUS.md, docs/LIVE_CONTEXT_SUMMARY.md, docs/CURSOR_LAST_RESPONSE.md

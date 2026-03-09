@@ -1,6 +1,14 @@
 # Estado Global del Proyecto — WaitMe
 
-**Última actualización:** 2026-03-09 20:29
+**Última actualización:** 2026-03-09 20:59
+
+---
+
+## Login simulador (evitar passkey)
+
+- **Botón "Entrar en modo test"**: solo en simulador iOS (VITE_IOS_DEV_BUILD=1). Evita flujo passkey de Google.
+- **Detección**: Capacitor iOS + VITE_IOS_DEV_BUILD=1 (ios:refresh). Nunca en producción.
+- **Bypass**: loginAsSimulatorTest() → DEV_MOCK_USER. No afecta login Google real en iPhone físico.
 
 ---
 
@@ -13,7 +21,8 @@
 
 ---
 
-## Estado simulador (captura 20:28)
+## Estado simulador (captura 20:58)
 
 - **Login** — app carga correctamente desde bundle local
+- **Botón "Entrar en modo test"** visible — evita passkey de Google
 - devcontext/latest-simulator.png
