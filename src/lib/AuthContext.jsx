@@ -98,18 +98,25 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const authInFlightRef = useRef(false);
 
-  const ensureUserInDb = useCallback(async (authUser) => {
+  const ensureUserInDb = useCallback(async (authUser, retryCount = 0) => {
     const supabase = getSupabase();
     if (!supabase || !authUser?.id) return null;
     const email = authUser.email ?? '';
     const fullName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? '';
     const avatarUrl = authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '';
 
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
       .maybeSingle();
+
+    if (selectError && retryCount < 1) {
+      console.log('[AUTH FINAL] ensureUserInDb error, retrying after 500ms', selectError?.message);
+      await new Promise((r) => setTimeout(r, 500));
+      return ensureUserInDb(authUser, retryCount + 1);
+    }
+    if (selectError) throw selectError;
 
     if (!existing) {
       const { error } = await supabase.from('profiles').insert({
@@ -169,6 +176,25 @@ export const AuthProvider = ({ children }) => {
     setIsLoadingAuth(true);
     setAuthError(null);
     try {
+      // OAuth completado antes de montar: usar sesión ya disponible
+      const oauthSession = typeof window !== 'undefined' ? window.__WAITME_OAUTH_SESSION : null;
+      if (oauthSession?.user?.id) {
+        console.log('[AUTH FINAL] resolveSession: using OAuth session (cold start)');
+        const appUser = await ensureUserInDb(oauthSession.user);
+        if (appUser?.id) {
+          setUser(appUser);
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', oauthSession.user.id)
+            .maybeSingle();
+          setProfile(profileData ?? {});
+          setIsAuthenticated(true);
+          updateAuthDebug({ authContextUser: true });
+          OAUTH_LOG('resolveSession: user set from OAuth session');
+          return;
+        }
+      }
       const { data: sessionData } = await supabase.auth.getSession();
       authTrace(
         7,
@@ -335,10 +361,12 @@ export const AuthProvider = ({ children }) => {
     async (overrideSession = null) => {
       const session = overrideSession ?? window.__WAITME_OAUTH_SESSION ?? null;
       if (session?.user?.id) {
-        console.log('[AUTH TRACE] checkUserAuth with override session, user:', session.user.id);
+        console.log('[AUTH FINAL] checkUserAuth with session, user:', session.user.id);
         authInFlightRef.current = true;
         setIsLoadingAuth(true);
         try {
+          // Pequeña espera para que headers Supabase estén actualizados (workaround iOS #1566)
+          await new Promise((r) => setTimeout(r, 100));
           const appUser = await ensureUserInDb(session.user);
           if (appUser?.id) {
             setUser(appUser);
@@ -353,11 +381,13 @@ export const AuthProvider = ({ children }) => {
             }
             setIsAuthenticated(true);
             setAuthError(null);
-            console.log('[AUTH TRACE] user set from override session');
+            console.log('[AUTH FINAL] user set true');
             updateAuthDebug({ authContextUser: true });
+          } else {
+            console.log('[AUTH FINAL] user set false (ensureUserInDb returned null)');
           }
         } catch (err) {
-          console.error('[AUTH TRACE] override session failed:', err);
+          console.error('[AUTH FINAL] checkUserAuth failed:', err);
         } finally {
           setIsLoadingAuth(false);
           authInFlightRef.current = false;

@@ -19,14 +19,14 @@ function AuthRouter() {
   }
 
   if (!user?.id) {
+    console.log('[AUTH FINAL] router -> login (user null)');
     authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> login (user null)');
-    authTrace(12, 'App.jsx', 'AuthRouter', 'final route -> login');
     updateAuthDebug({ redirectReason: 'user null', currentRoute: 'login' });
     return <Login />;
   }
 
+  console.log('[AUTH FINAL] router -> home');
   authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> home');
-  authTrace(12, 'App.jsx', 'AuthRouter', 'final route -> home');
   updateAuthDebug({ redirectReason: 'user ok', currentRoute: 'home' });
 
   return (
@@ -63,9 +63,10 @@ export default function App() {
         (eventOrSession?.user ? eventOrSession : null) ??
         window.__WAITME_OAUTH_SESSION ??
         null;
-      console.log('[AUTH TRACE] router redirect, session exists:', !!session);
+      console.log('[AUTH FINAL] router -> checkUserAuth, session exists:', !!session);
       authTrace(9, 'App.jsx', 'onOAuthComplete', 'onSuccess -> checkUserAuth', !!session);
       await checkUserAuth(session ?? undefined);
+      console.log('[AUTH FINAL] router -> home');
       authTrace(10, 'App.jsx', 'onOAuthComplete', 'onSuccess -> navigate /');
       navigate('/', { replace: true });
     };
@@ -78,6 +79,7 @@ export default function App() {
 
     // Si oauthCapture ya procesó la URL antes de que App montara (cold start iOS)
     if (window.__WAITME_OAUTH_COMPLETE) {
+      console.log('[AUTH FINAL] cold start: OAuth already complete');
       const session = window.__WAITME_OAUTH_SESSION ?? null;
       window.__WAITME_OAUTH_COMPLETE = false;
       onOAuthSuccess(session);

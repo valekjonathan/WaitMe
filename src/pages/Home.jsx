@@ -120,15 +120,21 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full flex-1 min-h-0 overflow-hidden text-white">
+    <div
+      className="relative w-full flex-1 min-h-0 overflow-hidden text-white"
+      style={{ minHeight: '100%' }}
+    >
       {isHomeMode ? (
-        <div className="relative w-full h-full min-h-0" style={{ height: '100%' }}>
+        <div
+          className="relative w-full h-full min-h-[100dvh]"
+          style={{ height: '100%', minHeight: '100%' }}
+        >
           <MapboxMap
             {...mapboxProps}
             className="absolute inset-0 z-0 w-full h-full"
             style={{ width: '100%', height: '100%' }}
           />
-          {/* OVERLAY HOME: logo, frases, botones — height: 100%, top: 0, z-10, sin display:none */}
+          {/* OVERLAY HOME: logo, frases, botones — siempre visible en modo home */}
           <div
             data-home-overlay
             className="absolute inset-0 z-[100] w-full flex flex-col items-center justify-center"
@@ -137,8 +143,9 @@ export default function Home() {
               left: 0,
               right: 0,
               bottom: 0,
-              height: '100%',
               width: '100%',
+              height: '100%',
+              minHeight: '100%',
               pointerEvents: 'none',
               display: 'flex',
             }}

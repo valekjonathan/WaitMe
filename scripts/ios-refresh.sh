@@ -57,6 +57,6 @@ xcrun simctl launch booted $APP_ID 2>/dev/null || true
 echo ""
 
 echo "=========================================="
-echo "[ios:refresh] $(date '+%Y-%m-%d %H:%M:%S')"
+echo "[ios:refresh] timestamp final: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "[ios:refresh] DONE — fresh build installed and launched"
 echo "=========================================="

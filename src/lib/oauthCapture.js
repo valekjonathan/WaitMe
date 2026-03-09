@@ -24,7 +24,12 @@ const OAUTH_LOG = (msg, ...args) => {
   }
 };
 
+const AUTH_FINAL_LOG = (msg, ...args) => {
+  console.log(`[AUTH FINAL] ${msg}`, ...args);
+};
+
 async function processOAuthUrl(url) {
+  AUTH_FINAL_LOG('callback received', url?.slice(0, 80) || '(empty)');
   authTrace(4, 'oauthCapture.js', 'processOAuthUrl', 'processOAuthUrl start', url || '(empty)');
   if (!url || !ALLOWED_PREFIXES.some((p) => url.startsWith(p))) {
     authTrace(4, 'oauthCapture.js', 'processOAuthUrl', 'URL rejected (not in allowed list)');
@@ -37,7 +42,7 @@ async function processOAuthUrl(url) {
   }
   const supabase = getSupabase();
   if (!supabase) {
-    console.error('[OAuth] getSupabase() returned null');
+    AUTH_FINAL_LOG('exchange error: getSupabase null');
     return false;
   }
 
@@ -51,10 +56,10 @@ async function processOAuthUrl(url) {
     const code = params.get('code');
     if (code) {
       authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession executing');
-      console.log('[AUTH TRACE] exchange executing, code length:', code.length);
+      AUTH_FINAL_LOG('exchange executing, code length:', code.length);
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        console.log('[AUTH TRACE] exchange result: success');
+        AUTH_FINAL_LOG('exchange success');
         authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession success');
         let session = data?.session;
         authTrace(
@@ -67,7 +72,7 @@ async function processOAuthUrl(url) {
         );
         // Forzar getSession y setSession para actualizar headers del cliente (workaround iOS #1566)
         const { data: s } = await supabase.auth.getSession();
-        console.log('[AUTH TRACE] session exists:', !!s?.session);
+        AUTH_FINAL_LOG('session exists', !!s?.session);
         if (s?.session) {
           session = s.session;
           const { error: setErr } = await supabase.auth.setSession({
@@ -75,31 +80,27 @@ async function processOAuthUrl(url) {
             refresh_token: s.session.refresh_token,
           });
           if (!setErr) {
-            console.log('[AUTH TRACE] setSession forced (headers refresh)');
+            AUTH_FINAL_LOG('setSession forced (headers refresh)');
           }
+          // Pequeña espera para que headers se propaguen antes de notificar a AuthContext
+          await new Promise((r) => setTimeout(r, 150));
         }
-        authTrace(
-          6,
-          'oauthCapture.js',
-          'processOAuthUrl',
-          'getSession after exchange',
-          !!s?.session
-        );
         updateAuthDebug({
           exchangeSuccess: true,
           sessionExists: !!s?.session,
           oauthProcessedBy: 'oauthCapture.js',
         });
-        window.__WAITME_OAUTH_SESSION = session ?? s?.session ?? null;
+        const finalSession = session ?? s?.session ?? null;
+        window.__WAITME_OAUTH_SESSION = finalSession;
         window.__WAITME_OAUTH_COMPLETE = true;
+        AUTH_FINAL_LOG('user set true, dispatching oauth-complete');
         window.dispatchEvent(
-          new CustomEvent('waitme:oauth-complete', { detail: { session: session ?? s?.session } })
+          new CustomEvent('waitme:oauth-complete', { detail: { session: finalSession } })
         );
-        console.log('[AUTH TRACE] user set, oauth complete event dispatched');
         authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
         return true;
       }
-      console.log('[AUTH TRACE] exchange error', error?.message, error?.code);
+      AUTH_FINAL_LOG('exchange error', error?.message, error?.code);
       authTrace(
         5,
         'oauthCapture.js',
@@ -121,16 +122,20 @@ async function processOAuthUrl(url) {
     if (access_token && refresh_token) {
       const { error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (!error) {
+        AUTH_FINAL_LOG('setSession (implicit) success');
         authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'setSession success');
-        authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'session after setSession', true);
+        const { data: s } = await supabase.auth.getSession();
+        const session = s?.session ?? null;
+        window.__WAITME_OAUTH_SESSION = session;
         updateAuthDebug({
           exchangeSuccess: true,
           sessionExists: true,
           oauthProcessedBy: 'oauthCapture.js',
         });
         window.__WAITME_OAUTH_COMPLETE = true;
-        window.dispatchEvent(new CustomEvent('waitme:oauth-complete'));
-        authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
+        await new Promise((r) => setTimeout(r, 150));
+        window.dispatchEvent(new CustomEvent('waitme:oauth-complete', { detail: { session } }));
+        AUTH_FINAL_LOG('user set true, oauth-complete dispatched');
         return true;
       }
     }
