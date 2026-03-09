@@ -169,8 +169,8 @@ export default function Home() {
             style={{
               display: mode ? 'none' : 'block',
               position: 'fixed',
-              top: contentArea.top,
-              height: contentArea.height,
+              top: mode ? contentArea.top : 0,
+              height: mode ? contentArea.height : '100%',
               left: 0,
               right: 0,
               pointerEvents: 'none',
