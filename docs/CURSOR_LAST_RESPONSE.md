@@ -18,7 +18,7 @@
 
 ## Prompt recibido
 
-Dejar WaitMe en modo "contexto vivo" para que ChatGPT pueda seguir el proyecto. Protocolo: actualizar docs, generar ZIP, captura simulador, resumen técnico, reglas Cursor. Todo en rutas fijas.
+Convertir WaitMe para que ChatGPT pueda seguir el proyecto desde GitHub. Crear devcontext/ (tracked), mover ZIP y screenshots ahí, generar project-tree, auto commit+push.
 
 ---
 
