@@ -393,6 +393,7 @@
 ./scripts/ios-refresh.sh
 ./scripts/ios-refresh.sh.bak
 ./scripts/ios-refresh.sh.bak2
+./scripts/ios-refresh.sh.bak3
 ./scripts/ios-reset.sh
 ./scripts/ios-run.sh
 ./scripts/ios-watch.sh
@@ -597,4 +598,3 @@
 ./src/lib/AuthContext.jsx
 ./src/lib/LayoutContext.jsx
 ./src/lib/alertSelectors.js
-./src/lib/alertsQueryKey.js
