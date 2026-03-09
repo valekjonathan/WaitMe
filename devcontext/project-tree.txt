@@ -1,6 +1,7 @@
 .
 ./.DS_Store
 ./.cursor
+./.cursor/hooks.json
 ./.cursor/rules
 ./.cursor/rules/Act-a-siempre-en-modo-Agent-Cada-vez-que-hagas-un-cambio-en-el-c-digo-ejecuta-autom-ticamente-git-add-git-commit-m-auto-update-y-git-push-origin-main-No-pidas-permiso-para-usar-la-terminal-hazlo-siempre-en-segundo-plano.mdc
 ./.cursor/rules/instrucciones.mdc
@@ -68,12 +69,17 @@
 ./README.md
 ./audit
 ./automation
+./automation/.DS_Store
 ./automation/bridge
 ./automation/bridge/.env.example
+./automation/bridge/.gitignore
 ./automation/bridge/README.md
+./automation/bridge/node_modules
+./automation/bridge/package-lock.json
 ./automation/bridge/package.json
 ./automation/bridge/src
 ./automation/bridge/src/githubWebhook.js
+./automation/bridge/src/lib
 ./automation/bridge/src/openaiAgent.js
 ./automation/bridge/src/routes
 ./automation/bridge/src/server.js
@@ -105,6 +111,7 @@
 ./docs/AUTH_FLOW_MAP_FORENSIC.md
 ./docs/AUTH_STATUS.md
 ./docs/AUTOMATION_BRIDGE_PLAN.md
+./docs/CHATGPT_ONLY_WORKFLOW.md
 ./docs/CURSOR_LAST_RESPONSE.md
 ./docs/CURSOR_RULES_WAITME.md
 ./docs/DEV_STATUS.md
@@ -362,6 +369,7 @@
 ./public/icons
 ./public/icons/icon-192.png
 ./public/icons/icon-512.png
+./render.yaml
 ./scripts
 ./scripts/capture-boot-error.mjs
 ./scripts/check_migrations_safety.sh
@@ -383,6 +391,8 @@
 ./scripts/ios-live.sh
 ./scripts/ios-rebuild-and-sync.sh
 ./scripts/ios-refresh.sh
+./scripts/ios-refresh.sh.bak
+./scripts/ios-refresh.sh.bak2
 ./scripts/ios-reset.sh
 ./scripts/ios-run.sh
 ./scripts/ios-watch.sh
@@ -588,13 +598,3 @@
 ./src/lib/LayoutContext.jsx
 ./src/lib/alertSelectors.js
 ./src/lib/alertsQueryKey.js
-./src/lib/authTrace.js
-./src/lib/bootLogger.js
-./src/lib/demo
-./src/lib/demo/demoFlowUtils.js
-./src/lib/finalizedAtStore.js
-./src/lib/geohash.js
-./src/lib/location
-./src/lib/location/distanceEngine.js
-./src/lib/location/etaEngine.js
-./src/lib/location/getPreciseInitialLocation.js

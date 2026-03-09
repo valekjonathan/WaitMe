@@ -2,7 +2,7 @@
 > waitme-app@0.0.0 ios:refresh
 > bash scripts/ios-refresh.sh
 
-[ios:refresh] 2026-03-09 18:44:41 — Iniciando reinstalación completa (target: 277875BB-CD09-46B9-B5AC-D5D4EE890116)
+[ios:refresh] 2026-03-09 20:29:05 — Iniciando reinstalación completa (target: 277875BB-CD09-46B9-B5AC-D5D4EE890116)
 
 [ios:refresh] terminating old app...
 [ios:refresh] terminated old app
@@ -54,14 +54,14 @@ dist/assets/mapbox-gl-CR09qeKB.js                1,696.55 kB │ gzip: 467.65 kB
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.93s
+✓ built in 3.91s
 [ios:refresh] built web
 
 [ios:refresh] syncing ios...
-✔ Copying web assets from dist to ios/App/App/public in 6.04ms
-✔ Creating capacitor.config.json in ios/App/App in 246.92μs
-✔ copy ios in 29.67ms
-✔ Updating iOS plugins in 3.19ms
+✔ Copying web assets from dist to ios/App/App/public in 6.03ms
+✔ Creating capacitor.config.json in ios/App/App in 219.71μs
+✔ copy ios in 29.05ms
+✔ Updating iOS plugins in 3.30ms
 [info] All plugins have a Package.swift file and will be included in Package.swift
 [info] Writing Package.swift
 [info] Found 5 Capacitor plugins for ios:
@@ -70,18 +70,18 @@ dist/assets/mapbox-gl-CR09qeKB.js                1,696.55 kB │ gzip: 467.65 kB
        @capacitor/inappbrowser@3.0.2
        @capacitor/preferences@8.0.1
        @capacitor/status-bar@8.0.1
-✔ update ios in 23.13ms
+✔ update ios in 22.92ms
 [info] Sync finished in 0.073s
 [ios:refresh] synced ios
 
 [ios:refresh] runtime server url: NONE (build local OK)
 
 [ios:refresh] installing and launching fresh app...
-✔ Copying web assets from dist to ios/App/App/public in 5.68ms
-✔ Creating capacitor.config.json in ios/App/App in 219.83μs
+✔ Copying web assets from dist to ios/App/App/public in 6.39ms
+✔ Creating capacitor.config.json in ios/App/App in 271.17μs
 [info] Inlining sourcemaps
-✔ copy ios in 28.33ms
-✔ Updating iOS plugins in 3.59ms
+✔ copy ios in 28.73ms
+✔ Updating iOS plugins in 3.41ms
 [info] All plugins have a Package.swift file and will be included in Package.swift
 [info] Writing Package.swift
 [info] Found 5 Capacitor plugins for ios:
@@ -90,15 +90,15 @@ dist/assets/mapbox-gl-CR09qeKB.js                1,696.55 kB │ gzip: 467.65 kB
        @capacitor/inappbrowser@3.0.2
        @capacitor/preferences@8.0.1
        @capacitor/status-bar@8.0.1
-✔ update ios in 19.71ms
-✔ Running xcodebuild in 3.62s
-✔ Deploying App.app to 277875BB-CD09-46B9-B5AC-D5D4EE890116 in 709.54ms
+✔ update ios in 19.10ms
+✔ Running xcodebuild in 3.52s
+✔ Deploying App.app to 277875BB-CD09-46B9-B5AC-D5D4EE890116 in 851.53ms
 [ios:refresh] launched fresh app
 
 [ios:refresh] ensuring app is launched...
-com.waitme.app: 58052
+com.waitme.app: 84389
 
 ==========================================
-[ios:refresh] timestamp final: 2026-03-09 18:44:51
+[ios:refresh] timestamp final: 2026-03-09 20:29:16
 [ios:refresh] DONE — fresh build installed and launched
 ==========================================
