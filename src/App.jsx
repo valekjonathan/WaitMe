@@ -13,13 +13,8 @@ import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
 import { getSupabase } from '@/lib/supabaseClient';
 
-const OAuthDebug =
-  import.meta.env.DEV ||
-  import.meta.env.VITE_DEBUG_OAUTH === 'true' ||
-  (typeof Capacitor !== 'undefined' && Capacitor?.isNativePlatform?.());
-
 async function processOAuthUrl(url, onSuccess) {
-  if (OAuthDebug) console.log('[OAuth] processOAuthUrl start, url:', url || '(empty)');
+  console.log('[OAuth] processOAuthUrl start, url:', url || '(empty)');
 
   const allowed = [
     'capacitor://localhost',
@@ -29,7 +24,7 @@ async function processOAuthUrl(url, onSuccess) {
     'http://localhost:5173/',
   ];
   if (!url || !allowed.some((p) => url.startsWith(p))) {
-    if (OAuthDebug && url) console.log('[OAuth] URL rejected (not in allowed)');
+    if (url) console.log('[OAuth] URL rejected (not in allowed)');
     return false;
   }
   try {
@@ -39,7 +34,7 @@ async function processOAuthUrl(url, onSuccess) {
   }
   const supabase = getSupabase();
   if (!supabase) {
-    if (OAuthDebug) console.error('[OAuth] getSupabase() returned null');
+    console.error('[OAuth] getSupabase() returned null');
     return false;
   }
 
@@ -51,27 +46,21 @@ async function processOAuthUrl(url, onSuccess) {
     const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
     const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
     const code = params.get('code');
-    if (OAuthDebug) console.log('[OAuth] code detected, len:', code?.length ?? 0);
+    console.log('[OAuth] code detected, len:', code?.length ?? 0);
     if (code) {
-      if (OAuthDebug) console.log('[OAuth] exchangeCodeForSession executing...');
+      console.log('[OAuth] exchangeCodeForSession executing...');
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
         const session = data?.session;
-        if (OAuthDebug) {
-          console.log('[OAuth] exchangeCodeForSession success');
-          console.log('[OAuth] session user:', session?.user?.email ?? session?.user?.id ?? 'null');
-        }
+        console.log('[OAuth] exchangeCodeForSession success');
+        console.log('[OAuth] session user:', session?.user?.email ?? session?.user?.id ?? 'null');
         const { data: s } = await supabase.auth.getSession();
-        if (OAuthDebug) console.log('[OAuth] getSession after exchange:', !!s?.session);
-        if (OAuthDebug) console.log('[OAuth] onSuccess → checkUserAuth + navigate');
+        console.log('[OAuth] getSession after exchange:', !!s?.session);
         onSuccess?.();
         return true;
       }
-      if (OAuthDebug) {
-        console.error('[OAuth] exchangeCodeForSession failed:', error?.message);
-        console.error('[OAuth] error code:', error?.code);
-      }
-    } else if (OAuthDebug) {
+      console.error('[OAuth] exchangeCodeForSession failed:', error?.message, error?.code);
+    } else {
       console.log('[OAuth] no code in URL');
     }
   }
@@ -129,24 +118,39 @@ export default function App() {
 
   const capacitorSubRef = useRef(null);
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
     const onOAuthSuccess = async () => {
-      if (OAuthDebug) console.log('[OAuth] onSuccess → checkUserAuth');
+      console.log('[OAuth] onSuccess → checkUserAuth');
       await checkUserAuth();
-      if (OAuthDebug) console.log('[OAuth] onSuccess → navigate');
+      console.log('[OAuth] onSuccess → navigate');
       navigate('/', { replace: true });
     };
+
+    const onOAuthComplete = () => {
+      onOAuthSuccess();
+    };
+    window.addEventListener('waitme:oauth-complete', onOAuthComplete);
+
+    if (window.__WAITME_OAUTH_COMPLETE) {
+      window.__WAITME_OAUTH_COMPLETE = false;
+      onOAuthSuccess();
+    }
+
+    if (!Capacitor.isNativePlatform()) {
+      return () => window.removeEventListener('waitme:oauth-complete', onOAuthComplete);
+    }
+
     const handleUrl = async (url) => {
+      console.log('[OAuth] callback URL:', url || '(empty)');
       await processOAuthUrl(url, onOAuthSuccess);
     };
     const handleAppUrlOpen = ({ url }) => {
-      if (OAuthDebug) console.log('[OAuth] appUrlOpen url:', url || '(empty)');
+      console.log('[OAuth] appUrlOpen url:', url || '(empty)');
       handleUrl(url);
     };
     (async () => {
       try {
         capacitorSubRef.current = await CapacitorApp.addListener('appUrlOpen', handleAppUrlOpen);
-        if (OAuthDebug) console.log('[OAuth] appUrlOpen listener registered');
+        console.log('[OAuth] appUrlOpen listener registered');
       } catch (e) {
         console.error('Capacitor listener error', e);
       }
@@ -154,16 +158,17 @@ export default function App() {
     CapacitorApp.getLaunchUrl()
       .then((result) => {
         if (result?.url) {
-          if (OAuthDebug) console.log('[OAuth] getLaunchUrl url:', result.url);
+          console.log('[OAuth] getLaunchUrl url:', result.url);
           handleUrl(result.url);
-        } else if (OAuthDebug) {
-          console.log('[OAuth] getLaunchUrl: no url');
         }
       })
       .catch((e) => {
-        if (OAuthDebug) console.log('[OAuth] getLaunchUrl error:', e?.message);
+        console.log('[OAuth] getLaunchUrl error:', e?.message);
       });
-    return () => capacitorSubRef.current?.remove?.();
+    return () => {
+      window.removeEventListener('waitme:oauth-complete', onOAuthComplete);
+      capacitorSubRef.current?.remove?.();
+    };
   }, [checkUserAuth, navigate]);
 
   return (

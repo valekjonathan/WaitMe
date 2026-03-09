@@ -1,6 +1,7 @@
 import './dev/diagnostics';
 import './system/diagnostics/waitmeDiagnostics';
 import './dev/layoutInspector';
+import { initOAuthCapture } from './lib/oauthCapture';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
@@ -47,6 +48,8 @@ const RENDER_LOG = (msg, extra) => {
     }
   }
 };
+
+initOAuthCapture();
 
 const rootEl = document.getElementById('root');
 if (rootEl) {
