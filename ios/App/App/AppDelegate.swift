@@ -7,7 +7,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // DIAGNÓSTICO TEMPORAL — bundle web / pantalla blanca
+        if let configUrl = Bundle.main.url(forResource: "capacitor.config", withExtension: "json"),
+           let configData = try? Data(contentsOf: configUrl),
+           let config = try? JSONSerialization.jsonObject(with: configData) as? [String: Any] {
+            let webDir = config["webDir"] as? String ?? "—"
+            let serverUrl = (config["server"] as? [String: Any])?["url"] as? String
+            print("[WaitMe DIAG] webDir: \(webDir)")
+            print("[WaitMe DIAG] server.url: \(serverUrl ?? "nil (OK)")")
+            if serverUrl != nil {
+                print("[WaitMe DIAG] ⚠️ server.url presente → app intenta cargar de servidor externo. Si no responde → pantalla blanca.")
+            }
+        }
+        if let indexUrl = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "public") {
+            print("[WaitMe DIAG] index.html existe en bundle: \(indexUrl.path)")
+        } else {
+            print("[WaitMe DIAG] ❌ index.html NO encontrado en bundle")
+        }
         return true
     }
 
