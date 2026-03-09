@@ -12,7 +12,7 @@ export default function CreateAlertCard({
   onRecenter,
   onCreateAlert,
   isLoading = false,
-  mapRef: _mapRef, // Mantener por compatibilidad API; Ubícate usa evento waitme:flyToUser
+  mapRef: _mapRef, // Mantener por compatibilidad API; Ubícate usa window.waitmeMap
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
@@ -22,17 +22,11 @@ export default function CreateAlertCard({
   };
 
   const handleLocate = async () => {
-    // Motor único: última posición válida primero, luego getPreciseInitialLocation
-    let loc = getLastKnownLocation();
-    if (loc?.lat == null || loc?.lng == null) {
-      loc = await getPreciseInitialLocation();
+    const loc = getLastKnownLocation() || (await getPreciseInitialLocation());
+    if (loc && window.waitmeMap?.flyToUser) {
+      window.waitmeMap.flyToUser(loc.lng, loc.lat);
     }
-    const lat = loc?.lat;
-    const lng = loc?.lng;
-    if (lat == null || lng == null) return;
-    onRecenter?.({ lat, lng });
-    // Controlador imperativo: conexión directa con el mapa real
-    window.waitmeMap?.flyToUser?.(lng, lat);
+    if (loc) onRecenter?.({ lat: loc.lat, lng: loc.lng });
   };
 
   return (

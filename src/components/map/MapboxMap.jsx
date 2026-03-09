@@ -149,27 +149,6 @@ function MapboxMapInner({
     return () => window.removeEventListener('waitme:goLogo', handler);
   }, [flyToUser]);
 
-  // Ubícate: controlador imperativo global — CreateAlertCard llama window.waitmeMap.flyToUser(lng, lat)
-  useEffect(() => {
-    if (!mapReady || !mapRef.current) return;
-    const map = mapRef.current;
-    window.waitmeMap = {
-      flyToUser: (lng, lat) => {
-        if (lng == null || lat == null) return;
-        const padding = getMapPadding();
-        map.flyTo({
-          center: [lng, lat],
-          zoom: 17,
-          duration: 800,
-          ...(padding && { padding }),
-        });
-      },
-    };
-    return () => {
-      window.waitmeMap = null;
-    };
-  }, [mapReady, getMapPadding]);
-
   useEffect(() => {
     if (suppressInternalWatcher) return;
     if (locationFromEngine != null) return;
@@ -272,6 +251,22 @@ function MapboxMapInner({
           setupMapStyleOnLoad(map);
           map.resize();
           setMapReady(true);
+
+          // Ubícate: controlador imperativo — creado cuando el mapa existe realmente
+          if (typeof window !== 'undefined') {
+            window.waitmeMap = {
+              flyToUser: (lng, lat) => {
+                if (!map || lng == null || lat == null) return;
+                const padding = getMapLayoutPadding();
+                map.flyTo({
+                  center: [lng, lat],
+                  zoom: 17,
+                  duration: 800,
+                  ...(padding && { padding }),
+                });
+              },
+            };
+          }
 
           const resizeDelayed = () => {
             if (mapRef.current) mapRef.current.resize();
