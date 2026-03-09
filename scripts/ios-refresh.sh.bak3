@@ -37,10 +37,9 @@ xcrun simctl uninstall booted $APP_ID 2>/dev/null || true
 echo "[ios:refresh] uninstalled old app"
 echo ""
 
-echo "[ios:refresh] cleaning dist and public..."
+echo "[ios:refresh] cleaning dist..."
 rm -rf dist
-rm -rf ios/App/App/public
-echo "[ios:refresh] dist and public removed"
+echo "[ios:refresh] dist removed"
 echo ""
 
 echo "[ios:refresh] building web..."
@@ -48,10 +47,9 @@ VITE_IOS_DEV_BUILD=1 npm run build
 echo "[ios:refresh] built web"
 echo ""
 
-echo "[ios:refresh] copying and syncing ios..."
-npx cap copy ios
+echo "[ios:refresh] syncing ios..."
 npx cap sync ios
-echo "[ios:refresh] copied and synced ios"
+echo "[ios:refresh] synced ios"
 echo ""
 
 # Forzar limpieza de server.url en runtime config (por si cap sync lo inyectó)
@@ -71,15 +69,10 @@ if [[ -f "$CAP_CONFIG" ]]; then
   if grep -q '"server"' "$CAP_CONFIG" 2>/dev/null; then
     echo "[ios:refresh] WARNING: runtime server url present (check config)"
   else
-    echo "[ios:refresh] runtime server url: NONE"
+    echo "[ios:refresh] runtime server url: NONE (build local OK)"
   fi
 else
   echo "[ios:refresh] WARNING: capacitor.config.json no encontrado"
-fi
-if [[ -f "$ROOT/ios/App/App/public/index.html" ]]; then
-  echo "[ios:refresh] public/index.html OK"
-else
-  echo "[ios:refresh] WARNING: public/index.html no encontrado"
 fi
 echo ""
 

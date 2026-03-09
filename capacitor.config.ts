@@ -1,19 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * MODO A) INSTALACIÓN NORMAL (ios:fresh, ios:dev)
+ * MODO A) INSTALACIÓN NORMAL (ios:refresh, ios:fresh, producción)
  * - Sin server.url → usa build empaquetada local
- * - Funciona siempre sin servidor dev
  * - Nunca pantalla blanca por dependencia de localhost
  *
- * MODO B) LIVE RELOAD (ios:live)
- * - server.url solo si CAP_LIVE_RELOAD=true o CAPACITOR_USE_DEV_SERVER=true
- * - Solo para desarrollo; cap run --live-reload inyecta URL en runtime
- * - No contamina la app instalada normal
+ * MODO B) DEV SERVER (solo ios:auto, dev-ios.sh)
+ * - server.url SOLO si CAPACITOR_USE_DEV_SERVER === "true"
+ * - Si no existe esa variable, NO debe existir server.url
  */
-const useLiveReload =
-  process.env.CAP_LIVE_RELOAD === 'true' || process.env.CAPACITOR_USE_DEV_SERVER === 'true';
-// CAPACITOR_DEV_SERVER_URL: usar scripts/setDevServer.js para iPhone físico (ios:auto)
+const useDevServer = process.env.CAPACITOR_USE_DEV_SERVER === 'true';
 const serverUrl = process.env.CAPACITOR_DEV_SERVER_URL || 'http://localhost:5173';
 
 const config: CapacitorConfig = {
@@ -21,7 +17,7 @@ const config: CapacitorConfig = {
   appName: 'WaitMe',
   webDir: 'dist',
   bundledWebRuntime: false,
-  ...(useLiveReload && {
+  ...(useDevServer && {
     server: {
       url: serverUrl,
       cleartext: true,
