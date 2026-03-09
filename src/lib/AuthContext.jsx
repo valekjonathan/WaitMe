@@ -57,51 +57,66 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   const ensureUserInDb = useCallback(async (authUser) => {
+    console.log('[AUTH STEP] ensureUserInDb start', authUser?.id);
     const supabase = getSupabase();
-    if (!supabase || !authUser?.id) return null;
+    if (!supabase || !authUser?.id) {
+      console.log('[AUTH STEP] ensureUserInDb error: no supabase or authUser');
+      return null;
+    }
     const email = authUser.email ?? '';
     const fullName = authUser.user_metadata?.full_name ?? authUser.user_metadata?.name ?? '';
     const avatarUrl = authUser.user_metadata?.avatar_url ?? authUser.user_metadata?.picture ?? '';
 
-    const { data: existing } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle();
+    try {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
 
-    if (!existing) {
-      await supabase.from('profiles').insert({
+      if (!existing) {
+        const { error: insertErr } = await supabase.from('profiles').insert({
+          id: authUser.id,
+          email,
+          full_name: fullName,
+          avatar_url: avatarUrl,
+          created_at: new Date().toISOString(),
+        });
+        if (insertErr) {
+          console.log('[AUTH STEP] ensureUserInDb error: insert failed', insertErr?.message);
+          return null;
+        }
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      console.log('[AUTH STEP] ensureUserInDb success');
+      return {
         id: authUser.id,
-        email,
-        full_name: fullName,
-        avatar_url: avatarUrl,
-        created_at: new Date().toISOString(),
-      });
+        email: profile?.email || email,
+        full_name: profile?.full_name || fullName,
+        display_name:
+          profile?.display_name ?? (profile?.full_name || fullName)?.split(' ')[0] ?? '',
+        photo_url: profile?.avatar_url || profile?.photo_url || avatarUrl,
+        brand: profile?.brand ?? '',
+        model: profile?.model ?? '',
+        color: profile?.color ?? 'gris',
+        vehicle_type: profile?.vehicle_type ?? 'car',
+        plate: profile?.plate ?? '',
+        phone: profile?.phone ?? '',
+        allow_phone_calls: profile?.allow_phone_calls ?? false,
+        notifications_enabled: profile?.notifications_enabled !== false,
+        email_notifications: profile?.email_notifications !== false,
+        ...authUser,
+      };
+    } catch (err) {
+      console.log('[AUTH STEP] ensureUserInDb error', err?.message);
+      return null;
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle();
-
-    return {
-      id: authUser.id,
-      email: profile?.email || email,
-      full_name: profile?.full_name || fullName,
-      display_name: profile?.display_name ?? (profile?.full_name || fullName)?.split(' ')[0] ?? '',
-      photo_url: profile?.avatar_url || profile?.photo_url || avatarUrl,
-      brand: profile?.brand ?? '',
-      model: profile?.model ?? '',
-      color: profile?.color ?? 'gris',
-      vehicle_type: profile?.vehicle_type ?? 'car',
-      plate: profile?.plate ?? '',
-      phone: profile?.phone ?? '',
-      allow_phone_calls: profile?.allow_phone_calls ?? false,
-      notifications_enabled: profile?.notifications_enabled !== false,
-      email_notifications: profile?.email_notifications !== false,
-      ...authUser,
-    };
   }, []);
 
   const applySession = useCallback(
@@ -112,10 +127,12 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         return;
       }
+      console.log('[AUTH STEP] applySession start', session.user.id);
       try {
         const appUser = await ensureUserInDb(session.user);
         if (appUser?.id) {
           setUser(appUser);
+          console.log('[AUTH STEP] setUser called (appUser)', appUser.id);
           const supabase = getSupabase();
           if (supabase) {
             const { data: profileData } = await supabase
@@ -127,13 +144,25 @@ export const AuthProvider = ({ children }) => {
           }
           setIsAuthenticated(true);
           setAuthError(null);
-          console.log('[AUTH FIX] user set');
+          console.log('[AUTH STEP] final user id', appUser.id);
+        } else {
+          console.log('[AUTH STEP] ensureUserInDb returned null, fallback to session.user');
+          setUser(session.user);
+          setProfile({});
+          setIsAuthenticated(true);
+          setAuthError(null);
+          console.log('[AUTH STEP] setUser called (fallback)', session.user.id);
+          console.log('[AUTH STEP] final user id', session.user.id);
         }
       } catch (err) {
-        console.error('[AUTH FIX] applySession error', err);
-        setUser(null);
-        setProfile(null);
-        setIsAuthenticated(false);
+        console.log('[AUTH STEP] ensureUserInDb error (catch)', err?.message);
+        console.log('[AUTH STEP] fallback to session.user');
+        setUser(session.user);
+        setProfile({});
+        setIsAuthenticated(true);
+        setAuthError(null);
+        console.log('[AUTH STEP] setUser called (fallback)', session.user.id);
+        console.log('[AUTH STEP] final user id', session.user.id);
       }
     },
     [ensureUserInDb]
@@ -183,7 +212,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('[AUTH FIX] auth state change SIGNED_IN');
+        console.log('[AUTH STEP] SIGNED_IN received, session:', !!session);
         if (mounted && session) await applySession(session);
       } else if (event === 'SIGNED_OUT') {
         console.log('[AUTH FIX] auth state change SIGNED_OUT');
