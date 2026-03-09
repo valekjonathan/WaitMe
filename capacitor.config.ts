@@ -13,6 +13,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const useLiveReload =
   process.env.CAP_LIVE_RELOAD === 'true' || process.env.CAPACITOR_USE_DEV_SERVER === 'true';
+// CAPACITOR_DEV_SERVER_URL: usar scripts/setDevServer.js para iPhone físico (ios:auto)
 const serverUrl = process.env.CAPACITOR_DEV_SERVER_URL || 'http://localhost:5173';
 
 const config: CapacitorConfig = {

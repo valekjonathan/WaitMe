@@ -50,7 +50,6 @@ export default function Home() {
     navigateViewState,
     setNavigateViewState,
     setArrivingAlertId,
-    contentArea,
     mapRef,
     modeRef,
     engineLocation,
@@ -89,72 +88,90 @@ export default function Home() {
     );
   }
 
+  const isHomeMode = !mode || mode === 'home';
+  const mapboxProps = {
+    className: 'w-full h-full',
+    style: { width: '100%', height: '100%' },
+    alerts: !mode || mode === 'create' ? [] : mapAlertsForNavigate,
+    mapRef,
+    locationFromEngine: engineLocation ?? userLocation ?? null,
+    suppressInternalWatcher: true,
+    interactive: !!mode,
+    onMapLoad: (map) => {
+      mapRef.current = map;
+    },
+    skipAutoFlyWhenCenterPin: mode === 'create',
+    onAlertClick: (alert) => {
+      setMode('search');
+      setSelectedAlert(alert);
+    },
+    useCenterPin: mode === 'create' || mode === 'search',
+    centerPinFromOverlay: mode === 'create' || mode === 'search',
+    centerPaddingBottom: mode === 'create' || mode === 'search' ? 280 : 0,
+    onMapMove: mode === 'create' ? handleMapMove : undefined,
+    onMapMoveEnd:
+      mode === 'create' ? handleMapMoveEnd : mode === 'search' ? handleMapMoveSearch : undefined,
+    waitMeCarMode: mode === 'create' ? carsMode : null,
+    waitMeCarBuyerLocation: mode === 'create' ? waitMeCarBuyerLocation : null,
+    waitMeCarColor,
+  };
+
   return (
     <div className="relative w-full min-h-[100dvh] overflow-hidden text-white">
-      <MapViewportShell
-        mode={mode || 'home'}
-        mapNode={
+      {isHomeMode ? (
+        <div className="relative w-full h-full" style={{ minHeight: '100dvh' }}>
           <MapboxMap
-            className="w-full h-full"
+            {...mapboxProps}
+            className="absolute inset-0 z-0 w-full h-full"
             style={{ width: '100%', height: '100%' }}
-            alerts={!mode || mode === 'create' ? [] : mapAlertsForNavigate}
-            mapRef={mapRef}
-            locationFromEngine={engineLocation ?? userLocation ?? null}
-            suppressInternalWatcher
-            interactive={!!mode}
-            onMapLoad={(map) => {
-              mapRef.current = map;
-            }}
-            skipAutoFlyWhenCenterPin={mode === 'create'}
-            onAlertClick={(alert) => {
-              setMode('search');
-              setSelectedAlert(alert);
-            }}
-            useCenterPin={mode === 'create' || mode === 'search'}
-            centerPinFromOverlay={mode === 'create' || mode === 'search'}
-            centerPaddingBottom={mode === 'create' || mode === 'search' ? 280 : 0}
-            onMapMove={mode === 'create' ? handleMapMove : undefined}
-            onMapMoveEnd={
-              mode === 'create'
-                ? handleMapMoveEnd
-                : mode === 'search'
-                  ? handleMapMoveSearch
-                  : undefined
-            }
-            waitMeCarMode={mode === 'create' ? carsMode : null}
-            waitMeCarBuyerLocation={mode === 'create' ? waitMeCarBuyerLocation : null}
-            waitMeCarColor={waitMeCarColor}
           />
-        }
-        panel={
-          <HomeMapPanel
-            mode={mode}
-            address={address}
-            setAddress={setAddress}
-            handleRecenter={handleRecenter}
-            mapRef={mapRef}
-            onCreateAlert={onCreateAlert}
-            createAlertMutation={createAlertMutation}
-            showFilters={showFilters}
-            setShowFilters={setShowFilters}
-            handleStreetSelect={handleStreetSelect}
-            navigateViewState={navigateViewState}
-            arrivalMetrics={arrivalMetrics}
-            navigateMapAlerts={navigateMapAlerts}
-            searchAlerts={searchAlerts}
-            selectedAlert={selectedAlert}
-            handleBuyAlert={handleBuyAlert}
-            handleChat={handleChat}
-            handleCall={handleCall}
-            setNavigateViewState={setNavigateViewState}
-            setArrivingAlertId={setArrivingAlertId}
-            buyAlertMutation={buyAlertMutation}
-            userLocation={userLocation}
-            filters={filters}
-            setFilters={setFilters}
-          />
-        }
-      />
+          <div className="absolute inset-0 z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none">
+            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-auto">
+              <HomeHeader
+                onSearchClick={() => setMode('search')}
+                onCreateClick={() => setMode('create')}
+                mapRef={mapRef}
+                modeRef={modeRef}
+                getCurrentLocation={getCurrentLocation}
+                guard={guard}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <MapViewportShell
+          mode={mode || 'home'}
+          mapNode={<MapboxMap {...mapboxProps} />}
+          panel={
+            <HomeMapPanel
+              mode={mode}
+              address={address}
+              setAddress={setAddress}
+              handleRecenter={handleRecenter}
+              mapRef={mapRef}
+              onCreateAlert={onCreateAlert}
+              createAlertMutation={createAlertMutation}
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+              handleStreetSelect={handleStreetSelect}
+              navigateViewState={navigateViewState}
+              arrivalMetrics={arrivalMetrics}
+              navigateMapAlerts={navigateMapAlerts}
+              searchAlerts={searchAlerts}
+              selectedAlert={selectedAlert}
+              handleBuyAlert={handleBuyAlert}
+              handleChat={handleChat}
+              handleCall={handleCall}
+              setNavigateViewState={setNavigateViewState}
+              setArrivingAlertId={setArrivingAlertId}
+              buyAlertMutation={buyAlertMutation}
+              userLocation={userLocation}
+              filters={filters}
+              setFilters={setFilters}
+            />
+          }
+        />
+      )}
 
       <div
         className={`z-10 flex flex-col ${mode ? 'h-0 overflow-hidden pointer-events-none' : 'absolute inset-0 pointer-events-none'}`}
@@ -162,30 +179,7 @@ export default function Home() {
       >
         <main
           className={`flex-1 flex flex-col relative overflow-hidden min-h-0 ${mode ? 'pointer-events-none' : ''}`}
-        >
-          <div
-            data-home-content
-            className="overflow-hidden"
-            style={{
-              display: mode ? 'none' : 'block',
-              position: 'fixed',
-              top: mode ? contentArea.top : 0,
-              height: mode ? contentArea.height : '100%',
-              left: 0,
-              right: 0,
-              pointerEvents: 'none',
-            }}
-          >
-            <HomeHeader
-              onSearchClick={() => setMode('search')}
-              onCreateClick={() => setMode('create')}
-              mapRef={mapRef}
-              modeRef={modeRef}
-              getCurrentLocation={getCurrentLocation}
-              guard={guard}
-            />
-          </div>
-        </main>
+        />
 
         <HomeDialogs
           oneActiveAlertOpen={oneActiveAlertOpen}
