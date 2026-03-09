@@ -64,7 +64,7 @@ if [[ -f "$CAP_CONFIG" ]]; then
       const j=JSON.parse(fs.readFileSync(p,'utf8'));
       delete j.server;
       fs.writeFileSync(p, JSON.stringify(j,null,2));
-    " "$CAP_CONFIG" 2>/dev/null || true
+    " 2>/dev/null || true
   fi
   if grep -q '"server"' "$CAP_CONFIG" 2>/dev/null; then
     echo "[ios:refresh] WARNING: runtime server url present (check config)"
