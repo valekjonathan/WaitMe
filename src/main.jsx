@@ -1,7 +1,10 @@
 import './dev/diagnostics';
 import './system/diagnostics/waitmeDiagnostics';
 import './dev/layoutInspector';
+import { bootLog } from './lib/bootLogger';
 import { initOAuthCapture } from './lib/oauthCapture';
+
+bootLog('[BOOT 1] app start');
 import { authTrace } from './lib/authTrace';
 import React from 'react';
 import ReactDOM from 'react-dom/client';

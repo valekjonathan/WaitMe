@@ -19,31 +19,7 @@ else
   echo "[devcontext] ZIP falló, continuando..."
 fi
 
-echo "[devcontext] 2. Runtime log y auth log (preservar si existe)..."
-if [[ ! -f "$DC/latest-runtime-log.txt" ]]; then
-  echo "# Runtime log — esperando logs de app" > "$DC/latest-runtime-log.txt"
-fi
-if [[ ! -f "$DC/latest-auth-log.txt" ]]; then
-  cat > "$DC/latest-auth-log.txt" << 'AUTHTPL'
-# Auth Log — WaitMe
-# Copiar [AUTH FINAL 1-12] desde Xcode/Safari Console tras probar Login Google.
-# ---
-AUTHTPL
-  echo "[devcontext] Creada plantilla latest-auth-log.txt"
-fi
-
-echo "[devcontext] 3. Iniciando log server (puerto 9999)..."
-node scripts/serve-runtime-log.js &
-LOG_PID=$!
-sleep 2
-
-echo "[devcontext] 4. iOS refresh log..."
-npm run ios:refresh 2>&1 | tee "$DC/latest-ios-refresh-log.txt" || true
-
-echo "[devcontext] 4b. Esperando logs de app (12s)..."
-sleep 12
-
-echo "[devcontext] 4c. Screenshot (tras ios:refresh)..."
+echo "[devcontext] 2. Screenshots (simulador booted)..."
 if xcrun simctl io booted screenshot "$DC/latest-simulator.png" 2>/dev/null; then
   echo "[devcontext] latest-simulator.png OK"
 else
@@ -53,7 +29,18 @@ if [[ -f "$DC/latest-simulator-after-login.png" ]]; then
   echo "[devcontext] latest-simulator-after-login.png ya existe (no sobrescribir)"
 fi
 
-kill $LOG_PID 2>/dev/null || true
+echo "[devcontext] 3. Auth log (preservar si existe)..."
+if [[ ! -f "$DC/latest-auth-log.txt" ]]; then
+  cat > "$DC/latest-auth-log.txt" << 'AUTHTPL'
+# Auth Log — WaitMe
+# Copiar [AUTH FINAL 1-12] desde Xcode/Safari Console tras probar Login Google.
+# ---
+AUTHTPL
+  echo "[devcontext] Creada plantilla latest-auth-log.txt"
+fi
+
+echo "[devcontext] 4. iOS refresh log..."
+npm run ios:refresh 2>&1 | tee "$DC/latest-ios-refresh-log.txt" || true
 
 echo "[devcontext] 5. Project tree..."
 bash scripts/gen-project-tree.sh 2>/dev/null || true
@@ -67,18 +54,13 @@ for f in docs/CURSOR_LAST_RESPONSE.md docs/DEV_STATUS.md docs/AUTH_STATUS.md doc
 done
 
 echo "[devcontext] 7. Git add, commit, push..."
-git add docs "$DC" automation 2>/dev/null || true
+git add docs "$DC" 2>/dev/null || true
 if git diff --staged --quiet 2>/dev/null; then
   echo "[devcontext] Sin cambios que commitear"
 else
   git commit -m "devcontext update" 2>/dev/null || true
   git push origin main 2>/dev/null || true
   echo "[devcontext] Commit y push OK"
-  if [[ -n "$BRIDGE_URL" ]]; then
-    TS=$(date +"%Y-%m-%dT%H:%M:%S")
-    curl -s -X POST "$BRIDGE_URL/ping" -H "Content-Type: application/json" \
-      -d "{\"repo\":\"valekjonathan/WaitMe\",\"status\":\"devcontext_updated\",\"timestamp\":\"$TS\"}" 2>/dev/null || true
-  fi
 fi
 
 echo "[devcontext] DONE — $TS"

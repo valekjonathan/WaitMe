@@ -3,6 +3,15 @@
 # Garantiza que el simulador SIEMPRE muestre la última build real.
 set -e
 cd "$(dirname "$0")/.."
+ROOT="$(pwd)"
+
+# Forzar build local empaquetada: NUNCA usar dev server en ios:refresh
+unset CAP_LIVE_RELOAD
+unset CAPACITOR_USE_DEV_SERVER
+unset CAPACITOR_DEV_SERVER_URL
+export CAP_LIVE_RELOAD=""
+export CAPACITOR_USE_DEV_SERVER=""
+export CAPACITOR_DEV_SERVER_URL=""
 
 APP_ID="com.waitme.app"
 
@@ -41,6 +50,22 @@ echo ""
 echo "[ios:refresh] syncing ios..."
 npx cap sync ios
 echo "[ios:refresh] synced ios"
+echo ""
+
+# Verificar que NO hay server.url en runtime config
+CAP_CONFIG="$ROOT/ios/App/App/capacitor.config.json"
+if [[ -f "$CAP_CONFIG" ]]; then
+  if grep -q '"server"' "$CAP_CONFIG" 2>/dev/null; then
+    SERVER_URL=$(grep -o '"url"[[:space:]]*:[[:space:]]*"[^"]*"' "$CAP_CONFIG" 2>/dev/null | head -1)
+    echo "[ios:refresh] WARNING: runtime server url: $SERVER_URL"
+  elif grep -q '"url"' "$CAP_CONFIG" 2>/dev/null; then
+    echo "[ios:refresh] WARNING: runtime server url present (check config)"
+  else
+    echo "[ios:refresh] runtime server url: NONE (build local OK)"
+  fi
+else
+  echo "[ios:refresh] WARNING: capacitor.config.json no encontrado"
+fi
 echo ""
 
 echo "[ios:refresh] installing and launching fresh app..."

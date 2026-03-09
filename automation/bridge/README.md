@@ -1,8 +1,29 @@
 # WaitMe Automation Bridge
 
-Backend puente: GitHub Webhook → OpenAI Agents SDK.
+Backend puente: GitHub Webhook → Context → OpenAI (futuro).
 
-## Cómo arrancarlo
+## Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | /health | Health check (status, timestamp, version) |
+| POST | /github-webhook | Recibe push de GitHub, valida firma, lee contexto y guarda snapshot |
+| POST | /ping | Recibe { repo, status, timestamp } para hooks |
+| GET | /context/latest | Devuelve último contexto (docs, devcontext, commit) |
+
+## Variables de entorno
+
+| Variable | Descripción |
+|----------|-------------|
+| PORT | Puerto (default: 3000) |
+| GITHUB_WEBHOOK_SECRET | Secret del webhook de GitHub |
+| GITHUB_TOKEN | Token para leer repo (rate limit mayor) |
+| OPENAI_API_KEY | Para Agents SDK (futuro) |
+| REPO_OWNER | Owner del repo (default: valekjonathan) |
+| REPO_NAME | Nombre del repo (default: WaitMe) |
+| BRIDGE_URL | URL pública del bridge (para hooks locales) |
+
+## Cómo arrancar localmente
 
 ```bash
 cd automation/bridge
@@ -12,57 +33,45 @@ cp .env.example .env
 npm run dev
 ```
 
-## Variables de entorno
+## Desplegar en Render
 
-| Variable | Descripción |
-|----------|-------------|
-| `PORT` | Puerto del servidor (default: 3000) |
-| `GITHUB_WEBHOOK_SECRET` | Secret del webhook de GitHub |
-| `OPENAI_API_KEY` | API key de OpenAI (para Agents SDK) |
-| `BRIDGE_URL` | URL pública del bridge |
+1. **Crear servicio desde repo:**
+   - Render Dashboard → New → Web Service
+   - Conectar repo WaitMe
+   - Root Directory: `automation/bridge`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
 
-## Conectar a GitHub Webhook
+2. **Variables de entorno:**
 
-1. GitHub → Settings → Webhooks → Add webhook
-2. Payload URL: `https://[tu-bridge-url]/webhook/github`
-3. Content type: `application/json`
-4. Secret: generar uno y ponerlo en `GITHUB_WEBHOOK_SECRET`
-5. Eventos: push, pull_request (o "Just the push event")
+   | Key | Secret |
+   |-----|--------|
+   | PORT | (auto) |
+   | GITHUB_WEBHOOK_SECRET | Generar con `openssl rand -hex 32` |
+   | GITHUB_TOKEN | Personal Access Token (repo scope) |
+   | GITHUB_TOKEN | (opcional) |
+   | REPO_OWNER | valekjonathan |
+   | REPO_NAME | WaitMe |
 
-## Conectar al SDK de OpenAI
+3. **Deploy** → Render asigna URL pública (ej: `https://waitme-bridge.onrender.com`)
 
-- Añadir `OPENAI_API_KEY` en `.env`
-- Implementar en `src/openaiAgent.js` la llamada al Agents SDK
-- El webhook puede invocar `processWithOpenAI(context)` tras recibir push
+4. **Configurar webhook en GitHub:**
+   - Repo → Settings → Webhooks → Add webhook
+   - Payload URL: `https://[tu-bridge-url]/github-webhook`
+   - Content type: `application/json`
+   - Secret: el mismo que GITHUB_WEBHOOK_SECRET
+   - Eventos: Just the push event
 
-## Usar con Cursor Hooks
+## Flujo ChatGPT
 
-Copiar `automation/cursor-hooks-example.json` a `.cursor/hooks.json`:
+1. Usuario hace push → GitHub envía webhook al bridge
+2. Bridge lee docs/ y devcontext/ desde GitHub API
+3. Guarda snapshot en `.cache/latest-context.json`
+4. ChatGPT (o MCP) llama GET /context/latest para obtener contexto
+5. (Futuro) OpenAI Agents SDK procesa el contexto y responde
 
-```json
-{
-  "version": 1,
-  "hooks": {
-    "stop": [
-      {
-        "command": "npm run devcontext:update"
-      }
-    ]
-  }
-}
-```
+## Conectar Cursor Hooks
 
-Para ping al bridge tras push:
+Copiar `automation/cursor-hooks-example.json` a `.cursor/hooks.json`.
 
-```bash
-curl -X POST "$BRIDGE_URL/webhook/github" -H "Content-Type: application/json" -d '{"repo":"valekjonathan/WaitMe","status":"updated"}'
-```
-
-## Desplegar en Render/Railway/Fly.io/VPS
-
-- **Render:** `npm start`, env vars en dashboard
-- **Railway:** `npm start`, env vars en Variables
-- **Fly.io:** `fly launch`, `fly secrets set KEY=value`
-- **VPS:** pm2 o systemd, `node src/server.js`
-
-Necesario: URL público (HTTPS) para que GitHub pueda enviar webhooks.
+Tras push, `automation/on-change.sh` hace ping al bridge si `BRIDGE_URL` está definido.

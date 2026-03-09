@@ -1,0 +1,27 @@
+# Render Blueprint — WaitMe
+# El bridge está en automation/bridge/
+services:
+  - type: web
+    name: waitme-bridge
+    runtime: node
+    plan: free
+
+    rootDir: automation/bridge
+    buildCommand: npm install
+    startCommand: npm start
+
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        generateValue: true
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: REPO_OWNER
+        value: valekjonathan
+      - key: REPO_NAME
+        value: WaitMe

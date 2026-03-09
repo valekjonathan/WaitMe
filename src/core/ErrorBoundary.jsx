@@ -1,4 +1,5 @@
 import React from 'react';
+import { bootLog, flushToServer } from '@/lib/bootLogger';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -12,6 +13,10 @@ export default class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     this.setState({ info });
+    const msg = error?.message || String(error);
+    const stack = info?.componentStack || '';
+    bootLog('[BOOT 4] error boundary triggered', msg, stack.slice(0, 200));
+    flushToServer();
     console.error('React crash:', error, info);
   }
 
@@ -34,6 +39,23 @@ export default class ErrorBoundary extends React.Component {
             fontFamily: 'system-ui',
           }}
         >
+          {typeof __SHOW_BUILD_MARKER__ !== 'undefined' && __SHOW_BUILD_MARKER__ && (
+            <p
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 0,
+                right: 0,
+                textAlign: 'center',
+                fontSize: 10,
+                color: '#22d3ee',
+                fontFamily: 'monospace',
+              }}
+            >
+              WAITME RUNTIME CHECK — BUILD:{' '}
+              {typeof __BUILD_TIMESTAMP__ !== 'undefined' ? __BUILD_TIMESTAMP__ : '?'}
+            </p>
+          )}
           <p style={{ fontSize: 18, marginBottom: 16 }}>Error cargando WaitMe</p>
           {isDev && error && (
             <pre

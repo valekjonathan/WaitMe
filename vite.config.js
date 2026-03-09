@@ -39,6 +39,7 @@ export default defineConfig({
     assetsInlineLimit: 200000,
     define: {
       __SHOW_BUILD_MARKER__: process.env.VITE_IOS_DEV_BUILD === '1',
+      __BUILD_TIMESTAMP__: JSON.stringify(new Date().toTimeString().slice(0, 8)),
     },
   },
   test: {
