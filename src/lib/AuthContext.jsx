@@ -357,6 +357,15 @@ export const AuthProvider = ({ children }) => {
 
   const navigateToLogin = useCallback(() => {}, []);
 
+  /** Solo simulador iOS: login sin OAuth/passkey para pruebas. Nunca en producción. */
+  const loginAsSimulatorTest = useCallback(() => {
+    setUser(DEV_MOCK_USER);
+    setProfile(DEV_MOCK_PROFILE);
+    setIsAuthenticated(true);
+    setIsLoadingAuth(false);
+    setAuthError(null);
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -372,6 +381,7 @@ export const AuthProvider = ({ children }) => {
       checkAppState: () => {},
       checkUserAuth: () => {},
       refreshProfile,
+      loginAsSimulatorTest,
     }),
     [
       user,
@@ -382,6 +392,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       refreshProfile,
+      loginAsSimulatorTest,
     ]
   );
 

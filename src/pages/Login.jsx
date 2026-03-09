@@ -3,6 +3,13 @@ import { Capacitor } from '@capacitor/core';
 import { InAppBrowser } from '@capacitor/inappbrowser';
 import { getSupabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
+
+/** Solo en simulador iOS (build con VITE_IOS_DEV_BUILD=1). Evita passkey de Google. */
+const isSimulatorDevBuild = () =>
+  typeof Capacitor !== 'undefined' &&
+  Capacitor.isNativePlatform() &&
+  Capacitor.getPlatform() === 'ios' &&
+  (import.meta.env.VITE_IOS_DEV_BUILD === '1' || import.meta.env.VITE_IOS_SIMULATOR === 'true');
 import { getAuthDebug } from '@/lib/authTrace';
 import appLogo from '@/assets/d2ae993d3_WaitMe.png';
 
@@ -73,6 +80,7 @@ function AuthDebugPanel() {
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { loginAsSimulatorTest } = useAuth();
 
   const handleOAuthLogin = async (provider) => {
     setError('');
@@ -197,6 +205,16 @@ export default function Login() {
             </svg>
             Continuar con Apple
           </button>
+
+          {isSimulatorDevBuild() && (
+            <button
+              type="button"
+              onClick={() => loginAsSimulatorTest?.()}
+              className="w-full border border-gray-500 text-gray-400 hover:bg-gray-800/50 py-2.5 rounded-xl text-sm transition-colors mt-2"
+            >
+              Entrar en modo test
+            </button>
+          )}
         </div>
       </div>
       <AuthDebugPanel />
