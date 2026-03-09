@@ -51,8 +51,10 @@ async function processOAuthUrl(url) {
     const code = params.get('code');
     if (code) {
       authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession executing');
+      console.log('[OAuth TRACE] exchange executing, code length:', code.length);
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        console.log('[OAuth TRACE] exchange success');
         authTrace(5, 'oauthCapture.js', 'processOAuthUrl', 'exchangeCodeForSession success');
         const session = data?.session;
         authTrace(
@@ -81,6 +83,7 @@ async function processOAuthUrl(url) {
         authTrace(6, 'oauthCapture.js', 'processOAuthUrl', 'oauth complete event dispatched');
         return true;
       }
+      console.log('[OAuth TRACE] exchange error', error?.message, error?.code);
       authTrace(
         5,
         'oauthCapture.js',
@@ -123,8 +126,11 @@ export function initOAuthCapture() {
   if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform()) return;
   (async () => {
     try {
+      // 1) Listener para callback cuando Safari vuelve a la app (iOS: suele llegar por aquí)
       CapacitorApp.addListener('appUrlOpen', async (event) => {
         const url = event?.url;
+        if (!url) return;
+        console.log('[OAuth TRACE] appUrlOpen:', url?.slice(0, 80));
         authTrace(
           3,
           'oauthCapture.js',
@@ -132,10 +138,13 @@ export function initOAuthCapture() {
           'appUrlOpen received',
           url || '(empty)'
         );
-        updateAuthDebug({ callbackReceived: !!url, callbackSource: 'appUrlOpen' });
+        updateAuthDebug({ callbackReceived: true, callbackSource: 'appUrlOpen' });
         await processOAuthUrl(url);
       });
+
+      // 2) Lectura inicial (cold start: app abierta por la URL OAuth)
       const launch = await CapacitorApp.getLaunchUrl();
+      console.log('[OAuth TRACE] launch url', launch?.url ?? '(empty)');
       authTrace(
         2,
         'oauthCapture.js',
@@ -143,11 +152,9 @@ export function initOAuthCapture() {
         'getLaunchUrl result',
         launch?.url || '(empty)'
       );
-      if (launch && launch.url) {
-        const url = launch.url;
-        console.log('[OAuth] getLaunchUrl received:', url);
+      if (launch?.url) {
         updateAuthDebug({ callbackReceived: true, callbackSource: 'getLaunchUrl' });
-        await processOAuthUrl(url);
+        await processOAuthUrl(launch.url);
       } else {
         console.log('[OAuth] getLaunchUrl empty');
       }
