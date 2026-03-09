@@ -16,6 +16,7 @@ export default function CreateAlertCard({
 }) {
   const [price, setPrice] = useState(3);
   const [minutes, setMinutes] = useState(10);
+  const [, setDiagRefresh] = useState(0); // fuerza re-render del bloque diag al pulsar Ubícate
 
   const handleCreate = () => {
     onCreateAlert({ price, minutes });
@@ -32,6 +33,29 @@ export default function CreateAlertCard({
         : 'controller not ready (map.on load may not have fired)';
     }
     if (loc) onRecenter?.({ lat: loc.lat, lng: loc.lng });
+
+    // DIAGNÓSTICO TEMPORAL — quitar tras depurar iOS Simulator
+    if (typeof window !== 'undefined') {
+      const diag = window.__WAITME_DIAG__ || {};
+      console.group('[WaitMe Ubícate] Diagnóstico');
+      console.log('window.waitmeMap existe:', !!window.waitmeMap);
+      console.log('typeof flyToUser:', typeof window.waitmeMap?.flyToUser);
+      console.log('coordenadas usadas:', { lng: loc.lng, lat: loc.lat });
+      console.log('resultado flyToUser:', ok);
+      console.log('__WAITME_DIAG__:', {
+        mapCreated: diag.mapCreated,
+        mapLoadedEvent: diag.mapLoadedEvent,
+        styleLoaded: diag.styleLoaded,
+        controllerReady: diag.controllerReady,
+        controllerReadyAt: diag.controllerReadyAt,
+        lastFlyToUserCall: diag.lastFlyToUserCall,
+        lastFlyToResult: diag.lastFlyToResult,
+        lastFlyToError: diag.lastFlyToError,
+        locateFailureReason: diag.locateFailureReason,
+      });
+      console.groupEnd();
+      setDiagRefresh((v) => v + 1);
+    }
   };
 
   return (
@@ -118,6 +142,23 @@ export default function CreateAlertCard({
         >
           {isLoading ? 'Publicando...' : 'Publicar mi WaitMe!'}
         </Button>
+
+        {/* DIAGNÓSTICO TEMPORAL — solo DEV, quitar tras depurar iOS Simulator */}
+        {import.meta.env.DEV && typeof window !== 'undefined' && (
+          <div
+            data-waitme-diag
+            className="mt-2 p-2 rounded bg-black/60 text-[10px] font-mono text-amber-300/90 overflow-x-auto"
+          >
+            <div>mapCreated: {String(window.__WAITME_DIAG__?.mapCreated ?? '—')}</div>
+            <div>mapLoadedEvent: {String(window.__WAITME_DIAG__?.mapLoadedEvent ?? '—')}</div>
+            <div>styleLoaded: {String(window.__WAITME_DIAG__?.styleLoaded ?? '—')}</div>
+            <div>controllerReady: {String(window.__WAITME_DIAG__?.controllerReady ?? '—')}</div>
+            <div>
+              locateFailureReason: {String(window.__WAITME_DIAG__?.locateFailureReason ?? '—')}
+            </div>
+            <div>lastFlyToResult: {String(window.__WAITME_DIAG__?.lastFlyToResult ?? '—')}</div>
+          </div>
+        )}
       </div>
     </div>
   );
