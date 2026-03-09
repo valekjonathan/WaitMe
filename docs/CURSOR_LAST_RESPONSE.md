@@ -1,38 +1,32 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-09 18:35
+**Última actualización:** 2026-03-09 18:44
 
 ---
 
 ## Prompt recibido
 
-Resolver contradicción entre lo que dice Cursor y lo que muestra el simulador. Estado real: a veces "Cargando...", a veces "Error cargando WaitMe". Confirmar build nueva, crash, evidencia real.
+Cerrar problema real: app muestra "Error cargando WaitMe", Cursor preview ERR_CONNECTION_REFUSED. Forzar build local empaquetada en ios:refresh.
 
 ---
 
 ## Resumen exacto de lo hecho
 
-- **ios-refresh.sh** verificado: terminate → uninstall → rm -rf dist → build → cap sync → cap run
-- **Marcador WAITME RUNTIME CHECK — BUILD: HH:MM:SS** añadido: App.jsx, ErrorBoundary (solo con VITE_IOS_DEV_BUILD=1)
-- **Evidencia real** capturada tras ios:refresh
+- **ios-refresh.sh**: unset explícito de CAP_LIVE_RELOAD, CAPACITOR_USE_DEV_SERVER, CAPACITOR_DEV_SERVER_URL al inicio
+- **Verificación**: tras cap sync, imprime `[ios:refresh] runtime server url: NONE` o WARNING si hay server.url
+- **capacitor.config.ts**: server.url solo cuando useLiveReload (CAP_LIVE_RELOAD o CAPACITOR_USE_DEV_SERVER = true)
 
 ---
 
-## Estado real reportado por usuario
+## Causa del fallo
 
-- **Inconsistente:** a veces "Cargando...", a veces "Error cargando WaitMe"
-- **NO confirmado:** que la app muestre Login siempre o que el crash haya desaparecido
-
----
-
-## Captura en esta sesión (2026-03-09 18:29)
-
-- **Screenshot:** devcontext/latest-simulator.png
-- **Estado mostrado:** Login (logo, "Inicia sesión para continuar", botones Google/Apple)
-- **Marcador:** WAITME RUNTIME CHECK en parte inferior (si build nueva)
+- ios-refresh.sh NO hacía unset de las env vars
+- Si el shell tenía CAPACITOR_USE_DEV_SERVER=true (p.ej. de ios:auto o sesión previa), cap sync generaba config con server.url
+- La app instalada intentaba cargar desde localhost → ERR_CONNECTION_REFUSED
 
 ---
 
-## Siguiente paso recomendado
+## Corrección aplicada
 
-Probar varias veces: npm run ios:refresh → verificar si aparece "WAITME RUNTIME CHECK BUILD: HH:MM:SS" en la parte inferior. Si aparece Login → build nueva. Si aparece Cargando o Error → revisar logs consola.
+- Líneas 9-16 de ios-refresh.sh: unset + export vacío de las 3 vars
+- Líneas 60-71: verificación de capacitor.config.json tras sync

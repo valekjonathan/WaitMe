@@ -1,1 +1,12 @@
-# Runtime log — esperando logs de app
+# Runtime log — WaitMe
+# Última actualización: 2026-03-09 18:36
+#
+# La app envía logs a http://localhost:9999 cuando el servidor está activo.
+# En esta ejecución: no se recibieron logs (posible aislamiento de red simulador→host).
+#
+# Logs esperados: [BOOT 1] app start, [BOOT 2] build marker, [BOOT 3] auth loading,
+# [BOOT 4] error boundary (si crash), [BOOT 5] login rendered, [BOOT 6] home rendered
+#
+# Para capturar: node scripts/serve-runtime-log.js (en otra terminal) antes de ios:refresh
+---
+(no logs recibidos)
