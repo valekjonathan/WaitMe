@@ -8,6 +8,7 @@ const config: CapacitorConfig = {
   appName: 'WaitMe',
   webDir: 'dist',
   bundledWebRuntime: false,
+  // Simulator por defecto: iPhone 16e (usado por npm run ios:fresh / ios:dev)
   ...(useDevServer && {
     server: {
       url: serverUrl,
