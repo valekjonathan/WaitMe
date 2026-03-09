@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 # ios:fresh — Elimina app anterior, limpia build, sincroniza Capacitor, reconstruye e instala en Simulator.
-# Siempre instala la versión más reciente. Target por defecto: iPhone 16e.
+# SIEMPRE usa build empaquetada local. NUNCA depende de localhost/servidor dev.
 set -e
 cd "$(dirname "$0")/.."
+
+# Crítico: asegurar que NO haya server.url en config (evita pantalla blanca)
+unset CAP_LIVE_RELOAD
+unset CAPACITOR_USE_DEV_SERVER
+unset CAPACITOR_DEV_SERVER_URL
 
 BUNDLE_ID="com.waitme.app"
 TARGET_NAME="iPhone 16e"
@@ -34,7 +39,7 @@ rm -rf ios/App/DerivedData 2>/dev/null || true
 echo "[ios:fresh] 5. Build web..."
 npm run build
 
-echo "[ios:fresh] 6. Sync Capacitor..."
+echo "[ios:fresh] 6. Sync Capacitor (build empaquetada, sin server.url)..."
 npx cap sync ios
 
 echo "[ios:fresh] 7. Compilar, instalar y lanzar en $TARGET_NAME..."
