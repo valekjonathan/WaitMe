@@ -17,9 +17,9 @@ bash scripts/environment-guard.sh || exit 1
 # 2. OAuth iOS: asegurar redirect URL en Supabase (si hay token)
 node scripts/ensure-oauth-redirect-ios.js || true
 
-# 3. Obtener IP
+# 3. Obtener URL del servidor dev (IP:puerto)
+URL=$(node scripts/setDevServer.js)
 IP=$(node scripts/get-ip.js)
-URL="http://${IP}:${PORT}"
 
 echo ""
 echo "=========================================="
