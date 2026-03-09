@@ -1,0 +1,16 @@
+---
+description: Actualizar docs de estado tras cambios importantes en WaitMe
+alwaysApply: true
+---
+
+# Actualización de docs de estado
+
+Después de cualquier cambio importante en el proyecto, además de responder en Cursor, **actualizar siempre** estos archivos:
+
+- `docs/CURSOR_LAST_RESPONSE.md` — prompt recibido, resumen, archivos tocados, comandos, errores, resultado
+- `docs/DEV_STATUS.md` — estado global, auth, Home, simulador, iPhone, mapa, siguiente paso
+- `docs/AUTH_STATUS.md` — flujo actual, último resultado, user null, SIGNED_IN, persistencia
+- `docs/IOS_RUNTIME_STATUS.md` — ios:refresh, build instalada, watcher, live reload
+- `docs/HOME_STATUS.md` — Home renderiza, logo, frases, botones, WAITME BUILD TEST
+
+Estos archivos son la fuente de verdad para que ChatGPT (u otros agentes) lean el estado del proyecto desde el repo sin depender de copiar respuestas de Cursor.
