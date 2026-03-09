@@ -4,6 +4,18 @@ Reglas que todo agente (humano o IA) debe seguir al trabajar en el proyecto. Man
 
 ---
 
+## 0. Simulador iOS — última build siempre
+
+**Regla obligatoria:** Cuando se modifique cualquier archivo de la app que afecte al comportamiento visual o funcional, Cursor debe ejecutar automáticamente:
+
+```bash
+npm run ios:refresh
+```
+
+Esto garantiza que el simulador siempre muestra la última build (cierre → desinstalación → recompilación → reinstalación → apertura).
+
+---
+
 ## 1. Archivos protegidos
 
 | Archivo | Regla |

@@ -6,6 +6,7 @@ alwaysApply: true
 # Validación local en WaitMe
 
 - Ante cualquier cambio visual solicitado, localiza el archivo correcto y aplícalo directamente sin pedir confirmación.
+- Cuando modifiques archivos que afecten al comportamiento visual o funcional de la app, ejecutar automáticamente `npm run ios:refresh` (cierra app, desinstala, recompila, reinstala y abre en Simulador).
 - Tras cada cambio, ejecutar en este orden:
   1. `npm run lint`
   2. `npm run typecheck`
