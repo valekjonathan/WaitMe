@@ -4,15 +4,16 @@
 
 ---
 
-## Formato fijo
+## Formato obligatorio
 
-- **Estado global** — tabla: auth iOS, Home, simulador, iPhone físico, mapa
-- **Auth iOS** — resumen del flujo
-- **Home** — resumen del estado
-- **Simulador** — scripts y watcher
+- **Estado global** — tabla: auth iOS, Home, mapa, simulador, iPhone físico, build
+- **Auth iOS** — resumen
+- **Home** — resumen
+- **Mapa** — resumen
+- **Simulador** — scripts, watcher
 - **iPhone físico** — live reload
-- **Mapa** — token, loader
-- **Siguiente paso recomendado** — acción concreta
+- **Build actual** — vars, dist
+- **Siguiente paso único** — acción concreta
 
 ---
 
@@ -20,52 +21,63 @@
 
 | Área | Estado | Notas |
 |------|--------|-------|
-| Auth iOS | En validación | Flujo Supabase puro, fallback session.user si ensureUserInDb falla |
-| Home | En validación | Overlay con minHeight, depende de auth |
-| Simulador | OK | ios:refresh funciona, scripts correctos |
-| iPhone físico | OK | ios:auto con live reload, requiere Mac encendido |
-| Mapa | OK | Mapbox con token, funciona si Home carga |
+| Auth iOS | En validación | Flujo Supabase puro, fallback session.user |
+| Home | En validación | Overlay, depende de auth |
+| Mapa | OK | Mapbox, depende de Home |
+| Simulador | OK | ios:refresh, scripts correctos |
+| iPhone físico | OK | ios:auto, Mac encendido |
+| Build | OK | Vite, VITE_IOS_DEV_BUILD en ios:refresh |
+
+---
+
+## ZIP vivo
+
+- **Ruta:** tmp/waitme-live-context.zip
+- **Tamaño:** ~128 MB
+- **Timestamp generación:** 2026-03-09 15:21
+- **Nota:** tmp/ está en .gitignore; ZIP y screenshot son locales. Para compartir con ChatGPT: subir ZIP a release o descargar desde máquina local.
 
 ---
 
 ## Auth iOS
 
-- Flujo: oauthCapture → exchangeCodeForSession(code) → Supabase → onAuthStateChange SIGNED_IN → applySession → setUser
-- Sin eventos manuales ni variables globales
-- Fallback: si ensureUserInDb falla, setUser(session.user)
+- oauthCapture → exchangeCodeForSession → onAuthStateChange → applySession → setUser
+- Fallback: ensureUserInDb falla → setUser(session.user)
 
 ---
 
 ## Home
 
-- Overlay con z-[100], minHeight 100%, logo/frases/botones en HomeHeader
-- WAITME BUILD TEST visible con VITE_IOS_DEV_BUILD=1 (ios:refresh)
-- Depende de user != null (auth)
-
----
-
-## Simulador
-
-- npm run start → Vite + chokidar → ios:refresh al cambiar
-- npm run ios:refresh → terminate, uninstall, build, sync, run
-
----
-
-## iPhone físico
-
-- npm run ios:auto → Vite + cap run con live reload
-- Requiere: misma WiFi, permiso Red local, Mac encendido
+- Overlay z-[100], logo/frases/botones en HomeHeader
+- WAITME BUILD TEST con VITE_IOS_DEV_BUILD=1
 
 ---
 
 ## Mapa
 
-- MapboxMap con VITE_MAPBOX_TOKEN
-- Loader "Map loading..." hasta mapReady
-- Funciona si Home se renderiza
+- MapboxMap, VITE_MAPBOX_TOKEN, createMap
 
 ---
 
-## Siguiente paso recomendado
+## Simulador
 
-Validar en simulador: Login Google → Safari vuelve → user != null → Home con logo/frases/botones. Revisar logs [AUTH STEP] si user sigue null.
+- npm run start, npm run ios:refresh
+
+---
+
+## iPhone físico
+
+- npm run ios:auto, WiFi, Red local
+
+---
+
+## Build actual
+
+- vite build, dist/, cap sync ios
+- VITE_IOS_DEV_BUILD=1 en ios:refresh
+
+---
+
+## Siguiente paso único
+
+Validar Login Google en simulador → Home. Revisar logs [AUTH STEP].

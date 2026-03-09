@@ -4,25 +4,24 @@
 
 ---
 
-## Formato fijo
+## Formato obligatorio
 
-- **Flujo actual** — pasos 1-N del auth
-- **Último resultado real** — qué pasó en última prueba
-- **user null sí/no** — si user queda null tras login
-- **SIGNED_IN sí/no** — si Supabase dispara el evento
-- **Estado de persistencia** — storage, getSession
+- **Flujo auth actual** — pasos 1-N
+- **Último resultado real** — qué pasó
+- **user null sí/no** — tras login
+- **SIGNED_IN sí/no** — evento Supabase
+- **session persistida sí/no** — getSession
+- **callback recibido sí/no** — oauthCapture
+- **punto actual del fallo** — si existe
 
 ---
 
-## Flujo actual
+## Flujo auth actual
 
-1. oauthCapture detecta URL OAuth (?code=xxx)
-2. exchangeCodeForSession(code) — Supabase crea sesión
-3. Supabase dispara onAuthStateChange(SIGNED_IN, session)
-4. AuthContext.applySession(session):
-   - ensureUserInDb(session.user) → appUser
-   - Si appUser: setUser(appUser)
-   - Si falla: setUser(session.user) (fallback)
+1. oauthCapture detecta URL ?code=xxx
+2. exchangeCodeForSession(code)
+3. Supabase → onAuthStateChange(SIGNED_IN, session)
+4. applySession: ensureUserInDb → setUser(appUser) o fallback setUser(session.user)
 5. Router: user != null → Home
 
 ---
@@ -30,24 +29,34 @@
 ## Último resultado real
 
 - Pendiente validación manual en simulador
-- Logs [AUTH STEP] añadidos para diagnóstico
+- Logs [AUTH STEP] para diagnóstico
 
 ---
 
 ## user null sí/no
 
-- **Pendiente validar** — Si ensureUserInDb falla, fallback a session.user debería evitar null
+- **Pendiente validar** — Fallback session.user debería evitar null si ensureUserInDb falla
 
 ---
 
 ## SIGNED_IN sí/no
 
-- **Sí** — Supabase dispara SIGNED_IN tras exchangeCodeForSession
-- AuthContext escucha onAuthStateChange
+- **Sí** — Supabase dispara tras exchangeCodeForSession
 
 ---
 
-## Estado de persistencia
+## session persistida sí/no
 
-- Capacitor Preferences (supabaseClient con flowType: pkce)
-- getSession() restaura sesión al reabrir app
+- **Sí** — Capacitor Preferences, flowType pkce, getSession restaura
+
+---
+
+## callback recibido sí/no
+
+- **Sí** — oauthCapture appUrlOpen/getLaunchUrl procesa URL
+
+---
+
+## punto actual del fallo si existe
+
+- Ninguno identificado. Validar en simulador con logs [AUTH STEP].

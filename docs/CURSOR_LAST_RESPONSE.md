@@ -4,54 +4,69 @@
 
 ---
 
-## Formato fijo
+## Formato obligatorio
 
 - **Prompt recibido** — texto del prompt del usuario
-- **Resumen de lo hecho** — bullets de acciones realizadas
+- **Resumen exacto de lo hecho** — acciones realizadas
 - **Archivos tocados** — lista con (creado/modificado)
 - **Comandos ejecutados** — comandos run
-- **Errores** — si los hubo
-- **Resultado final** — conclusión
+- **Errores encontrados** — si los hubo
+- **Resultado real** — conclusión
+- **Siguiente paso recomendado** — acción concreta
 
 ---
 
 ## Prompt recibido
 
-Preparar el proyecto WaitMe para que ChatGPT pueda seguir el estado del proyecto sin que el usuario tenga que copiar y pegar respuestas de Cursor constantemente. Crear docs de estado y regla de actualización.
+Dejar WaitMe en modo "contexto vivo" para que ChatGPT pueda seguir el proyecto. Protocolo: actualizar docs, generar ZIP, captura simulador, resumen técnico, reglas Cursor. Todo en rutas fijas.
 
 ---
 
-## Resumen de lo hecho
+## Resumen exacto de lo hecho
 
-- Creados 5 archivos de estado: CURSOR_LAST_RESPONSE, DEV_STATUS, AUTH_STATUS, IOS_RUNTIME_STATUS, HOME_STATUS
-- Definido formato fijo para cada uno
-- Añadida regla Cursor para actualizar estos archivos tras cambios importantes
+- Creado docs/MAP_STATUS.md
+- Actualizados docs con formato obligatorio ampliado
+- Creado docs/LIVE_CONTEXT_SUMMARY.md
+- Generado tmp/waitme-live-context.zip
+- Intentada captura tmp/latest-simulator.png
+- Actualizada regla .cursor/rules/live-context-protocol.mdc (alwaysApply)
 
 ---
 
 ## Archivos tocados
 
-- docs/CURSOR_LAST_RESPONSE.md (creado)
-- docs/DEV_STATUS.md (creado)
-- docs/AUTH_STATUS.md (creado)
-- docs/IOS_RUNTIME_STATUS.md (creado)
-- docs/HOME_STATUS.md (creado)
-- .cursor/rules/update-status-docs.mdc (creado)
+- docs/CURSOR_LAST_RESPONSE.md (actualizado)
+- docs/DEV_STATUS.md (actualizado)
+- docs/AUTH_STATUS.md (actualizado)
+- docs/IOS_RUNTIME_STATUS.md (actualizado)
+- docs/HOME_STATUS.md (actualizado)
+- docs/MAP_STATUS.md (creado)
+- docs/LIVE_CONTEXT_SUMMARY.md (creado)
+- .cursor/rules/live-context-protocol.mdc (creado)
+- .cursor/rules/update-status-docs.mdc (reemplazado por live-context-protocol)
 
 ---
 
 ## Comandos ejecutados
 
-- Ninguno (solo creación de archivos)
+- mkdir -p tmp
+- zip -r tmp/waitme-live-context.zip src scripts docs package.json capacitor.config.ts vite.config.js ...
+- xcrun simctl io booted screenshot tmp/latest-simulator.png
 
 ---
 
-## Errores
+## Errores encontrados
 
-- Ninguno
+- Screenshot: simulador puede no estar booted; si falla, dejar por escrito en docs
 
 ---
 
-## Resultado final
+## Resultado real
 
-Sistema de documentación de estado creado. A partir de ahora, tras cada intervención relevante, se actualizarán estos archivos para que ChatGPT pueda leer el estado del proyecto desde el repo.
+Protocolo "contexto vivo" implementado. Regla live-context-protocol.mdc con alwaysApply. ZIP generado. Screenshot depende de simulador activo.
+
+---
+
+## Siguiente paso recomendado
+
+Validar en simulador: Login Google → Home. Si screenshot falla, ejecutar ios:refresh primero y luego xcrun simctl io booted screenshot tmp/latest-simulator.png manualmente.

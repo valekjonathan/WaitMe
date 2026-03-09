@@ -1,0 +1,41 @@
+---
+description: Protocolo "contexto vivo" — actualizar docs, ZIP, screenshot tras cada cambio relevante
+alwaysApply: true
+---
+
+# Protocolo Contexto Vivo — WaitMe
+
+Después de **cualquier cambio relevante** (funcional, visual, auth, mapa, iOS, scripts, build, simulador, iPhone, configuración), ejecutar automáticamente:
+
+## 1. Actualizar archivos de estado en docs/
+
+- docs/CURSOR_LAST_RESPONSE.md — prompt, resumen, archivos, comandos, errores, resultado, siguiente paso
+- docs/DEV_STATUS.md — estado global, auth, Home, mapa, simulador, iPhone, build, ZIP (ruta+tamaño+timestamp), siguiente paso
+- docs/AUTH_STATUS.md — flujo, último resultado, user null, SIGNED_IN, session persistida, callback recibido, punto del fallo
+- docs/IOS_RUNTIME_STATUS.md — ios:refresh, build, watcher, live reload, simulador build nueva, screenshot (ruta+timestamp)
+- docs/HOME_STATUS.md — Home renderiza, logo, frases, botones, WAITME BUILD TEST, causa si falla
+- docs/MAP_STATUS.md — mapa carga, token, createMap, último error, Ubícate, user location
+- docs/LIVE_CONTEXT_SUMMARY.md — qué se cambió, qué se comprobó, qué roto, qué arreglado, build/screenshot/zip, qué revisar ChatGPT
+
+## 2. Generar ZIP vivo
+
+- Ruta fija: tmp/waitme-live-context.zip
+- Incluir: src, scripts, ios, docs, package.json, capacitor.config.ts, vite config, tests, .cursor
+- Excluir: node_modules, .git, dist, coverage, DerivedData pesada, secretos
+- Reflejar en DEV_STATUS: ruta, tamaño, timestamp
+
+## 3. Captura simulador (si afecta UI/auth/Home/mapa/ios)
+
+- Ejecutar ios:refresh si aplica
+- Ruta: tmp/latest-simulator.png
+- Comando: xcrun simctl io booted screenshot tmp/latest-simulator.png
+- Si falla (simulador no booted): dejar por escrito en CURSOR_LAST_RESPONSE y DEV_STATUS
+
+## 4. Reflejar comandos y resultado real
+
+- En CURSOR_LAST_RESPONSE: comandos ejecutados, errores
+- No dar nada por arreglado sin evidencia en docs
+
+## 5. Regla de exclusión
+
+Si el cambio es irrelevante o puramente conversacional, no ejecutar protocolo.

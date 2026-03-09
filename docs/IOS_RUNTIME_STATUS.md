@@ -1,19 +1,21 @@
 # Estado iOS Runtime — WaitMe
 
-**Última actualización:** 2026-03-09
+**Última actualización:** 2026-03-09 15:21
 
 ---
 
-## Formato fijo
+## Formato obligatorio
 
-- **ios:refresh último resultado** — exit, fecha, target, pasos
-- **Build instalada** — vars, dist, sync
-- **Watcher activo sí/no** — npm run start
-- **Live reload iPhone sí/no** — ios:auto, requisitos
+- **último ios:refresh** — exit, fecha, pasos
+- **build instalada** — vars, dist
+- **watcher activo sí/no** — npm run start
+- **live reload iPhone sí/no** — ios:auto
+- **simulador mostrando build nueva sí/no** — tras ios:refresh
+- **screenshot generada sí/no** — ruta, timestamp
 
 ---
 
-## ios:refresh último resultado
+## último ios:refresh
 
 - **Exit:** 0 (OK)
 - **Fecha:** 2026-03-09 15:12:37
@@ -22,24 +24,35 @@
 
 ---
 
-## Build instalada
+## build instalada
 
-- VITE_IOS_DEV_BUILD=1 (marca WAITME BUILD TEST visible)
-- dist/ generado por vite build
-- cap sync ios ejecutado
-
----
-
-## Watcher activo sí/no
-
-- **Sí** cuando se ejecuta `npm run start`
-- chokidar detecta cambios en src/ → dispara ios:refresh
-- Si no se ejecuta start, watcher no corre
+- VITE_IOS_DEV_BUILD=1, dist/, cap sync
+- WAITME BUILD TEST visible
 
 ---
 
-## Live reload iPhone sí/no
+## watcher activo sí/no
 
-- **Sí** con `npm run ios:auto`
-- Requiere: Mac encendido, misma WiFi, permiso Red local
-- No funciona con Mac apagado
+- **Sí** cuando npm run start está corriendo
+- chokidar → ios:refresh al cambiar src/
+
+---
+
+## live reload iPhone sí/no
+
+- **Sí** con npm run ios:auto
+- WiFi, Red local, Mac encendido
+
+---
+
+## simulador mostrando build nueva sí/no
+
+- **Sí** tras ios:refresh — app reinstalada y lanzada
+
+---
+
+## screenshot generada sí/no
+
+- **Sí** — generada
+- **Ruta:** tmp/latest-simulator.png
+- **Timestamp:** 2026-03-09 15:21
