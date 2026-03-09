@@ -220,12 +220,21 @@ function MapboxMapInner({
     const isPlaceholder =
       !tokenStr || tokenStr === 'PEGA_AQUI_EL_TOKEN' || tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
+    const safePreview =
+      tokenStr.length >= 10
+        ? `${tokenStr.slice(0, 6)}...${tokenStr.slice(-4)}`
+        : tokenStr || '(empty)';
+    console.log('[MAP TOKEN TRACE 1] raw token exists:', !!tokenStr);
+    console.log('[MAP TOKEN TRACE 2] token length:', tokenStr.length, 'preview:', safePreview);
+    console.log('[MAP TOKEN TRACE 3] placeholder check:', isPlaceholder);
+
     if (isPlaceholder) {
-      console.log('[MAP TRACE] error set: no_token (placeholder)');
+      console.log('[MAP TOKEN TRACE 4] setting error=no_token (placeholder)');
       setError('no_token');
       return;
     }
 
+    console.log('[MAP TOKEN TRACE 5] createMap start');
     if (!containerRef.current) return;
     const container = containerRef.current;
 
@@ -284,6 +293,7 @@ function MapboxMapInner({
     createMap(container, { token: tokenStr, interactive })
       .then((m) => {
         if (cancelled || !containerRef.current) return;
+        console.log('[MAP TOKEN TRACE 6] createMap success');
         map = m;
         mapboxglRef.current = m;
         if (mapRef) mapRef.current = map;
@@ -360,15 +370,19 @@ function MapboxMapInner({
 
         map.on('error', (e) => {
           const msg = e?.error?.message || String(e);
+          console.log(
+            '[MAP TOKEN TRACE 8] map error event:',
+            msg?.slice(0, 80) ?? String(e).slice(0, 80)
+          );
           if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) {
-            console.log('[MAP TRACE] error set: no_token (map error)', msg);
+            console.log('[MAP TOKEN TRACE 4] setting error=no_token (map error)');
             setError('no_token');
           }
         });
       })
       .catch((err) => {
         console.error('Mapbox init error', err);
-        console.log('[MAP TRACE] error set: init_failed');
+        console.log('[MAP TOKEN TRACE 7] createMap failed:', err?.message ?? String(err));
         setError('init_failed');
       });
 
