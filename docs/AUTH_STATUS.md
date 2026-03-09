@@ -4,59 +4,52 @@
 
 ---
 
-## Formato obligatorio
-
-- **Flujo auth actual** — pasos 1-N
-- **Último resultado real** — qué pasó
-- **user null sí/no** — tras login
-- **SIGNED_IN sí/no** — evento Supabase
-- **session persistida sí/no** — getSession
-- **callback recibido sí/no** — oauthCapture
-- **punto actual del fallo** — si existe
-
----
-
 ## Flujo auth actual
 
-1. oauthCapture detecta URL ?code=xxx
-2. exchangeCodeForSession(code)
-3. Supabase → onAuthStateChange(SIGNED_IN, session)
-4. applySession: ensureUserInDb → setUser(appUser) o fallback setUser(session.user)
-5. Router: user != null → Home
+1. oauthCapture: appUrlOpen/getLaunchUrl → processOAuthUrl(url)
+2. Extrae code de URL: params.get('code')
+3. exchangeCodeForSession(code) — **code, NO url**
+4. getSession + setSession (workaround #1566)
+5. Supabase → onAuthStateChange(SIGNED_IN, session)
+6. applySession: ensureUserInDb → setUser(appUser) o fallback setUser(session.user)
+7. Router: user != null → Home
 
 ---
 
 ## Último resultado real
 
+- Corrección aplicada: code en vez de url
 - Pendiente validación manual en simulador
-- Logs [AUTH STEP] para diagnóstico
 
 ---
 
 ## user null sí/no
 
-- **Pendiente validar** — Fallback session.user debería evitar null si ensureUserInDb falla
+- **Pendiente validar** — Fallback session.user si ensureUserInDb falla
 
 ---
 
 ## SIGNED_IN sí/no
 
 - **Sí** — Supabase dispara tras exchangeCodeForSession
+- AuthContext escucha onAuthStateChange
 
 ---
 
 ## session persistida sí/no
 
-- **Sí** — Capacitor Preferences, flowType pkce, getSession restaura
+- **Sí** — Capacitor Preferences, flowType pkce
+- setSession tras exchange para workaround #1566
 
 ---
 
 ## callback recibido sí/no
 
-- **Sí** — oauthCapture appUrlOpen/getLaunchUrl procesa URL
+- **Sí** — oauthCapture appUrlOpen/getLaunchUrl
 
 ---
 
 ## punto actual del fallo si existe
 
-- Ninguno identificado. Validar en simulador con logs [AUTH STEP].
+- **Corregido**: Se pasaba url a exchangeCodeForSession; API espera code. Corregido.
+- Si persiste: revisar logs [AUTH FORENSIC 1-12] para identificar paso exacto.

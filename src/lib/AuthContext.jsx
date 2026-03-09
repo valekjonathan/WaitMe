@@ -57,10 +57,10 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   const ensureUserInDb = useCallback(async (authUser) => {
-    console.log('[AUTH STEP] ensureUserInDb start', authUser?.id);
+    console.log('[AUTH FORENSIC 7] ensureUserInDb start', authUser?.id);
     const supabase = getSupabase();
     if (!supabase || !authUser?.id) {
-      console.log('[AUTH STEP] ensureUserInDb error: no supabase or authUser');
+      console.log('[AUTH FORENSIC 8] ensureUserInDb error: no supabase or authUser');
       return null;
     }
     const email = authUser.email ?? '';
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }) => {
           created_at: new Date().toISOString(),
         });
         if (insertErr) {
-          console.log('[AUTH STEP] ensureUserInDb error: insert failed', insertErr?.message);
+          console.log('[AUTH FORENSIC 8] ensureUserInDb error: insert failed', insertErr?.message);
           return null;
         }
       }
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
         .eq('id', authUser.id)
         .maybeSingle();
 
-      console.log('[AUTH STEP] ensureUserInDb success');
+      console.log('[AUTH FORENSIC 8] ensureUserInDb success');
       return {
         id: authUser.id,
         email: profile?.email || email,
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
         ...authUser,
       };
     } catch (err) {
-      console.log('[AUTH STEP] ensureUserInDb error', err?.message);
+      console.log('[AUTH FORENSIC 8] ensureUserInDb error', err?.message);
       return null;
     }
   }, []);
@@ -127,12 +127,12 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         return;
       }
-      console.log('[AUTH STEP] applySession start', session.user.id);
+      console.log('[AUTH FORENSIC 6] applySession start', session.user.id);
       try {
         const appUser = await ensureUserInDb(session.user);
         if (appUser?.id) {
           setUser(appUser);
-          console.log('[AUTH STEP] setUser called (appUser)', appUser.id);
+          console.log('[AUTH FORENSIC 9] setUser called (appUser)', appUser.id);
           const supabase = getSupabase();
           if (supabase) {
             const { data: profileData } = await supabase
@@ -161,8 +161,8 @@ export const AuthProvider = ({ children }) => {
         setProfile({});
         setIsAuthenticated(true);
         setAuthError(null);
-        console.log('[AUTH STEP] setUser called (fallback)', session.user.id);
-        console.log('[AUTH STEP] final user id', session.user.id);
+        console.log('[AUTH FORENSIC 9] setUser called (fallback)', session.user.id);
+        console.log('[AUTH FORENSIC 10] final user id', session.user.id);
       }
     },
     [ensureUserInDb]
@@ -212,7 +212,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('[AUTH STEP] SIGNED_IN received, session:', !!session);
+        console.log('[AUTH FORENSIC 5] SIGNED_IN received true, session:', !!session);
         if (mounted && session) await applySession(session);
       } else if (event === 'SIGNED_OUT') {
         console.log('[AUTH FIX] auth state change SIGNED_OUT');

@@ -80,4 +80,4 @@
 
 ## Siguiente paso único
 
-Validar Login Google en simulador → Home. Revisar logs [AUTH STEP].
+Validar Login Google en simulador → Home. Revisar logs [AUTH FORENSIC 1-12]. Corrección: exchangeCodeForSession(code) no url.

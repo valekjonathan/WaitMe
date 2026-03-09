@@ -33,16 +33,32 @@ async function processOAuthUrl(url) {
   const hashIdx = url.indexOf('#');
   const queryIdx = url.indexOf('?');
 
-  // PKCE: ?code=xxx — usar URL completa (requerido en iOS)
-  if (queryIdx !== -1 && url.includes('code=')) {
-    console.log('[AUTH FIX] oauth callback detected');
-    const { error } = await supabase.auth.exchangeCodeForSession(url);
-    console.log('[AUTH FIX] exchange executed', error ? `error: ${error.message}` : 'success');
-    if (!error) {
-      const { data } = await supabase.auth.getSession();
-      console.log('[AUTH FIX] session exists:', !!data?.session);
+  // PKCE: ?code=xxx — Supabase API espera el code, no la URL
+  if (queryIdx !== -1) {
+    const queryEnd = hashIdx !== -1 ? hashIdx : url.length;
+    const params = new URLSearchParams(url.slice(queryIdx + 1, queryEnd));
+    const code = params.get('code');
+    if (code) {
+      console.log('[AUTH FORENSIC 1] callback received');
+      console.log('[AUTH FORENSIC 2] exchange start, code length:', code.length);
+      const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        console.log('[AUTH FORENSIC 3] exchange error:', error?.message);
+        return false;
+      }
+      console.log('[AUTH FORENSIC 3] exchange success');
+      // Workaround Supabase #1566: forzar getSession+setSession para actualizar headers en iOS
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasSession = !!sessionData?.session;
+      console.log('[AUTH FORENSIC 4] getSession after exchange:', hasSession);
+      if (hasSession) {
+        await supabase.auth.setSession({
+          access_token: sessionData.session.access_token,
+          refresh_token: sessionData.session.refresh_token,
+        });
+      }
+      return true;
     }
-    return !error;
   }
 
   // Implicit: #access_token=...&refresh_token=...

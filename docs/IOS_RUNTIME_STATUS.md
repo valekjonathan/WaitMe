@@ -18,7 +18,7 @@
 ## último ios:refresh
 
 - **Exit:** 0 (OK)
-- **Fecha:** 2026-03-09 15:12:37
+- **Fecha:** 2026-03-09 15:35:18
 - **Target:** 277875BB-CD09-46B9-B5AC-D5D4EE890116
 - **Pasos:** terminated → uninstalled → built → synced → launched
 
