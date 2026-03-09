@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AppDeviceFrame } from '@/system/layout';
 import Layout from './Layout';
 import Login from '@/pages/Login';
@@ -8,26 +7,17 @@ import LocationEngineStarter from '@/components/LocationEngineStarter';
 import WaitMeRequestScheduler from '@/components/WaitMeRequestScheduler';
 import IncomingRequestModal from '@/components/IncomingRequestModal';
 import { useAuth } from '@/lib/AuthContext';
-import { authTrace, updateAuthDebug } from '@/lib/authTrace';
 
 function AuthRouter() {
   const { user, isLoadingAuth } = useAuth();
 
   if (isLoadingAuth) {
-    authTrace(9, 'App.jsx', 'AuthRouter', 'auth check -> loading');
     return <div style={{ background: '#000', color: '#fff', padding: 24 }}>Cargando...</div>;
   }
 
   if (!user?.id) {
-    console.log('[AUTH FINAL] router -> login (user null)');
-    authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> login (user null)');
-    updateAuthDebug({ redirectReason: 'user null', currentRoute: 'login' });
     return <Login />;
   }
-
-  console.log('[AUTH FINAL] router -> home');
-  authTrace(10, 'App.jsx', 'AuthRouter', 'navigation decision -> home');
-  updateAuthDebug({ redirectReason: 'user ok', currentRoute: 'home' });
 
   return (
     <>
@@ -41,9 +31,6 @@ function AuthRouter() {
 }
 
 export default function App() {
-  const { checkUserAuth } = useAuth();
-  const navigate = useNavigate();
-
   useEffect(() => {
     const initStatusBar = async () => {
       try {
@@ -55,38 +42,6 @@ export default function App() {
     };
     initStatusBar();
   }, []);
-
-  useEffect(() => {
-    const onOAuthSuccess = async (eventOrSession) => {
-      const session =
-        eventOrSession?.detail?.session ??
-        (eventOrSession?.user ? eventOrSession : null) ??
-        window.__WAITME_OAUTH_SESSION ??
-        null;
-      console.log('[AUTH FINAL] router -> checkUserAuth, session exists:', !!session);
-      authTrace(9, 'App.jsx', 'onOAuthComplete', 'onSuccess -> checkUserAuth', !!session);
-      await checkUserAuth(session ?? undefined);
-      console.log('[AUTH FINAL] router -> home');
-      authTrace(10, 'App.jsx', 'onOAuthComplete', 'onSuccess -> navigate /');
-      navigate('/', { replace: true });
-    };
-
-    const onOAuthComplete = (e) => {
-      onOAuthSuccess(e);
-    };
-
-    window.addEventListener('waitme:oauth-complete', onOAuthComplete);
-
-    // Si oauthCapture ya procesó la URL antes de que App montara (cold start iOS)
-    if (window.__WAITME_OAUTH_COMPLETE) {
-      console.log('[AUTH FINAL] cold start: OAuth already complete');
-      const session = window.__WAITME_OAUTH_SESSION ?? null;
-      window.__WAITME_OAUTH_COMPLETE = false;
-      onOAuthSuccess(session);
-    }
-
-    return () => window.removeEventListener('waitme:oauth-complete', onOAuthComplete);
-  }, [checkUserAuth, navigate]);
 
   return (
     <AppDeviceFrame>
