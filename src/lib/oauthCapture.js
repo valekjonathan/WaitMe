@@ -144,15 +144,12 @@ export function initOAuthCapture() {
         launch?.url || '(empty)'
       );
       if (launch && launch.url) {
-        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
-          console.log('[OAuth] getLaunchUrl received:', launch.url);
-        }
+        const url = launch.url;
+        console.log('[OAuth] getLaunchUrl received:', url);
         updateAuthDebug({ callbackReceived: true, callbackSource: 'getLaunchUrl' });
-        await processOAuthUrl(launch.url);
+        await processOAuthUrl(url);
       } else {
-        if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_OAUTH === 'true') {
-          console.log('[OAuth] getLaunchUrl empty');
-        }
+        console.log('[OAuth] getLaunchUrl empty');
       }
     } catch (e) {
       authTrace(2, 'oauthCapture.js', 'initOAuthCapture', 'getLaunchUrl/init error', e?.message);
