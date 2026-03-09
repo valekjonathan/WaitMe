@@ -1,5 +1,5 @@
 ---
-description: Protocolo "contexto vivo" — actualizar docs, ZIP, screenshot tras cada cambio relevante
+description: Protocolo "contexto vivo" — docs, ZIP, screenshot, project-tree, commit+push
 alwaysApply: true
 ---
 
@@ -19,23 +19,30 @@ Después de **cualquier cambio relevante** (funcional, visual, auth, mapa, iOS, 
 
 ## 2. Generar ZIP vivo
 
-- Ruta fija: tmp/waitme-live-context.zip
-- Incluir: src, scripts, ios, docs, package.json, capacitor.config.ts, vite config, tests, .cursor
-- Excluir: node_modules, .git, dist, coverage, DerivedData pesada, secretos
+- Ruta fija: devcontext/waitme-live-context.zip
+- Incluir: src, scripts, docs, package.json, capacitor.config.ts, vite config, tests, .cursor (sin ios para mantener <100MB)
+- Excluir: node_modules, .git, dist, coverage, DerivedData, secretos
 - Reflejar en DEV_STATUS: ruta, tamaño, timestamp
 
 ## 3. Captura simulador (si afecta UI/auth/Home/mapa/ios)
 
 - Ejecutar ios:refresh si aplica
-- Ruta: tmp/latest-simulator.png
-- Comando: xcrun simctl io booted screenshot tmp/latest-simulator.png
+- Ruta: devcontext/latest-simulator.png
+- Comando: xcrun simctl io booted screenshot devcontext/latest-simulator.png
+- Si afecta login: devcontext/latest-simulator-after-login.png
 - Si falla (simulador no booted): dejar por escrito en CURSOR_LAST_RESPONSE y DEV_STATUS
 
-## 4. Reflejar comandos y resultado real
+## 4. Generar project-tree
 
-- En CURSOR_LAST_RESPONSE: comandos ejecutados, errores
-- No dar nada por arreglado sin evidencia en docs
+- Ruta: devcontext/project-tree.txt
+- Comando: bash scripts/gen-project-tree.sh (o tree -L 4 si está instalado)
 
-## 5. Regla de exclusión
+## 5. Commit y push
+
+- git add docs devcontext
+- git commit -m "devcontext update"
+- git push origin main
+
+## 6. Regla de exclusión
 
 Si el cambio es irrelevante o puramente conversacional, no ejecutar protocolo.

@@ -32,10 +32,10 @@
 
 ## ZIP vivo
 
-- **Ruta:** tmp/waitme-live-context.zip
-- **Tamaño:** ~128 MB
-- **Timestamp generación:** 2026-03-09 15:21
-- **Nota:** tmp/ está en .gitignore; ZIP y screenshot son locales. Para compartir con ChatGPT: subir ZIP a release o descargar desde máquina local.
+- **Ruta:** devcontext/waitme-live-context.zip
+- **Tamaño:** ~2 MB
+- **Timestamp generación:** 2026-03-09
+- **Nota:** devcontext/ se sube a GitHub. ChatGPT puede leer desde el repo.
 
 ---
 

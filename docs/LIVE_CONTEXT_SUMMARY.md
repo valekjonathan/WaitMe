@@ -41,8 +41,9 @@
 
 ## Qué build/screenshot/zip corresponde al último estado real
 
-- **ZIP:** tmp/waitme-live-context.zip (~128 MB)
-- **Screenshot:** tmp/latest-simulator.png (generada 2026-03-09 15:21)
+- **ZIP:** devcontext/waitme-live-context.zip (~2 MB) — en GitHub
+- **Screenshot:** devcontext/latest-simulator.png — en GitHub
+- **Tree:** devcontext/project-tree.txt — en GitHub
 - **Build:** VITE_IOS_DEV_BUILD=1, ios:refresh
 
 ---

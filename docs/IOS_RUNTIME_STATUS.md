@@ -54,5 +54,5 @@
 ## screenshot generada sí/no
 
 - **Sí** — generada
-- **Ruta:** tmp/latest-simulator.png
-- **Timestamp:** 2026-03-09 15:21
+- **Ruta:** devcontext/latest-simulator.png
+- **Timestamp:** 2026-03-09
