@@ -168,7 +168,12 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      OAUTH_LOG('getSession:', !!sessionData?.session, 'user:', sessionData?.session?.user?.email);
+      OAUTH_LOG(
+        'getSession restored:',
+        !!sessionData?.session,
+        'user:',
+        sessionData?.session?.user?.email
+      );
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -234,6 +239,7 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      OAUTH_LOG('onAuthStateChange event:', event);
       if (event === 'INITIAL_SESSION') {
         setIsLoadingAuth(false);
         return;
