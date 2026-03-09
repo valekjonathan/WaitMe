@@ -1,23 +1,16 @@
-# Auth Forensic Log — WaitMe
-# Generated: 2026-03-09
-#
-# Para capturar: ejecutar app en simulador, Login Google, Safari vuelve.
-# Copiar líneas [AUTH FORENSIC 1-12] desde:
-# - Xcode: Window > Devices and Simulators > Open Console
-# - O Safari: Develop > Simulator > [app] > Console
-#
-# Pegar abajo tras cada prueba de login:
+# Auth Log — WaitMe
+# Copiar [AUTH FINAL 1-12] desde Xcode/Safari Console tras probar Login Google.
 # ---
-# [AUTH FORENSIC 1] callback received
-# [AUTH FORENSIC 2] exchange start, code length: XX
-# [AUTH FORENSIC 3] exchange success
-# [AUTH FORENSIC 4] getSession after exchange: true
-# [AUTH FORENSIC 5] SIGNED_IN received true, session: true
-# [AUTH FORENSIC 6] applySession start <user_id>
-# [AUTH FORENSIC 7] ensureUserInDb start <user_id>
-# [AUTH FORENSIC 8] ensureUserInDb success
-# [AUTH FORENSIC 9] setUser called (appUser) <user_id>
-# [AUTH FORENSIC 10] final user id <user_id>
-# [AUTH FORENSIC 11] router -> user ok user?.id: <user_id>
-# [AUTH FORENSIC 12] exact redirect reason: user ok
+# [AUTH FINAL 1] callback processed
+# [AUTH FINAL 2] exchange success/error
+# [AUTH FINAL 3] getSession after exchange true/false
+# [AUTH FINAL 4] SIGNED_IN received true/false
+# [AUTH FINAL 5] applySession start
+# [AUTH FINAL 6] ensureUserInDb start
+# [AUTH FINAL 7] ensureUserInDb success/error
+# [AUTH FINAL 8] fallback session.user used true/false
+# [AUTH FINAL 9] setUser called true/false
+# [AUTH FINAL 10] final user id
+# [AUTH FINAL 11] router -> login/home
+# [AUTH FINAL 12] exact redirect reason
 # ---
