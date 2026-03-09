@@ -36,6 +36,7 @@
     "ios:live": "bash scripts/ios-live.sh",
     "ios:watch": "bash scripts/ios-watch.sh",
     "ios:clean": "rm -rf dist ios/App/App/public ios/App/DerivedData 2>/dev/null || true",
+    "ios:reload": "rm -rf dist && npm run build && npx cap sync ios && npx cap run ios --target=\"iPhone 16e\"",
     "ios:logs": "xcrun simctl spawn booted log stream --level debug",
     "ios:sync:dev": "npm run build && CAPACITOR_USE_DEV_SERVER=true npx cap sync ios",
     "ios:sync": "npm run build && npx cap sync ios",
