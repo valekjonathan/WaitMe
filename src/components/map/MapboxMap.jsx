@@ -161,6 +161,11 @@ function MapboxMapInner({
     let cancelled = false;
     getPreciseInitialLocation().then((result) => {
       if (cancelled) return;
+      console.log(
+        '[MAP TRACE] location received (getPreciseInitialLocation)',
+        result?.lat,
+        result?.lng
+      );
       setLocation({
         lat: result.lat,
         lng: result.lng,
@@ -179,6 +184,7 @@ function MapboxMapInner({
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
+        console.log('[MAP TRACE] location received (watchPosition)', latitude, longitude);
         const acc = typeof accuracy === 'number' ? accuracy : 100;
         setLocation({
           lat: latitude,
@@ -215,6 +221,7 @@ function MapboxMapInner({
       !tokenStr || tokenStr === 'PEGA_AQUI_EL_TOKEN' || tokenStr === 'YOUR_MAPBOX_PUBLIC_TOKEN';
 
     if (isPlaceholder) {
+      console.log('[MAP TRACE] error set: no_token (placeholder)');
       setError('no_token');
       return;
     }
@@ -241,6 +248,7 @@ function MapboxMapInner({
         diag.controllerReady = true;
         diag.controllerReadyAt = Date.now();
       }
+      console.log('[MAP TRACE] controller ready');
       window.waitmeMap = {
         isReady: true,
         flyToUser: (lng, lat, opts = {}) => {
@@ -300,6 +308,7 @@ function MapboxMapInner({
 
         map.on('load', () => {
           if (cancelled) return;
+          console.log('[MAP TRACE] map load event');
           if (mapRef) mapRef.current = map;
           if (ensureDiag()) ensureDiag().mapLoadedEvent = true;
           onMapLoadRef.current?.(map);
@@ -318,6 +327,7 @@ function MapboxMapInner({
           setupMapStyleOnLoad(map);
           map.resize();
           setMapReady(true);
+          console.log('[MAP TRACE] mapReady set to true');
 
           // Punto 3: dentro de map.on('load')
           ensureMapController(map);
@@ -340,6 +350,7 @@ function MapboxMapInner({
         try {
           map.on('style.load', () => {
             if (cancelled) return;
+            console.log('[MAP TRACE] style load');
             if (ensureDiag()) ensureDiag().styleLoaded = true;
             ensureMapController(map);
           });
@@ -349,12 +360,15 @@ function MapboxMapInner({
 
         map.on('error', (e) => {
           const msg = e?.error?.message || String(e);
-          if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized'))
+          if (msg.includes('token') || msg.includes('401') || msg.includes('Unauthorized')) {
+            console.log('[MAP TRACE] error set: no_token (map error)', msg);
             setError('no_token');
+          }
         });
       })
       .catch((err) => {
         console.error('Mapbox init error', err);
+        console.log('[MAP TRACE] error set: init_failed');
         setError('init_failed');
       });
 
