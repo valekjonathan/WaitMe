@@ -23,8 +23,13 @@ export default function CreateAlertCard({
 
   const handleLocate = async () => {
     const loc = getLastKnownLocation() || (await getPreciseInitialLocation());
-    if (loc && window.waitmeMap?.flyToUser) {
-      window.waitmeMap.flyToUser(loc.lng, loc.lat);
+    if (!loc) return;
+    const ok = window.waitmeMap?.flyToUser?.(loc.lng, loc.lat, { zoom: 17, duration: 800 });
+    if (!ok && typeof window !== 'undefined') {
+      if (!window.__WAITME_DIAG__) window.__WAITME_DIAG__ = {};
+      window.__WAITME_DIAG__.locateFailureReason = window.waitmeMap
+        ? 'flyToUser returned false'
+        : 'controller not ready (map.on load may not have fired)';
     }
     if (loc) onRecenter?.({ lat: loc.lat, lng: loc.lng });
   };

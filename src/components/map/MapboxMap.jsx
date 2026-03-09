@@ -225,16 +225,83 @@ function MapboxMapInner({
     let map = null;
     let cancelled = false;
 
+    function ensureDiag() {
+      if (typeof window === 'undefined') return;
+      if (!window.__WAITME_DIAG__) window.__WAITME_DIAG__ = {};
+      return window.__WAITME_DIAG__;
+    }
+
+    function ensureMapController(m) {
+      if (!m || typeof window === 'undefined') return;
+      const style = m.getStyle?.();
+      if (!style?.layers) return;
+      if (window.waitmeMap?.isReady) return;
+      const diag = ensureDiag();
+      if (diag) {
+        diag.controllerReady = true;
+        diag.controllerReadyAt = Date.now();
+      }
+      window.waitmeMap = {
+        isReady: true,
+        flyToUser: (lng, lat, opts = {}) => {
+          if (!m || lng == null || lat == null) {
+            if (diag) diag.lastFlyToResult = false;
+            return false;
+          }
+          const padding = getMapLayoutPadding();
+          const method = typeof m.easeTo === 'function' ? 'easeTo' : 'flyTo';
+          try {
+            m[method]({
+              center: [lng, lat],
+              zoom: opts.zoom ?? 17,
+              duration: opts.duration ?? 800,
+              ...(padding ? { padding } : {}),
+            });
+            if (diag) {
+              diag.lastFlyToUserCall = { lng, lat, at: Date.now() };
+              diag.lastFlyToResult = true;
+            }
+            return true;
+          } catch (err) {
+            if (diag) {
+              diag.lastFlyToResult = false;
+              diag.lastFlyToError = String(err?.message ?? err);
+            }
+            return false;
+          }
+        },
+      };
+    }
+
     createMap(container, { token: tokenStr, interactive })
       .then((m) => {
         if (cancelled || !containerRef.current) return;
         map = m;
         mapboxglRef.current = m;
         if (mapRef) mapRef.current = map;
+        const diag = ensureDiag();
+        if (diag) diag.mapCreated = true;
+
+        // Punto 1: justo después de createMap — intentar si getStyle ya existe
+        ensureMapController(map);
+
+        // Punto 2: retry fallback — hasta que map.getStyle() exista (iOS Simulator)
+        let retryCount = 0;
+        const maxRetries = 30;
+        const retry = () => {
+          if (cancelled || window.waitmeMap?.isReady) return;
+          retryCount += 1;
+          ensureMapController(map);
+          if (!window.waitmeMap?.isReady && retryCount < maxRetries) {
+            setTimeout(retry, 100);
+          }
+        };
+        setTimeout(retry, 50);
 
         map.on('load', () => {
           if (cancelled) return;
           if (mapRef) mapRef.current = map;
+          if (ensureDiag()) ensureDiag().mapLoadedEvent = true;
           onMapLoadRef.current?.(map);
           if (import.meta.env.DEV) {
             try {
@@ -252,21 +319,8 @@ function MapboxMapInner({
           map.resize();
           setMapReady(true);
 
-          // Ubícate: controlador imperativo — creado cuando el mapa existe realmente
-          if (typeof window !== 'undefined') {
-            window.waitmeMap = {
-              flyToUser: (lng, lat) => {
-                if (!map || lng == null || lat == null) return;
-                const padding = getMapLayoutPadding();
-                map.flyTo({
-                  center: [lng, lat],
-                  zoom: 17,
-                  duration: 800,
-                  ...(padding && { padding }),
-                });
-              },
-            };
-          }
+          // Punto 3: dentro de map.on('load')
+          ensureMapController(map);
 
           const resizeDelayed = () => {
             if (mapRef.current) mapRef.current.resize();
@@ -281,6 +335,17 @@ function MapboxMapInner({
             ro.observe(container);
           }
         });
+
+        // Punto 4: style.load si existe (alternativa a load en algunos entornos)
+        try {
+          map.on('style.load', () => {
+            if (cancelled) return;
+            if (ensureDiag()) ensureDiag().styleLoaded = true;
+            ensureMapController(map);
+          });
+        } catch {
+          /* style.load puede no existir en todas las versiones de Mapbox */
+        }
 
         map.on('error', (e) => {
           const msg = e?.error?.message || String(e);
