@@ -87,6 +87,7 @@
 ./devcontext/README.md
 ./devcontext/latest-auth-log.txt
 ./devcontext/latest-ios-refresh-log.txt
+./devcontext/latest-runtime-log.txt
 ./devcontext/latest-simulator-after-login.png
 ./devcontext/latest-simulator.png
 ./devcontext/project-tree.txt
@@ -368,6 +369,7 @@
 ./scripts/dev-cleanup.sh
 ./scripts/dev-ios.sh
 ./scripts/devcontext-update.sh
+./scripts/devcontext-update.sh.bak
 ./scripts/diagnose-project.js
 ./scripts/ensure-oauth-redirect-ios.js
 ./scripts/environment-guard.sh
@@ -389,6 +391,7 @@
 ./scripts/pwa-icon-validator.mjs
 ./scripts/run-layout-measurement.js
 ./scripts/run-profile-migration.mjs
+./scripts/serve-runtime-log.js
 ./scripts/setDevServer.js
 ./scripts/ship.sh
 ./scripts/supabase-migrate.sh
@@ -586,6 +589,7 @@
 ./src/lib/alertSelectors.js
 ./src/lib/alertsQueryKey.js
 ./src/lib/authTrace.js
+./src/lib/bootLogger.js
 ./src/lib/demo
 ./src/lib/demo/demoFlowUtils.js
 ./src/lib/finalizedAtStore.js
@@ -594,7 +598,3 @@
 ./src/lib/location/distanceEngine.js
 ./src/lib/location/etaEngine.js
 ./src/lib/location/getPreciseInitialLocation.js
-./src/lib/location/index.js
-./src/lib/location/locationEngine.js
-./src/lib/location/locationFraudDetector.js
-./src/lib/location/locationFraudLogs.js
