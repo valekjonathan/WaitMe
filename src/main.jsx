@@ -1,4 +1,5 @@
 import './dev/diagnostics';
+import './system/diagnostics/waitmeDiagnostics';
 import './dev/layoutInspector';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
