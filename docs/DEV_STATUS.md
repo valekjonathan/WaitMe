@@ -1,84 +1,45 @@
 # Estado Global del Proyecto — WaitMe
 
-**Última actualización:** 2026-03-09 16:39
+**Última actualización:** 2026-03-09 18:30
 
 ---
 
-## Formato obligatorio
+## Estado real del simulador (reportado por usuario)
 
-- **Estado global** — tabla: auth iOS, Home, mapa, simulador, iPhone físico, build
-- **Auth iOS** — resumen
-- **Home** — resumen
-- **Mapa** — resumen
-- **Simulador** — scripts, watcher
-- **iPhone físico** — live reload
-- **Build actual** — vars, dist
-- **Siguiente paso único** — acción concreta
+| Estado | Observado |
+|--------|-----------|
+| Cargando... | A veces |
+| Error cargando WaitMe | A veces |
+| Login | A veces (captura 18:29) |
+| Home | Pendiente |
 
----
-
-## Estado global
-
-| Área | Estado | Notas |
-|------|--------|-------|
-| Auth iOS | En validación | Flujo Supabase puro, fallback session.user |
-| Home | En validación | Overlay, depende de auth |
-| Mapa | OK | Mapbox, depende de Home |
-| Simulador | OK | ios:refresh, scripts correctos |
-| iPhone físico | OK | ios:auto, Mac encendido |
-| Build | OK | Vite, VITE_IOS_DEV_BUILD en ios:refresh |
+**Comportamiento inconsistente.** No afirmar "Login correcto" ni "crash corregido" sin verificar.
 
 ---
 
-## ZIP vivo
+## Verificación de build nueva
 
-- **Ruta:** devcontext/waitme-live-context.zip
-- **Tamaño:** ~2 MB
-- **Timestamp generación:** 2026-03-09 15:43
-- **Logs:** devcontext/latest-ios-refresh-log.txt, devcontext/latest-auth-log.txt
-- **Nota:** devcontext/ se sube a GitHub. ChatGPT puede leer desde el repo.
-
----
-
-## Auth iOS
-
-- oauthCapture → exchangeCodeForSession → onAuthStateChange → applySession → setUser
-- Fallback: ensureUserInDb falla → setUser(session.user)
+- **Marcador:** WAITME RUNTIME CHECK — BUILD: HH:MM:SS (parte inferior en App.jsx)
+- **Condición:** VITE_IOS_DEV_BUILD=1 (ios:refresh lo usa)
+- **Si aparece el marcador:** simulador ejecuta build nueva
+- **Si no aparece:** posible build vieja o caché
 
 ---
 
-## Home
+## ios-refresh.sh (verificado)
 
-- Overlay z-[100], logo/frases/botones en HomeHeader
-- WAITME BUILD TEST con VITE_IOS_DEV_BUILD=1
-
----
-
-## Mapa
-
-- MapboxMap, VITE_MAPBOX_TOKEN, createMap
-
----
-
-## Simulador
-
-- npm run start, npm run ios:refresh
+1. terminate
+2. uninstall
+3. rm -rf dist
+4. VITE_IOS_DEV_BUILD=1 npm run build
+5. npx cap sync ios
+6. npx cap run ios --target=UUID
+7. xcrun simctl launch booted com.waitme.app
 
 ---
 
-## iPhone físico
+## Rutas evidencia
 
-- npm run ios:auto, WiFi, Red local
-
----
-
-## Build actual
-
-- vite build, dist/, cap sync ios
-- VITE_IOS_DEV_BUILD=1 en ios:refresh
-
----
-
-## Siguiente paso único
-
-Validar Login Google en simulador → Home. Revisar logs [AUTH FINAL 1-12]. Arquitectura automation/ lista para Fase 2-5.
+- devcontext/latest-simulator.png
+- devcontext/latest-auth-log.txt
+- devcontext/latest-ios-refresh-log.txt

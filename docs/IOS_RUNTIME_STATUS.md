@@ -1,24 +1,25 @@
 # Estado iOS Runtime — WaitMe
 
-**Última actualización:** 2026-03-09 16:39
+**Última actualización:** 2026-03-09 18:30
 
 ---
 
-## Formato obligatorio
+## Estado real del simulador
 
-- **último ios:refresh** — exit, fecha, pasos
-- **build instalada** — vars, dist
-- **watcher activo sí/no** — npm run start
-- **live reload iPhone sí/no** — ios:auto
-- **simulador mostrando build nueva sí/no** — tras ios:refresh
-- **screenshot generada sí/no** — ruta, timestamp
+| Estado | Observado |
+|--------|-----------|
+| Cargando... | A veces |
+| Error cargando WaitMe | A veces |
+| Login | A veces (captura 18:29) |
+
+**Inconsistente.** Usuario reporta que Cargando y Error siguen apareciendo.
 
 ---
 
 ## último ios:refresh
 
 - **Exit:** 0 (OK)
-- **Fecha:** 2026-03-09 15:42:49
+- **Fecha:** 2026-03-09 18:30
 - **Target:** 277875BB-CD09-46B9-B5AC-D5D4EE890116
 - **Pasos:** terminated → uninstalled → built → synced → launched
 
@@ -27,32 +28,12 @@
 ## build instalada
 
 - VITE_IOS_DEV_BUILD=1, dist/, cap sync
-- WAITME BUILD TEST visible
+- Marcador WAITME RUNTIME CHECK — BUILD: HH:MM:SS (parte inferior)
 
 ---
 
-## watcher activo sí/no
+## screenshot generada
 
-- **Sí** cuando npm run start está corriendo
-- chokidar → ios:refresh al cambiar src/
-
----
-
-## live reload iPhone sí/no
-
-- **Sí** con npm run ios:auto
-- WiFi, Red local, Mac encendido
-
----
-
-## simulador mostrando build nueva sí/no
-
-- **Sí** tras ios:refresh — app reinstalada y lanzada
-
----
-
-## screenshot generada sí/no
-
-- **Sí** — generada
 - **Ruta:** devcontext/latest-simulator.png
-- **Timestamp:** 2026-03-09
+- **Timestamp:** 2026-03-09 18:30
+- **Contenido:** Login (en esta captura)

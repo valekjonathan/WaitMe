@@ -1,6 +1,6 @@
 # Estado Home — WaitMe
 
-**Última actualización:** 2026-03-09 16:39
+**Última actualización:** 2026-03-09 18:30
 
 ---
 

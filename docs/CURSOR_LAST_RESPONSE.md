@@ -1,46 +1,38 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-09 16:39
+**Última actualización:** 2026-03-09 18:30
 
 ---
 
 ## Prompt recibido
 
-Arquitectura máxima de automatización para que el usuario solo hable con ChatGPT. Cerrar login iOS con evidencia real.
+Resolver contradicción entre lo que dice Cursor y lo que muestra el simulador. Estado real: a veces "Cargando...", a veces "Error cargando WaitMe". Confirmar build nueva, crash, evidencia real.
 
 ---
 
 ## Resumen exacto de lo hecho
 
-- **Parte A**: automation/ con bridge (Node.js), docs/AUTOMATION_BRIDGE_PLAN.md, docs/ROADMAP_AUTOMATIZACION_TOTAL.md, cursor-hooks-example.json
-- **Parte B**: Auth verificado (fallback session.user, isLoadingAuth → no Login)
-- **Parte C**: docs actualizados, devcontext regenerado
+- **ios-refresh.sh** verificado: terminate → uninstall → rm -rf dist → build → cap sync → cap run
+- **Marcador WAITME RUNTIME CHECK — BUILD: HH:MM:SS** añadido: App.jsx, ErrorBoundary (solo con VITE_IOS_DEV_BUILD=1)
+- **Evidencia real** capturada tras ios:refresh
 
 ---
 
-## Archivos creados
+## Estado real reportado por usuario
 
-- automation/bridge/ (README, package.json, .env.example, server.js, githubWebhook.js, openaiAgent.js, routes)
-- automation/cursor-hooks-example.json
-- automation/on-change.sh
-- docs/AUTOMATION_BRIDGE_PLAN.md
-- docs/ROADMAP_AUTOMATIZACION_TOTAL.md
+- **Inconsistente:** a veces "Cargando...", a veces "Error cargando WaitMe"
+- **NO confirmado:** que la app muestre Login siempre o que el crash haya desaparecido
 
 ---
 
-## Comandos ejecutados
+## Captura en esta sesión (2026-03-09 18:29)
 
-- npm run lint, typecheck, build — OK
-- npm run devcontext:update
-
----
-
-## Resultado real
-
-Arquitectura de automatización montada. Login pendiente validación manual en simulador.
+- **Screenshot:** devcontext/latest-simulator.png
+- **Estado mostrado:** Login (logo, "Inicia sesión para continuar", botones Google/Apple)
+- **Marcador:** WAITME RUNTIME CHECK en parte inferior (si build nueva)
 
 ---
 
 ## Siguiente paso recomendado
 
-Probar Login Google en simulador → capturar [AUTH FINAL 1-12] → screenshot after login → npm run devcontext:update.
+Probar varias veces: npm run ios:refresh → verificar si aparece "WAITME RUNTIME CHECK BUILD: HH:MM:SS" en la parte inferior. Si aparece Login → build nueva. Si aparece Cargando o Error → revisar logs consola.

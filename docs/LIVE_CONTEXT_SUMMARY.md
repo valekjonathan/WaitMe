@@ -1,51 +1,33 @@
 # Resumen Técnico Único — WaitMe
 
-**Última actualización:** 2026-03-09 16:39
+**Última actualización:** 2026-03-09 18:30
 
 ---
 
 ## Qué se cambió
 
-- automation/ con bridge (GitHub Webhook, OpenAI Agents SDK esqueleto)
-- docs/AUTOMATION_BRIDGE_PLAN.md, docs/ROADMAP_AUTOMATIZACION_TOTAL.md
-- automation/cursor-hooks-example.json, automation/on-change.sh
+- Marcador **WAITME RUNTIME CHECK — BUILD: HH:MM:SS** en App.jsx (parte inferior) y ErrorBoundary
+- Vite define: __SHOW_BUILD_MARKER__, __BUILD_TIMESTAMP__
+- Solo visible con VITE_IOS_DEV_BUILD=1 (ios:refresh)
 
 ---
 
-## Qué se comprobó de verdad
+## Verificación ios-refresh.sh
 
-- lint, typecheck, build: OK
-- Auth: fallback session.user, isLoadingAuth correcto
-
----
-
-## Qué sigue pendiente
-
-- Validar Login Google en simulador con evidencia real
-- Desplegar bridge para Fase 2-5
+- terminate → uninstall → rm -rf dist → build → cap sync → cap run
+- Garantiza reinstalación completa
 
 ---
 
-## Qué ya está confirmado
+## Estado real reportado
 
-- Arquitectura automation montada
-- exchangeCodeForSession(code), fallback session.user
-- Logs [AUTH FINAL 1-12]
-
----
-
-## Qué build/screenshot/zip corresponde al último estado real
-
-- **ZIP:** devcontext/waitme-live-context.zip
-- **Screenshot:** devcontext/latest-simulator.png
-- **After login:** devcontext/latest-simulator-after-login.png
-- **Tree:** devcontext/project-tree.txt
-- **Logs:** devcontext/latest-ios-refresh-log.txt, devcontext/latest-auth-log.txt
+- **Inconsistente:** Cargando / Error / Login según ejecución
+- **No afirmar** crash corregido ni Login estable sin verificar
 
 ---
 
-## Qué debe revisar ChatGPT a continuación
+## Rutas evidencia
 
-1. Probar Login Google en simulador
-2. Revisar logs [AUTH FINAL 1-12]
-3. Desplegar bridge para conectar GitHub → OpenAI
+- devcontext/latest-simulator.png
+- devcontext/latest-auth-log.txt
+- devcontext/latest-ios-refresh-log.txt
