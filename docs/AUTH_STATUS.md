@@ -1,6 +1,6 @@
 # Estado Auth — WaitMe
 
-**Última actualización:** 2026-03-09 15:54
+**Última actualización:** 2026-03-09 16:10
 
 ---
 
@@ -52,4 +52,4 @@
 ## punto actual del fallo si existe
 
 - **Corregido**: Se pasaba url a exchangeCodeForSession; API espera code. Corregido.
-- Si persiste: revisar logs [AUTH FORENSIC 1-12] para identificar paso exacto.
+- Si persiste: revisar logs [AUTH FINAL 1-12] para identificar paso exacto.
