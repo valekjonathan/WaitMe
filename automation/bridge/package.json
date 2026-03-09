@@ -1,0 +1,17 @@
+{
+  "name": "waitme-automation-bridge",
+  "version": "0.1.0",
+  "description": "Backend bridge: GitHub Webhook → OpenAI Agents SDK",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
