@@ -327,7 +327,6 @@
 ./ios/App/CapApp-SPM/Package.swift
 ./ios/App/CapApp-SPM/README.md
 ./ios/App/CapApp-SPM/Sources
-./ios/App/DerivedData
 ./ios/DerivedData
 ./ios/capacitor-cordova-ios-plugins
 ./ios/capacitor-cordova-ios-plugins/CordovaPluginsResources.podspec
@@ -431,6 +430,7 @@
 ./scripts/ios-live.sh
 ./scripts/ios-rebuild-and-sync.sh
 ./scripts/ios-refresh.sh
+./scripts/ios-reinstall-device.sh
 ./scripts/ios-reset.sh
 ./scripts/ios-run.sh
 ./scripts/ios-watch.sh
