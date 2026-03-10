@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-10T14:26:59.800Z",
+  "timestamp": "2026-03-10T14:44:33.193Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
@@ -9,11 +9,11 @@
   "snapshot_exists": false,
   "snapshot_timestamp": null,
   "current_branch": "main",
-  "last_commit": "e13008e9",
+  "last_commit": "df7fb258",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "e13008e9",
+    "commit": "df7fb258",
     "dirty": true
   },
   "environment": {
@@ -27,7 +27,7 @@
   },
   "ios_config": {
     "has_server_url": true,
-    "server_url": "http://192.168.0.13:5173",
+    "server_url": "http://127.0.0.1:5173",
     "mode": "dev_server"
   },
   "map_config": {
