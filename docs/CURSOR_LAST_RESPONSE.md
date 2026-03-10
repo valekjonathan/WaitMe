@@ -1,32 +1,43 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-09 21:04
+**Última actualización:** 2026-03-10 12:37
 
 ---
 
 ## Prompt recibido
 
-Evitar passkey de Google en simulador iOS. Añadir login alternativo sin passkeys.
+Implementar arquitectura de automatización robusta alrededor de devcontext y estado del proyecto. Infraestructura únicamente.
 
 ---
 
 ## Resumen exacto de lo hecho
 
-- **Login.jsx**: botón "Entrar en modo test" visible solo cuando isSimulatorDevBuild() (Capacitor iOS + VITE_IOS_DEV_BUILD=1)
-- **AuthContext**: loginAsSimulatorTest() → setUser(DEV_MOCK_USER), setProfile(DEV_MOCK_PROFILE), isAuthenticated true
-- **Detección**: Capacitor.isNativePlatform() && platform === 'ios' && (VITE_IOS_DEV_BUILD=1 || VITE_IOS_SIMULATOR=true)
-- Login Google real intacto para iPhone físico y producción
-
----
-
-## Opción elegida
-
-- **A) Botón "Entrar en modo test"** — explícito, profesional, reversible. Solo visible en simulador.
+- **STATE_OF_TRUTH.json**: creado en devcontext/ como fuente canónica de estado (git, env, build, lint, typecheck, tests, ios_runtime, cursor, project_rules)
+- **automation/detect-change.sh**: detecta modificaciones en repo
+- **automation/validate-project.sh**: ejecuta lint, typecheck, build; emite LINT_STATUS, TYPECHECK_STATUS, BUILD_STATUS
+- **automation/rebuild-context.sh**: regenera STATE_OF_TRUTH.json y timestamps en docs
+- **automation/publish-devcontext.sh**: ZIP, project-tree, screenshot
+- **automation/on-change.sh**: orquesta validate → rebuild → publish; git add solo devcontext/* y docs/*; commit "chore(devcontext): update project state"
+- **docs/AUTOMATION_ARCHITECTURE.md**: documenta pipeline, devcontext, STATE_OF_TRUTH, integración Cursor
+- **contextReader.js**: añadido STATE_OF_TRUTH.json a DEVCONTEXT_FILES
 
 ---
 
 ## Archivos modificados
 
-- src/pages/Login.jsx
-- src/lib/AuthContext.jsx
-- docs/AUTH_STATUS.md, docs/DEV_STATUS.md, docs/IOS_RUNTIME_STATUS.md, docs/LIVE_CONTEXT_SUMMARY.md, docs/CURSOR_LAST_RESPONSE.md
+- devcontext/STATE_OF_TRUTH.json (nuevo)
+- automation/detect-change.sh (nuevo)
+- automation/validate-project.sh (nuevo)
+- automation/rebuild-context.sh (nuevo)
+- automation/publish-devcontext.sh (nuevo)
+- automation/on-change.sh (modificado)
+- docs/AUTOMATION_ARCHITECTURE.md (nuevo)
+- automation/bridge/src/lib/contextReader.js (modificado)
+- .gitignore (añadido devcontext temp files)
+
+---
+
+## Archivos NO modificados
+
+- Home.jsx, MapboxMap, ParkingMap, CreateAlertCard
+- UI, map, payments, business logic

@@ -1,0 +1,52 @@
+{
+  "project": "waitme",
+  "timestamp": "2026-03-10T12:37:31",
+  "git": {
+    "branch": "main",
+    "commit": "51bf6f2a",
+    "dirty": true
+  },
+  "environment": {
+    "node": "v24.13.0",
+    "npm": "11.6.2",
+    "platform": "Darwin"
+  },
+  "build": {
+    "status": "ok",
+    "last_run": "2026-03-10T12:37:31"
+  },
+  "lint": {
+    "status": "ok"
+  },
+  "typecheck": {
+    "status": "ok"
+  },
+  "tests": {
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0
+  },
+  "ios_runtime": {
+    "mode": "local_bundle",
+    "server_url": "NONE",
+    "simulator_status": "",
+    "last_screen": ""
+  },
+  "automation": {
+    "bridge": "",
+    "webhook": "",
+    "devcontext_updated": "2026-03-10T12:37:31"
+  },
+  "cursor": {
+    "last_summary": " ## Prompt recibido  Implementar arquitectura de automatización robusta alrededor de devcontext y estado del proyecto. Infraestructura únicamente.  ---  ## Resumen exacto de lo hecho  - **STATE_OF_T\n",
+    "last_files_modified": []
+  },
+  "project_rules": {
+    "blocked_areas": [
+      "map",
+      "ui",
+      "payments",
+      "Home.jsx"
+    ]
+  }
+}

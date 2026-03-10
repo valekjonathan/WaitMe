@@ -84,13 +84,18 @@
 ./automation/bridge/src/routes
 ./automation/bridge/src/server.js
 ./automation/cursor-hooks-example.json
+./automation/detect-change.sh
 ./automation/on-change.sh
+./automation/publish-devcontext.sh
+./automation/rebuild-context.sh
+./automation/validate-project.sh
 ./biome.json
 ./capacitor.config.ts
 ./components.json
 ./devcontext
 ./devcontext/.gitkeep
 ./devcontext/README.md
+./devcontext/STATE_OF_TRUTH.json
 ./devcontext/latest-auth-log.txt
 ./devcontext/latest-ios-refresh-log.txt
 ./devcontext/latest-runtime-log.txt
@@ -110,6 +115,7 @@
 ./docs/AUDITORIA_TOTAL_WAITME.md
 ./docs/AUTH_FLOW_MAP_FORENSIC.md
 ./docs/AUTH_STATUS.md
+./docs/AUTOMATION_ARCHITECTURE.md
 ./docs/AUTOMATION_BRIDGE_PLAN.md
 ./docs/CHATGPT_ONLY_WORKFLOW.md
 ./docs/CURSOR_LAST_RESPONSE.md
@@ -592,9 +598,3 @@
 ./src/hooks/useMyAlerts.js
 ./src/hooks/useProfileGuard.ts
 ./src/hooks/useTransactionMonitoring.js
-./src/hooks/useVehicleInterpolation.js
-./src/index.css
-./src/lib
-./src/lib/AuthContext.jsx
-./src/lib/LayoutContext.jsx
-./src/lib/alertSelectors.js
