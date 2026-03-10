@@ -26,18 +26,18 @@ Cuando la app se abre por deep link `com.waitme.app://auth/callback?code=xxx`:
 ## 2. Qué se corrigió
 
 **Archivos modificados:**
-- `src/lib/oauthCapture.js` — `initOAuthCapture()` ahora retorna una Promise que resuelve cuando el launch URL (si existe) fue procesado
-- `src/main.jsx` — En native, se espera a que `initOAuthCapture()` complete (o timeout 2.5s) antes de montar React
+- `src/lib/bootstrapAuth.js` — **Nuevo** — `waitForBootstrapAuth()`: OAuth + session restore antes de montar React
+- `src/lib/oauthCapture.js` — logs BOOTSTRAP (OAUTH_URL_FOUND, SESSION_EXCHANGE_OK)
+- `src/main.jsx` — Espera `waitForBootstrapAuth()` antes de `renderApp()`
 
-**Flujo corregido:**
-1. App abre por deep link
-2. `main.jsx` llama `initOAuthCapture()` y espera (Promise.race con 2.5s)
-3. `getLaunchUrl()` devuelve la URL
-4. `processOAuthUrl()` ejecuta `exchangeCodeForSession`, `setSession`
-5. Sesión queda en Capacitor Preferences
-6. Solo entonces se monta React
-7. `AuthContext` ejecuta `getSession()` — ya tiene sesión
-8. Se renderiza Home directamente, sin transición ni race
+**Flujo corregido (bootstrapAuth):**
+1. App abre — `waitForBootstrapAuth()` bloquea montaje de React
+2. En native: delay 150ms para bridge Capacitor
+3. `initOAuthCapture()` — si hay launch URL, `processOAuthUrl()` → `exchangeCodeForSession`, `setSession`
+4. `getSupabase().auth.getSession()` — restaura sesión desde Preferences (warm-up storage)
+5. `BOOTSTRAP_READY` — solo entonces se monta React
+6. `AuthContext` ejecuta `getSession()` — storage ya listo
+7. Se renderiza Login o Home según sesión, sin race
 
 ---
 
