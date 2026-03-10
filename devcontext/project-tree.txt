@@ -448,6 +448,7 @@
 ./scripts/update-visual-state.cjs
 ./scripts/validate-ios-oauth.sh
 ./scripts/waitme-install-auto.sh
+./scripts/waitme-install-auto.sh.bak
 ./scripts/waitme-iphone.sh
 ./scripts/waitme-launcher.js
 ./scripts/waitme-simulator.sh
@@ -597,4 +598,3 @@
 ./src/hooks/demo/useDemoFlowActions.js
 ./src/hooks/demo/useDemoFlowState.js
 ./src/hooks/demo/useDemoFlowSync.js
-./src/hooks/demo/useDemoFlowTimers.js
