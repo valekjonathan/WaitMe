@@ -1,6 +1,6 @@
 # Estado Mapa — WaitMe
 
-**Última actualización:** 2026-03-10 14:38
+**Última actualización:** 2026-03-10 14:50
 
 ---
 

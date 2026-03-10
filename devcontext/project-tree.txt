@@ -142,6 +142,7 @@
 ./docs/IOS_OAUTH_RUNTIME_ROOT_CAUSE.md
 ./docs/IOS_RUNTIME_STATUS.md
 ./docs/LIVE_CONTEXT_SUMMARY.md
+./docs/LOCAL_AUTOMATION_FINAL.md
 ./docs/MAP_STATUS.md
 ./docs/MAP_TOKEN_FORENSIC_FLOW.md
 ./docs/PLAN_DE_ARREGLO_WAITME.md
@@ -442,6 +443,7 @@
 ./scripts/supabase-migrate.sh
 ./scripts/test-cleanup.sh
 ./scripts/validate-ios-oauth.sh
+./scripts/waitme-control.sh
 ./src
 ./src/App.jsx
 ./src/Layout.jsx
@@ -596,5 +598,3 @@
 ./src/hooks/history/useHistoryLocalSync.js
 ./src/hooks/history/useHistoryQueries.js
 ./src/hooks/history/useHistoryTransforms.js
-./src/hooks/historyBuyer
-./src/hooks/historyBuyer/useHistoryBuyerActions.js
