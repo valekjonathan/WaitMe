@@ -127,6 +127,7 @@
 ./docs/CURSOR_RULES_WAITME.md
 ./docs/DEV_STATUS.md
 ./docs/GOOGLE_LOGIN_IOS_AUDIT.md
+./docs/GOOGLE_LOGIN_IOS_FINAL_CHECKLIST.md
 ./docs/HOME_STATUS.md
 ./docs/INVENTARIO_ENTORNO_WAITME.md
 ./docs/INVENTARIO_TECNICO_WAITME.md
@@ -597,4 +598,3 @@
 ./src/hooks/home/useHomeTransforms.js
 ./src/hooks/navigate
 ./src/hooks/navigate/useNavigateActions.js
-./src/hooks/navigate/useNavigateState.js
