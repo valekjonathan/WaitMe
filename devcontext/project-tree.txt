@@ -303,6 +303,7 @@
 ./docs/archive/quarantine/services
 ./eslint.config.js
 ./file-list.txt
+./fix-ios.sh
 ./functions
 ./functions/searchGooglePlaces.ts
 ./index.html
@@ -597,4 +598,3 @@
 ./src/hooks/chat/useChatMessages.js
 ./src/hooks/chats
 ./src/hooks/chats/useChatsActions.js
-./src/hooks/chats/useChatsData.js
