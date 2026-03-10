@@ -1,17 +1,19 @@
 {
-  "timestamp": "2026-03-10T14:05:38.804Z",
+  "timestamp": "2026-03-10T14:12:11.500Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
   "dev_server_running": false,
   "ios_server_block_present": false,
   "snapshot_path": "tmp/waitme_project_snapshot.zip",
+  "snapshot_exists": true,
+  "snapshot_timestamp": "2026-03-10T14:12:11.295Z",
   "current_branch": "main",
-  "last_commit": "1a372265",
+  "last_commit": "21c1a228",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "1a372265",
+    "commit": "21c1a228",
     "dirty": true
   },
   "environment": {

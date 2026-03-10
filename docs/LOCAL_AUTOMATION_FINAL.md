@@ -47,6 +47,8 @@ waitme-supervisor.sh (controlador central)
 | `npm run waitme:state` | Regenera LIVE_PROJECT_STATE.json |
 | `npm run waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
 | `npm run waitme:stop` | Para dev server y bridge |
+| `npm run waitme:autostart` | Opcional: para procesos y arranca simulator |
+| `npm run waitme:launcher` | Menú interactivo Node |
 
 **Alternativa:** `node scripts/waitme-launcher.js <simulator|iphone|state|snapshot|stop>`
 
@@ -94,3 +96,22 @@ waitme-supervisor.sh (controlador central)
 - Iterar rápido en UI (usa simulator)
 - Cambios visuales frecuentes (usa simulator)
 - Desarrollo sin cable (simulator no requiere dispositivo)
+
+---
+
+## LÍMITE HONESTO: CHATGPT NO LEE TU REPO LOCAL
+
+ChatGPT no puede acceder directamente a los archivos de tu Mac.
+
+**Workaround:** El repo exporta siempre:
+- `devcontext/LIVE_PROJECT_STATE.json` — estado actual
+- `tmp/waitme_project_snapshot.zip` — snapshot completo
+- `devcontext/LAST_ERROR_SUMMARY.md` — último error si hubo
+
+Para dar contexto a ChatGPT: adjunta el ZIP o pega el JSON en el chat.
+
+---
+
+## AUTOSTART (OPCIONAL)
+
+`npm run waitme:autostart` — Para procesos previos y arranca simulator mode.
