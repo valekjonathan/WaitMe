@@ -28,7 +28,7 @@
 
 - **Layout:** `--header-h` y `--bottom-nav-h` usan `env(safe-area-inset-*)` para paridad.
 - **Header:** `paddingTop: env(safe-area-inset-top)` para respetar notch/Dynamic Island.
-- **Main:** `paddingTop: var(--header-h)` para espacio consistente bajo el header.
+- **Main:** `paddingTop: 0` — el contenido usa `position: absolute` con `top: var(--header-h)` y `bottom: var(--bottom-nav-h)`.
 - **Home overlay:** centrado entre header y bottom nav en ambos entornos.
 
 ---
@@ -45,4 +45,4 @@
 
 - Verificar que `--header-h` en `globals.css` incluya safe area.
 - El Header debe tener `paddingTop: env(safe-area-inset-top)`.
-- El main debe usar `paddingTop: var(--header-h)`.
+- El contenido principal usa `top: var(--header-h)` y `bottom: var(--bottom-nav-h)` (sin padding en main).

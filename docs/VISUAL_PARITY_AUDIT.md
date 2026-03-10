@@ -5,19 +5,16 @@
 
 ---
 
-## 1. ROOT CAUSE REAL DEL HUECO NEGRO
+## 1. ROOT CAUSE REAL DEL HUECO NEGRO / DOBLE OFFSET
 
-### Causa raíz verificada
-
-**Archivo:** `src/globals.css`  
-**Línea:** 76 (y 50)  
-**Propiedad CSS:** `height: 100%`  
-**Problema:** En iOS/iPhone, `height: 100%` en html/body/#root puede resolverse incorrectamente respecto al viewport, generando espacio extra (hueco negro) encima del mapa y desplazando el layout.
+### Causa raíz verificada (doble compensación)
 
 **Archivo:** `src/Layout.jsx`  
-**Línea:** 186  
-**Propiedad CSS:** `paddingTop: var(--header-h)` en main  
-**Problema:** Usar padding para crear espacio bajo el header hace que el contenido fluya; en iPhone la cadena flex+padding puede calcular distinto. El mapa debe posicionarse con `top: var(--header-h)`, no con padding del contenedor.
+**Línea:** 189  
+**Propiedad CSS:** `paddingTop: 'var(--header-h, 69px)'` en main (rutas no-Home)  
+**Problema:** El main usaba padding para rutas no-Home mientras el contenido Home usaba `top: var(--header-h)`. Modelo inconsistente; en iPhone el padding puede sumarse a otros offsets y generar hueco negro.
+
+**Solución aplicada:** Eliminar `paddingTop` del main para TODAS las rutas. El contenido usa siempre `position: absolute` con `top: var(--header-h)` y `bottom: var(--bottom-nav-h)`.
 
 ### Causa raíz adicional (Safe areas asimétricas)
 
@@ -99,7 +96,7 @@ El centro geométrico del overlay Home:
 |------------|-------------|
 | globals.css | `height: 100%` → `height: 100dvh; min-height: 100dvh` en html, body, #root |
 | index.css | `height: 100%` → `height: 100dvh; min-height: 100dvh` |
-| Layout.jsx | En home: main sin padding; contenido con `position: absolute`, `top: var(--header-h)`, `height: calc(100dvh - var(--header-h))` |
+| Layout.jsx | main siempre `paddingTop: 0`; contenido con `position: absolute`, `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` para todas las rutas |
 | Layout fallback | `height: 100vh` → `height: 100dvh` |
 | Transform compensatorio | Se mantiene en Home overlay para centrado con safe areas asimétricas |
 | MapScreenPanel | Fórmula única `bottom: calc(var(--bottom-nav-h) + 15px)` |
@@ -110,7 +107,7 @@ El centro geométrico del overlay Home:
 
 - **html, body, #root:** `height: 100dvh; min-height: 100dvh` (NO 100%)
 - **Header:** `position: fixed`, `paddingTop: env(safe-area-inset-top)`
-- **Contenido Home:** `position: absolute`, `top: var(--header-h)`, `height: calc(100dvh - var(--header-h))` (NO padding)
+- **Contenido (todas las rutas):** `position: absolute`, `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` (main sin padding)
 - **Overlay Home:** `top: 0`, `bottom: var(--bottom-nav-h)`
 - **Contenido centrado:** `transform: translateY(calc(-0.5 * (var(--header-h) - var(--bottom-nav-h))))`
 - **Tarjeta flotante:** `bottom: calc(var(--bottom-nav-h) + 15px)`
@@ -162,3 +159,16 @@ El centro geométrico del overlay Home:
 - Nuevas funciones
 - "Estoy aparcado aquí" (CreateAlertCard, CreateMapOverlay)
 - Infraestructura no necesaria
+
+---
+
+## 11. ENTREGA — DOBLE OFFSET ELIMINADO (2026-03-10)
+
+| Campo | Valor |
+|-------|-------|
+| **Archivo exacto** | `src/Layout.jsx` |
+| **Línea exacta** | 189 |
+| **Propiedad exacta** | `paddingTop: 'var(--header-h, 69px)'` en main (rutas no-Home) |
+| **Código eliminado** | `paddingTop: 'var(--header-h, 69px)'` del main para rutas no-Home; `pb-24` / `pb-0` condicional |
+| **Código final** | main siempre `paddingTop: 0`; contenido con `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` para todas las rutas |
+| **MapViewportShell** | `height: calc(100dvh - var(--header-h))` → `h-full` (rellena el contenedor padre) |
