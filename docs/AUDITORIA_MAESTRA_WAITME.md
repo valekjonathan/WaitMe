@@ -1,383 +1,389 @@
-# Auditoría Maestra Total — WaitMe
+# Auditoría Maestra WaitMe — 2026-03-10
 
-**Fecha:** 8 de marzo de 2025  
-**Objetivo:** Diagnóstico técnico real del proyecto antes de seguir desarrollando.  
-**Foco crítico:** Botón "Ubícate" no mueve el mapa en iOS Simulator.
+Auditoría exhaustiva del proyecto WaitMe. Estado real verificado contra código y configuración.
 
 ---
 
-## Resumen ejecutivo
+## 1. REPO / ARQUITECTURA
 
-WaitMe es un marketplace de alertas de aparcamiento con mapa en tiempo real. La auditoría identifica la **causa raíz** del fallo de Ubícate en Simulator y analiza 20 áreas del proyecto. El motor de ubicación funciona; el problema es **arquitectural**: dependencia de `map.on('load')` que no se dispara de forma fiable en iOS Simulator.
+### Estructura del proyecto
 
-**Estado técnico:** ~6.5/10 — base sólida, gaps críticos en integración Mapbox + Capacitor.
+- **Frontend:** React 18, Vite 6, Tailwind, Zustand, React Query, Framer Motion, Mapbox GL
+- **Backend:** Supabase (Auth, Postgres, Realtime, Storage)
+- **iOS:** Capacitor 8, Xcode
+- **Fuente de verdad por dominio:** Supabase para datos; devcontext para estado técnico; docs para documentación
 
----
+### Rutas de runtime principales
 
-# DIAGNÓSTICO UBÍCATE — CAUSA RAÍZ
+- `src/main.jsx` → initOAuthCapture, AuthProvider, App
+- `src/App.jsx` → AuthRouter (login/home), Layout
+- `src/lib/supabaseClient.js` → punto único Supabase, lazy init
+- `src/lib/AuthContext.jsx` → sesión, ensureUserInDb, loginAsSimulatorTest
+- `src/lib/oauthCapture.js` → appUrlOpen, processOAuthUrl, exchangeCodeForSession
 
-## Flujo actual del botón Ubícate
+### Módulos duplicados / lógica duplicada
 
-```
-CreateAlertCard (handleLocate)
-    → getLastKnownLocation() || getPreciseInitialLocation()
-    → window.waitmeMap?.flyToUser(loc.lng, loc.lat)
-```
+- **VERIFICADO:** No hay imports de base44. Solo comentarios legacy en servicios (sustituye base44.X).
+- **VERIFICADO:** Supabase es la única capa de datos activa.
 
-## Dónde se crea window.waitmeMap
+### Código muerto / legacy
 
-```js
-// MapboxMap.jsx, dentro de map.on('load')
-map.on('load', () => {
-  // ...
-  window.waitmeMap = {
-    flyToUser: (lng, lat) => {
-      if (!map || lng == null || lat == null) return;
-      const padding = getMapLayoutPadding();
-      map.flyTo({ center: [lng, lat], zoom: 17, duration: 800, ...(padding && { padding }) });
-    },
-  };
-});
-```
+- `docs/archive/` — 100+ archivos archivados. No afectan runtime.
+- Comentarios "sustituye base44" en `src/services/*` — informativos, no código activo.
 
-## Causa raíz exacta
+### Patrones inconsistentes
 
-**En iOS Simulator, `map.on('load')` puede no ejecutarse.**
+- Algunos archivos `.js`, otros `.jsx`/`.ts` — aceptable.
+- `import.meta.env.VITE_*` usado de forma consistente.
 
-Mapbox GL JS tiene problemas conocidos con el evento `load` en iOS Simulator:
+### Archivos protegidos (guard rails)
 
-1. **WebGL limitado**: El Simulator tiene soporte WebGL reducido; el mapa puede renderizar parcialmente o fallar silenciosamente.
-2. **Issues documentados**: [#6076](https://github.com/mapbox/mapbox-gl-js/issues/6076), [#6707](https://github.com/mapbox/mapbox-gl-js/issues/6707), [#10785](https://github.com/mapbox/mapbox-gl-js/issues/10785) — `map.on('load')` no se dispara de forma fiable.
-3. **Safari en Simulator**: Crashes y problemas de WebGL en M1, iOS 14.5+.
+- `src/pages/Home.jsx`
+- `src/components/MapboxMap.jsx`
+- `src/components/map/ParkingMap.jsx`
+- `src/components/cards/CreateAlertCard.jsx`
 
-**Consecuencia:** Si `map.on('load')` no se ejecuta, `window.waitmeMap` nunca se crea. CreateAlertCard llama `window.waitmeMap?.flyToUser` → undefined → no ocurre nada.
+### Archivos centrales / de alto riesgo
 
-## Por qué el CenterPin no coincide con GPS
-
-El CenterPin es un elemento UI fijo en el centro del viewport. Solo coincide con la posición GPS cuando el mapa está centrado en el usuario. Si `flyToUser` no se ejecuta, el mapa no se mueve y el CenterPin nunca se alinea.
-
-## Conclusión del diagnóstico
-
-| Componente | Estado | Observación |
-|------------|--------|-------------|
-| Motor de ubicación | OK | getLastKnownLocation, getPreciseInitialLocation funcionan |
-| CreateAlertCard | OK | Lógica correcta, llama a window.waitmeMap |
-| window.waitmeMap | FALLO | No se crea si map.on('load') no dispara |
-| map.on('load') | FALLO | No fiable en iOS Simulator (Mapbox + WebGL) |
-| Wiring React | OK | No hay problema de refs ni props |
-
-**El problema NO viene del wiring React. Viene de Mapbox + iOS Simulator.**
+- `src/lib/supabaseClient.js` — fallo aquí rompe toda la app
+- `src/lib/AuthContext.jsx` — fallo aquí rompe auth
+- `src/lib/oauthCapture.js` — fallo aquí rompe OAuth iOS
+- `capacitor.config.ts` — inyecta server.url si CAPACITOR_USE_DEV_SERVER=true
 
 ---
 
-# ANÁLISIS POR ÁREAS
+## 2. CURSOR / AUTOMATION / DEV WORKFLOW
 
-## 1. Arquitectura general del código
+### Flujo del hook Cursor
 
-```
-src/
-├── components/     # UI (map, home, chat, history)
-├── pages/          # Home, History, Chat, Navigate, etc.
-├── hooks/          # useHome, useLocationEngine, useHomeActions, etc.
-├── lib/            # location, mapLayers, AuthContext, supabaseClient
-├── services/       # *Supabase.js
-├── data/           # Adapters (Strangler pattern)
-├── stores/         # carsMovementStore (JS module)
-├── system/         # MapViewportShell, MapLayer, OverlayLayer
-├── core/           # ErrorBoundary
-└── config/
-```
+- `.cursor/hooks.json` → `stop` → `bash automation/on-change.sh`
+- **VERIFICADO:** Hook configurado correctamente.
 
-**Fortalezas:** Strangler pattern, separación adapters/servicios, hooks especializados.  
-**Debilidades:** Zustand instalado sin uso; documentación desactualizada.
+### automation/on-change.sh
 
----
+- 1) validate-project
+- 2) rebuild-context
+- 3) publish-devcontext
+- 4) git add devcontext/, docs/, PROJECT_GUARDRAILS.md
+- 5) commit + push (solo si hay cambios)
+- **NO** añade scripts/ ni automation/ — uso de ship:infra para eso.
 
-## 2. Motor de ubicación
+### Scripts de automatización
 
-- **locationEngine.js**: getPreciseInitialLocation → watchPosition, pipeline opcional.
-- **getLastKnownLocation()**: Devuelve `lastKnown` (objeto con lat, lng).
-- **getPreciseInitialLocation()**: Promise, getCurrentPosition con reintentos.
-- **LocationEngineStarter**: Inicia en App.jsx cuando el usuario está autenticado.
+| Script | Estado | Verificado |
+|--------|--------|------------|
+| automation/validate-project.sh | OK | lint, typecheck, build |
+| automation/rebuild-context.sh | OK | STATE_OF_TRUTH, NEXT_TASK, docs |
+| automation/publish-devcontext.sh | OK | ZIP, tree, screenshot |
+| automation/detect-change.sh | OK | git status |
+| scripts/project-snapshot.sh | OK | tmp/waitme-snapshot.zip |
+| scripts/project-health.sh | OK | 9 checks |
+| scripts/dev-pipeline.sh | OK | 5 pasos |
+| scripts/ship-infra.sh | OK | guard src/, dry-run |
 
-**Estado:** Funciona correctamente. El motor no es la causa del fallo de Ubícate.
+### Reproducibilidad
 
----
+- **SÍ** — npm run lint, typecheck, build son deterministas.
+- **SÍ** — ios:refresh fuerza build local, sin dev server.
+- **PARCIAL** — tests Vitest tienen 6 unhandled errors (Preferences/window en node).
 
-## 3. Sistema de mapas Mapbox
+### Copy/paste manual restante
 
-### MapboxMap.jsx
+- CURSOR_LAST_RESPONSE.md — Cursor debe escribirlo manualmente o por regla.
+- Supabase Redirect URLs — config manual en Dashboard.
+- BRIDGE_URL — variable de entorno opcional para ping.
 
-- **Inicialización:** createMap(container) → Promise → map.on('load').
-- **Lifecycle:** useEffect con [] — monta una vez, cleanup al desmontar.
-- **Refs:** mapRef (externo de Home), mapboxglRef (interno).
-- **window.waitmeMap:** Creado en map.on('load'); limpiado en return del useEffect.
+### Sincronización devcontext
 
-### Problemas detectados
+- **SÍ** — on-change regenera STATE_OF_TRUTH, NEXT_TASK, docs.
+- **SÍ** — rebuild-context actualiza LAST_UPDATE en NEXT_TASK.md.
 
-1. **Dependencia total de map.on('load')** para el controlador — no hay fallback.
-2. **Sin verificación map.loaded()** — no se comprueba si el mapa está listo antes de operar.
-3. **Efecto de recentrado compite** — useEffect con effectiveCenter hace flyTo automático; puede interferir.
+### STATE_OF_TRUTH.json
 
-### Comparación con Uber
+- **CONFIABLE** — generado por rebuild-context, JSON válido.
+- **VERIFICADO** — estructura correcta, artifacts, workflow.
 
-| Aspecto | WaitMe | Uber |
-|---------|--------|------|
-| Inicialización | createMap + on('load') | SDK nativo, callbacks explícitos |
-| Control imperativo | window.waitmeMap | API nativa, refs directos |
-| Fallback load | Ninguno | Polling / style.load |
-| WebGL | Depende del entorno | Nativo, sin WebGL en mapa |
+### NEXT_TASK.md
 
----
+- **CONFIABLE** — actualizado por rebuild-context.
+- current_stage: infrastructure_stable
+- next_task: close_google_login_ios
 
-## 4. Comunicación entre componentes React
+### PROJECT_GUARDRAILS.md
 
-```
-Home (useHome)
-  ├── mapRef, engineLocation, handleRecenter
-  ├── MapViewportShell
-  │   ├── MapLayer → MapboxMap (mapRef, locationFromEngine)
-  │   └── OverlayLayer → HomeMapPanel
-  │       └── CreateMapOverlay (mode=create)
-  │           └── CreateAlertCard (mapRef, onRecenter)
-```
+- **NO ENFORZADO** automáticamente — es documentación.
+- ship-infra SÍ bloquea src/ en runtime.
 
-**Problema:** CreateAlertCard y MapboxMap no comparten refs ni callbacks. La única conexión es `window.waitmeMap`, que depende de map.on('load').
+### ship:infra
 
----
+- **SEGURO** — bloquea si hay cambios en src/.
+- **VERIFICADO** — dry-run funciona, solo stagea paths permitidos.
 
-## 5. Sistema de capas GeoJSON
+### Auto-commit inseguro
 
-- **StaticCarsLayer:** Círculos para alertas.
-- **UserLocationLayer:** Círculo para ubicación GPS — coordinates: [lng, lat] sin offset.
-- **WaitMeCarLayer:** Coche dinámico del comprador.
+- **NO** — on-change solo commit devcontext, docs, PROJECT_GUARDRAILS.
+- **NO** — ship-infra bloquea src/.
 
-**UserLocationLayer:** Correcto. `userLocationToFeature` usa `coordinates: [lng, lat]` directamente.
+### ChatGPT-driven workflow
+
+- **PARCIAL** — devcontext, STATE_OF_TRUTH, NEXT_TASK permiten entender estado.
+- **FALTA** — bridge debe estar desplegado y BRIDGE_URL configurado para ping automático.
+- **FALTA** — ChatGPT necesita acceso a repo (GitHub API o ZIP) para leer contexto.
 
 ---
 
-## 6. Conexión UI ↔ mapa
+## 3. SUPABASE
 
-- **MapLayer:** Contiene MapboxMap (z-0).
-- **OverlayLayer:** Contiene HomeMapPanel (z-20, pointer-events-none).
-- **CreateAlertCard:** Dentro de MapScreenPanel con pointer-events-auto.
+### Arquitectura Auth
 
-El botón Ubícate es clickeable. La conexión falla porque window.waitmeMap no existe.
+- Supabase Auth con OAuth (Google, Apple).
+- flowType: pkce.
+- Storage: Capacitor Preferences en iOS, default en web.
 
----
+### Configuración Google en código
 
-## 7. Control imperativo del mapa
+- redirectTo: `com.waitme.app://auth/callback` para iOS native.
+- Login.jsx evita localhost en redirectTo.
+- **ASUNTO EXTERNO:** Supabase Dashboard debe tener `com.waitme.app://auth/callback` en Redirect URLs.
 
-**Diseño actual:** window.waitmeMap = { flyToUser(lng, lat) } creado en map.on('load').
+### Flujo de sesión
 
-**Riesgo:** Si load no dispara, no hay controlador. No hay alternativa (mapRef no llega a CreateAlertCard de forma útil sin tocar Home).
+1. getSession() al boot
+2. applySession → ensureUserInDb → setUser
+3. onAuthStateChange(SIGNED_IN) → applySession
 
----
+### Sync profile/user
 
-## 8. Integración Supabase
+- ensureUserInDb inserta en profiles si no existe.
+- profile se lee de tabla profiles tras auth.
 
-- Adapters en src/data/, servicios en src/services/.
-- Auth, Realtime, Storage configurados.
-- Sin problemas detectados en esta auditoría.
+### base44 / Supabase
 
----
+- **VERIFICADO:** No hay base44 en código. Solo Supabase.
 
-## 9. Estado global
+### Migraciones
 
-| Fuente | Tipo | Uso |
-|--------|------|-----|
-| AuthContext | React Context | user, profile, auth |
-| LayoutContext | React Context | header |
-| carsMovementStore | Módulo JS | STATIC / WAITME_ACTIVE |
-| finalizedAtStore | Módulo JS + localStorage | Timestamps finalizados |
-| React Query | Cache | alertas, chats, etc. |
-| transactionEngine | Módulo JS + Map | balance (en memoria) |
+- 17 migraciones SQL en supabase/migrations/.
+- Core schema, profiles, parking_alerts, alert_reservations, conversations, messages, notifications, transactions, user_location_updates, storage.
 
-**Zustand:** En package.json, no usado. Documentación incorrecta.
+### Riesgos Auth
 
----
-
-## 10. Flujo WaitMe
-
-Publicar alerta → Reserva → Coche en ruta → Pago a 5m. Flujo coherente con DemoFlowManager e IncomingRequestModal.
+- **Pendiente validación manual** — AUTH_STATUS indica "Pendiente validar" para user null fallback.
+- Google passkey en simulador — evitado con "Entrar en modo test" (loginAsSimulatorTest).
 
 ---
 
-## 11. Rendimiento
+## 4. XCODE / IOS / CAPACITOR
 
-- React Query con staleTime 5min.
-- memo en MapboxMap.
-- ResizeObserver correcto.
-- Posible mejora: clustering para muchas alertas.
+### capacitor.config.ts
 
----
+- server.url **solo** si CAPACITOR_USE_DEV_SERVER === "true".
+- **VERIFICADO** — lógica correcta.
 
-## 12. Seguridad
+### iOS runtime config
 
-- OAuth PKCE, RLS en Supabase.
-- locationFraudDetector client-side.
-- transactionEngine en memoria (no persiste).
+- ios/App/App/capacitor.config.json — **sin** server key.
+- **VERIFICADO** — build local, no localhost.
 
----
+### local bundle vs dev server
 
-## 13. Tests
+- ios:refresh — unset CAPACITOR_USE_DEV_SERVER, rebuild, cap sync, limpia server.url.
+- **VERIFICADO** — no hay path que cargue localhost por defecto.
 
-- Vitest: contracts (alerts, chat, location, etc.).
-- Playwright: E2E, smoke, visual.
-- tests/visual/verify-ubicate-button.spec.js existe.
-- CI no ejecuta tests (solo lint, typecheck, build).
+### Riesgos de variables de entorno
 
----
+- Bajo — ios:refresh fuerza unset al inicio.
 
-## 14. CI/CD
+### Simulador
 
-- GitHub Actions: lint, typecheck, build.
-- Sin tests en pipeline.
-- Sin deploy automático.
+- Login con "Entrar en modo test" (bypass).
+- Google OAuth — InAppBrowser → redirect com.waitme.app://auth/callback.
 
----
+### Deep link / URL scheme
 
-## 15. Estructura de carpetas
+- Info.plist: CFBundleURLSchemes = com.waitme.app.
+- URL: com.waitme.app://auth/callback.
+- **VERIFICADO** — configuración correcta.
 
-Organización clara. Dev/diagnostics en src/dev/. docs/archive con código en cuarentena.
+### Google login iOS
 
----
+- **CÓDIGO:** Listo — redirectTo, oauthCapture, exchangeCodeForSession.
+- **CONFIG:** Supabase Redirect URLs debe incluir com.waitme.app://auth/callback.
+- **BLOQUEADOR POTENCIAL:** Passkey de Google en simulador — bypass con "Entrar en modo test".
 
-## 16. Duplicaciones de código
+### Info.plist / URL scheme / appId
 
-- Varios flyTo/easeTo con lógica similar (MapboxMap, handleRecenter, etc.).
-- getMapLayoutPadding vs getMapPadding (useCallback) — misma función, dos accesos.
+- appId: com.waitme.app.
+- URL scheme: com.waitme.app.
+- **SIN** mismatch detectado.
 
----
+### Producción
 
-## 17. Código muerto
+- Build local empaquetada — adecuada para producción.
+- Dev server solo para desarrollo explícito.
 
-- Zustand importado pero no usado.
-- onRecenterRef pasado a MapboxMap pero Home no lo usa.
-- Posible código en docs/archive.
+### iPhone físico vs simulador
 
----
+- Simulador: "Entrar en modo test" disponible (VITE_IOS_DEV_BUILD=1).
+- iPhone físico: flujo Google normal, sin bypass.
 
-## 18. Configuración iOS / Simulator
+### Riesgos iOS
 
-- capacitor.config.ts: appId, webDir, server opcional.
-- ios/App/ con Xcode project.
-- Dev server: CAPACITOR_USE_DEV_SERVER, cleartext: true.
+- Passkey en simulador — mitigado con bypass.
+- Validación manual de Google en dispositivo real — pendiente según docs.
 
 ---
 
-## 19. Integración Mapbox + Capacitor
+## 5. APP TECHNICAL HEALTH
 
-- Mapbox GL JS en WebView.
-- WebGL depende del Simulator.
-- Sin fallback para entornos con WebGL limitado.
-- Sin detección de plataforma para ajustar estrategia de load.
+### npm run lint
 
----
+- **OK** — exit 0.
 
-## 20. Integración GPS en Simulator
+### npm run typecheck
 
-- iOS Simulator: ubicación simulada (Features → Location).
-- navigator.geolocation funciona en Simulator.
-- getCurrentPosition y watchPosition operativos.
-- El motor de ubicación recibe coordenadas correctamente.
+- **OK** — exit 0.
 
----
+### npm run build
 
-# LISTA PRIORIZADA DE PROBLEMAS
+- **OK** — exit 0.
+- Warning: chunks > 500 kB (mapbox-gl, index).
 
-## CRÍTICO
+### Tests
 
-1. **map.on('load') no fiable en iOS Simulator** — window.waitmeMap no se crea; Ubícate no funciona.
-2. **Sin fallback para load** — Si load no dispara, no hay forma de crear el controlador.
-3. **transactionEngine en memoria** — Balance/ban no persisten (de auditoría anterior).
+- 105 passed, 14 test files.
+- 6 unhandled errors (Preferences.get en node — Capacitor no tiene window).
+- **FRAGIL** — Vitest en node no simula bien Capacitor.
 
-## ALTO
+### Tests saltados
 
-4. **Arquitectura de control del mapa frágil** — Dependencia de window global + evento load.
-5. **Tests no en CI** — Vitest y Playwright no se ejecutan en GitHub Actions.
-6. **Documentación desactualizada** — appStore/Zustand inexistente.
+- No hay .skip explícitos en los resultados mostrados.
 
-## MEDIO
+### Puntos débiles
 
-7. **onRecenterRef no usado** — MapboxMap lo soporta pero Home no lo pasa.
-8. **Código duplicado flyTo** — Múltiples lugares con lógica similar.
-9. **Zustand instalado sin uso** — Dependencia huérfana.
-
-## BAJO
-
-10. **getMapLayoutPadding en SSR** — typeof document check correcto.
-11. **CenterPin sin fallback** — Si top no se mide, usa calc(50% - 60px).
+- **Realtime:** Supabase Realtime — no auditado en profundidad.
+- **Location:** LocationEngineStarter, hooks de ubicación — no auditados.
+- **Map:** MapboxMap, ParkingMap — protegidos, no modificados.
+- **Auth:** ensureUserInDb timeout, fallback — documentado en AUTH_STATUS.
 
 ---
 
-# PLAN TÉCNICO DE MEJORA
+## 6. FLUJOS CRÍTICOS (sin modificar lógica)
 
-## Fase 1 — Ubícate en Simulator (CRÍTICO)
+### Login
 
-1. **Fallback para map load:**
-   - Usar `map.isStyleLoaded()` o polling tras createMap.
-   - Crear window.waitmeMap cuando `map.getStyle()` exista, no solo en on('load').
-   - Considerar `map.on('style.load')` o `styledata` como alternativa (issues Mapbox).
+- AuthRouter → Login si !user.
+- Login → handleOAuthLogin('google') o loginAsSimulatorTest.
 
-2. **Controlador resiliente:**
-   - Crear window.waitmeMap en cuanto el mapa exista (tras createMap), con verificación `map.getStyle()`.
-   - Si on('load') no dispara, usar setTimeout/requestAnimationFrame para retry.
+### Google login
 
-3. **Validar en dispositivo real:**
-   - Probar Ubícate en iPhone físico (no Simulator) para confirmar que load sí dispara.
+- signInWithOAuth({ redirectTo: com.waitme.app://auth/callback, skipBrowserRedirect: true })
+- InAppBrowser.openInExternalBrowser
+- Redirect → appUrlOpen → processOAuthUrl → exchangeCodeForSession(code)
+- onAuthStateChange(SIGNED_IN) → applySession
 
-## Fase 2 — Arquitectura mapa (ALTO)
+### Persistencia auth
 
-4. Pasar onRecenterRef desde useHome → Home → MapboxMap → CreateAlertCard (evitar window global).
-5. O usar React Context para exponer flyToUser desde MapboxMap.
-6. Eliminar dependencia de window.waitmeMap como única vía.
+- Capacitor Preferences (sb-* keys).
+- getSession al boot.
 
-## Fase 3 — Calidad (MEDIO)
+### Flujo alerta activa
 
-7. Añadir tests a CI (Vitest + Playwright smoke).
-8. Actualizar WAITME_AGENT_CONTEXT (eliminar appStore/Zustand).
-9. Eliminar Zustand o implementar store real.
+- No auditado en detalle (fuera de scope).
 
-## Fase 4 — Producción (BAJO)
+### Geolocalización
 
-10. Persistir transactionEngine en Supabase.
-11. Clustering para alertas.
-12. Deploy automático.
+- LocationEngineStarter — no auditado.
 
----
+### Pagos
 
-# ARQUITECTURA RECOMENDADA
+- transactionsSupabase, release-payment — no auditado.
 
-## Control del mapa (Ubícate)
+### History / Notifications / Chat
 
-```
-Opción A — Context:
-  MapFlyContext.Provider (en MapViewportShell)
-  MapboxMap setea flyToUser en el context cuando map existe
-  CreateAlertCard usa useMapFlyContext().flyToUser(lng, lat)
+- Dependen de Supabase. No auditados en detalle.
 
-Opción B — Ref imperativo:
-  useHome crea onRecenterRef
-  Home pasa onRecenterRef a MapboxMap y a CreateAlertCard (vía HomeMapPanel)
-  MapboxMap: onRecenterRef.current = flyToUser en useEffect cuando mapReady
-  CreateAlertCard: onRecenterRef.current?.(lng, lat)
-```
+### Puntos de fallo en producción
 
-## Fallback para load
-
-```js
-// En MapboxMap, tras createMap:
-const ensureController = () => {
-  if (map && map.getStyle() && !window.waitmeMap) {
-    window.waitmeMap = { flyToUser: (lng, lat) => { /* ... */ } };
-  }
-};
-map.on('load', ensureController);
-// Fallback: si tras 3s no hay load, intentar igual
-setTimeout(ensureController, 3000);
-```
+- Supabase no disponible
+- Redirect URL mal configurado en Supabase
+- Token Mapbox inválido
+- ensureUserInDb timeout (5s) — fallback a session.user
 
 ---
 
-*Auditoría realizada sin modificar código. Solo análisis y documentación.*
+## 7. HIGIENE / ESCALABILIDAD
+
+### Nomenclatura
+
+- Consistente en general.
+- Algunos archivos en archive con nombres largos.
+
+### Separación de responsabilidades
+
+- data/ → adapters
+- services/ → Supabase
+- Componentes no llaman Supabase directamente — **VERIFICADO**.
+
+### Config / secrets
+
+- .env para VITE_*
+- .gitignore excluye .env
+- Secrets en GitHub Actions
+
+### Limpieza repo
+
+- docs/archive extenso pero no afecta build.
+- tmp/ para snapshots.
+
+### Drift docs vs realidad
+
+- IOS_RUNTIME_STATUS: "último ios:refresh (2026-03-09 20:58)" — timestamp antiguo.
+- DEV_STATUS: "captura 20:58" — antiguo.
+- Estado real más reciente en STATE_OF_TRUTH.
+
+### CI/CD
+
+- .github/workflows/ci.yml — lint, typecheck, build.
+- **OK** — determinista.
+
+### Nivel técnico
+
+- Infraestructura de automatización sólida.
+- Auth/Supabase bien estructurado.
+- Falta validación E2E de Google en dispositivo real.
+- Tests unitarios con errores de entorno (Capacitor en node).
+
+---
+
+## 8. RESPUESTAS A PREGUNTAS MANDATARIAS
+
+1. **¿El problema de iOS runtime está cerrado?** — **SÍ.** capacitor.config.ts condicional, ios-refresh limpia server.url, ios/App/App/capacitor.config.json sin server.
+
+2. **¿Hay path que cargue localhost por accidente?** — **NO.** Solo si CAPACITOR_USE_DEV_SERVER=true explícitamente.
+
+3. **¿devcontext es fuente de verdad?** — **PARCIAL.** Para estado técnico (build, lint, git) sí. Para estado de producto (auth, map) no — eso está en Supabase y código.
+
+4. **¿ChatGPT-only workflow es posible?** — **PARCIAL.** Devcontext permite entender estado. Falta bridge desplegado y flujo de lectura automática.
+
+5. **¿Qué obliga trabajo manual?** — CURSOR_LAST_RESPONSE (si no hay regla), Supabase Redirect URLs, BRIDGE_URL, validación manual de Google en iPhone.
+
+6. **¿Google login iOS está bloqueado?** — **NO por código.** Código listo. Posible bloqueo: config Supabase Redirect URLs, passkey en simulador (bypass disponible).
+
+7. **Archivos que controlan Google login:** Login.jsx, AuthContext.jsx, oauthCapture.js, supabaseClient.js.
+
+8. **Archivos que controlan redirect/deep link:** oauthCapture.js, Info.plist (CFBundleURLSchemes), Login.jsx (redirectTo).
+
+9. **Archivos más peligrosos:** supabaseClient.js, AuthContext.jsx, oauthCapture.js, capacitor.config.ts, Home.jsx, MapboxMap.jsx.
+
+10. **Deuda técnica urgente vs no urgente:** Urgente: validar Google en iPhone real. No urgente: tests Vitest/Capacitor, chunks > 500kB.
+
+11. **Duplicaciones:** Solo comentarios legacy base44. No duplicación activa.
+
+12. **Fragilidades:** Tests con Capacitor en node, ensureUserInDb timeout, AUTH_STATUS "pendiente validar".
+
+13. **Lo que está 10/10:** capacitor.config.ts, ios-refresh, ship-infra guard, STATE_OF_TRUTH, NEXT_TASK, automation pipeline.
+
+14. **Fake-green:** AUTH_STATUS "callback recibido sí" — no hay evidencia de prueba manual reciente. IOS_RUNTIME_STATUS timestamps antiguos.
+
+15. **Orden de prioridad:** 1) Validar Google login en iPhone real. 2) Arreglar tests Vitest/Capacitor. 3) Actualizar timestamps en docs. 4) Desplegar bridge si se quiere ChatGPT workflow completo.

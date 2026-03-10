@@ -95,6 +95,7 @@
 ./components.json
 ./devcontext
 ./devcontext/.gitkeep
+./devcontext/LATEST_MASTER_AUDIT.json
 ./devcontext/NEXT_TASK.md
 ./devcontext/README.md
 ./devcontext/STATE_OF_TRUTH.json
@@ -109,6 +110,7 @@
 ./docs
 ./docs/ARBOL_REAL_PROYECTO_ACTUAL.md
 ./docs/AUDITORIA_COMPLETA_WAITME_2026.md
+./docs/AUDITORIA_EJECUTIVA_WAITME.md
 ./docs/AUDITORIA_FORENSE_LOGIN_IOS.md
 ./docs/AUDITORIA_FORENSE_TOTAL_WAITME.md
 ./docs/AUDITORIA_MAESTRA_TOTAL_WAITME.md
@@ -118,11 +120,13 @@
 ./docs/AUTH_FLOW_MAP_FORENSIC.md
 ./docs/AUTH_STATUS.md
 ./docs/AUTOMATION_ARCHITECTURE.md
+./docs/AUTOMATION_AUDIT.md
 ./docs/AUTOMATION_BRIDGE_PLAN.md
 ./docs/CHATGPT_ONLY_WORKFLOW.md
 ./docs/CURSOR_LAST_RESPONSE.md
 ./docs/CURSOR_RULES_WAITME.md
 ./docs/DEV_STATUS.md
+./docs/GOOGLE_LOGIN_IOS_AUDIT.md
 ./docs/HOME_STATUS.md
 ./docs/INVENTARIO_ENTORNO_WAITME.md
 ./docs/INVENTARIO_TECNICO_WAITME.md
@@ -135,8 +139,10 @@
 ./docs/PLAN_DE_ARREGLO_WAITME.md
 ./docs/ROADMAP_AUTOMATIZACION_TOTAL.md
 ./docs/SAFE_CHANGE_PROTOCOL.md
+./docs/SUPABASE_AUDIT.md
 ./docs/TOOLING_CLEANUP.md
 ./docs/WAITME_AGENT_CONTEXT.md
+./docs/XCODE_IOS_AUDIT.md
 ./docs/archive
 ./docs/archive/AGENT_ROLES_WAITME.md
 ./docs/archive/APLICAR_MIGRACION_PROFILES.md
@@ -592,9 +598,3 @@
 ./src/hooks/navigate
 ./src/hooks/navigate/useNavigateActions.js
 ./src/hooks/navigate/useNavigateState.js
-./src/hooks/notifications
-./src/hooks/notifications/useNotificationsActions.js
-./src/hooks/notifications/useNotificationsData.js
-./src/hooks/profile
-./src/hooks/profile/useProfileActions.js
-./src/hooks/profile/useProfileData.js

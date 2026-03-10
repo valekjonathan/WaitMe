@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-03-10T13:15:00",
+  "repo_status": "ok",
+  "automation_status": "operational",
+  "supabase_status": "ok",
+  "ios_status": "runtime_fixed",
+  "google_login_ios_status": "code_ready_config_pending_validation",
+  "critical_blockers": [
+    "Google login validation on physical iPhone not recently verified",
+    "Supabase Redirect URLs must include com.waitme.app://auth/callback",
+    "Vitest tests have 6 unhandled errors (Capacitor Preferences in node env)"
+  ],
+  "dangerous_files": [
+    "src/lib/supabaseClient.js",
+    "src/lib/AuthContext.jsx",
+    "src/lib/oauthCapture.js",
+    "capacitor.config.ts",
+    "src/pages/Home.jsx",
+    "src/components/MapboxMap.jsx",
+    "src/components/map/ParkingMap.jsx",
+    "src/components/cards/CreateAlertCard.jsx"
+  ],
+  "verified_ok": [
+    "capacitor.config.ts server.url logic",
+    "ios-refresh.sh server cleanup",
+    "ios/App/App/capacitor.config.json no server",
+    "ship-infra guard blocks src/",
+    "STATE_OF_TRUTH.json structure",
+    "NEXT_TASK.md structure",
+    "automation pipeline (validate, rebuild, publish)",
+    "lint, typecheck, build pass",
+    "No base44 in active code",
+    "Info.plist URL scheme com.waitme.app",
+    "oauthCapture processOAuthUrl with code extraction"
+  ],
+  "fake_green": [
+    "AUTH_STATUS callback received - no recent manual verification evidence",
+    "IOS_RUNTIME_STATUS timestamps (2026-03-09) older than STATE_OF_TRUTH"
+  ],
+  "next_priority_order": [
+    "1_validate_google_login_iphone",
+    "2_verify_supabase_redirect_urls",
+    "3_fix_vitest_capacitor_mock",
+    "4_update_docs_timestamps",
+    "5_deploy_bridge_if_chatgpt_workflow_needed"
+  ],
+  "user_manual_steps_remaining": [
+    "Add com.waitme.app://auth/callback to Supabase Redirect URLs",
+    "Test Google login on physical iPhone",
+    "Write CURSOR_LAST_RESPONSE.md (or configure Cursor rule)",
+    "Configure BRIDGE_URL if bridge ping desired"
+  ],
+  "recommended_next_task": "close_google_login_ios"
+}
