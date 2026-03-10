@@ -78,6 +78,7 @@
 ./automation/bridge/node_modules
 ./automation/bridge/package-lock.json
 ./automation/bridge/package.json
+./automation/bridge/server.js
 ./automation/bridge/src
 ./automation/bridge/src/githubWebhook.js
 ./automation/bridge/src/lib
@@ -95,6 +96,8 @@
 ./components.json
 ./devcontext
 ./devcontext/.gitkeep
+./devcontext/CHATGPT_STATE.json
+./devcontext/CHATGPT_TASK.md
 ./devcontext/LATEST_MASTER_AUDIT.json
 ./devcontext/NEXT_TASK.md
 ./devcontext/README.md
@@ -398,6 +401,7 @@
 ./scripts/ensure-oauth-redirect-ios.js
 ./scripts/environment-guard.sh
 ./scripts/export-codebase.js
+./scripts/export-state.sh
 ./scripts/export-zip-safe.sh
 ./scripts/gen-project-tree.sh
 ./scripts/generate-apple-touch-icon.mjs
@@ -594,7 +598,3 @@
 ./src/hooks/home/useHomeDialogs.js
 ./src/hooks/home/useHomeEvents.js
 ./src/hooks/home/useHomeMapState.js
-./src/hooks/home/useHomeQueries.js
-./src/hooks/home/useHomeTransforms.js
-./src/hooks/navigate
-./src/hooks/navigate/useNavigateActions.js

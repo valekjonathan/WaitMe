@@ -1,0 +1,121 @@
+{
+  "state_of_truth": {
+    "project": "waitme",
+    "timestamp": "2026-03-10T13:27:12",
+    "git": {
+      "branch": "main",
+      "commit": "3de001ff",
+      "dirty": true
+    },
+    "environment": {
+      "node": "v24.13.0",
+      "npm": "11.6.2",
+      "platform": "Darwin"
+    },
+    "build": {
+      "status": "ok",
+      "last_run": "2026-03-10T13:27:12"
+    },
+    "lint": {
+      "status": "ok"
+    },
+    "typecheck": {
+      "status": "ok"
+    },
+    "tests": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    "ios_runtime": {
+      "mode": "local_bundle",
+      "server_url": "NONE",
+      "simulator_status": "",
+      "last_screen": ""
+    },
+    "automation": {
+      "bridge": "",
+      "webhook": "",
+      "devcontext_updated": "2026-03-10T13:27:12"
+    },
+    "cursor": {
+      "last_summary": " ## task_objective  Cerrar gap de infraestructura: ship:infra para publicar scripts/ y automation/ sin tocar app code. Guard que bloquea si hay cambios en src/.  ---  ## files_created (this task)  - s",
+      "last_files_modified": []
+    },
+    "project_rules": {
+      "blocked_areas": [
+        "map",
+        "ui",
+        "payments",
+        "Home.jsx"
+      ]
+    },
+    "artifacts": {
+      "snapshot_zip": "",
+      "project_tree": "devcontext/project-tree.txt",
+      "latest_simulator_image": "devcontext/latest-simulator.png"
+    },
+    "workflow": {
+      "current_stage": "infrastructure_stable",
+      "next_task": "close_google_login_ios"
+    }
+  },
+  "next_task": "PROJECT: WAITME\n\nCURRENT_STAGE:\ninfrastructure_stable\n\nNEXT_TASK:\nclose_google_login_ios\n\nPROJECT_STATUS:\nios_runtime_fixed\nautomation_pipeline_active\ndevcontext_operational\n\nBLOCKED_AREAS:\nmap\nui\npayments\nHome.jsx\n\nRULES:\nnever_touch_home.jsx\nnever_modify_map_without_explicit_instruction\ninfrastructure_first\none_problem_at_a_time\n\nNEXT_AFTER_THIS:\n1 close_google_login_ios\n2 fix_real_location_engine\n3 fix_locate_button\n4 map_architecture_uber_style\n5 final_ui_pass\n\nLAST_UPDATE: 2026-03-10T13:27:12\n",
+  "latest_master_audit": {
+    "timestamp": "2026-03-10T13:15:00",
+    "repo_status": "ok",
+    "automation_status": "operational",
+    "supabase_status": "ok",
+    "ios_status": "runtime_fixed",
+    "google_login_ios_status": "code_ready_config_pending_validation",
+    "critical_blockers": [
+      "Google login validation on physical iPhone not recently verified",
+      "Supabase Redirect URLs must include com.waitme.app://auth/callback",
+      "Vitest tests have 6 unhandled errors (Capacitor Preferences in node env)"
+    ],
+    "dangerous_files": [
+      "src/lib/supabaseClient.js",
+      "src/lib/AuthContext.jsx",
+      "src/lib/oauthCapture.js",
+      "capacitor.config.ts",
+      "src/pages/Home.jsx",
+      "src/components/MapboxMap.jsx",
+      "src/components/map/ParkingMap.jsx",
+      "src/components/cards/CreateAlertCard.jsx"
+    ],
+    "verified_ok": [
+      "capacitor.config.ts server.url logic",
+      "ios-refresh.sh server cleanup",
+      "ios/App/App/capacitor.config.json no server",
+      "ship-infra guard blocks src/",
+      "STATE_OF_TRUTH.json structure",
+      "NEXT_TASK.md structure",
+      "automation pipeline (validate, rebuild, publish)",
+      "lint, typecheck, build pass",
+      "No base44 in active code",
+      "Info.plist URL scheme com.waitme.app",
+      "oauthCapture processOAuthUrl with code extraction"
+    ],
+    "fake_green": [
+      "AUTH_STATUS callback received - no recent manual verification evidence",
+      "IOS_RUNTIME_STATUS timestamps (2026-03-09) older than STATE_OF_TRUTH"
+    ],
+    "next_priority_order": [
+      "1_validate_google_login_iphone",
+      "2_verify_supabase_redirect_urls",
+      "3_fix_vitest_capacitor_mock",
+      "4_update_docs_timestamps",
+      "5_deploy_bridge_if_chatgpt_workflow_needed"
+    ],
+    "user_manual_steps_remaining": [
+      "Add com.waitme.app://auth/callback to Supabase Redirect URLs",
+      "Test Google login on physical iPhone",
+      "Write CURSOR_LAST_RESPONSE.md (or configure Cursor rule)",
+      "Configure BRIDGE_URL if bridge ping desired"
+    ],
+    "recommended_next_task": "close_google_login_ios"
+  },
+  "dev_status": "# Estado Global del Proyecto — WaitMe\n\n**Última actualización:** 2026-03-10 13:27\n\n---\n\n## Login simulador (evitar passkey)\n\n- **Botón \"Entrar en modo test\"**: solo en simulador iOS (VITE_IOS_DEV_BUILD=1). Evita flujo passkey de Google.\n- **Detección**: Capacitor iOS + VITE_IOS_DEV_BUILD=1 (ios:refresh). Nunca en producción.\n- **Bypass**: loginAsSimulatorTest() → DEV_MOCK_USER. No afecta login Google real en iPhone físico.\n\n---\n\n## ios:refresh — build local forzada\n\n- **unset** al inicio: CAP_LIVE_RELOAD, CAPACITOR_USE_DEV_SERVER, CAPACITOR_DEV_SERVER_URL\n- **Limpieza**: si server.url aparece tras cap sync, node -e lo elimina\n- **Verificación**: `[ios:refresh] runtime server url: NONE (build local OK)`\n- **capacitor.config.json** en ios/App/App: sin server, sin url\n\n---\n\n## Estado simulador (captura 20:58)\n\n- **Login** — app carga correctamente desde bundle local\n- **Botón \"Entrar en modo test\"** visible — evita passkey de Google\n- devcontext/latest-simulator.png\n",
+  "ios_runtime_status": "# Estado iOS Runtime — WaitMe\n\n**Última actualización:** 2026-03-10 13:27\n\n---\n\n## Login simulador (evitar passkey)\n\n- Botón \"Entrar en modo test\" visible solo en build VITE_IOS_DEV_BUILD=1 (ios:refresh).\n- No afecta login Google real en iPhone físico ni producción.\n\n---\n\n## runtime server url\n\n- **NONE** — ios:refresh fuerza build local empaquetada\n- Verificación: `[ios:refresh] runtime server url: NONE (build local OK)`\n- Si cap sync inyecta server, node -e lo elimina antes de cap run\n\n---\n\n## último ios:refresh (2026-03-09 20:58)\n\n- Exit: 0\n- runtime server url: NONE (build local OK)\n- Estado simulador: Login con botón \"Entrar en modo test\"\n- Screenshot: devcontext/latest-simulator.png\n",
+  "exported_at": "2026-03-10T12:27:21.016Z"
+}
