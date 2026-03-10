@@ -153,6 +153,7 @@
 ./docs/SAFE_CHANGE_PROTOCOL.md
 ./docs/SUPABASE_AUDIT.md
 ./docs/TOOLING_CLEANUP.md
+./docs/VISUAL_PARITY_AUDIT.md
 ./docs/VISUAL_SOURCE_OF_TRUTH.md
 ./docs/WAITME_AGENT_CONTEXT.md
 ./docs/XCODE_IOS_AUDIT.md
@@ -597,4 +598,3 @@
 ./src/hooks/history/buildHistoryContexts.js
 ./src/hooks/history/useCarsMovementSync.js
 ./src/hooks/history/useExpiredReservationModal.js
-./src/hooks/history/useHistoryActions.js
