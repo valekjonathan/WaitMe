@@ -1,17 +1,15 @@
 # Auditoría y Fix Ubicación — "Estoy aparcado aquí" (2026-03-10)
 
-## 1. ROOT CAUSE REAL DEL FALLO DE UBICARTE
+## 1. ROOT CAUSE DEFINITIVA DEL PROBLEMA
 
-**Causa raíz:** En `MapboxMap.jsx`, el efecto que centra el mapa cuando `locationFromEngine` cambia tenía un early return:
+**Causa raíz:** El centrado del mapa tenía dos caminos que competían:
+1. **Efecto reactivo** en MapboxMap que volaba cuando `effectiveCenter` cambiaba
+2. **Flujo directo** en `centerOnUserLocation` que llamaba `mapRef.current.easeTo`
 
-```javascript
-if (skipAutoFlyWhenCenterPin && hasFlownToUserRef.current) return;
-```
-
-Tras el primer fly inicial (al entrar en modo create), `hasFlownToUserRef.current` quedaba `true`. Cuando el usuario pulsaba Ubicarte, `handleRecenter` actualizaba `userLocation` → `locationFromEngine` cambiaba → el efecto se ejecutaba pero **salía por el return** sin hacer el fly. El mapa nunca se recentraba.
+Al eliminar el early return, el efecto volaba tras cada cambio de `userLocation`, pudiendo pisar o competir con el centrado manual. La solución arquitectónica: en modo create, el efecto **no debe** volar tras el fly inicial. Solo el flujo directo de Ubicarte (`mapRef.current.easeTo`) debe centrar el mapa.
 
 **Archivo:** `src/components/map/MapboxMap.jsx`  
-**Línea:** 502 (antes del fix)
+**Línea:** 502
 
 ---
 
@@ -63,14 +61,13 @@ Usa Nominatim OpenStreetMap. Llama a `setAddress(result)`.
 
 ---
 
-## 8. CAMBIO REAL QUE ARREGLA UBICARTE
+## 8. CAMBIO ARQUITECTÓNICO REAL IMPLEMENTADO
 
-Eliminar el early return en MapboxMap que bloqueaba el fly cuando la ubicación cambiaba manualmente:
+1. **MapboxMap.jsx:** Early return `if (skipAutoFlyWhenCenterPin && hasFlownToUserRef.current) return` — el efecto NO vuelve a centrar tras el fly inicial. Solo el flujo directo Ubicarte centra.
 
-```diff
-- if (skipAutoFlyWhenCenterPin && hasFlownToUserRef.current) return;
-+ // Fly when center changed (incl. manual Ubicarte). lastFlownCenterRef guards redundant flies.
-```
+2. **getPreciseInitialLocation.js:** timeout 15000, maximumAge 0, retry si accuracy > 50m (hasta 3 intentos).
+
+3. **Home.jsx centerOnUserLocation:** Centrado directo con `mapRef.current.easeTo({ center: [lng, lat], zoom: 17.5, duration: 700 })`. Validación lat/lng. Reintentos hasta 20 si el mapa no está listo.
 
 ---
 
