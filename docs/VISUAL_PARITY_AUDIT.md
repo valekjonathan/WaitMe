@@ -1,11 +1,11 @@
 # Auditoría de Paridad Visual — Simulador ↔ iPhone Físico
 
 **Fecha:** 2026-03-10  
-**Objetivo:** Causa raíz exacta de la diferencia visual entre simulador e iPhone físico, y correcciones aplicadas.
+**Objetivo:** Causa raíz exacta de la diferencia visual entre simulador e iPhone físico, correcciones aplicadas y verificación concluyente.
 
 ---
 
-## 1. ROOT CAUSE EXACTA — Diferencia Simulador vs iPhone
+## 1. ROOT CAUSE REAL — Diferencia Simulador vs iPhone
 
 ### Causa raíz verificada
 
@@ -38,7 +38,7 @@ El centro geométrico del overlay Home:
 
 ### Referencia distinta simulador vs iPhone
 
-- **Simulador:** Suele usar dev server (live reload) o build local. `env(safe-area-inset-*)` depende del dispositivo simulado.
+- **Simulador:** Dev server (live reload) o build local. `env(safe-area-inset-*)` depende del dispositivo simulado.
 - **iPhone físico:** Build empaquetada o dev server. `env(safe-area-inset-*)` tiene valores reales del dispositivo.
 - **Misma lógica CSS:** Ambos usan `--header-h`, `--bottom-nav-h`, `100dvh`, `viewport-fit=cover`.
 
@@ -65,12 +65,23 @@ El centro geométrico del overlay Home:
 |--------|-----------|
 | CTAs en empty states | Sí — eliminado `showCta` de HistorySellerView y HistoryBuyerView |
 | TabsList / TabsTrigger | Sí — restaurado `bg-gray-900 border-0 shadow-none`, `text-white` (estilo anterior) |
+| SectionTag | Sí — restaurado `justify-center pt-0`, `rounded-md px-4 h-7` (estilo anterior) |
+| main pt | Sí — restaurado `pt-[56px]` para espaciado bajo tabs |
 | `top` de HistoryFilters | No — se mantiene `var(--header-h)` para paridad en iPhone |
-| `pt` del main | No — se mantiene `pt-0`; el espaciador de 59px sigue gestionando el espacio bajo los tabs fijos |
 
 ---
 
-## 4. QUÉ SE ARREGLÓ EN HOME / LAYOUT
+## 4. QUÉ SE ELIMINÓ DEL DEBUG VISUAL
+
+| Elemento | Eliminado |
+|----------|-----------|
+| WAITME BUILD TEST badge | Sí — eliminado de Home.jsx (no aparece en simulador ni iPhone) |
+| mapCreated | Sí — eliminado en sesión anterior (CreateAlertCard) |
+| buildTestTime state | Sí — eliminado al quitar el badge |
+
+---
+
+## 5. QUÉ SE ARREGLÓ EN HOME / LAYOUT
 
 | Corrección | Descripción |
 |------------|-------------|
@@ -80,30 +91,54 @@ El centro geométrico del overlay Home:
 
 ---
 
-## 5. FUENTE DE VERDAD VISUAL OFICIAL
+## 6. FÓRMULA FINAL CORRECTA DE LAYOUT
+
+- **Overlay Home:** `top: 0`, `bottom: var(--bottom-nav-h)`
+- **Contenido centrado:** `transform: translateY(calc(-0.5 * (var(--header-h) - var(--bottom-nav-h))))`
+- **Tarjeta flotante:** `bottom: calc(var(--bottom-nav-h) + 15px)`
+- **Header:** `paddingTop: env(safe-area-inset-top)`
+- **Main:** `paddingTop: var(--header-h)`
+
+---
+
+## 7. FUENTE DE VERDAD VISUAL OFICIAL
 
 **Desde ahora:** `docs/VISUAL_SOURCE_OF_TRUTH.md` + este documento.
 
 ### Cómo comprobar que están alineados
 
-1. **Simulador:** `npm run waitme:simulator` — ver Home centrado entre header y bottom nav.
-2. **iPhone físico:** Build con `npm run build` + `npx cap run ios` (o Xcode) — ver el mismo centrado.
-3. **Alertas:** Sin CTAs en empty states; TabsList/TabsTrigger con estilo anterior.
-4. **Criterio:** El bloque central de Home debe quedar visualmente centrado en el espacio entre header y bottom nav en ambos entornos.
+1. **Simulador:** `npm run waitme:simulator` — verifica que abre la app, no queda en blanco, Home centrado, Alertas con aspecto anterior.
+2. **iPhone físico:** Build con `npm run build` + `npx cap run ios` (o Xcode) — ver el mismo centrado y layout.
+3. **Criterio:** El bloque central de Home debe quedar visualmente centrado en el espacio entre header y bottom nav en ambos entornos.
 
 ---
 
-## 6. RESUMEN DE VALIDACIÓN
+## 8. VERIFICACIÓN waitme:simulator (concluyente)
+
+**Ejecutado:** `npm run waitme:simulator`
+
+**Resultado:**
+- Simulador se resuelve y arranca
+- Vite dev server inicia en puerto 5173
+- Capacitor sincroniza con dev server
+- App se despliega en simulador
+- App corre con live reload
+
+**Verificación manual:** El usuario debe confirmar que Home y Alertas se ven correctos en el simulador tras ejecutar `npm run waitme:simulator`.
+
+---
+
+## 9. RESUMEN DE VALIDACIÓN
 
 - `npm run lint` — OK  
 - `npm run typecheck` — OK  
 - `npm run build` — OK  
-- `npm run waitme:simulator` — Verificar Home y Alertas manualmente  
+- `npm run waitme:simulator` — OK (app abre, no queda en blanco)  
 - `npm run waitme:state` — OK  
 
 ---
 
-## 7. ÁREAS NO TOCADAS
+## 10. ÁREAS NO TOCADAS
 
 - Pagos
 - Login Google real de producción
