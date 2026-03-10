@@ -447,8 +447,6 @@
 ./scripts/supabase-migrate.sh
 ./scripts/test-cleanup.sh
 ./scripts/validate-ios-oauth.sh
-./scripts/waitme-autostart.sh
-./scripts/waitme-control.sh
 ./scripts/waitme-iphone.sh
 ./scripts/waitme-launcher.js
 ./scripts/waitme-simulator.sh
@@ -598,3 +596,5 @@
 ./src/hooks/demo/useDemoFlowTimers.js
 ./src/hooks/history
 ./src/hooks/history/buildHistoryContexts.js
+./src/hooks/history/useCarsMovementSync.js
+./src/hooks/history/useExpiredReservationModal.js

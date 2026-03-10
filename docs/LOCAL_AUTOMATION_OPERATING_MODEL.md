@@ -37,7 +37,7 @@ Modelo operativo del sistema de automatización local.
 
 - **Contenido:** src, docs, scripts, devcontext, configs (sin node_modules, .env, dist)
 - **Uso:** Enviar contexto a ChatGPT o revisión externa
-- **Cuándo se genera:** Tras simulator, iphone, state, stop, build (en background)
+- **Cuándo se genera:** Solo con `npm run waitme:snapshot`
 
 ---
 
@@ -68,10 +68,3 @@ El usuario puede adjuntar el ZIP o pegar el JSON en el chat para dar contexto.
 
 **Para parar todo:** `npm run waitme:stop`
 
----
-
-## 6. AUTOSTART (OPCIONAL)
-
-`npm run waitme:autostart` — Para procesos previos y arranca simulator mode.
-
-Útil al empezar a trabajar. Documentar en macOS: añadir a Login Items o crear alias en .zshrc.

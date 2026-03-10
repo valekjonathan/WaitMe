@@ -47,7 +47,6 @@ waitme-supervisor.sh (controlador central)
 | `npm run waitme:state` | Regenera LIVE_PROJECT_STATE.json |
 | `npm run waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
 | `npm run waitme:stop` | Para dev server y bridge |
-| `npm run waitme:autostart` | Opcional: para procesos y arranca simulator |
 | `npm run waitme:launcher` | Menú interactivo Node |
 
 **Alternativa:** `node scripts/waitme-launcher.js <simulator|iphone|state|snapshot|stop>`
@@ -110,8 +109,3 @@ ChatGPT no puede acceder directamente a los archivos de tu Mac.
 
 Para dar contexto a ChatGPT: adjunta el ZIP o pega el JSON en el chat.
 
----
-
-## AUTOSTART (OPCIONAL)
-
-`npm run waitme:autostart` — Para procesos previos y arranca simulator mode.
