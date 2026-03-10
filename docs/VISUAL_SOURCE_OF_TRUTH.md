@@ -2,25 +2,27 @@
 
 ## Regla oficial
 
-**Para cambios visuales:** usar siempre `npm run waitme:simulator`.
+**Para paridad simulador ↔ iPhone en tiempo real:** `npm run waitme:visual`
 
-**Para validar comportamiento real:** usar siempre `npm run waitme:iphone`.
+**Para validar Google login real:** `npm run waitme:iphone`
 
 ---
 
 ## Flujo de trabajo visual
 
-1. **Desarrollo UI / layout:** `npm run waitme:simulator`
-   - Simulador abre la app con live reload
+1. **Desarrollo UI / layout:** `npm run waitme:visual`
+   - Abre selector de dispositivos: elige simulador O iPhone físico
+   - Ambos usan la misma app con live reload
    - Auto-login con usuario dev
    - Ajusta estilos, posiciones, centrado
-   - Guarda → la app recarga sola
+   - Guarda → la app recarga en el dispositivo elegido
+   - **Paridad real:** simulador e iPhone físico ven lo mismo
 
-2. **Confirmación en dispositivo real:** `npm run waitme:iphone`
+2. **Confirmación Google real:** `npm run waitme:iphone`
    - Build de producción
    - Abre Xcode
    - Selecciona iPhone físico y Run
-   - Verifica que el resultado coincida con el simulador
+   - Verifica OAuth en dispositivo real
 
 ---
 

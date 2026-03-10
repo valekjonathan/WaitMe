@@ -64,4 +64,15 @@ LAST_VISUAL_FIXES:
 - Home.jsx (ya cerrado)
 - CreateAlertCard (fuera de scope de este bloque)
 
-LAST_UPDATE: 2026-03-10T16:33:59
+LAST_UPDATE: 2026-03-10T16:42
+
+---
+
+## FLUJO VISUAL UNIFICADO (NUEVO)
+
+**Modo oficial para paridad simulador ↔ iPhone:** `npm run waitme:visual`
+
+- Un solo arranque
+- Simulador e iPhone físico ven la misma app con live reload
+- Usa IP de red (192.168.x.x) para que iPhone alcance el dev server
+- Acción mínima: ejecutar `npm run waitme:visual` y elegir dispositivo en el selector

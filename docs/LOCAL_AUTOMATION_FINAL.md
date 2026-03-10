@@ -8,8 +8,9 @@ Sistema operativo local para el proyecto. Supervisor central + mode runners.
 
 ```
 waitme-supervisor.sh (controlador central)
-├── waitme-simulator.sh  → dev server + bridge + simulador + auto-login
-├── waitme-iphone.sh     → build producción + Xcode
+├── waitme-visual.sh     → [RECOMENDADO] simulador + iPhone físico, misma app, live reload
+├── waitme-simulator.sh  → solo simulador con live reload
+├── waitme-iphone.sh     → build producción + Xcode (Google real)
 ├── waitme-state.sh      → LIVE_PROJECT_STATE.json
 ├── waitme-snapshot.sh   → tmp/waitme_project_snapshot.zip
 └── waitme-stop.sh       → para dev server y bridge
@@ -17,18 +18,33 @@ waitme-supervisor.sh (controlador central)
 
 ---
 
-## SIMULATOR MODE — Para qué sirve
+## MODO VISUAL UNIFICADO — Para paridad simulador ↔ iPhone
+
+**Acción mínima:** `npm run waitme:visual`
+
+- **Simulador e iPhone físico:** La MISMA app, mismo dev server, live reload en ambos
+- **Un solo arranque:** Dev server + selector de dispositivo (elige simulador O iPhone)
+- **Paridad real:** Ambos apuntan a la misma URL (IP de red del Mac)
+- **Sin build viejo:** El iPhone no usa bundle local; usa dev server en tiempo real
+
+**Qué hacer:** Ejecuta `npm run waitme:visual`. En el selector, elige simulador o iPhone físico. Edita código → guarda → recarga en el dispositivo que elegiste.
+
+**Requisito:** iPhone y Mac en la misma red WiFi.
+
+---
+
+## SIMULATOR MODE — Solo simulador
 
 - **UI / visual:** Cambios de layout, estilos, componentes
 - **Preview en tiempo real:** Live reload al guardar
 - **Siempre logueado:** Dev user automático, sin Google
-- **Rápido:** No hace build completo
+- **Rápido:** Usa 127.0.0.1 (más rápido que visual)
 
 **Qué hacer después:** La app se abre en el simulador. Edita código y guarda → recarga solo.
 
 ---
 
-## IPHONE MODE — Para qué sirve
+## IPHONE REAL MODE — Google login real
 
 - **Google login real:** Probar OAuth en dispositivo físico
 - **Validación real:** Ubicación, notificaciones, rendimiento
@@ -38,22 +54,30 @@ waitme-supervisor.sh (controlador central)
 
 ---
 
-## LOS 5 COMANDOS
+## LOS COMANDOS
 
 | Comando | Qué hace |
 |---------|----------|
-| `npm run waitme:simulator` | Abre simulador con live reload y auto-login |
-| `npm run waitme:iphone` | Build limpio, abre Xcode para iPhone físico |
+| `npm run waitme:visual` | **[RECOMENDADO]** Simulador + iPhone físico, misma app, live reload |
+| `npm run waitme:simulator` | Solo simulador con live reload |
+| `npm run waitme:iphone` | Build limpio, Xcode, Google login real |
 | `npm run waitme:state` | Regenera LIVE_PROJECT_STATE.json |
 | `npm run waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
 | `npm run waitme:stop` | Para dev server y bridge |
 | `npm run waitme:launcher` | Menú interactivo Node |
 
-**Alternativa:** `node scripts/waitme-launcher.js <simulator|iphone|state|snapshot|stop>`
+**Alternativa:** `node scripts/waitme-launcher.js <visual|simulator|iphone|state|snapshot|stop>`
 
 ---
 
 ## QUÉ HACER DESPUÉS DE CADA COMANDO
+
+### waitme:visual
+1. Espera a que se abra el selector de dispositivos
+2. Selecciona **simulador** o **iPhone físico**
+3. La app carga sola (auto-login)
+4. Edita en tu editor → guarda → la app recarga en el dispositivo elegido
+5. Para salir: Ctrl+C en la terminal
 
 ### waitme:simulator
 1. Espera a que se abra el simulador
