@@ -36,13 +36,12 @@ Protección de áreas críticas frente a cambios accidentales por Cursor, ChatGP
 
 ## AUTO-COMMIT SCOPE
 
-Solo se hace commit automático de:
+**on-change (Cursor hook):** solo devcontext/*, docs/*, PROJECT_GUARDRAILS.md
 
-- `devcontext/*`
-- `docs/*`
-- `PROJECT_GUARDRAILS.md`
+**ship:infra** (`npm run ship:infra`): devcontext/*, docs/*, PROJECT_GUARDRAILS.md, scripts/*, automation/*
 
-Nunca: `src/`, map, UI, payments, business logic.
+- **Guard:** Si hay cambios en `src/`, ship:infra **BLOQUEA** y no hace commit
+- Nunca: `src/`, map, UI, payments, business logic
 
 ---
 

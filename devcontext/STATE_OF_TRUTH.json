@@ -1,9 +1,9 @@
 {
   "project": "waitme",
-  "timestamp": "2026-03-10T12:43:42",
+  "timestamp": "2026-03-10T12:54:00",
   "git": {
     "branch": "main",
-    "commit": "14dfaee8",
+    "commit": "0c2947e7",
     "dirty": true
   },
   "environment": {
@@ -13,7 +13,7 @@
   },
   "build": {
     "status": "ok",
-    "last_run": "2026-03-10T12:43:42"
+    "last_run": "2026-03-10T12:54:00"
   },
   "lint": {
     "status": "ok"
@@ -35,10 +35,10 @@
   "automation": {
     "bridge": "",
     "webhook": "",
-    "devcontext_updated": "2026-03-10T12:43:42"
+    "devcontext_updated": "2026-03-10T12:54:00"
   },
   "cursor": {
-    "last_summary": " ## task_objective  Completar capa de infraestructura/automatización para flujo ChatGPT → repo → build → simulator.  ---  ## files_created  - devcontext/NEXT_TASK.md - scripts/project-snapshot.\n",
+    "last_summary": " ## task_objective  Cerrar gap de infraestructura: ship:infra para publicar scripts/ y automation/ sin tocar app code. Guard que bloquea si hay cambios en src/.  ---  ## files_created (this task)  - s",
     "last_files_modified": []
   },
   "project_rules": {

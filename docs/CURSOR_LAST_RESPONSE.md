@@ -1,30 +1,28 @@
 # Cursor Last Response
 
-**timestamp:** 2026-03-10 12:45
+**timestamp:** 2026-03-10 13:00
 
 ---
 
 ## task_objective
 
-Completar capa de infraestructura/automatización para flujo ChatGPT → repo → build → simulator.
+Cerrar gap de infraestructura: ship:infra para publicar scripts/ y automation/ sin tocar app code. Guard que bloquea si hay cambios en src/.
 
 ---
 
-## files_created
+## files_created (this task)
 
-- devcontext/NEXT_TASK.md
-- scripts/project-snapshot.sh
-- scripts/project-health.sh
-- scripts/dev-pipeline.sh
+- scripts/ship-infra.sh
+
+---
+
+## files_modified (this task)
+
+- package.json
+- docs/AUTOMATION_ARCHITECTURE.md
 - PROJECT_GUARDRAILS.md
-
----
-
-## files_modified
-
-- automation/rebuild-context.sh (artifacts, workflow, NEXT_TASK update)
-- automation/on-change.sh (git safety: devcontext, docs, PROJECT_GUARDRAILS only)
-- docs/AUTOMATION_ARCHITECTURE.md (guard rails, dev-pipeline, snapshot, health)
+- docs/AUTOMATION_ARCHITECTURE.md (infra ship vs on-change, paths permitidos/bloqueados)
+- PROJECT_GUARDRAILS.md (ship:infra scope)
 
 ---
 

@@ -106,7 +106,25 @@ Ubicación: `automation/`
 
 ## 5. GitHub automation
 
-### Commit automático
+### Flujo normal (on-change) vs Infra Ship (ship:infra)
+
+| Aspecto | on-change (Cursor hook) | ship:infra |
+|---------|-------------------------|------------|
+| **Propósito** | Auto-sincronizar devcontext tras cambios | Publicar cambios de infraestructura |
+| **Paths permitidos** | devcontext/*, docs/*, PROJECT_GUARDRAILS.md | devcontext/*, docs/*, PROJECT_GUARDRAILS.md, scripts/*, automation/* |
+| **Paths bloqueados** | src/*, app, map, payments | src/*, Home.jsx, MapboxMap, ParkingMap, CreateAlertCard |
+| **Guard** | Solo añade paths permitidos | **Falla si hay cambios en src/** |
+| **Uso** | Automático (hook stop) | Manual: `npm run ship:infra` |
+
+### Infra Ship — ship-infra.sh
+
+- **Comando:** `npm run ship:infra` o `bash scripts/ship-infra.sh`
+- **Dry-run:** `npm run ship:infra -- --dry-run` para previsualizar sin commit/push
+- **Guard:** Si hay archivos modificados bajo `src/`, **BLOQUEA** con mensaje claro
+- **Permite:** scripts/*, automation/* además de devcontext, docs, guardrails
+- **Mensaje commit:** `chore(infra): update automation, scripts, devcontext, docs`
+
+### Commit automático (on-change)
 
 - **Solo se hace commit de:**
   - `devcontext/*`
@@ -114,7 +132,7 @@ Ubicación: `automation/`
   - `PROJECT_GUARDRAILS.md`
 - **Mensaje:** `chore(devcontext): update project state`
 - **Código de aplicación:** nunca se auto-commitea
-- **scripts/ y automation/:** no se auto-commitean; cambios quedan en working tree
+- **scripts/ y automation/:** no se auto-commitean en on-change; usar `ship:infra` para publicarlos
 
 ### Bridge
 
@@ -151,13 +169,13 @@ git push
 
 | Comando | Descripción |
 |---------|-------------|
-| `bash scripts/dev-pipeline.sh` | Pipeline completa: validate → rebuild → publish → snapshot → health |
+| `npm run ship:infra` | Commit y push solo infra (scripts, automation, devcontext, docs). Bloquea si hay cambios en src/ |
+| `npm run ship:infra -- --dry-run` | Previsualizar qué se commitearía sin ejecutar |
+| `npm run pipeline:devcontext` | Pipeline completa: validate → rebuild → publish → snapshot → health |
+| `npm run health:project` | Health check de infraestructura |
+| `npm run snapshot:project` | Genera tmp/waitme-snapshot.zip |
 | `npm run devcontext:update` | Script completo (legacy): ZIP, ios:refresh, logs, docs |
-| `bash automation/on-change.sh` | Pipeline nueva: validate, rebuild, publish, commit |
-| `bash automation/validate-project.sh` | Solo lint, typecheck, build |
-| `bash automation/rebuild-context.sh` | Solo regenerar STATE_OF_TRUTH |
-| `bash scripts/project-snapshot.sh` | Genera tmp/waitme-snapshot.zip |
-| `bash scripts/project-health.sh` | Health check de infraestructura |
+| `bash automation/on-change.sh` | Pipeline Cursor: validate, rebuild, publish, commit (solo devcontext/docs) |
 
 ---
 
@@ -180,4 +198,5 @@ Ver **`PROJECT_GUARDRAILS.md`** en la raíz del proyecto para:
 
 - Archivos críticos (Home.jsx, MapboxMap, ParkingMap, CreateAlertCard)
 - Sistemas críticos (map engine, payment logic, transaction flow)
-- Reglas de commit automático (solo devcontext/*, docs/*, PROJECT_GUARDRAILS.md)
+- Reglas de commit automático
+- **ship:infra** — comando seguro para publicar infraestructura sin tocar app code

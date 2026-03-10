@@ -415,6 +415,7 @@
 ./scripts/run-profile-migration.mjs
 ./scripts/serve-runtime-log.js
 ./scripts/setDevServer.js
+./scripts/ship-infra.sh
 ./scripts/ship.sh
 ./scripts/supabase-migrate.sh
 ./scripts/test-cleanup.sh
@@ -597,4 +598,3 @@
 ./src/hooks/profile
 ./src/hooks/profile/useProfileActions.js
 ./src/hooks/profile/useProfileData.js
-./src/hooks/useArrivingAnimation.js

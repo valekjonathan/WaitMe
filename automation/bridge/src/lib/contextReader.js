@@ -16,6 +16,7 @@ const DOC_FILES = [
 ];
 
 const DEVCONTEXT_FILES = [
+  'devcontext/STATE_OF_TRUTH.json',
   'devcontext/waitme-live-context.zip',
   'devcontext/latest-simulator.png',
   'devcontext/latest-simulator-after-login.png',
