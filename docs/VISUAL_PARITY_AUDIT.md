@@ -94,22 +94,24 @@ El centro geométrico del overlay Home:
 
 | Corrección | Descripción |
 |------------|-------------|
-| globals.css | `height: 100%` → `height: 100dvh; min-height: 100dvh` en html, body, #root |
-| index.css | `height: 100%` → `height: 100dvh; min-height: 100dvh` |
-| Layout.jsx | main siempre `paddingTop: 0`; contenido con `position: absolute`, `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` para todas las rutas |
-| Layout fallback | `height: 100vh` → `height: 100dvh` |
-| Transform compensatorio | Se mantiene en Home overlay para centrado con safe areas asimétricas |
-| MapScreenPanel | Fórmula única `bottom: calc(var(--bottom-nav-h) + 15px)` |
+| globals.css | `height: 100dvh` en html, body, #root |
+| Layout.jsx | main siempre `paddingTop: 0`; contenido con `position: absolute`, `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` |
+| Home.jsx | Root `absolute inset-0`; overlay `absolute inset-0 flex items-center justify-center` (sin transform compensatorio) |
+| MapViewportShell | `h-full` (rellena contenedor padre) |
+| App.jsx | Eliminado badge WAITME RUNTIME CHECK |
+| ErrorBoundary | Eliminado badge; `100vh` → `100dvh` |
+| CreateAlertCard | Eliminado console.log diagnóstico (mapCreated, etc.) |
 
 ---
 
 ## 6. FÓRMULA FINAL CORRECTA DE LAYOUT
 
-- **html, body, #root:** `height: 100dvh; min-height: 100dvh` (NO 100%)
+- **html, body, #root:** `height: 100dvh; min-height: 100dvh` (NO 100vh, NO 100%)
 - **Header:** `position: fixed`, `paddingTop: env(safe-area-inset-top)`
 - **Contenido (todas las rutas):** `position: absolute`, `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` (main sin padding)
-- **Overlay Home:** `top: 0`, `bottom: var(--bottom-nav-h)`
-- **Contenido centrado:** `transform: translateY(calc(-0.5 * (var(--header-h) - var(--bottom-nav-h))))`
+- **Home root:** `position: absolute`, `inset: 0`
+- **Mapa:** `position: absolute`, `inset: 0`
+- **Overlay Home:** `position: absolute`, `inset: 0`, `display: flex`, `align-items: center`, `justify-content: center`
 - **Tarjeta flotante:** `bottom: calc(var(--bottom-nav-h) + 15px)`
 - **Bottom nav:** `position: absolute`, `bottom: 0`
 
@@ -162,13 +164,26 @@ El centro geométrico del overlay Home:
 
 ---
 
-## 11. ENTREGA — DOBLE OFFSET ELIMINADO (2026-03-10)
+## 11. ENTREGA — FIX ESTRUCTURAL COMPLETO (2026-03-10)
+
+### Root cause real
 
 | Campo | Valor |
 |-------|-------|
-| **Archivo exacto** | `src/Layout.jsx` |
-| **Línea exacta** | 189 |
-| **Propiedad exacta** | `paddingTop: 'var(--header-h, 69px)'` en main (rutas no-Home) |
-| **Código eliminado** | `paddingTop: 'var(--header-h, 69px)'` del main para rutas no-Home; `pb-24` / `pb-0` condicional |
-| **Código final** | main siempre `paddingTop: 0`; contenido con `top: var(--header-h)`, `bottom: var(--bottom-nav-h)` para todas las rutas |
-| **MapViewportShell** | `height: calc(100dvh - var(--header-h))` → `h-full` (rellena el contenedor padre) |
+| **Causa hueco negro** | Modelo de layout inconsistente: main con padding en algunas rutas + overlay con bottom incorrecto + transform compensatorio |
+| **Archivo principal** | `src/Layout.jsx`, `src/pages/Home.jsx`, `src/App.jsx` |
+| **Conflicto exacto** | Layout content div con top/bottom correctos, pero Home usaba flex/height% y overlay usaba bottom: var(--bottom-nav-h) dentro de un contenedor que ya terminaba arriba del nav |
+| **Solución** | Modelo único: contenido absolute top/bottom; Home absolute inset-0; overlay inset-0 flex center (sin transform) |
+
+### Debug visual eliminado
+
+- **App.jsx:** Badge "WAITME RUNTIME CHECK" + BUILD timestamp (bloque completo)
+- **ErrorBoundary.jsx:** Badge WAITME RUNTIME CHECK
+- **CreateAlertCard.jsx:** console.group/console.log diagnóstico (mapCreated, etc.)
+
+### Archivos modificados
+
+- `src/App.jsx` — eliminado showMarker y badge
+- `src/core/ErrorBoundary.jsx` — eliminado badge; 100vh → 100dvh
+- `src/pages/Home.jsx` — root absolute inset-0; overlay inset-0 flex center; eliminado transform; isMapDisabled absolute inset-0
+- `src/components/cards/CreateAlertCard.jsx` — eliminado bloque diagnóstico console
