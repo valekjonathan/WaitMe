@@ -134,8 +134,10 @@
 ./docs/HOME_STATUS.md
 ./docs/INVENTARIO_ENTORNO_WAITME.md
 ./docs/INVENTARIO_TECNICO_WAITME.md
+./docs/IOS_APP_ICON_SOURCE_OF_TRUTH.md
 ./docs/IOS_DEV_AUTO.md
 ./docs/IOS_DEV_FLOW.md
+./docs/IOS_OAUTH_RUNTIME_ROOT_CAUSE.md
 ./docs/IOS_RUNTIME_STATUS.md
 ./docs/LIVE_CONTEXT_SUMMARY.md
 ./docs/MAP_STATUS.md
@@ -407,6 +409,7 @@
 ./scripts/export-zip-safe.sh
 ./scripts/gen-project-tree.sh
 ./scripts/generate-apple-touch-icon.mjs
+./scripts/generate-ios-appicons.mjs
 ./scripts/get-ip.js
 ./scripts/github_hardening.sh
 ./scripts/ios-device.sh
@@ -595,6 +598,3 @@
 ./src/hooks/historySeller/useHistorySellerActions.js
 ./src/hooks/historySeller/useHistorySellerData.js
 ./src/hooks/home
-./src/hooks/home/useHome.js
-./src/hooks/home/useHomeActions.js
-./src/hooks/home/useHomeAlerts.js
