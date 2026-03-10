@@ -1,19 +1,19 @@
 {
-  "timestamp": "2026-03-10T15:42:24.905Z",
+  "timestamp": "2026-03-10T15:43:19.392Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
   "dev_server_running": false,
-  "ios_server_block_present": true,
+  "ios_server_block_present": false,
   "snapshot_path": "",
   "snapshot_exists": false,
   "snapshot_timestamp": null,
   "current_branch": "main",
-  "last_commit": "91179159",
+  "last_commit": "f43248d3",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "91179159",
+    "commit": "f43248d3",
     "dirty": true
   },
   "environment": {
@@ -26,9 +26,9 @@
     "bypass_auth": false
   },
   "ios_config": {
-    "has_server_url": true,
-    "server_url": "http://192.168.0.13:5173",
-    "mode": "dev_server"
+    "has_server_url": false,
+    "server_url": "NONE",
+    "mode": "local_bundle"
   },
   "map_config": {
     "has_token": false,
