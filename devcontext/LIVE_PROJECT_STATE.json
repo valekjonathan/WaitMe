@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-10T13:50:25.183Z",
+  "timestamp": "2026-03-10T13:51:01.766Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
@@ -7,11 +7,11 @@
   "ios_server_block_present": false,
   "snapshot_path": "tmp/waitme_project_snapshot.zip",
   "current_branch": "main",
-  "last_commit": "dc3596ae",
+  "last_commit": "09b986f2",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "dc3596ae",
+    "commit": "09b986f2",
     "dirty": true
   },
   "environment": {
