@@ -68,3 +68,16 @@ El usuario puede adjuntar el ZIP o pegar el JSON en el chat para dar contexto.
 
 **Para parar todo:** `npm run waitme:stop`
 
+---
+
+## 6. CPU OPTIMIZATION STRATEGY
+
+To reduce CPU usage and MacBook heat during development:
+
+- **Single supervisor model** — One controller (`waitme-supervisor.sh`) for all modes. No parallel watchers or background orchestrators.
+- **No watchers** — No file watchers on tmp/, dist/, node_modules/, or snapshots. State updates only when you run simulator, iphone, state, snapshot, or stop.
+- **Manual snapshot** — Snapshot runs only via `npm run waitme:snapshot`. No automatic snapshots on build, simulator start, or stop.
+- **Cursor indexing exclusions** — `.cursorignore` excludes: node_modules, dist, tmp, .snapshots, .storybook, storybook-static, ios build artifacts, coverage, *.log, *.zip, and generated state files (LIVE_PROJECT_STATE.json, LAST_ERROR_SUMMARY.md).
+- **Duplicate dev server prevention** — Simulator checks `lsof -i :5173` before starting Vite; reuses existing server if port is in use.
+- **Reduced filesystem writes** — `generate-live-state.cjs` writes only when state data changes (avoids constant disk writes that trigger Spotlight indexing).
+

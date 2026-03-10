@@ -408,7 +408,6 @@
 ./scripts/dev-pipeline.sh
 ./scripts/dev-simulator.sh
 ./scripts/devcontext-update.sh
-./scripts/devcontext-update.sh.bak
 ./scripts/diagnose-project.js
 ./scripts/ensure-oauth-redirect-ios.js
 ./scripts/environment-guard.sh
@@ -426,8 +425,6 @@
 ./scripts/ios-live.sh
 ./scripts/ios-rebuild-and-sync.sh
 ./scripts/ios-refresh.sh
-./scripts/ios-refresh.sh.bak2
-./scripts/ios-refresh.sh.bak3
 ./scripts/ios-reset.sh
 ./scripts/ios-run.sh
 ./scripts/ios-watch.sh
@@ -598,3 +595,6 @@
 ./src/hooks/history/buildHistoryContexts.js
 ./src/hooks/history/useCarsMovementSync.js
 ./src/hooks/history/useExpiredReservationModal.js
+./src/hooks/history/useHistoryActions.js
+./src/hooks/history/useHistoryAutoExpire.js
+./src/hooks/history/useHistoryClock.js
