@@ -65,6 +65,7 @@
 ./.vscode/tasks.json
 ./CAPACITOR_DEV.md
 ./MAPBOX_SETUP.md
+./PROJECT_GUARDRAILS.md
 ./README-FLUJO.md
 ./README.md
 ./audit
@@ -94,6 +95,7 @@
 ./components.json
 ./devcontext
 ./devcontext/.gitkeep
+./devcontext/NEXT_TASK.md
 ./devcontext/README.md
 ./devcontext/STATE_OF_TRUTH.json
 ./devcontext/latest-auth-log.txt
@@ -382,6 +384,7 @@
 ./scripts/configure-supabase-secrets.sh
 ./scripts/dev-cleanup.sh
 ./scripts/dev-ios.sh
+./scripts/dev-pipeline.sh
 ./scripts/devcontext-update.sh
 ./scripts/devcontext-update.sh.bak
 ./scripts/diagnose-project.js
@@ -405,6 +408,8 @@
 ./scripts/ios-watch.sh
 ./scripts/measure-layout.mjs
 ./scripts/print-supabase-redirect-urls.js
+./scripts/project-health.sh
+./scripts/project-snapshot.sh
 ./scripts/pwa-icon-validator.mjs
 ./scripts/run-layout-measurement.js
 ./scripts/run-profile-migration.mjs
@@ -593,8 +598,3 @@
 ./src/hooks/profile/useProfileActions.js
 ./src/hooks/profile/useProfileData.js
 ./src/hooks/useArrivingAnimation.js
-./src/hooks/useHistoryData.jsx
-./src/hooks/useLocationEngine.js
-./src/hooks/useMyAlerts.js
-./src/hooks/useProfileGuard.ts
-./src/hooks/useTransactionMonitoring.js

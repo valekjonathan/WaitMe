@@ -1,9 +1,9 @@
 {
   "project": "waitme",
-  "timestamp": "2026-03-10T12:37:31",
+  "timestamp": "2026-03-10T12:43:42",
   "git": {
     "branch": "main",
-    "commit": "51bf6f2a",
+    "commit": "14dfaee8",
     "dirty": true
   },
   "environment": {
@@ -13,7 +13,7 @@
   },
   "build": {
     "status": "ok",
-    "last_run": "2026-03-10T12:37:31"
+    "last_run": "2026-03-10T12:43:42"
   },
   "lint": {
     "status": "ok"
@@ -35,10 +35,10 @@
   "automation": {
     "bridge": "",
     "webhook": "",
-    "devcontext_updated": "2026-03-10T12:37:31"
+    "devcontext_updated": "2026-03-10T12:43:42"
   },
   "cursor": {
-    "last_summary": " ## Prompt recibido  Implementar arquitectura de automatización robusta alrededor de devcontext y estado del proyecto. Infraestructura únicamente.  ---  ## Resumen exacto de lo hecho  - **STATE_OF_T\n",
+    "last_summary": " ## task_objective  Completar capa de infraestructura/automatización para flujo ChatGPT → repo → build → simulator.  ---  ## files_created  - devcontext/NEXT_TASK.md - scripts/project-snapshot.\n",
     "last_files_modified": []
   },
   "project_rules": {
@@ -48,5 +48,14 @@
       "payments",
       "Home.jsx"
     ]
+  },
+  "artifacts": {
+    "snapshot_zip": "tmp/waitme-snapshot.zip",
+    "project_tree": "devcontext/project-tree.txt",
+    "latest_simulator_image": "devcontext/latest-simulator.png"
+  },
+  "workflow": {
+    "current_stage": "infrastructure_stable",
+    "next_task": "close_google_login_ios"
   }
 }

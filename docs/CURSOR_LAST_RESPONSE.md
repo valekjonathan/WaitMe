@@ -1,43 +1,51 @@
 # Cursor Last Response
 
-**Última actualización:** 2026-03-10 12:37
+**timestamp:** 2026-03-10 12:45
 
 ---
 
-## Prompt recibido
+## task_objective
 
-Implementar arquitectura de automatización robusta alrededor de devcontext y estado del proyecto. Infraestructura únicamente.
-
----
-
-## Resumen exacto de lo hecho
-
-- **STATE_OF_TRUTH.json**: creado en devcontext/ como fuente canónica de estado (git, env, build, lint, typecheck, tests, ios_runtime, cursor, project_rules)
-- **automation/detect-change.sh**: detecta modificaciones en repo
-- **automation/validate-project.sh**: ejecuta lint, typecheck, build; emite LINT_STATUS, TYPECHECK_STATUS, BUILD_STATUS
-- **automation/rebuild-context.sh**: regenera STATE_OF_TRUTH.json y timestamps en docs
-- **automation/publish-devcontext.sh**: ZIP, project-tree, screenshot
-- **automation/on-change.sh**: orquesta validate → rebuild → publish; git add solo devcontext/* y docs/*; commit "chore(devcontext): update project state"
-- **docs/AUTOMATION_ARCHITECTURE.md**: documenta pipeline, devcontext, STATE_OF_TRUTH, integración Cursor
-- **contextReader.js**: añadido STATE_OF_TRUTH.json a DEVCONTEXT_FILES
+Completar capa de infraestructura/automatización para flujo ChatGPT → repo → build → simulator.
 
 ---
 
-## Archivos modificados
+## files_created
 
-- devcontext/STATE_OF_TRUTH.json (nuevo)
-- automation/detect-change.sh (nuevo)
-- automation/validate-project.sh (nuevo)
-- automation/rebuild-context.sh (nuevo)
-- automation/publish-devcontext.sh (nuevo)
-- automation/on-change.sh (modificado)
-- docs/AUTOMATION_ARCHITECTURE.md (nuevo)
-- automation/bridge/src/lib/contextReader.js (modificado)
-- .gitignore (añadido devcontext temp files)
+- devcontext/NEXT_TASK.md
+- scripts/project-snapshot.sh
+- scripts/project-health.sh
+- scripts/dev-pipeline.sh
+- PROJECT_GUARDRAILS.md
 
 ---
 
-## Archivos NO modificados
+## files_modified
 
-- Home.jsx, MapboxMap, ParkingMap, CreateAlertCard
-- UI, map, payments, business logic
+- automation/rebuild-context.sh (artifacts, workflow, NEXT_TASK update)
+- automation/on-change.sh (git safety: devcontext, docs, PROJECT_GUARDRAILS only)
+- docs/AUTOMATION_ARCHITECTURE.md (guard rails, dev-pipeline, snapshot, health)
+
+---
+
+## validation_result
+
+- lint: OK
+- typecheck: OK
+- build: OK
+- snapshot: OK (tmp/waitme-snapshot.zip)
+- health: OK
+
+---
+
+## blocked_areas_respected
+
+- Home.jsx: untouched
+- MapboxMap, ParkingMap, CreateAlertCard: untouched
+- UI, map, payments, business logic: untouched
+
+---
+
+## next_recommended_task
+
+close_google_login_ios
