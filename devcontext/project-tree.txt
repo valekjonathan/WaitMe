@@ -154,6 +154,7 @@
 ./docs/SUPABASE_AUDIT.md
 ./docs/TOOLING_CLEANUP.md
 ./docs/UBICACION_AUDIT_FIX_2026-03-10.md
+./docs/UBICACION_ENTREGA_FINAL_2026-03-10.md
 ./docs/VISUAL_PARITY_AUDIT.md
 ./docs/VISUAL_SOURCE_OF_TRUTH.md
 ./docs/WAITME_AGENT_CONTEXT.md
@@ -597,4 +598,3 @@
 ./src/hooks/chats/useChatsActions.js
 ./src/hooks/chats/useChatsData.js
 ./src/hooks/demo
-./src/hooks/demo/useDemoFlowActions.js
