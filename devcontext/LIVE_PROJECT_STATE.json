@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-10T17:12:52.908Z",
+  "timestamp": "2026-03-10T17:14:07.956Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
@@ -9,11 +9,11 @@
   "snapshot_exists": false,
   "snapshot_timestamp": null,
   "current_branch": "main",
-  "last_commit": "65dfc5b3",
+  "last_commit": "5be094f6",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "65dfc5b3",
+    "commit": "5be094f6",
     "dirty": true
   },
   "environment": {
