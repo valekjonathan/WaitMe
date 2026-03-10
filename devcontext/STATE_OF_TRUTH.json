@@ -1,9 +1,9 @@
 {
   "project": "waitme",
-  "timestamp": "2026-03-10T15:59:13",
+  "timestamp": "2026-03-10T16:06:48",
   "git": {
     "branch": "main",
-    "commit": "2c504d23",
+    "commit": "16dab541",
     "dirty": true
   },
   "environment": {
@@ -13,7 +13,7 @@
   },
   "build": {
     "status": "ok",
-    "last_run": "2026-03-10T15:59:13"
+    "last_run": "2026-03-10T16:06:48"
   },
   "lint": {
     "status": "ok"
@@ -35,10 +35,10 @@
   "automation": {
     "bridge": "",
     "webhook": "",
-    "devcontext_updated": "2026-03-10T15:59:13"
+    "devcontext_updated": "2026-03-10T16:06:48"
   },
   "cursor": {
-    "last_summary": " ## task_objective  Cerrar paridad visual real entre simulador e iPhone en Home. Eliminar debug visual mapCreated. Unificar fórmula de posicionamiento de la tarjeta flotante.  ---  ## root_cause_bloq\n",
+    "last_summary": " ## task_objective  Restaurar Alertas visualmente. Auditoría maestra de paridad simulador vs iPhone. Corregir causa raíz y documentar.  ---  ## root_cause_bloque_bajo_iphone  - **Causa:** Safe areas\n",
     "last_files_modified": []
   },
   "project_rules": {

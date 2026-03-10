@@ -1,12 +1,12 @@
 # Cursor Last Response
 
-**timestamp:** 2026-03-10 15:58
+**timestamp:** 2026-03-10 16:06
 
 ---
 
 ## task_objective
 
-Cerrar paridad visual real entre simulador e iPhone en Home. Eliminar debug visual mapCreated. Unificar fórmula de posicionamiento de la tarjeta flotante.
+Restaurar Alertas visualmente. Auditoría maestra de paridad simulador vs iPhone. Corregir causa raíz y documentar.
 
 ---
 
@@ -19,35 +19,27 @@ Cerrar paridad visual real entre simulador e iPhone en Home. Eliminar debug visu
 
 ## files_modified
 
-- src/components/cards/CreateAlertCard.jsx — eliminado bloque debug visual (mapCreated, etc.)
-- src/system/map/MapScreenPanel.jsx — fórmula única `bottom: calc(var(--bottom-nav-h) + 15px)`, eliminado cardShiftUp y paddingBottom duplicado
-- src/components/CreateMapOverlay.jsx — eliminado prop cardShiftUp
-- src/components/SearchMapOverlay.jsx — eliminado prop cardShiftUp
-- src/pages/Home.jsx — añadido transform compensatorio para paridad simulador/iPhone
+- src/pages/HistorySellerView.jsx — eliminado showCta de empty state Activas
+- src/pages/HistoryBuyerView.jsx — eliminado showCta de empty state Activas
+- src/components/history/HistoryFilters.jsx — restaurado TabsList/TabsTrigger estilo anterior (bg-gray-900 border-0, text-white)
+- docs/VISUAL_PARITY_AUDIT.md — creado (auditoría completa)
 
 ---
 
-## debug_visual_eliminado
+## alertas_revertido
 
-- Bloque JSX completo que mostraba: mapCreated, mapLoadedEvent, styleLoaded, controllerReady, locateFailureReason, lastFlyToResult
-- Estado setDiagRefresh (ya no necesario)
-- El diagnóstico por consola (handleLocate) se mantiene para depuración; no se renderiza nada en pantalla
-
----
-
-## layout_arreglado
-
-- MapScreenPanel: una sola fórmula `bottom: calc(var(--bottom-nav-h) + 15px)` sin padding/margin/translate extra
-- Tarjeta flotante anclada de forma coherente
-- Home overlay: transform compensatorio para centrado visual real con safe areas asimétricas
+- CTAs eliminados de empty states (Tus alertas, Tus reservas)
+- TabsList: bg-gray-900 border-0 shadow-none (antes era bg-gray-900/80 border rounded-lg)
+- TabsTrigger: text-white (antes text-gray-300)
+- top: var(--header-h) mantenido para paridad iPhone
 
 ---
 
-## paridad_simulador_iphone
+## paridad_home_layout
 
-- Misma fórmula de posicionamiento en ambos
-- Mismo centrado visual del bloque central
-- La única diferencia es el safe area nativo del dispositivo
+- Transform compensatorio en Home overlay (ya aplicado anteriormente)
+- MapScreenPanel: fórmula única bottom: calc(var(--bottom-nav-h) + 15px)
+- Documentación en docs/VISUAL_PARITY_AUDIT.md
 
 ---
 
@@ -56,7 +48,6 @@ Cerrar paridad visual real entre simulador e iPhone en Home. Eliminar debug visu
 - lint: OK
 - typecheck: OK
 - build: OK
-- waitme:simulator: OK (app iniciada con live reload)
 - waitme:state: OK
 
 ---
@@ -65,11 +56,12 @@ Cerrar paridad visual real entre simulador e iPhone en Home. Eliminar debug visu
 
 - Pagos: NO tocado
 - Login Google real: NO tocado
-- Infraestructura: NO tocada
 - Nuevas funciones: NO añadidas
+- "Estoy aparcado aquí": NO tocado
+- Infraestructura: NO tocada
 
 ---
 
 ## next_recommended_task
 
-Verificar en iPhone físico que Home queda centrado y la tarjeta correctamente posicionada.
+Verificar en simulador e iPhone físico que Alertas y Home coinciden visualmente.
