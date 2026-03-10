@@ -568,6 +568,7 @@
 ./src/data
 ./src/data/alerts.js
 ./src/data/chat.js
+./src/data/devHistoryData.js
 ./src/data/notifications.js
 ./src/data/profiles.js
 ./src/data/transactions.js
@@ -597,4 +598,3 @@
 ./src/hooks/history/useCarsMovementSync.js
 ./src/hooks/history/useExpiredReservationModal.js
 ./src/hooks/history/useHistoryActions.js
-./src/hooks/history/useHistoryAutoExpire.js
