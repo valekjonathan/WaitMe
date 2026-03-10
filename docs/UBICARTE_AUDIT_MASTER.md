@@ -6,8 +6,8 @@
 |-------|-------|
 | **Archivo** | `src/pages/Home.jsx` |
 | **Línea** | 101-108 (bloque `doEaseTo`) |
-| **Causa** | `mapRef.current` puede ser `null` cuando el usuario pulsa Ubicarte antes de que el mapa termine de cargar (al entrar en modo create se monta un nuevo MapboxMap y createMap es asíncrono). Los reintentos (20×150ms) pueden no ser suficientes si el GPS tarda poco y el mapa tarda más. |
-| **Causa secundaria** | `zoom: 17.5` — el usuario solicitó zoom 18 para precisión tipo Uber. |
+| **Causa** | `mapRef.current` puede ser `null` cuando el usuario pulsa Ubicarte antes de que el mapa termine de cargar (al entrar en modo create se monta un nuevo MapboxMap y createMap es asíncrono). Los fallbacks (onRecenterRef, window.waitmeMap) añadían complejidad y posibles race conditions. |
+| **Fix** | Arquitectura simplificada: solo `mapRef.current.easeTo`. Reintentos (40×150ms) si el mapa no está listo. |
 
 ---
 
