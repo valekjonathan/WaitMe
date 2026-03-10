@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-03-10T13:38:22.104Z",
+  "git": {
+    "branch": "main",
+    "commit": "9c35d6ec",
+    "dirty": true
+  },
+  "environment": {
+    "mode": "development",
+    "node": "v24.13.0",
+    "platform": "darwin"
+  },
+  "auth_mode": {
+    "dev_auto_login": true,
+    "bypass_auth": false
+  },
+  "ios_config": {
+    "has_server_url": false,
+    "server_url": "NONE",
+    "mode": "local_bundle"
+  },
+  "map_config": {
+    "has_token": false,
+    "token_preview": "[unset]"
+  },
+  "build_mode": {
+    "capacitor_use_dev_server": false,
+    "last_build": "present"
+  },
+  "env_structure": {
+    "NODE_ENV": "[unset]",
+    "VITE_SUPABASE_URL": "[unset]",
+    "VITE_MAPBOX_TOKEN": "[unset]",
+    "VITE_DEV_BYPASS_AUTH": "[unset]",
+    "CAPACITOR_USE_DEV_SERVER": "[unset]"
+  }
+}

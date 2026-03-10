@@ -99,6 +99,7 @@
 ./devcontext/CHATGPT_STATE.json
 ./devcontext/CHATGPT_TASK.md
 ./devcontext/LATEST_MASTER_AUDIT.json
+./devcontext/LIVE_PROJECT_STATE.json
 ./devcontext/NEXT_TASK.md
 ./devcontext/README.md
 ./devcontext/STATE_OF_TRUTH.json
@@ -129,6 +130,7 @@
 ./docs/CURSOR_LAST_RESPONSE.md
 ./docs/CURSOR_RULES_WAITME.md
 ./docs/DEV_STATUS.md
+./docs/DEV_WORKFLOW.md
 ./docs/GOOGLE_LOGIN_IOS_AUDIT.md
 ./docs/GOOGLE_LOGIN_IOS_FINAL_CHECKLIST.md
 ./docs/HOME_STATUS.md
@@ -398,7 +400,9 @@
 ./scripts/configure-supabase-secrets.sh
 ./scripts/dev-cleanup.sh
 ./scripts/dev-ios.sh
+./scripts/dev-iphone.sh
 ./scripts/dev-pipeline.sh
+./scripts/dev-simulator.sh
 ./scripts/devcontext-update.sh
 ./scripts/devcontext-update.sh.bak
 ./scripts/diagnose-project.js
@@ -410,6 +414,7 @@
 ./scripts/gen-project-tree.sh
 ./scripts/generate-apple-touch-icon.mjs
 ./scripts/generate-ios-appicons.mjs
+./scripts/generate-live-state.cjs
 ./scripts/get-ip.js
 ./scripts/github_hardening.sh
 ./scripts/ios-device.sh
@@ -417,7 +422,6 @@
 ./scripts/ios-live.sh
 ./scripts/ios-rebuild-and-sync.sh
 ./scripts/ios-refresh.sh
-./scripts/ios-refresh.sh.bak
 ./scripts/ios-refresh.sh.bak2
 ./scripts/ios-refresh.sh.bak3
 ./scripts/ios-reset.sh
@@ -426,6 +430,7 @@
 ./scripts/measure-layout.mjs
 ./scripts/print-supabase-redirect-urls.js
 ./scripts/project-health.sh
+./scripts/project-snapshot-full.sh
 ./scripts/project-snapshot.sh
 ./scripts/pwa-icon-validator.mjs
 ./scripts/run-layout-measurement.js
@@ -593,8 +598,3 @@
 ./src/hooks/history/useHistoryTransforms.js
 ./src/hooks/historyBuyer
 ./src/hooks/historyBuyer/useHistoryBuyerActions.js
-./src/hooks/historyBuyer/useHistoryBuyerData.js
-./src/hooks/historySeller
-./src/hooks/historySeller/useHistorySellerActions.js
-./src/hooks/historySeller/useHistorySellerData.js
-./src/hooks/home
