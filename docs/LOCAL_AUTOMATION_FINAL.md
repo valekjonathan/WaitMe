@@ -1,6 +1,6 @@
 # WaitMe — Local Automation (Final)
 
-Sistema operativo local para el proyecto. Supervisor central + mode runners.
+Sistema operativo local para el proyecto. Tres modos oficiales (Uber/Stripe/Airbnb style).
 
 ---
 
@@ -8,65 +8,79 @@ Sistema operativo local para el proyecto. Supervisor central + mode runners.
 
 ```
 waitme-supervisor.sh (controlador central)
-├── waitme-visual.sh     → [RECOMENDADO] simulador + iPhone físico, misma app, live reload
-├── waitme-simulator.sh  → solo simulador con live reload
-├── waitme-iphone.sh     → build producción + Xcode (Google real)
+├── waitme-visual.sh     → VISUAL MODE: simulador + iPhone, misma app, live reload
+├── waitme-iphone.sh     → REAL DEVICE MODE: build limpio, Google login real
+├── waitme-stop.sh       → STOP MODE: parar todo
+├── waitme-simulator.sh  → solo simulador (alternativa)
 ├── waitme-state.sh      → LIVE_PROJECT_STATE.json
-├── waitme-snapshot.sh   → tmp/waitme_project_snapshot.zip
-└── waitme-stop.sh       → para dev server y bridge
+└── waitme-snapshot.sh   → tmp/waitme_project_snapshot.zip
 ```
 
 ---
 
-## MODO VISUAL UNIFICADO — Para paridad simulador ↔ iPhone
+## CÓMO EJECUTAR (SIN ESCRIBIR COMANDOS)
 
-**Acción mínima:** `npm run waitme:visual`
+**En Cursor / VS Code:**
+1. `Cmd+Shift+P` → "Tasks: Run Task"
+2. Elige: **WaitMe: VISUAL MODE** | **WaitMe: REAL DEVICE MODE** | **WaitMe: STOP**
 
-- **Simulador e iPhone físico:** La MISMA app, mismo dev server, live reload en ambos
-- **Un solo arranque:** Dev server + selector de dispositivo (elige simulador O iPhone)
+**O desde el panel NPM Scripts:** clic en ▶ junto a `waitme:visual`, `waitme:iphone` o `waitme:stop`.
+
+---
+
+## VISUAL MODE — Desarrollo diario
+
+**Botón:** WaitMe: VISUAL MODE (o `npm run waitme:visual`)
+
+- **Simulador e iPhone físico:** La MISMA app, mismo dev server, live reload
+- **Un solo arranque:** Dev server + selector de dispositivo
 - **Paridad real:** Ambos apuntan a la misma URL (IP de red del Mac)
-- **Sin build viejo:** El iPhone no usa bundle local; usa dev server en tiempo real
-
-**Qué hacer:** Ejecuta `npm run waitme:visual`. En el selector, elige simulador o iPhone físico. Edita código → guarda → recarga en el dispositivo que elegiste.
+- **Sin build viejo:** Siempre instala app con server.url correcto
 
 **Requisito:** iPhone y Mac en la misma red WiFi.
 
 ---
 
-## SIMULATOR MODE — Solo simulador
+## REAL DEVICE MODE — Pruebas reales
 
-- **UI / visual:** Cambios de layout, estilos, componentes
-- **Preview en tiempo real:** Live reload al guardar
-- **Siempre logueado:** Dev user automático, sin Google
-- **Rápido:** Usa 127.0.0.1 (más rápido que visual)
+**Botón:** WaitMe: REAL DEVICE MODE (o `npm run waitme:iphone`)
 
-**Qué hacer después:** La app se abre en el simulador. Edita código y guarda → recarga solo.
-
----
-
-## IPHONE REAL MODE — Google login real
-
-- **Google login real:** Probar OAuth en dispositivo físico
+- **Google login real:** OAuth en dispositivo físico
+- **Build limpio:** Sin localhost, bundle local
 - **Validación real:** Ubicación, notificaciones, rendimiento
-- **Build de producción:** Sin localhost, bundle local
 
-**Qué hacer después:** Xcode se abre. Selecciona tu iPhone físico en el target y pulsa Run (▶).
+**Qué hacer:** Xcode se abre. Selecciona tu iPhone en el target y pulsa Run (▶).
 
 ---
 
-## LOS COMANDOS
+## STOP MODE — Parar todo
 
-| Comando | Qué hace |
-|---------|----------|
-| `npm run waitme:visual` | **[RECOMENDADO]** Simulador + iPhone físico, misma app, live reload |
-| `npm run waitme:simulator` | Solo simulador con live reload |
-| `npm run waitme:iphone` | Build limpio, Xcode, Google login real |
-| `npm run waitme:state` | Regenera LIVE_PROJECT_STATE.json |
-| `npm run waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
-| `npm run waitme:stop` | Para dev server y bridge |
-| `npm run waitme:launcher` | Menú interactivo Node |
+**Botón:** WaitMe: STOP (o `npm run waitme:stop`)
 
-**Alternativa:** `node scripts/waitme-launcher.js <visual|simulator|iphone|state|snapshot|stop>`
+- Cierra Vite dev server
+- Cierra procesos duplicados
+- Deja sistema en idle
+
+---
+
+## LOS 3 BOTONES PRINCIPALES
+
+| Botón / Script | Modo | Uso |
+|----------------|------|-----|
+| **WaitMe: VISUAL MODE** | visual | Desarrollo diario, cambios en tiempo real |
+| **WaitMe: REAL DEVICE MODE** | real-device | Google login real, pruebas finales |
+| **WaitMe: STOP** | stop | Parar procesos |
+
+---
+
+## OTROS COMANDOS
+
+| Script | Qué hace |
+|--------|----------|
+| `waitme:simulator` | Solo simulador (alternativa a visual) |
+| `waitme:state` | Regenera LIVE_PROJECT_STATE.json |
+| `waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
+| `waitme:launcher` | Menú interactivo Node |
 
 ---
 

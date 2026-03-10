@@ -2,9 +2,11 @@
 
 ## Regla oficial
 
-**Para paridad simulador ↔ iPhone en tiempo real:** `npm run waitme:visual`
+**Desarrollo diario:** Tasks → WaitMe: VISUAL MODE (o `npm run waitme:visual`)
 
-**Para validar Google login real:** `npm run waitme:iphone`
+**Pruebas reales / Google:** Tasks → WaitMe: REAL DEVICE MODE (o `npm run waitme:iphone`)
+
+**Parar procesos:** Tasks → WaitMe: STOP (o `npm run waitme:stop`)
 
 ---
 

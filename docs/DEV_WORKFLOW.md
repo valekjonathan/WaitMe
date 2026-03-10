@@ -1,36 +1,40 @@
 # WaitMe — Professional Development Workflow
 
-Workflow de desarrollo con auto-login en simulador, preview en tiempo real y export para ChatGPT.
+Workflow de desarrollo. Tres modos oficiales. Sin escribir comandos: usar Tasks o NPM Scripts.
 
 ---
 
-## 1. SIMULATOR DEV MODE
+## CÓMO EJECUTAR (SIN TERMINAL)
 
-**Objetivo:** Preview en tiempo real, siempre logueado (dev user), sin Google OAuth.
+**Cursor / VS Code:**
+- `Cmd+Shift+P` → "Tasks: Run Task" → **WaitMe: VISUAL MODE** | **WaitMe: REAL DEVICE MODE** | **WaitMe: STOP**
+- O panel NPM Scripts → clic ▶ en `waitme:visual`, `waitme:iphone`, `waitme:stop`
 
-```bash
-npm run dev:simulator
-```
+---
+
+## 1. VISUAL MODE (desarrollo diario)
+
+**Objetivo:** Simulador + iPhone físico, misma app, live reload.
+
+**Ejecutar:** Tasks → WaitMe: VISUAL MODE, o `npm run waitme:visual`
 
 **Qué hace:**
 - Arranca Vite dev server (puerto 5173)
-- Bootea simulador iPhone
-- Sincroniza Capacitor en modo dev server
-- Lanza app con live reload
-- **Auto-login:** DEV_MOCK_USER (no se dispara Google login)
-- Actualiza `devcontext/LIVE_PROJECT_STATE.json`
+- Configura server.url con IP de red
+- Abre selector: elige simulador O iPhone físico
+- Ambos usan la misma app con live reload
+- **Auto-login:** DEV_MOCK_USER
+- Actualiza LIVE_PROJECT_STATE.json a "visual-mode"
 
-**Requisitos:** No se usa `VITE_DEV_BYPASS_AUTH` → AuthContext aplica auto-login en DEV.
+**Requisito:** Mac e iPhone en la misma red WiFi.
 
 ---
 
-## 2. IPHONE REAL MODE
+## 2. REAL DEVICE MODE (pruebas reales)
 
 **Objetivo:** Google login real, build de producción, sin localhost.
 
-```bash
-npm run dev:iphone
-```
+**Ejecutar:** Tasks → WaitMe: REAL DEVICE MODE, o `npm run waitme:iphone`
 
 **Qué hace:**
 - Build de producción (vite build)
