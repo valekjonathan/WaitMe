@@ -389,6 +389,7 @@
 ./public/icons/icon-512.png
 ./render.yaml
 ./scripts
+./scripts/cap-sync-clean.sh
 ./scripts/capture-boot-error.mjs
 ./scripts/check_migrations_safety.sh
 ./scripts/configure-supabase-secrets.sh
@@ -407,6 +408,7 @@
 ./scripts/generate-apple-touch-icon.mjs
 ./scripts/get-ip.js
 ./scripts/github_hardening.sh
+./scripts/ios-device.sh
 ./scripts/ios-fresh.sh
 ./scripts/ios-live.sh
 ./scripts/ios-rebuild-and-sync.sh
@@ -596,5 +598,3 @@
 ./src/hooks/home/useHomeActions.js
 ./src/hooks/home/useHomeAlerts.js
 ./src/hooks/home/useHomeDialogs.js
-./src/hooks/home/useHomeEvents.js
-./src/hooks/home/useHomeMapState.js

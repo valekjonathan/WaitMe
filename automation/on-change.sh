@@ -8,6 +8,12 @@ cd "$ROOT"
 
 echo "[on-change] WaitMe automation pipeline"
 
+# 0. If CHATGPT_TASK.md changed, run full dev-pipeline first
+if [[ -f "$ROOT/devcontext/CHATGPT_TASK.md" ]] && [[ -n "$(git status --porcelain "$ROOT/devcontext/CHATGPT_TASK.md" 2>/dev/null)" ]]; then
+  echo "[on-change] CHATGPT_TASK.md changed — running dev-pipeline..."
+  bash "$ROOT/scripts/dev-pipeline.sh" 2>&1 || true
+fi
+
 # 1. Validate project (lint, typecheck, build)
 echo "[on-change] 1. validate-project..."
 VALIDATE_OUT="$ROOT/devcontext/.validate_out"
