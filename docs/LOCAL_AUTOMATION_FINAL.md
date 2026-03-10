@@ -63,10 +63,25 @@ waitme-supervisor.sh (controlador central)
 
 ---
 
+## INSTALACIÓN AUTOMÁTICA (iPhone + Simulador)
+
+**Script:** `npm run waitme:install` o Tasks → **WaitMe: INSTALL**
+
+- Detecta iPhone físico conectado por USB
+- Limpia estado anterior
+- Arranca dev server
+- Instala en iPhone físico (si está conectado)
+- Instala en simulador
+- Ambos usan la misma URL, live reload activo
+- Sin intervención manual
+
+---
+
 ## LOS 3 BOTONES PRINCIPALES
 
 | Botón / Script | Modo | Uso |
 |----------------|------|-----|
+| **WaitMe: INSTALL** | install | Instalar en iPhone + simulador automáticamente |
 | **WaitMe: VISUAL MODE** | visual | Desarrollo diario, cambios en tiempo real |
 | **WaitMe: REAL DEVICE MODE** | real-device | Google login real, pruebas finales |
 | **WaitMe: STOP** | stop | Parar procesos |

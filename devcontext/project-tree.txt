@@ -445,7 +445,9 @@
 ./scripts/ship.sh
 ./scripts/supabase-migrate.sh
 ./scripts/test-cleanup.sh
+./scripts/update-visual-state.cjs
 ./scripts/validate-ios-oauth.sh
+./scripts/waitme-install-auto.sh
 ./scripts/waitme-iphone.sh
 ./scripts/waitme-launcher.js
 ./scripts/waitme-simulator.sh
@@ -596,5 +598,3 @@
 ./src/hooks/demo/useDemoFlowState.js
 ./src/hooks/demo/useDemoFlowSync.js
 ./src/hooks/demo/useDemoFlowTimers.js
-./src/hooks/history
-./src/hooks/history/buildHistoryContexts.js
