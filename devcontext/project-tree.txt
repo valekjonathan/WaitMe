@@ -313,6 +313,7 @@
 ./ios/App/CapApp-SPM/Package.swift
 ./ios/App/CapApp-SPM/README.md
 ./ios/App/CapApp-SPM/Sources
+./ios/App/DerivedData
 ./ios/DerivedData
 ./ios/capacitor-cordova-ios-plugins
 ./ios/capacitor-cordova-ios-plugins/CordovaPluginsResources.podspec
@@ -597,4 +598,3 @@
 ./src/hooks/home/useHome.js
 ./src/hooks/home/useHomeActions.js
 ./src/hooks/home/useHomeAlerts.js
-./src/hooks/home/useHomeDialogs.js
