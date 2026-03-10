@@ -444,6 +444,13 @@
 ./scripts/test-cleanup.sh
 ./scripts/validate-ios-oauth.sh
 ./scripts/waitme-control.sh
+./scripts/waitme-iphone.sh
+./scripts/waitme-launcher.js
+./scripts/waitme-simulator.sh
+./scripts/waitme-snapshot.sh
+./scripts/waitme-state.sh
+./scripts/waitme-stop.sh
+./scripts/waitme-supervisor.sh
 ./src
 ./src/App.jsx
 ./src/Layout.jsx
@@ -591,10 +598,3 @@
 ./src/hooks/history/useHistoryActions.js
 ./src/hooks/history/useHistoryAutoExpire.js
 ./src/hooks/history/useHistoryClock.js
-./src/hooks/history/useHistoryContexts.jsx
-./src/hooks/history/useHistoryDerived.js
-./src/hooks/history/useHistoryDialogs.js
-./src/hooks/history/useHistoryFilters.js
-./src/hooks/history/useHistoryLocalSync.js
-./src/hooks/history/useHistoryQueries.js
-./src/hooks/history/useHistoryTransforms.js

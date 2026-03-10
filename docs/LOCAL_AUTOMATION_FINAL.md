@@ -1,6 +1,19 @@
 # WaitMe — Local Automation (Final)
 
-Sistema operativo local para el proyecto. Un solo launcher, comandos claros.
+Sistema operativo local para el proyecto. Supervisor central + mode runners.
+
+---
+
+## ARQUITECTURA
+
+```
+waitme-supervisor.sh (controlador central)
+├── waitme-simulator.sh  → dev server + bridge + simulador + auto-login
+├── waitme-iphone.sh     → build producción + Xcode
+├── waitme-state.sh      → LIVE_PROJECT_STATE.json
+├── waitme-snapshot.sh   → tmp/waitme_project_snapshot.zip
+└── waitme-stop.sh       → para dev server y bridge
+```
 
 ---
 
@@ -34,6 +47,8 @@ Sistema operativo local para el proyecto. Un solo launcher, comandos claros.
 | `npm run waitme:state` | Regenera LIVE_PROJECT_STATE.json |
 | `npm run waitme:snapshot` | Genera tmp/waitme_project_snapshot.zip |
 | `npm run waitme:stop` | Para dev server y bridge |
+
+**Alternativa:** `node scripts/waitme-launcher.js <simulator|iphone|state|snapshot|stop>`
 
 ---
 

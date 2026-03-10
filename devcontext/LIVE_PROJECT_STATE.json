@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-03-10T13:55:02.513Z",
+  "timestamp": "2026-03-10T14:05:38.804Z",
   "mode": "idle",
   "auth_mode": "unknown",
   "bridge_running": false,
   "dev_server_running": false,
-  "ios_server_block_present": true,
+  "ios_server_block_present": false,
   "snapshot_path": "tmp/waitme_project_snapshot.zip",
   "current_branch": "main",
-  "last_commit": "77b7031e",
+  "last_commit": "1a372265",
   "last_build_status": "ok",
   "git": {
     "branch": "main",
-    "commit": "77b7031e",
+    "commit": "1a372265",
     "dirty": true
   },
   "environment": {
@@ -24,9 +24,9 @@
     "bypass_auth": false
   },
   "ios_config": {
-    "has_server_url": true,
-    "server_url": "http://192.168.0.13:5173",
-    "mode": "dev_server"
+    "has_server_url": false,
+    "server_url": "NONE",
+    "mode": "local_bundle"
   },
   "map_config": {
     "has_token": false,
